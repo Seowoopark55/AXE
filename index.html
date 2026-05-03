@@ -6,9 +6,7 @@
 <title>AXE 정보센터</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -77,7 +75,6 @@ h1 {
     line-height: 1.6;
 }
 
-/* 메인 카테고리 */
 .main-menu {
     display: flex;
     flex-wrap: wrap;
@@ -144,7 +141,104 @@ h1 {
     white-space: nowrap;
 }
 
-/* 검색 + 필터 */
+/* 메인 홈 */
+.home-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 18px;
+}
+
+.home-card {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.25);
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.home-card-title {
+    font-size: 19px;
+    font-weight: 950;
+    margin-bottom: 14px;
+    color: #ffb52e;
+}
+
+.notice-item,
+.tube-item,
+.preview-item {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.notice-item:last-child,
+.tube-item:last-child,
+.preview-item:last-child {
+    border-bottom: none;
+}
+
+.item-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #fff;
+}
+
+.item-date {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
+}
+
+.item-content {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #aaa;
+    line-height: 1.5;
+}
+
+.important {
+    display: inline-block;
+    margin-right: 6px;
+    color: #ff5d5d;
+    font-weight: 950;
+}
+
+.tube-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: #ffb52e;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 11px;
+}
+
+.quick-card {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.035);
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+}
+
+.quick-card:hover {
+    border-color: rgba(255,181,46,0.4);
+}
+
+.quick-name {
+    font-weight: 950;
+}
+
+.quick-desc {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
+}
+
+/* 제작 정보 */
 .toolbar {
     display: flex;
     gap: 10px;
@@ -209,7 +303,6 @@ h1 {
     margin-bottom: 12px;
 }
 
-/* DB 레이아웃 */
 .db-layout {
     display: grid;
     grid-template-columns: 360px 1fr;
@@ -364,6 +457,7 @@ h1 {
 }
 
 @media (max-width: 920px) {
+    .home-grid,
     .db-layout {
         grid-template-columns: 1fr;
     }
@@ -415,8 +509,8 @@ h1 {
         margin-top: 10px;
     }
 
-    .toolbar {
-        display: block;
+    .quick-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>
@@ -433,13 +527,14 @@ h1 {
             <div class="kicker">AXE COMPANY DATABASE</div>
             <h1>AXE 정보센터</h1>
             <div class="sub">
-                제작 정보, 재료 목록, 랭크 조건 등 회사 활동에 필요한 데이터를 빠르게 확인하는 내부 정보 허브입니다.
+                회사 활동에 필요한 공지, 영상, 제작 정보와 게임 데이터를 빠르게 확인하는 내부 정보 허브입니다.
             </div>
         </div>
     </div>
 
     <div class="main-menu">
-        <button class="active" onclick="showCraft()">제작</button>
+        <button class="active" onclick="showHome()">메인</button>
+        <button onclick="showCraft()">제작</button>
         <button onclick="showReady(this, '아이템 시세')">아이템 시세</button>
         <button onclick="showReady(this, '스킬')">스킬</button>
         <button onclick="showReady(this, '생활')">생활</button>
@@ -452,7 +547,7 @@ h1 {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyGjviirSK0lP3KMP50JkQBZip2eWS6JpGDVWWXDKeljoYhpzuohnKLllpTmja0sYikkw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwQIA-5BvzwBYCR3zIYHAZSG5eublKx2wNJlGe-qGuqyHAdjTUvQ1WBU-YzoOdXzIKB/exec";
 
 const categoryMap = {
     ALL: "전체",
@@ -465,6 +560,8 @@ const categoryMap = {
 
 let crafts = [];
 let materials = [];
+let notices = [];
+let tubes = [];
 let currentCategory = "ALL";
 let searchKeyword = "";
 let selectedId = "";
@@ -474,7 +571,9 @@ fetch(API_URL)
     .then(data => {
         crafts = data.crafts || [];
         materials = data.materials || [];
-        showCraft();
+        notices = data.notices || [];
+        tubes = data.tubes || [];
+        showHome();
     })
     .catch(() => {
         document.getElementById("content").innerHTML = `<div class="ready">데이터를 불러오지 못했습니다.</div>`;
@@ -490,8 +589,102 @@ function setMainActive(index) {
     });
 }
 
-function showCraft() {
+function safe(value) {
+    return value === undefined || value === null || value === "" ? "-" : value;
+}
+
+function showHome() {
     setMainActive(0);
+
+    const recentNotices = notices.slice(-5).reverse();
+    const recentTubes = tubes.slice(-4).reverse();
+    const recentCrafts = crafts.slice(-5).reverse();
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">메인</div>
+                <div class="section-desc">공지사항, AXE TUBE, 최신 정보 미리보기를 확인하세요.</div>
+            </div>
+            <div class="count">AXE HUB</div>
+        </div>
+
+        <div class="home-grid">
+            <div class="home-card">
+                <div class="home-card-title">공지사항</div>
+                ${
+                    recentNotices.length
+                    ? recentNotices.map(n => `
+                        <div class="notice-item">
+                            <div class="item-title">
+                                ${String(n.important).toUpperCase() === "TRUE" ? '<span class="important">중요</span>' : ''}
+                                ${safe(n.title)}
+                            </div>
+                            <div class="item-date">${safe(n.date)}</div>
+                            <div class="item-content">${safe(n.content)}</div>
+                        </div>
+                    `).join("")
+                    : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+                }
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-title">AXE TUBE</div>
+                ${
+                    recentTubes.length
+                    ? recentTubes.map(t => `
+                        <div class="tube-item">
+                            <div class="item-title">${safe(t.title)}</div>
+                            <div class="item-date">${safe(t.date)}</div>
+                            <div class="item-content">${safe(t.note)}</div>
+                            ${t.url ? `<a class="tube-link" href="${t.url}" target="_blank">영상 보기</a>` : ''}
+                        </div>
+                    `).join("")
+                    : `<div class="ready">등록된 영상이 없습니다.</div>`
+                }
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-title">정보 바로가기</div>
+                <div class="quick-grid">
+                    <div class="quick-card" onclick="showCraft()">
+                        <div class="quick-name">제작 정보</div>
+                        <div class="quick-desc">제작 아이템과 필요 재료 확인</div>
+                    </div>
+                    <div class="quick-card" onclick="showReadyByTitle('아이템 시세')">
+                        <div class="quick-name">아이템 시세</div>
+                        <div class="quick-desc">추후 연결 예정</div>
+                    </div>
+                    <div class="quick-card" onclick="showReadyByTitle('무법지대')">
+                        <div class="quick-name">무법지대</div>
+                        <div class="quick-desc">공략 및 위치 정보 예정</div>
+                    </div>
+                    <div class="quick-card" onclick="showReadyByTitle('스킬')">
+                        <div class="quick-name">스킬</div>
+                        <div class="quick-desc">스킬 정보 예정</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-title">최신 제작 정보</div>
+                ${
+                    recentCrafts.length
+                    ? recentCrafts.map(c => `
+                        <div class="preview-item">
+                            <div class="item-title">${safe(c.item_name)}</div>
+                            <div class="item-content">${catName(c.category)} · 성공률 ${safe(c.success_rate)}% · 랭크 ${safe(c.craft_rank)}</div>
+                        </div>
+                    `).join("")
+                    : `<div class="ready">등록된 제작 정보가 없습니다.</div>`
+                }
+            </div>
+        </div>
+    `;
+}
+
+function showCraft() {
+    setMainActive(1);
 
     const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
 
@@ -599,7 +792,7 @@ function renderList() {
 
     listBox.innerHTML = list.map(c => `
         <div class="item-row ${selectedId === c.id ? "active" : ""}" onclick="selectItem('${c.id}')">
-            <div class="item-name">${c.item_name || "이름 없음"}</div>
+            <div class="item-name">${safe(c.item_name)}</div>
             <div class="item-sub">${catName(c.category)}</div>
         </div>
     `).join("");
@@ -631,19 +824,19 @@ function renderDetail(id) {
     let materialHtml = itemMaterials.length
         ? itemMaterials.map(m => `
             <div class="material-row">
-                <span>${m.material_name}</span>
-                <span class="qty">x${m.quantity}</span>
+                <span>${safe(m.material_name)}</span>
+                <span class="qty">x${safe(m.quantity)}</span>
             </div>
         `).join("")
         : `<div class="material-row"><span>등록된 재료 없음</span></div>`;
 
     detailBox.innerHTML = `
-        <div class="detail-title">${item.item_name}</div>
+        <div class="detail-title">${safe(item.item_name)}</div>
 
         <div class="badges">
             <span class="badge gold">${catName(item.category)}</span>
-            <span class="badge">성공률 ${item.success_rate}%</span>
-            <span class="badge">랭크 ${item.craft_rank}</span>
+            <span class="badge">성공률 ${safe(item.success_rate)}%</span>
+            <span class="badge">랭크 ${safe(item.craft_rank)}</span>
         </div>
 
         <div class="info-grid">
@@ -653,11 +846,11 @@ function renderDetail(id) {
             </div>
             <div class="info-card">
                 <div class="info-label">성공률</div>
-                <div class="info-value">${item.success_rate}%</div>
+                <div class="info-value">${safe(item.success_rate)}%</div>
             </div>
             <div class="info-card">
                 <div class="info-label">획득처</div>
-                <div class="info-value">${item.obtain_place || "-"}</div>
+                <div class="info-value">${safe(item.obtain_place)}</div>
             </div>
         </div>
 
@@ -673,6 +866,19 @@ function showReady(btn, title) {
     const index = buttons.indexOf(btn);
     setMainActive(index);
 
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">${title}</div>
+                <div class="section-desc">아직 연결되지 않은 카테고리입니다.</div>
+            </div>
+            <div class="count">준비중</div>
+        </div>
+        <div class="ready">해당 정보는 추후 추가 예정입니다.</div>
+    `;
+}
+
+function showReadyByTitle(title) {
     document.getElementById("content").innerHTML = `
         <div class="section-head">
             <div>
