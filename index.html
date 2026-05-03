@@ -6,176 +6,455 @@
 <title>AXE 정보센터</title>
 
 <style>
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
-    background: #0b0b0b;
+    background:
+        radial-gradient(circle at top, rgba(255, 181, 46, 0.12), transparent 35%),
+        linear-gradient(180deg, #050505 0%, #111 45%, #070707 100%);
     color: #fff;
-    font-family: Arial;
+    font-family: Arial, sans-serif;
 }
 
 .wrap {
-    max-width: 1300px;
+    max-width: 1280px;
     margin: auto;
-    padding: 20px;
+    padding: 28px 18px 50px;
 }
 
-/* 상단 */
-.top {
+.hero {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 22px;
+    padding: 26px;
+    margin-bottom: 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 181, 46, 0.2);
+    background:
+        linear-gradient(135deg, rgba(255,181,46,0.12), rgba(255,255,255,0.025)),
+        #101010;
 }
 
-.logo {
-    width: 60px;
+.logo-box {
+    width: 128px;
+    height: 128px;
+    border-radius: 22px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,181,46,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+}
+
+.logo-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.kicker {
+    color: #ffb52e;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    margin-bottom: 8px;
 }
 
 h1 {
     margin: 0;
-    font-size: 22px;
+    font-size: 38px;
+    font-weight: 950;
 }
 
-/* 검색 */
+.sub {
+    margin-top: 10px;
+    color: #c4c4c4;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* 메인 카테고리 */
+.main-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.main-menu button {
+    background: rgba(20,20,20,0.92);
+    color: #bbb;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 999px;
+    padding: 9px 15px;
+    cursor: pointer;
+    font-weight: 800;
+    transition: 0.15s ease;
+}
+
+.main-menu button:hover {
+    border-color: rgba(255,181,46,0.4);
+    color: #fff;
+}
+
+.main-menu button.active {
+    color: #ffb52e;
+    background: rgba(255,181,46,0.1);
+    border-color: rgba(255,181,46,0.65);
+}
+
+.panel {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(12,12,12,0.88);
+    border-radius: 22px;
+    padding: 22px;
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 18px;
+}
+
+.section-title {
+    font-size: 25px;
+    font-weight: 950;
+}
+
+.section-desc {
+    color: #909090;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.count {
+    color: #ffb52e;
+    background: rgba(255,181,46,0.09);
+    border: 1px solid rgba(255,181,46,0.25);
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* 검색 + 필터 */
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
 .search {
     flex: 1;
+    position: relative;
 }
 
 .search input {
     width: 100%;
-    height: 42px;
-    border-radius: 10px;
-    border: none;
-    padding: 0 15px;
-    background: #1a1a1a;
-    color: #fff;
-}
-
-/* 카테고리 */
-.filter {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
-}
-
-.filter button {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    color: #aaa;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.filter button.active {
-    color: #ffb52e;
-    border-color: #ffb52e;
-}
-
-/* 메인 */
-.main {
-    display: flex;
-    gap: 20px;
-}
-
-/* 좌측 리스트 */
-.list {
-    width: 35%;
-    max-height: 600px;
-    overflow-y: auto;
-    border: 1px solid #222;
-    border-radius: 10px;
-}
-
-.item {
-    padding: 12px;
-    border-bottom: 1px solid #222;
-    cursor: pointer;
-}
-
-.item:hover {
+    height: 46px;
+    border-radius: 13px;
+    border: 1px solid rgba(255,255,255,0.1);
     background: #151515;
+    color: #fff;
+    padding: 0 42px 0 15px;
+    outline: none;
 }
 
-.item.active {
-    background: #222;
+.search input:focus {
+    border-color: rgba(255,181,46,0.7);
+}
+
+.search-mark {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffb52e;
+}
+
+.sub-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+
+.sub-filter button {
+    background: rgba(255,255,255,0.045);
+    color: #cfcfcf;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.sub-filter button.active {
+    color: #ffb52e;
+    border-color: rgba(255,181,46,0.6);
+    background: rgba(255,181,46,0.09);
+}
+
+.result-info {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* DB 레이아웃 */
+.db-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 18px;
+    min-height: 560px;
+}
+
+.item-list {
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    background: rgba(0,0,0,0.22);
+    overflow: hidden;
+}
+
+.list-scroll {
+    max-height: 560px;
+    overflow-y: auto;
+}
+
+.item-row {
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+    transition: 0.12s ease;
+}
+
+.item-row:hover {
+    background: rgba(255,255,255,0.045);
+}
+
+.item-row.active {
+    background: rgba(255,181,46,0.1);
+    border-left: 3px solid #ffb52e;
 }
 
 .item-name {
-    font-weight: bold;
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
 }
 
 .item-sub {
-    font-size: 12px;
+    margin-top: 5px;
     color: #888;
+    font-size: 12px;
 }
 
-/* 우측 상세 */
 .detail {
-    flex: 1;
-    border: 1px solid #222;
-    border-radius: 10px;
-    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015)),
+        rgba(0,0,0,0.25);
+    padding: 24px;
 }
 
-.detail h2 {
-    margin-top: 0;
+.empty-detail {
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 14px;
 }
 
-.meta {
-    margin: 10px 0;
-    color: #ccc;
+.detail-title {
+    font-size: 30px;
+    font-weight: 950;
+    margin-bottom: 14px;
 }
 
-.material {
-    margin-top: 15px;
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
 }
 
-.material div {
+.badge {
+    font-size: 13px;
+    font-weight: 850;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #ddd;
+}
+
+.badge.gold {
+    color: #ffb52e;
+    background: rgba(255,181,46,0.09);
+    border-color: rgba(255,181,46,0.28);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.info-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 13px;
+    padding: 13px;
+}
+
+.info-label {
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-weight: 900;
+    font-size: 16px;
+}
+
+.material-box {
+    margin-top: 18px;
+}
+
+.material-title {
+    font-size: 18px;
+    font-weight: 950;
+    margin-bottom: 10px;
+}
+
+.material-row {
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px solid #222;
-    padding: 5px 0;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    color: #ddd;
 }
 
-/* 반응형 */
-@media(max-width:900px){
-    .main {
-        flex-direction: column;
+.qty {
+    color: #ffb52e;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.ready {
+    padding: 28px;
+    color: #999;
+    border: 1px dashed rgba(255,255,255,0.14);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+}
+
+@media (max-width: 920px) {
+    .db-layout {
+        grid-template-columns: 1fr;
     }
-    .list {
+
+    .list-scroll {
+        max-height: 360px;
+    }
+
+    .hero {
+        align-items: flex-start;
+    }
+
+    .logo-box {
+        width: 110px;
+        height: 110px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 620px) {
+    .wrap {
+        padding: 20px 14px 40px;
+    }
+
+    .hero {
+        display: block;
+        padding: 22px;
+    }
+
+    .logo-box {
         width: 100%;
+        height: 130px;
+        margin-bottom: 16px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+
+    .section-head {
+        display: block;
+    }
+
+    .count {
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .toolbar {
+        display: block;
     }
 }
 </style>
 </head>
 
 <body>
-
 <div class="wrap">
 
-    <div class="top">
-        <img src="./axe.png" class="logo">
-        <h1>AXE 제작 정보</h1>
-        <div class="search">
-            <input type="text" id="search" placeholder="아이템 / 재료 검색">
+    <div class="hero">
+        <div class="logo-box">
+            <img src="./axe.png" alt="AXE 로고">
+        </div>
+        <div>
+            <div class="kicker">AXE COMPANY DATABASE</div>
+            <h1>AXE 정보센터</h1>
+            <div class="sub">
+                제작 정보, 재료 목록, 랭크 조건 등 회사 활동에 필요한 데이터를 빠르게 확인하는 내부 정보 허브입니다.
+            </div>
         </div>
     </div>
 
-    <div class="filter" id="filter"></div>
-
-    <div class="main">
-        <div class="list" id="list"></div>
-        <div class="detail" id="detail">아이템을 선택하세요</div>
+    <div class="main-menu">
+        <button class="active" onclick="showCraft()">제작</button>
+        <button onclick="showReady(this, '아이템 시세')">아이템 시세</button>
+        <button onclick="showReady(this, '스킬')">스킬</button>
+        <button onclick="showReady(this, '생활')">생활</button>
+        <button onclick="showReady(this, '무법지대')">무법지대</button>
+        <button onclick="showReady(this, '상자')">상자</button>
     </div>
+
+    <div class="panel" id="content"></div>
 
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyGjviirSK0lP3KMP50JkQBZip2eWS6JpGDVWWXDKeljoYhpzuohnKLllpTmja0sYikkw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyGjviirSK0lP3KMP50JkQBZip2eWS6JpGDVWWXDKeljoYhpzuohnKLllpTmja0sYikkw/exec";
 
-const map = {
+const categoryMap = {
     ALL: "전체",
     SMG: "SMG",
     PISTOL: "피스톨",
@@ -186,90 +465,223 @@ const map = {
 
 let crafts = [];
 let materials = [];
-let current = "ALL";
-let selected = null;
+let currentCategory = "ALL";
+let searchKeyword = "";
+let selectedId = "";
 
-fetch(API)
-.then(r=>r.json())
-.then(d=>{
-    crafts = d.crafts;
-    materials = d.materials;
-    init();
-});
+fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+        crafts = data.crafts || [];
+        materials = data.materials || [];
+        showCraft();
+    })
+    .catch(() => {
+        document.getElementById("content").innerHTML = `<div class="ready">데이터를 불러오지 못했습니다.</div>`;
+    });
 
-function init(){
-    makeFilter();
+function catName(cat) {
+    return categoryMap[cat] || cat || "-";
+}
+
+function setMainActive(index) {
+    document.querySelectorAll(".main-menu button").forEach((btn, i) => {
+        btn.classList.toggle("active", i === index);
+    });
+}
+
+function showCraft() {
+    setMainActive(0);
+
+    const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
+
+    let html = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">제작 정보</div>
+                <div class="section-desc">좌측 목록에서 아이템을 선택하면 우측에 상세 제작 정보가 표시됩니다.</div>
+            </div>
+            <div class="count" id="countBox">총 ${crafts.length}개</div>
+        </div>
+
+        <div class="toolbar">
+            <div class="search">
+                <input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" oninput="onSearch(this.value)">
+                <span class="search-mark">⌕</span>
+            </div>
+        </div>
+
+        <div class="sub-filter">
+    `;
+
+    categories.forEach(cat => {
+        html += `<button class="${cat === currentCategory ? "active" : ""}" onclick="setCategory('${cat}')">${catName(cat)}</button>`;
+    });
+
+    html += `
+        </div>
+
+        <div class="result-info" id="resultInfo"></div>
+
+        <div class="db-layout">
+            <div class="item-list">
+                <div class="list-scroll" id="listBox"></div>
+            </div>
+            <div class="detail" id="detailBox">
+                <div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("content").innerHTML = html;
     renderList();
 }
 
-function makeFilter(){
-    const el = document.getElementById("filter");
-    const cats = ["ALL", ...new Set(crafts.map(c=>c.category))];
-
-    el.innerHTML = cats.map(c=>
-        `<button onclick="setCat('${c}')" class="${c===current?'active':''}">
-        ${map[c]||c}</button>`
-    ).join("");
+function setCategory(cat) {
+    currentCategory = cat;
+    selectedId = "";
+    showCraft();
 }
 
-function setCat(c){
-    current = c;
-    makeFilter();
+function onSearch(value) {
+    searchKeyword = value.trim();
+    selectedId = "";
     renderList();
+    renderEmptyDetail();
 }
 
-document.getElementById("search").oninput = renderList;
-
-function renderList(){
-    const kw = document.getElementById("search").value.toLowerCase();
-
-    let list = kw
+function getFilteredList() {
+    let list = searchKeyword
         ? crafts
-        : (current==="ALL"?crafts:crafts.filter(c=>c.category===current));
+        : (currentCategory === "ALL" ? crafts : crafts.filter(c => c.category === currentCategory));
 
-    if(kw){
-        list = list.filter(c=>{
-            const mats = materials.filter(m=>m.craft_id===c.id);
-            return (
-                c.item_name.toLowerCase().includes(kw) ||
-                mats.some(m=>m.material_name.toLowerCase().includes(kw))
-            );
+    const keyword = searchKeyword.toLowerCase();
+
+    if (keyword) {
+        list = list.filter(c => {
+            const itemMaterials = materials.filter(m => m.craft_id === c.id);
+            const target = [
+                c.item_name,
+                c.category,
+                catName(c.category),
+                c.success_rate,
+                c.craft_rank,
+                c.obtain_place,
+                c.note,
+                ...itemMaterials.map(m => m.material_name)
+            ].join(" ").toLowerCase();
+
+            return target.includes(keyword);
         });
     }
 
-    const el = document.getElementById("list");
-
-    el.innerHTML = list.map(c=>
-        `<div class="item ${selected===c.id?'active':''}" onclick="selectItem('${c.id}')">
-            <div class="item-name">${c.item_name}</div>
-            <div class="item-sub">${map[c.category]} / ${c.craft_rank}</div>
-        </div>`
-    ).join("");
+    return list;
 }
 
-function selectItem(id){
-    selected = id;
-    renderList();
+function renderList() {
+    const listBox = document.getElementById("listBox");
+    const resultInfo = document.getElementById("resultInfo");
+    const countBox = document.getElementById("countBox");
 
-    const c = crafts.find(x=>x.id===id);
-    const mats = materials.filter(m=>m.craft_id===id);
+    if (!listBox) return;
 
-    document.getElementById("detail").innerHTML = `
-        <h2>${c.item_name}</h2>
-        <div class="meta">분류: ${map[c.category]}</div>
-        <div class="meta">성공률: ${c.success_rate}%</div>
-        <div class="meta">랭크: ${c.craft_rank}</div>
-        <div class="meta">획득처: ${c.obtain_place}</div>
+    const list = getFilteredList();
+    const modeText = searchKeyword ? "전체 검색" : catName(currentCategory);
 
-        <div class="material">
-            <h3>재료</h3>
-            ${mats.map(m=>`
-                <div>
-                    <span>${m.material_name}</span>
-                    <span>x${m.quantity}</span>
-                </div>
-            `).join("")}
+    resultInfo.textContent = `분류: ${modeText} · 검색 결과 ${list.length}개`;
+    countBox.textContent = `${list.length}개 표시`;
+
+    if (list.length === 0) {
+        listBox.innerHTML = `<div class="ready">검색 결과가 없습니다.</div>`;
+        renderEmptyDetail();
+        return;
+    }
+
+    listBox.innerHTML = list.map(c => `
+        <div class="item-row ${selectedId === c.id ? "active" : ""}" onclick="selectItem('${c.id}')">
+            <div class="item-name">${c.item_name || "이름 없음"}</div>
+            <div class="item-sub">${catName(c.category)}</div>
         </div>
+    `).join("");
+}
+
+function selectItem(id) {
+    selectedId = id;
+    renderList();
+    renderDetail(id);
+}
+
+function renderEmptyDetail() {
+    const detailBox = document.getElementById("detailBox");
+    if (!detailBox) return;
+    detailBox.innerHTML = `<div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>`;
+}
+
+function renderDetail(id) {
+    const detailBox = document.getElementById("detailBox");
+    const item = crafts.find(c => c.id === id);
+
+    if (!item) {
+        renderEmptyDetail();
+        return;
+    }
+
+    const itemMaterials = materials.filter(m => m.craft_id === id);
+
+    let materialHtml = itemMaterials.length
+        ? itemMaterials.map(m => `
+            <div class="material-row">
+                <span>${m.material_name}</span>
+                <span class="qty">x${m.quantity}</span>
+            </div>
+        `).join("")
+        : `<div class="material-row"><span>등록된 재료 없음</span></div>`;
+
+    detailBox.innerHTML = `
+        <div class="detail-title">${item.item_name}</div>
+
+        <div class="badges">
+            <span class="badge gold">${catName(item.category)}</span>
+            <span class="badge">성공률 ${item.success_rate}%</span>
+            <span class="badge">랭크 ${item.craft_rank}</span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">분류</div>
+                <div class="info-value">${catName(item.category)}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">성공률</div>
+                <div class="info-value">${item.success_rate}%</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">획득처</div>
+                <div class="info-value">${item.obtain_place || "-"}</div>
+            </div>
+        </div>
+
+        <div class="material-box">
+            <div class="material-title">필요 재료</div>
+            ${materialHtml}
+        </div>
+    `;
+}
+
+function showReady(btn, title) {
+    const buttons = Array.from(document.querySelectorAll(".main-menu button"));
+    const index = buttons.indexOf(btn);
+    setMainActive(index);
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">${title}</div>
+                <div class="section-desc">아직 연결되지 않은 카테고리입니다.</div>
+            </div>
+            <div class="count">준비중</div>
+        </div>
+        <div class="ready">해당 정보는 추후 추가 예정입니다.</div>
     `;
 }
 </script>
