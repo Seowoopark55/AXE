@@ -6,99 +6,217 @@
 <title>AXE 정보센터</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
-    background: #080808;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(0, 230, 118, 0.12), transparent 35%),
+        radial-gradient(circle at top right, rgba(255, 215, 0, 0.08), transparent 30%),
+        linear-gradient(180deg, #050505 0%, #0b0b0b 45%, #050505 100%);
     color: #fff;
     font-family: Arial, sans-serif;
 }
 
 .wrap {
-    max-width: 1180px;
+    max-width: 1220px;
     margin: auto;
-    padding: 30px 18px;
+    padding: 34px 18px 60px;
+}
+
+/* 상단 */
+.hero {
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+        linear-gradient(145deg, #151515, #090909);
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+}
+
+.hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.logo-block {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.logo {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, #00e676, #0a7f45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #021408;
+    font-weight: 900;
+    font-size: 20px;
+    box-shadow: 0 0 28px rgba(0,230,118,0.25);
 }
 
 h1 {
-    margin: 0 0 8px;
-    font-size: 30px;
-    font-weight: 800;
+    margin: 0;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
 }
 
 .sub {
-    color: #999;
-    margin-bottom: 26px;
+    color: #a8a8a8;
+    margin-top: 6px;
     font-size: 14px;
 }
 
-.menu {
+.status {
+    border: 1px solid rgba(0,230,118,0.35);
+    color: #00e676;
+    background: rgba(0,230,118,0.08);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.hero-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 28px;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.info-chip {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.info-label {
+    color: #8c8c8c;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-weight: 800;
+    font-size: 17px;
+}
+
+/* 메뉴 */
+.menu {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
 }
 
 .menu-card {
-    background: linear-gradient(145deg, #151515, #101010);
-    border: 1px solid #2b2b2b;
+    background: rgba(20,20,20,0.88);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
-    padding: 18px;
+    padding: 15px 12px;
     cursor: pointer;
-    transition: 0.15s ease;
+    transition: 0.16s ease;
+    text-align: center;
+    color: #bbb;
 }
 
 .menu-card:hover {
-    border-color: #444;
     transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.18);
+    background: rgba(28,28,28,0.95);
+    color: #fff;
 }
 
-.active-menu {
-    border-color: #00e676;
+.menu-card.active-menu {
+    border-color: rgba(0,230,118,0.7);
+    color: #00e676;
+    background: rgba(0,230,118,0.08);
+}
+
+.menu-title {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+/* 콘텐츠 패널 */
+.panel {
+    background: rgba(12,12,12,0.82);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.28);
 }
 
 .section-head {
-    margin: 8px 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px;
+    margin-bottom: 18px;
 }
 
 .section-title {
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: -0.4px;
 }
 
 .section-desc {
     color: #888;
     font-size: 13px;
-    margin-top: 4px;
+    margin-top: 5px;
 }
 
-/* 검색창 */
+.count-badge {
+    color: #00e676;
+    background: rgba(0,230,118,0.08);
+    border: 1px solid rgba(0,230,118,0.25);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* 검색 */
 .search-wrap {
-    margin: 18px 0 16px;
+    margin: 16px 0 16px;
 }
 
 .search-box {
     position: relative;
-    width: 100%;
 }
 
 .search-box input {
     width: 100%;
-    height: 52px;
-    border-radius: 999px;
-    border: 1px solid #333;
-    background: linear-gradient(145deg, #151515, #101010);
+    height: 56px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
     color: #fff;
     font-size: 16px;
-    padding: 0 52px 0 48px;
+    padding: 0 54px 0 50px;
     outline: none;
     transition: 0.15s ease;
 }
 
 .search-box input:focus {
-    border-color: #00e676;
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.08);
+    border-color: rgba(0,230,118,0.75);
+    box-shadow: 0 0 0 4px rgba(0,230,118,0.08);
 }
 
 .search-icon {
@@ -106,8 +224,8 @@ h1 {
     left: 18px;
     top: 50%;
     transform: translateY(-50%);
-    color: #777;
-    font-size: 18px;
+    color: #00e676;
+    font-size: 19px;
 }
 
 .clear-btn {
@@ -115,8 +233,8 @@ h1 {
     right: 14px;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border: none;
     border-radius: 50%;
     background: #252525;
@@ -125,123 +243,160 @@ h1 {
     display: none;
 }
 
-.clear-btn:hover {
-    background: #333;
-    color: #fff;
+/* 필터 */
+.filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 18px;
+}
+
+.filter button {
+    background: rgba(255,255,255,0.04);
+    color: #ccc;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: 0.15s ease;
+    font-weight: 700;
+}
+
+.filter button:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.filter button.active {
+    border-color: rgba(0,230,118,0.65);
+    color: #00e676;
+    background: rgba(0,230,118,0.08);
 }
 
 .result-info {
     color: #888;
     font-size: 13px;
-    margin: 0 0 14px;
+    margin-bottom: 14px;
 }
 
-.filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-}
-
-.filter button {
-    background: #171717;
-    color: #ccc;
-    border: 1px solid #333;
-    border-radius: 999px;
-    padding: 8px 13px;
-    cursor: pointer;
-    transition: 0.15s ease;
-}
-
-.filter button:hover {
-    background: #242424;
-}
-
-.filter button.active {
-    border-color: #00e676;
-    color: #00e676;
-}
-
+/* 카드 */
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+    gap: 16px;
     align-items: start;
 }
 
 .card {
-    background: linear-gradient(145deg, #151515, #101010);
-    border: 1px solid #2f2f2f;
-    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018)),
+        #111;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
     padding: 18px;
     cursor: pointer;
-    transition: 0.15s ease;
+    transition: 0.16s ease;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0,230,118,0.12), transparent 38%);
+    opacity: 0;
+    transition: 0.16s ease;
+    pointer-events: none;
 }
 
 .card:hover {
-    border-color: #4a4a4a;
-    background: linear-gradient(145deg, #1b1b1b, #111);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    border-color: rgba(0,230,118,0.38);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card-inner {
+    position: relative;
+    z-index: 1;
 }
 
 .item-name {
     font-size: 20px;
-    font-weight: 800;
+    font-weight: 900;
     margin-bottom: 12px;
+    letter-spacing: -0.2px;
 }
 
 .badges {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 12px;
+    margin-bottom: 13px;
 }
 
 .badge {
     font-size: 12px;
-    padding: 5px 8px;
+    padding: 6px 9px;
     border-radius: 999px;
-    background: #222;
-    border: 1px solid #3a3a3a;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
     color: #ddd;
+    font-weight: 700;
 }
 
 .badge.rate {
     color: #00e676;
-    border-color: #00a85a;
+    border-color: rgba(0,230,118,0.35);
+    background: rgba(0,230,118,0.08);
 }
 
 .badge.rank {
     color: #ffd966;
-    border-color: #8a6d00;
+    border-color: rgba(255,217,102,0.32);
+    background: rgba(255,217,102,0.08);
 }
 
 .meta {
     font-size: 13px;
-    color: #aaa;
+    color: #999;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 12px;
 }
 
+.open-hint {
+    color: #666;
+    font-size: 12px;
+}
+
+/* 재료 */
 .materials {
     display: none;
-    margin-top: 14px;
+    margin-top: 15px;
     padding: 14px;
-    background: #0b0b0b;
-    border: 1px solid #2a2a2a;
-    border-radius: 12px;
+    background: rgba(0,0,0,0.34);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
 }
 
 .material-title {
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 900;
     margin-bottom: 10px;
+    color: #fff;
 }
 
 .material-row {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-    padding: 7px 0;
-    border-bottom: 1px solid #1f1f1f;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
     color: #ddd;
     font-size: 14px;
 }
@@ -252,39 +407,71 @@ h1 {
 
 .qty {
     color: #00e676;
-    font-weight: bold;
+    font-weight: 900;
+    white-space: nowrap;
 }
 
+/* 준비중 */
 .empty {
-    color: #888;
-    padding: 22px;
-    border: 1px dashed #333;
-    border-radius: 14px;
-    background: #111;
+    color: #999;
+    padding: 26px;
+    border: 1px dashed rgba(255,255,255,0.14);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.03);
 }
 
-@media (max-width: 900px) {
-    .menu, .grid {
+/* 반응형 */
+@media (max-width: 980px) {
+    .menu {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .hero-info {
+        grid-template-columns: 1fr;
+    }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 620px) {
     .wrap {
-        padding: 24px 14px;
+        padding: 22px 14px 40px;
     }
 
-    .menu, .grid {
-        grid-template-columns: 1fr;
+    .hero {
+        padding: 22px;
+    }
+
+    .hero-top {
+        display: block;
+    }
+
+    .status {
+        display: inline-block;
+        margin-top: 14px;
     }
 
     h1 {
-        font-size: 26px;
+        font-size: 27px;
     }
 
-    .search-box input {
-        height: 50px;
-        font-size: 15px;
+    .menu {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-head {
+        display: block;
+    }
+
+    .count-badge {
+        display: inline-block;
+        margin-top: 10px;
     }
 }
 </style>
@@ -293,19 +480,58 @@ h1 {
 <body>
 
 <div class="wrap">
-    <h1>AXE 정보센터</h1>
-    <div class="sub">회사 운영 정보 · 제작 정보 · 게임 데이터 정리</div>
 
-    <div class="menu">
-        <div class="menu-card active-menu" onclick="showCraft()">제작 정보</div>
-        <div class="menu-card" onclick="showReady(1)">아이템 시세</div>
-        <div class="menu-card" onclick="showReady(2)">스킬</div>
-        <div class="menu-card" onclick="showReady(3)">생활</div>
-        <div class="menu-card" onclick="showReady(4)">무법지대</div>
-        <div class="menu-card" onclick="showReady(5)">상자</div>
+    <div class="hero">
+        <div class="hero-top">
+            <div class="logo-block">
+                <div class="logo">AXE</div>
+                <div>
+                    <h1>AXE 정보센터</h1>
+                    <div class="sub">제작 · 시세 · 스킬 · 생활 · 무법지대 정보를 정리하는 회사 데이터 허브</div>
+                </div>
+            </div>
+            <div class="status">LIVE DATA</div>
+        </div>
+
+        <div class="hero-info">
+            <div class="info-chip">
+                <div class="info-label">현재 연결</div>
+                <div class="info-value">Google Sheet</div>
+            </div>
+            <div class="info-chip">
+                <div class="info-label">지원 카테고리</div>
+                <div class="info-value">제작 정보</div>
+            </div>
+            <div class="info-chip">
+                <div class="info-label">사용 방식</div>
+                <div class="info-value">검색 · 필터 · 상세보기</div>
+            </div>
+        </div>
     </div>
 
-    <div id="content"></div>
+    <div class="menu">
+        <div class="menu-card active-menu" onclick="showCraft()">
+            <div class="menu-title">제작 정보</div>
+        </div>
+        <div class="menu-card" onclick="showReady(1)">
+            <div class="menu-title">아이템 시세</div>
+        </div>
+        <div class="menu-card" onclick="showReady(2)">
+            <div class="menu-title">스킬</div>
+        </div>
+        <div class="menu-card" onclick="showReady(3)">
+            <div class="menu-title">생활</div>
+        </div>
+        <div class="menu-card" onclick="showReady(4)">
+            <div class="menu-title">무법지대</div>
+        </div>
+        <div class="menu-card" onclick="showReady(5)">
+            <div class="menu-title">상자</div>
+        </div>
+    </div>
+
+    <div class="panel" id="content"></div>
+
 </div>
 
 <script>
@@ -342,8 +568,11 @@ function showCraft() {
 
     let html = `
         <div class="section-head">
-            <div class="section-title">제작 정보</div>
-            <div class="section-desc">아이템을 검색하거나 카테고리를 선택하세요. 카드를 클릭하면 필요 재료가 펼쳐집니다.</div>
+            <div>
+                <div class="section-title">제작 정보</div>
+                <div class="section-desc">아이템명, 재료명, 분류로 검색하고 카드를 눌러 필요 재료를 확인하세요.</div>
+            </div>
+            <div class="count-badge" id="countBadge">총 ${crafts.length}개</div>
         </div>
 
         <div class="search-wrap">
@@ -352,7 +581,7 @@ function showCraft() {
                 <input
                     id="searchInput"
                     type="text"
-                    placeholder="아이템명, 재료명, 분류 검색"
+                    placeholder="아이템명 또는 재료명 검색"
                     value="${searchKeyword}"
                     oninput="handleSearch(this.value)"
                 >
@@ -409,6 +638,7 @@ function clearSearch() {
 function renderCrafts() {
     const grid = document.getElementById("craftGrid");
     const resultInfo = document.getElementById("resultInfo");
+    const countBadge = document.getElementById("countBadge");
     const clearBtn = document.getElementById("clearBtn");
 
     if (!grid) return;
@@ -441,9 +671,14 @@ function renderCrafts() {
         });
     }
 
+    const categoryText = currentCategory === "ALL" ? "전체" : currentCategory;
+
     if (resultInfo) {
-        const categoryText = currentCategory === "ALL" ? "전체" : currentCategory;
         resultInfo.textContent = `분류: ${categoryText} · 검색 결과 ${list.length}개`;
+    }
+
+    if (countBadge) {
+        countBadge.textContent = `${list.length}개 표시`;
     }
 
     if (list.length === 0) {
@@ -479,27 +714,34 @@ function renderCrafts() {
         }
 
         card.innerHTML = `
-            <div class="item-name">${c.item_name || "이름 없음"}</div>
+            <div class="card-inner">
+                <div class="item-name">${c.item_name || "이름 없음"}</div>
 
-            <div class="badges">
-                <span class="badge">${c.category || "-"}</span>
-                <span class="badge rate">성공률 ${c.success_rate || "-"}%</span>
-                <span class="badge rank">랭크 ${c.craft_rank || "-"}</span>
-            </div>
+                <div class="badges">
+                    <span class="badge">${c.category || "-"}</span>
+                    <span class="badge rate">성공률 ${c.success_rate || "-"}%</span>
+                    <span class="badge rank">랭크 ${c.craft_rank || "-"}</span>
+                </div>
 
-            <div class="meta">
-                획득처: ${c.obtain_place || "-"}
-            </div>
+                <div class="meta">
+                    <span>획득처: ${c.obtain_place || "-"}</span>
+                    <span class="open-hint">클릭하여 재료 보기</span>
+                </div>
 
-            <div class="materials">
-                <div class="material-title">필요 재료</div>
-                ${matHtml}
+                <div class="materials">
+                    <div class="material-title">필요 재료</div>
+                    ${matHtml}
+                </div>
             </div>
         `;
 
         card.onclick = () => {
             const matBox = card.querySelector(".materials");
-            matBox.style.display = matBox.style.display === "block" ? "none" : "block";
+            const hint = card.querySelector(".open-hint");
+            const isOpen = matBox.style.display === "block";
+
+            matBox.style.display = isOpen ? "none" : "block";
+            hint.textContent = isOpen ? "클릭하여 재료 보기" : "클릭하여 접기";
         };
 
         grid.appendChild(card);
@@ -511,8 +753,11 @@ function showReady(index) {
 
     document.getElementById("content").innerHTML = `
         <div class="section-head">
-            <div class="section-title">준비중</div>
-            <div class="section-desc">아직 연결되지 않은 카테고리입니다.</div>
+            <div>
+                <div class="section-title">준비중</div>
+                <div class="section-desc">아직 연결되지 않은 카테고리입니다.</div>
+            </div>
+            <div class="count-badge">준비중</div>
         </div>
         <div class="empty">해당 정보는 추후 추가 예정입니다.</div>
     `;
