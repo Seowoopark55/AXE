@@ -6,329 +6,1059 @@
 <title>AXE 정보센터</title>
 
 <style>
-*{box-sizing:border-box}
+* { box-sizing: border-box; }
 
-body{
-margin:0;
-background:#0b0b0b;
-color:#fff;
-font-family:Arial;
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at top, rgba(255,181,46,.14), transparent 34%),
+        linear-gradient(180deg, #050505 0%, #111 45%, #070707 100%);
+    color: #fff;
+    font-family: Arial, sans-serif;
 }
 
-.wrap{
-max-width:1200px;
-margin:auto;
-padding:20px;
+.wrap {
+    max-width: 1280px;
+    margin: auto;
+    padding: 28px 18px 50px;
 }
 
-.main-menu{
-display:flex;
-gap:8px;
-margin-bottom:20px;
-flex-wrap:wrap;
+.hero {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 26px;
+    margin-bottom: 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(255,181,46,.2);
+    background: linear-gradient(135deg, rgba(255,181,46,.12), rgba(255,255,255,.025)), #101010;
 }
 
-.main-menu button{
-background:#1a1a1a;
-border:1px solid #333;
-color:#aaa;
-padding:8px 14px;
-border-radius:20px;
-cursor:pointer;
+.logo-box {
+    width: 128px;
+    height: 128px;
+    border-radius: 22px;
+    background: rgba(0,0,0,.35);
+    border: 1px solid rgba(255,181,46,.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
 }
 
-.main-menu button.active{
-color:#ffb52e;
-border-color:#ffb52e;
+.logo-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
 
-.panel{
-border:1px solid #222;
-border-radius:12px;
-padding:15px;
-background:#111;
+.kicker {
+    color: #ffb52e;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    margin-bottom: 8px;
 }
 
-/* 홈 */
-.home-grid{
-display:grid;
-grid-template-columns:0.8fr 1.2fr;
-gap:15px;
+h1 {
+    margin: 0;
+    font-size: 38px;
+    font-weight: 950;
 }
 
-.card{
-background:#111;
-border:1px solid #222;
-border-radius:12px;
-padding:15px;
+.sub {
+    margin-top: 10px;
+    color: #c4c4c4;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
-.card-title{
-color:#ffb52e;
-font-weight:bold;
-margin-bottom:10px;
+.main-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
 }
 
-.notice-item{
-padding:10px 0;
-border-bottom:1px solid #222;
+.main-menu button {
+    background: rgba(20,20,20,.92);
+    color: #bbb;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 999px;
+    padding: 9px 17px;
+    cursor: pointer;
+    font-weight: 850;
 }
 
-.tube-grid{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px;
+.main-menu button.active {
+    color: #ffb52e;
+    background: rgba(255,181,46,.1);
+    border-color: rgba(255,181,46,.65);
 }
 
-.tube-card{
-border:1px solid #222;
-border-radius:10px;
-overflow:hidden;
-cursor:pointer;
-transition:.2s;
-background:#111;
+.info-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
 }
 
-.tube-card:hover{
-border-color:#ffb52e;
-transform:translateY(-3px);
+.info-menu button {
+    background: rgba(255,255,255,.045);
+    color: #cfcfcf;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 999px;
+    padding: 7px 13px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 850;
 }
 
-.thumb{
-width:100%;
-aspect-ratio:16/9;
-background:#000;
+.info-menu button.active {
+    color: #ffb52e;
+    border-color: rgba(255,181,46,.6);
+    background: rgba(255,181,46,.09);
 }
 
-.thumb img{
-width:100%;
-height:100%;
-object-fit:cover;
+.panel {
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(12,12,12,.88);
+    border-radius: 22px;
+    padding: 22px;
 }
 
-.tube-body{
-padding:10px;
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 18px;
 }
 
-.title{
-font-weight:bold;
-font-size:14px;
+.section-title {
+    font-size: 25px;
+    font-weight: 950;
 }
 
-.sub{
-font-size:12px;
-color:#888;
+.section-desc {
+    color: #909090;
+    font-size: 13px;
+    margin-top: 5px;
 }
 
-/* 영상 팝업 */
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.8);
-display:none;
-justify-content:center;
-align-items:center;
-z-index:999;
+.count {
+    color: #ffb52e;
+    background: rgba(255,181,46,.09);
+    border: 1px solid rgba(255,181,46,.25);
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-size: 13px;
+    font-weight: 850;
+    white-space: nowrap;
 }
 
-.modal.active{
-display:flex;
+.home-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.4fr;
+    gap: 18px;
 }
 
-.modal-box{
-width:min(900px,100%);
-background:#000;
-border-radius:10px;
-overflow:hidden;
+.home-card {
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(0,0,0,.25);
+    border-radius: 18px;
+    padding: 16px;
 }
 
-.modal iframe{
-width:100%;
-height:500px;
-border:none;
+.home-card-title {
+    font-size: 18px;
+    font-weight: 950;
+    margin-bottom: 12px;
+    color: #ffb52e;
 }
 
-/* 정보 */
-.info-menu{
-display:flex;
-gap:8px;
-margin-bottom:10px;
-flex-wrap:wrap;
+.notice-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,.07);
 }
 
-.info-menu button{
-background:#222;
-border:1px solid #444;
-color:#aaa;
-padding:6px 12px;
-border-radius:20px;
-cursor:pointer;
+.notice-item:last-child {
+    border-bottom: none;
 }
 
-.info-menu button.active{
-color:#ffb52e;
-border-color:#ffb52e;
+.item-title {
+    font-size: 15px;
+    font-weight: 900;
 }
 
-@media(max-width:800px){
-.home-grid{grid-template-columns:1fr}
-.tube-grid{grid-template-columns:1fr}
-.modal iframe{height:300px}
+.item-date {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
+}
+
+.item-content {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #aaa;
+    line-height: 1.5;
+}
+
+.important {
+    display: inline-block;
+    margin-right: 6px;
+    color: #ff5d5d;
+    font-weight: 950;
+}
+
+.tube-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.tube-card {
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.035);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.tube-card:hover {
+    border-color: rgba(255,181,46,.45);
+    background: rgba(255,181,46,.06);
+    transform: translateY(-2px);
+}
+
+.tube-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+}
+
+.tube-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tube-body {
+    padding: 13px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.search {
+    flex: 1;
+    position: relative;
+}
+
+.search input {
+    width: 100%;
+    height: 46px;
+    border-radius: 13px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: #151515;
+    color: #fff;
+    padding: 0 42px 0 15px;
+    outline: none;
+}
+
+.search-mark {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffb52e;
+}
+
+.sub-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+
+.sub-filter button {
+    background: rgba(255,255,255,.045);
+    color: #cfcfcf;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.sub-filter button.active {
+    color: #ffb52e;
+    border-color: rgba(255,181,46,.6);
+    background: rgba(255,181,46,.09);
+}
+
+.result-info {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.db-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 18px;
+    min-height: 560px;
+}
+
+.item-list {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: rgba(0,0,0,.22);
+    overflow: hidden;
+}
+
+.list-scroll {
+    max-height: 560px;
+    overflow-y: auto;
+}
+
+.item-row {
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    cursor: pointer;
+}
+
+.item-row:hover {
+    background: rgba(255,255,255,.045);
+}
+
+.item-row.active {
+    background: rgba(255,181,46,.1);
+    border-left: 3px solid #ffb52e;
+}
+
+.item-name {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.item-sub {
+    margin-top: 5px;
+    color: #888;
+    font-size: 12px;
+}
+
+.detail {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.015)), rgba(0,0,0,.25);
+    padding: 24px;
+}
+
+.empty-detail {
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    border: 1px dashed rgba(255,255,255,.12);
+    border-radius: 14px;
+}
+
+.detail-title {
+    font-size: 30px;
+    font-weight: 950;
+    margin-bottom: 14px;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+.badge {
+    font-size: 13px;
+    font-weight: 850;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    color: #ddd;
+}
+
+.badge.gold {
+    color: #ffb52e;
+    background: rgba(255,181,46,.09);
+    border-color: rgba(255,181,46,.28);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.info-card {
+    background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 13px;
+    padding: 13px;
+}
+
+.info-label {
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-weight: 900;
+    font-size: 16px;
+}
+
+.material-title {
+    font-size: 18px;
+    font-weight: 950;
+    margin-bottom: 10px;
+}
+
+.material-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    color: #ddd;
+}
+
+.qty {
+    color: #ffb52e;
+    font-weight: 950;
+}
+
+.ready {
+    padding: 28px;
+    color: #999;
+    border: 1px dashed rgba(255,255,255,.14);
+    border-radius: 16px;
+    background: rgba(255,255,255,.03);
+}
+
+.video-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 9999;
+}
+
+.video-modal.active {
+    display: flex;
+}
+
+.video-box {
+    width: min(960px, 100%);
+    background: #0d0d0d;
+    border: 1px solid rgba(255,181,46,.25);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 30px 100px rgba(0,0,0,.65);
+}
+
+.video-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.video-title {
+    font-weight: 900;
+    color: #ffb52e;
+}
+
+.video-close {
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.video-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+
+.video-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+@media (max-width: 920px) {
+    .home-grid,
+    .db-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .tube-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .list-scroll {
+        max-height: 360px;
+    }
+
+    .logo-box {
+        width: 110px;
+        height: 110px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 620px) {
+    .wrap {
+        padding: 20px 14px 40px;
+    }
+
+    .hero {
+        display: block;
+        padding: 22px;
+    }
+
+    .logo-box {
+        width: 100%;
+        height: 130px;
+        margin-bottom: 16px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+
+    .section-head {
+        display: block;
+    }
+
+    .count {
+        display: inline-block;
+        margin-top: 10px;
+    }
 }
 </style>
 </head>
 
 <body>
-
 <div class="wrap">
 
-<div class="main-menu">
-<button onclick="showHome()" class="active">메인</button>
-<button onclick="showNotice()">공지사항</button>
-<button onclick="showTube()">AXE TUBE</button>
-<button onclick="showInfo()">정보</button>
+    <div class="hero">
+        <div class="logo-box">
+            <img src="./axe.png" alt="AXE 로고">
+        </div>
+        <div>
+            <div class="kicker">AXE COMPANY DATABASE</div>
+            <h1>AXE 정보센터</h1>
+            <div class="sub">
+                회사 활동에 필요한 공지, 영상, 제작 정보와 게임 데이터를 빠르게 확인하는 내부 정보 허브입니다.
+            </div>
+        </div>
+    </div>
+
+    <div class="main-menu">
+        <button class="active" onclick="showHome()">메인</button>
+        <button onclick="showNotice()">공지사항</button>
+        <button onclick="showTube()">AXE TUBE</button>
+        <button onclick="showInfo()">정보</button>
+    </div>
+
+    <div class="panel" id="content"></div>
+
 </div>
 
-<div class="panel" id="content"></div>
-
-</div>
-
-<div class="modal" id="modal" onclick="closeVideo(event)">
-<div class="modal-box" id="modalBox"></div>
+<div class="video-modal" id="videoModal" onclick="closeVideoOutside(event)">
+    <div class="video-box">
+        <div class="video-head">
+            <div class="video-title" id="videoTitle">AXE TUBE</div>
+            <button class="video-close" onclick="closeVideo()">×</button>
+        </div>
+        <div class="video-frame" id="videoFrame"></div>
+    </div>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwQIA-5BvzwBYCR3zIYHAZSG5eublKx2wNJlGe-qGuqyHAdjTUvQ1WBU-YzoOdXzIKB/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwQIA-5BvzwBYCR3zIYHAZSG5eublKx2wNJlGe-qGuqyHAdjTUvQ1WBU-YzoOdXzIKB/exec";
 
-let notices=[],tubes=[],crafts=[],materials=[];
+const categoryMap = {
+    ALL: "전체",
+    SMG: "SMG",
+    PISTOL: "피스톨",
+    REVOLVER: "리볼버",
+    KNIFE: "나이프",
+    ETC: "기타"
+};
 
-fetch(API)
-.then(r=>r.json())
-.then(d=>{
-notices=d.notices||[];
-tubes=d.tubes||[];
-crafts=d.crafts||[];
-materials=d.materials||[];
-showHome();
-});
+let crafts = [];
+let materials = [];
+let notices = [];
+let tubes = [];
+let currentCategory = "ALL";
+let searchKeyword = "";
+let selectedId = "";
 
-function setActive(i){
-document.querySelectorAll(".main-menu button").forEach((b,idx)=>{
-b.classList.toggle("active",idx===i);
-});
+fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+        crafts = data.crafts || [];
+        materials = data.materials || [];
+        notices = data.notices || [];
+        tubes = data.tubes || [];
+        showHome();
+    })
+    .catch(() => {
+        document.getElementById("content").innerHTML = `<div class="ready">데이터를 불러오지 못했습니다.</div>`;
+    });
+
+function safe(v) {
+    return v === undefined || v === null || v === "" ? "-" : v;
 }
 
-function getId(url){
-const m=url.match(/(?:v=|youtu\.be\/)([^&]+)/);
-return m?m[1]:"";
+function escapeText(v) {
+    return String(v || "").replace(/'/g, "\\'");
 }
 
-function getThumb(t){
-if(t.thumbnail) return t.thumbnail;
-const id=getId(t.url);
-return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:"";
+function catName(cat) {
+    return categoryMap[cat] || cat || "-";
 }
 
-function openVideo(url){
-const id=getId(url);
-if(!id) return alert("영상 오류");
-
-document.getElementById("modal").classList.add("active");
-document.getElementById("modalBox").innerHTML=
-`<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allowfullscreen></iframe>`;
+function setMainActive(index) {
+    document.querySelectorAll(".main-menu button").forEach((btn, i) => {
+        btn.classList.toggle("active", i === index);
+    });
 }
 
-function closeVideo(e){
-if(e.target.id==="modal"){
-document.getElementById("modal").classList.remove("active");
-document.getElementById("modalBox").innerHTML="";
-}
-}
-
-/* 메인 */
-function showHome(){
-setActive(0);
-
-document.getElementById("content").innerHTML=`
-<div class="home-grid">
-
-<div class="card">
-<div class="card-title">공지사항</div>
-${notices.slice(-4).reverse().map(n=>`
-<div class="notice-item">
-<div class="title">${n.title}</div>
-<div class="sub">${n.date}</div>
-</div>`).join("")}
-</div>
-
-<div class="card">
-<div class="card-title">AXE TUBE</div>
-<div class="tube-grid">
-${tubes.slice(-6).reverse().map(t=>`
-<div class="tube-card" onclick="openVideo('${t.url}')">
-<div class="thumb"><img src="${getThumb(t)}"></div>
-<div class="tube-body">
-<div class="title">${t.title}</div>
-<div class="sub">${t.date}</div>
-</div>
-</div>`).join("")}
-</div>
-</div>
-
-</div>
-`;
+function formatDate(v) {
+    if (!v) return "-";
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return v;
+    return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
 }
 
-/* 공지 */
-function showNotice(){
-setActive(1);
+function getYoutubeId(url) {
+    if (!url) return "";
+    const text = String(url).trim();
 
-document.getElementById("content").innerHTML=`
-<div class="card">
-<div class="card-title">공지사항</div>
-${notices.reverse().map(n=>`
-<div class="notice-item">
-<div class="title">${n.title}</div>
-<div class="sub">${n.date}</div>
-</div>`).join("")}
-</div>
-`;
+    const patterns = [
+        /youtube\.com\/watch\?v=([^&]+)/,
+        /youtu\.be\/([^?&]+)/,
+        /youtube\.com\/embed\/([^?&]+)/,
+        /youtube\.com\/shorts\/([^?&]+)/
+    ];
+
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) return match[1];
+    }
+
+    return "";
 }
 
-/* 튜브 */
-function showTube(){
-setActive(2);
-
-document.getElementById("content").innerHTML=`
-<div class="tube-grid">
-${tubes.reverse().map(t=>`
-<div class="tube-card" onclick="openVideo('${t.url}')">
-<div class="thumb"><img src="${getThumb(t)}"></div>
-<div class="tube-body">
-<div class="title">${t.title}</div>
-<div class="sub">${t.date}</div>
-</div>
-</div>`).join("")}
-</div>
-`;
+function getTubeThumb(t) {
+    if (t.thumbnail && String(t.thumbnail).trim() !== "") return t.thumbnail;
+    const id = getYoutubeId(t.url);
+    if (!id) return "./axe.png";
+    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
 }
 
-/* 정보 */
-function showInfo(){
-setActive(3);
+function openVideo(url, title) {
+    const id = getYoutubeId(url);
 
-document.getElementById("content").innerHTML=`
-<div class="info-menu">
-<button class="active">제작</button>
-<button>아이템 시세</button>
-<button>스킬</button>
-<button>생활</button>
-<button>무법지대</button>
-<button>상자</button>
-</div>
+    if (!id) {
+        alert("유튜브 주소를 확인해주세요.");
+        return;
+    }
 
-<div class="card">제작 데이터 연결됨</div>
-`;
+    document.getElementById("videoTitle").textContent = title || "AXE TUBE";
+    document.getElementById("videoFrame").innerHTML = `
+        <iframe
+            src="https://www.youtube.com/embed/${id}?autoplay=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    `;
+
+    document.getElementById("videoModal").classList.add("active");
+}
+
+function closeVideo() {
+    document.getElementById("videoModal").classList.remove("active");
+    document.getElementById("videoFrame").innerHTML = "";
+}
+
+function closeVideoOutside(event) {
+    if (event.target.id === "videoModal") closeVideo();
+}
+
+function renderTubeCard(t) {
+    return `
+        <div class="tube-card" onclick="openVideo('${escapeText(t.url)}', '${escapeText(t.title)}')">
+            <div class="tube-thumb">
+                <img src="${getTubeThumb(t)}" onerror="this.src='./axe.png'">
+            </div>
+            <div class="tube-body">
+                <div class="item-title">${safe(t.title)}</div>
+                <div class="item-date">${formatDate(t.date)}</div>
+                <div class="item-content">${safe(t.note)}</div>
+            </div>
+        </div>
+    `;
+}
+
+function showHome() {
+    setMainActive(0);
+
+    const recentNotices = notices.slice(-4).reverse();
+    const recentTubes = tubes.slice(-6).reverse();
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">메인</div>
+                <div class="section-desc">최근 공지와 AXE TUBE 업데이트를 확인하세요.</div>
+            </div>
+            <div class="count">AXE HUB</div>
+        </div>
+
+        <div class="home-grid">
+            <div class="home-card">
+                <div class="home-card-title">공지사항</div>
+                ${
+                    recentNotices.length
+                    ? recentNotices.map(n => `
+                        <div class="notice-item">
+                            <div class="item-title">
+                                ${String(n.important).toUpperCase() === "TRUE" ? '<span class="important">중요</span>' : ''}
+                                ${safe(n.title)}
+                            </div>
+                            <div class="item-date">${formatDate(n.date)}</div>
+                            <div class="item-content">${safe(n.content)}</div>
+                        </div>
+                    `).join("")
+                    : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+                }
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-title">AXE TUBE</div>
+                <div class="tube-grid">
+                    ${
+                        recentTubes.length
+                        ? recentTubes.map(t => renderTubeCard(t)).join("")
+                        : `<div class="ready">등록된 영상이 없습니다.</div>`
+                    }
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function showNotice() {
+    setMainActive(1);
+    const list = notices.slice().reverse();
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">공지사항</div>
+                <div class="section-desc">회사 운영 관련 공지와 업데이트 내역입니다.</div>
+            </div>
+            <div class="count">${list.length}개</div>
+        </div>
+
+        <div class="home-card">
+            ${
+                list.length
+                ? list.map(n => `
+                    <div class="notice-item">
+                        <div class="item-title">
+                            ${String(n.important).toUpperCase() === "TRUE" ? '<span class="important">중요</span>' : ''}
+                            ${safe(n.title)}
+                        </div>
+                        <div class="item-date">${formatDate(n.date)}</div>
+                        <div class="item-content">${safe(n.content)}</div>
+                    </div>
+                `).join("")
+                : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+            }
+        </div>
+    `;
+}
+
+function showTube() {
+    setMainActive(2);
+    const list = tubes.slice().reverse();
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">AXE TUBE</div>
+                <div class="section-desc">회사 활동 영상, 전투 클립, 공략 영상을 모아둔 공간입니다.</div>
+            </div>
+            <div class="count">${list.length}개</div>
+        </div>
+
+        <div class="tube-grid">
+            ${
+                list.length
+                ? list.map(t => renderTubeCard(t)).join("")
+                : `<div class="ready">등록된 영상이 없습니다.</div>`
+            }
+        </div>
+    `;
+}
+
+function showInfo() {
+    setMainActive(3);
+    showCraft();
+}
+
+function infoMenu(active) {
+    const menus = [
+        ["제작", "showCraft()"],
+        ["아이템 시세", "showInfoReady('아이템 시세')"],
+        ["스킬", "showInfoReady('스킬')"],
+        ["생활", "showInfoReady('생활')"],
+        ["무법지대", "showInfoReady('무법지대')"],
+        ["상자", "showInfoReady('상자')"]
+    ];
+
+    return `
+        <div class="info-menu">
+            ${menus.map(m => `
+                <button class="${m[0] === active ? "active" : ""}" onclick="${m[1]}">${m[0]}</button>
+            `).join("")}
+        </div>
+    `;
+}
+
+function showCraft() {
+    setMainActive(3);
+
+    const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
+
+    let html = `
+        ${infoMenu("제작")}
+
+        <div class="section-head">
+            <div>
+                <div class="section-title">제작 정보</div>
+                <div class="section-desc">좌측 목록에서 아이템을 선택하면 우측에 상세 제작 정보가 표시됩니다.</div>
+            </div>
+            <div class="count" id="countBox">총 ${crafts.length}개</div>
+        </div>
+
+        <div class="toolbar">
+            <div class="search">
+                <input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" oninput="onSearch(this.value)">
+                <span class="search-mark">⌕</span>
+            </div>
+        </div>
+
+        <div class="sub-filter">
+    `;
+
+    categories.forEach(cat => {
+        html += `<button class="${cat === currentCategory ? "active" : ""}" onclick="setCategory('${cat}')">${catName(cat)}</button>`;
+    });
+
+    html += `
+        </div>
+
+        <div class="result-info" id="resultInfo"></div>
+
+        <div class="db-layout">
+            <div class="item-list">
+                <div class="list-scroll" id="listBox"></div>
+            </div>
+            <div class="detail" id="detailBox">
+                <div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("content").innerHTML = html;
+    renderList();
+}
+
+function showInfoReady(title) {
+    setMainActive(3);
+
+    document.getElementById("content").innerHTML = `
+        ${infoMenu(title)}
+
+        <div class="section-head">
+            <div>
+                <div class="section-title">${title}</div>
+                <div class="section-desc">아직 연결되지 않은 정보 카테고리입니다.</div>
+            </div>
+            <div class="count">준비중</div>
+        </div>
+
+        <div class="ready">해당 정보는 추후 추가 예정입니다.</div>
+    `;
+}
+
+function setCategory(cat) {
+    currentCategory = cat;
+    selectedId = "";
+    showCraft();
+}
+
+function onSearch(value) {
+    searchKeyword = value.trim();
+    selectedId = "";
+    renderList();
+    renderEmptyDetail();
+}
+
+function getFilteredList() {
+    let list = searchKeyword
+        ? crafts
+        : (currentCategory === "ALL" ? crafts : crafts.filter(c => c.category === currentCategory));
+
+    const keyword = searchKeyword.toLowerCase();
+
+    if (keyword) {
+        list = list.filter(c => {
+            const itemMaterials = materials.filter(m => m.craft_id === c.id);
+            const target = [
+                c.item_name,
+                c.category,
+                catName(c.category),
+                c.success_rate,
+                c.craft_rank,
+                c.obtain_place,
+                c.note,
+                ...itemMaterials.map(m => m.material_name)
+            ].join(" ").toLowerCase();
+
+            return target.includes(keyword);
+        });
+    }
+
+    return list;
+}
+
+function renderList() {
+    const listBox = document.getElementById("listBox");
+    const resultInfo = document.getElementById("resultInfo");
+    const countBox = document.getElementById("countBox");
+
+    if (!listBox) return;
+
+    const list = getFilteredList();
+    const modeText = searchKeyword ? "전체 검색" : catName(currentCategory);
+
+    resultInfo.textContent = `분류: ${modeText} · 검색 결과 ${list.length}개`;
+    countBox.textContent = `${list.length}개 표시`;
+
+    if (list.length === 0) {
+        listBox.innerHTML = `<div class="ready">검색 결과가 없습니다.</div>`;
+        renderEmptyDetail();
+        return;
+    }
+
+    listBox.innerHTML = list.map(c => `
+        <div class="item-row ${selectedId === c.id ? "active" : ""}" onclick="selectItem('${c.id}')">
+            <div class="item-name">${safe(c.item_name)}</div>
+            <div class="item-sub">${catName(c.category)}</div>
+        </div>
+    `).join("");
+}
+
+function selectItem(id) {
+    selectedId = id;
+    renderList();
+    renderDetail(id);
+}
+
+function renderEmptyDetail() {
+    const detailBox = document.getElementById("detailBox");
+    if (!detailBox) return;
+    detailBox.innerHTML = `<div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>`;
+}
+
+function renderDetail(id) {
+    const detailBox = document.getElementById("detailBox");
+    const item = crafts.find(c => c.id === id);
+
+    if (!item) {
+        renderEmptyDetail();
+        return;
+    }
+
+    const itemMaterials = materials.filter(m => m.craft_id === id);
+
+    let materialHtml = itemMaterials.length
+        ? itemMaterials.map(m => `
+            <div class="material-row">
+                <span>${safe(m.material_name)}</span>
+                <span class="qty">x${safe(m.quantity)}</span>
+            </div>
+        `).join("")
+        : `<div class="material-row"><span>등록된 재료 없음</span></div>`;
+
+    detailBox.innerHTML = `
+        <div class="detail-title">${safe(item.item_name)}</div>
+
+        <div class="badges">
+            <span class="badge gold">${catName(item.category)}</span>
+            <span class="badge">성공률 ${safe(item.success_rate)}%</span>
+            <span class="badge">랭크 ${safe(item.craft_rank)}</span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">분류</div>
+                <div class="info-value">${catName(item.category)}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">성공률</div>
+                <div class="info-value">${safe(item.success_rate)}%</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">획득처</div>
+                <div class="info-value">${safe(item.obtain_place)}</div>
+            </div>
+        </div>
+
+        <div>
+            <div class="material-title">필요 재료</div>
+            ${materialHtml}
+        </div>
+    `;
 }
 </script>
 
