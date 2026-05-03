@@ -11,7 +11,7 @@
 body {
     margin: 0;
     background:
-        radial-gradient(circle at top, rgba(255, 181, 46, 0.12), transparent 35%),
+        radial-gradient(circle at top, rgba(255,181,46,.14), transparent 34%),
         linear-gradient(180deg, #050505 0%, #111 45%, #070707 100%);
     color: #fff;
     font-family: Arial, sans-serif;
@@ -30,18 +30,16 @@ body {
     padding: 26px;
     margin-bottom: 18px;
     border-radius: 24px;
-    border: 1px solid rgba(255, 181, 46, 0.2);
-    background:
-        linear-gradient(135deg, rgba(255,181,46,0.12), rgba(255,255,255,0.025)),
-        #101010;
+    border: 1px solid rgba(255,181,46,.2);
+    background: linear-gradient(135deg, rgba(255,181,46,.12), rgba(255,255,255,.025)), #101010;
 }
 
 .logo-box {
     width: 128px;
     height: 128px;
     border-radius: 22px;
-    background: rgba(0,0,0,0.35);
-    border: 1px solid rgba(255,181,46,0.2);
+    background: rgba(0,0,0,.35);
+    border: 1px solid rgba(255,181,46,.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -83,30 +81,24 @@ h1 {
 }
 
 .main-menu button {
-    background: rgba(20,20,20,0.92);
+    background: rgba(20,20,20,.92);
     color: #bbb;
-    border: 1px solid rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,.09);
     border-radius: 999px;
     padding: 9px 15px;
     cursor: pointer;
     font-weight: 800;
-    transition: 0.15s ease;
-}
-
-.main-menu button:hover {
-    border-color: rgba(255,181,46,0.4);
-    color: #fff;
 }
 
 .main-menu button.active {
     color: #ffb52e;
-    background: rgba(255,181,46,0.1);
-    border-color: rgba(255,181,46,0.65);
+    background: rgba(255,181,46,.1);
+    border-color: rgba(255,181,46,.65);
 }
 
 .panel {
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(12,12,12,0.88);
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(12,12,12,.88);
     border-radius: 22px;
     padding: 22px;
 }
@@ -132,8 +124,8 @@ h1 {
 
 .count {
     color: #ffb52e;
-    background: rgba(255,181,46,0.09);
-    border: 1px solid rgba(255,181,46,0.25);
+    background: rgba(255,181,46,.09);
+    border: 1px solid rgba(255,181,46,.25);
     border-radius: 999px;
     padding: 8px 13px;
     font-size: 13px;
@@ -141,18 +133,22 @@ h1 {
     white-space: nowrap;
 }
 
-/* 메인 홈 */
+/* 메인 */
 .home-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: 1.1fr .9fr;
     gap: 18px;
 }
 
 .home-card {
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(0,0,0,.25);
     border-radius: 18px;
     padding: 18px;
+}
+
+.home-card.wide {
+    grid-column: span 2;
 }
 
 .home-card-title {
@@ -166,7 +162,7 @@ h1 {
 .tube-item,
 .preview-item {
     padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,.07);
 }
 
 .notice-item:last-child,
@@ -178,7 +174,6 @@ h1 {
 .item-title {
     font-size: 15px;
     font-weight: 900;
-    color: #fff;
 }
 
 .item-date {
@@ -201,6 +196,19 @@ h1 {
     font-weight: 950;
 }
 
+.tube-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.tube-card {
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.035);
+    border-radius: 14px;
+    padding: 14px;
+}
+
 .tube-link {
     display: inline-block;
     margin-top: 8px;
@@ -210,35 +218,7 @@ h1 {
     font-weight: 900;
 }
 
-.quick-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 11px;
-}
-
-.quick-card {
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.035);
-    border-radius: 14px;
-    padding: 14px;
-    cursor: pointer;
-}
-
-.quick-card:hover {
-    border-color: rgba(255,181,46,0.4);
-}
-
-.quick-name {
-    font-weight: 950;
-}
-
-.quick-desc {
-    margin-top: 5px;
-    font-size: 12px;
-    color: #888;
-}
-
-/* 제작 정보 */
+/* 제작 */
 .toolbar {
     display: flex;
     gap: 10px;
@@ -254,15 +234,11 @@ h1 {
     width: 100%;
     height: 46px;
     border-radius: 13px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,.1);
     background: #151515;
     color: #fff;
     padding: 0 42px 0 15px;
     outline: none;
-}
-
-.search input:focus {
-    border-color: rgba(255,181,46,0.7);
 }
 
 .search-mark {
@@ -281,9 +257,9 @@ h1 {
 }
 
 .sub-filter button {
-    background: rgba(255,255,255,0.045);
+    background: rgba(255,255,255,.045);
     color: #cfcfcf;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,.1);
     border-radius: 999px;
     padding: 7px 12px;
     cursor: pointer;
@@ -293,8 +269,8 @@ h1 {
 
 .sub-filter button.active {
     color: #ffb52e;
-    border-color: rgba(255,181,46,0.6);
-    background: rgba(255,181,46,0.09);
+    border-color: rgba(255,181,46,.6);
+    background: rgba(255,181,46,.09);
 }
 
 .result-info {
@@ -311,9 +287,9 @@ h1 {
 }
 
 .item-list {
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,.08);
     border-radius: 16px;
-    background: rgba(0,0,0,0.22);
+    background: rgba(0,0,0,.22);
     overflow: hidden;
 }
 
@@ -324,24 +300,22 @@ h1 {
 
 .item-row {
     padding: 15px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,.06);
     cursor: pointer;
-    transition: 0.12s ease;
 }
 
 .item-row:hover {
-    background: rgba(255,255,255,0.045);
+    background: rgba(255,255,255,.045);
 }
 
 .item-row.active {
-    background: rgba(255,181,46,0.1);
+    background: rgba(255,181,46,.1);
     border-left: 3px solid #ffb52e;
 }
 
 .item-name {
     font-size: 16px;
     font-weight: 900;
-    color: #fff;
 }
 
 .item-sub {
@@ -351,11 +325,9 @@ h1 {
 }
 
 .detail {
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,.08);
     border-radius: 16px;
-    background:
-        linear-gradient(145deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015)),
-        rgba(0,0,0,0.25);
+    background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.015)), rgba(0,0,0,.25);
     padding: 24px;
 }
 
@@ -365,7 +337,7 @@ h1 {
     align-items: center;
     justify-content: center;
     color: #888;
-    border: 1px dashed rgba(255,255,255,0.12);
+    border: 1px dashed rgba(255,255,255,.12);
     border-radius: 14px;
 }
 
@@ -387,15 +359,15 @@ h1 {
     font-weight: 850;
     padding: 7px 10px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
     color: #ddd;
 }
 
 .badge.gold {
     color: #ffb52e;
-    background: rgba(255,181,46,0.09);
-    border-color: rgba(255,181,46,0.28);
+    background: rgba(255,181,46,.09);
+    border-color: rgba(255,181,46,.28);
 }
 
 .info-grid {
@@ -406,8 +378,8 @@ h1 {
 }
 
 .info-card {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.07);
     border-radius: 13px;
     padding: 13px;
 }
@@ -423,10 +395,6 @@ h1 {
     font-size: 16px;
 }
 
-.material-box {
-    margin-top: 18px;
-}
-
 .material-title {
     font-size: 18px;
     font-weight: 950;
@@ -438,22 +406,21 @@ h1 {
     justify-content: space-between;
     gap: 12px;
     padding: 11px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,.07);
     color: #ddd;
 }
 
 .qty {
     color: #ffb52e;
     font-weight: 950;
-    white-space: nowrap;
 }
 
 .ready {
     padding: 28px;
     color: #999;
-    border: 1px dashed rgba(255,255,255,0.14);
+    border: 1px dashed rgba(255,255,255,.14);
     border-radius: 16px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255,255,255,.03);
 }
 
 @media (max-width: 920px) {
@@ -462,12 +429,16 @@ h1 {
         grid-template-columns: 1fr;
     }
 
-    .list-scroll {
-        max-height: 360px;
+    .home-card.wide {
+        grid-column: span 1;
     }
 
-    .hero {
-        align-items: flex-start;
+    .tube-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .list-scroll {
+        max-height: 360px;
     }
 
     .logo-box {
@@ -508,10 +479,6 @@ h1 {
         display: inline-block;
         margin-top: 10px;
     }
-
-    .quick-grid {
-        grid-template-columns: 1fr;
-    }
 }
 </style>
 </head>
@@ -534,6 +501,8 @@ h1 {
 
     <div class="main-menu">
         <button class="active" onclick="showHome()">메인</button>
+        <button onclick="showNotice()">공지사항</button>
+        <button onclick="showTube()">AXE TUBE</button>
         <button onclick="showCraft()">제작</button>
         <button onclick="showReady(this, '아이템 시세')">아이템 시세</button>
         <button onclick="showReady(this, '스킬')">스킬</button>
@@ -579,6 +548,10 @@ fetch(API_URL)
         document.getElementById("content").innerHTML = `<div class="ready">데이터를 불러오지 못했습니다.</div>`;
     });
 
+function safe(v) {
+    return v === undefined || v === null || v === "" ? "-" : v;
+}
+
 function catName(cat) {
     return categoryMap[cat] || cat || "-";
 }
@@ -589,22 +562,18 @@ function setMainActive(index) {
     });
 }
 
-function safe(value) {
-    return value === undefined || value === null || value === "" ? "-" : value;
-}
-
 function showHome() {
     setMainActive(0);
 
     const recentNotices = notices.slice(-5).reverse();
     const recentTubes = tubes.slice(-4).reverse();
-    const recentCrafts = crafts.slice(-5).reverse();
+    const recentCrafts = crafts.slice(-6).reverse();
 
     document.getElementById("content").innerHTML = `
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">공지사항, AXE TUBE, 최신 정보 미리보기를 확인하세요.</div>
+                <div class="section-desc">최근 공지, 영상, 제작 정보 업데이트를 한눈에 확인하세요.</div>
             </div>
             <div class="count">AXE HUB</div>
         </div>
@@ -629,44 +598,6 @@ function showHome() {
             </div>
 
             <div class="home-card">
-                <div class="home-card-title">AXE TUBE</div>
-                ${
-                    recentTubes.length
-                    ? recentTubes.map(t => `
-                        <div class="tube-item">
-                            <div class="item-title">${safe(t.title)}</div>
-                            <div class="item-date">${safe(t.date)}</div>
-                            <div class="item-content">${safe(t.note)}</div>
-                            ${t.url ? `<a class="tube-link" href="${t.url}" target="_blank">영상 보기</a>` : ''}
-                        </div>
-                    `).join("")
-                    : `<div class="ready">등록된 영상이 없습니다.</div>`
-                }
-            </div>
-
-            <div class="home-card">
-                <div class="home-card-title">정보 바로가기</div>
-                <div class="quick-grid">
-                    <div class="quick-card" onclick="showCraft()">
-                        <div class="quick-name">제작 정보</div>
-                        <div class="quick-desc">제작 아이템과 필요 재료 확인</div>
-                    </div>
-                    <div class="quick-card" onclick="showReadyByTitle('아이템 시세')">
-                        <div class="quick-name">아이템 시세</div>
-                        <div class="quick-desc">추후 연결 예정</div>
-                    </div>
-                    <div class="quick-card" onclick="showReadyByTitle('무법지대')">
-                        <div class="quick-name">무법지대</div>
-                        <div class="quick-desc">공략 및 위치 정보 예정</div>
-                    </div>
-                    <div class="quick-card" onclick="showReadyByTitle('스킬')">
-                        <div class="quick-name">스킬</div>
-                        <div class="quick-desc">스킬 정보 예정</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="home-card">
                 <div class="home-card-title">최신 제작 정보</div>
                 ${
                     recentCrafts.length
@@ -679,12 +610,92 @@ function showHome() {
                     : `<div class="ready">등록된 제작 정보가 없습니다.</div>`
                 }
             </div>
+
+            <div class="home-card wide">
+                <div class="home-card-title">AXE TUBE</div>
+                <div class="tube-grid">
+                    ${
+                        recentTubes.length
+                        ? recentTubes.map(t => `
+                            <div class="tube-card">
+                                <div class="item-title">${safe(t.title)}</div>
+                                <div class="item-date">${safe(t.date)}</div>
+                                <div class="item-content">${safe(t.note)}</div>
+                                ${t.url ? `<a class="tube-link" href="${t.url}" target="_blank">영상 보기</a>` : ''}
+                            </div>
+                        `).join("")
+                        : `<div class="ready">등록된 영상이 없습니다.</div>`
+                    }
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function showNotice() {
+    setMainActive(1);
+    const list = notices.slice().reverse();
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">공지사항</div>
+                <div class="section-desc">회사 운영 관련 공지와 업데이트 내역입니다.</div>
+            </div>
+            <div class="count">${list.length}개</div>
+        </div>
+
+        <div class="home-card">
+            ${
+                list.length
+                ? list.map(n => `
+                    <div class="notice-item">
+                        <div class="item-title">
+                            ${String(n.important).toUpperCase() === "TRUE" ? '<span class="important">중요</span>' : ''}
+                            ${safe(n.title)}
+                        </div>
+                        <div class="item-date">${safe(n.date)}</div>
+                        <div class="item-content">${safe(n.content)}</div>
+                    </div>
+                `).join("")
+                : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+            }
+        </div>
+    `;
+}
+
+function showTube() {
+    setMainActive(2);
+    const list = tubes.slice().reverse();
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-head">
+            <div>
+                <div class="section-title">AXE TUBE</div>
+                <div class="section-desc">회사 활동 영상, 전투 클립, 공략 영상을 모아둔 공간입니다.</div>
+            </div>
+            <div class="count">${list.length}개</div>
+        </div>
+
+        <div class="tube-grid">
+            ${
+                list.length
+                ? list.map(t => `
+                    <div class="tube-card">
+                        <div class="item-title">${safe(t.title)}</div>
+                        <div class="item-date">${safe(t.date)}</div>
+                        <div class="item-content">${safe(t.note)}</div>
+                        ${t.url ? `<a class="tube-link" href="${t.url}" target="_blank">영상 보기</a>` : ''}
+                    </div>
+                `).join("")
+                : `<div class="ready">등록된 영상이 없습니다.</div>`
+            }
         </div>
     `;
 }
 
 function showCraft() {
-    setMainActive(1);
+    setMainActive(3);
 
     const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
 
@@ -854,7 +865,7 @@ function renderDetail(id) {
             </div>
         </div>
 
-        <div class="material-box">
+        <div>
             <div class="material-title">필요 재료</div>
             ${materialHtml}
         </div>
@@ -866,19 +877,6 @@ function showReady(btn, title) {
     const index = buttons.indexOf(btn);
     setMainActive(index);
 
-    document.getElementById("content").innerHTML = `
-        <div class="section-head">
-            <div>
-                <div class="section-title">${title}</div>
-                <div class="section-desc">아직 연결되지 않은 카테고리입니다.</div>
-            </div>
-            <div class="count">준비중</div>
-        </div>
-        <div class="ready">해당 정보는 추후 추가 예정입니다.</div>
-    `;
-}
-
-function showReadyByTitle(title) {
     document.getElementById("content").innerHTML = `
         <div class="section-head">
             <div>
