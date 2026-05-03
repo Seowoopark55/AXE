@@ -6,9 +6,7 @@
 <title>AXE 정보센터</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -82,9 +80,7 @@ body {
     object-fit: contain;
 }
 
-.hero-text {
-    flex: 1;
-}
+.hero-text { flex: 1; }
 
 .kicker {
     color: #ffb52e;
@@ -183,13 +179,9 @@ h1 {
     font-weight: 800;
 }
 
-.search-wrap {
-    margin: 18px 0 16px;
-}
+.search-wrap { margin: 18px 0 16px; }
 
-.search-box {
-    position: relative;
-}
+.search-box { position: relative; }
 
 .search-box input {
     width: 100%;
@@ -308,9 +300,7 @@ h1 {
     border-color: rgba(255,181,46,0.36);
 }
 
-.card:hover::before {
-    opacity: 1;
-}
+.card:hover::before { opacity: 1; }
 
 .card-inner {
     position: relative;
@@ -395,9 +385,7 @@ h1 {
     font-size: 14px;
 }
 
-.material-row:last-child {
-    border-bottom: none;
-}
+.material-row:last-child { border-bottom: none; }
 
 .qty {
     color: #ffb52e;
@@ -414,36 +402,16 @@ h1 {
 }
 
 @media (max-width: 980px) {
-    .menu {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .hero-main {
-        align-items: flex-start;
-    }
-
-    .logo-box {
-        width: 118px;
-        height: 118px;
-    }
+    .menu { grid-template-columns: repeat(3, 1fr); }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-main { align-items: flex-start; }
+    .logo-box { width: 118px; height: 118px; }
 }
 
 @media (max-width: 620px) {
-    .wrap {
-        padding: 22px 14px 40px;
-    }
-
-    .hero {
-        padding: 22px;
-    }
-
-    .hero-main {
-        display: block;
-    }
+    .wrap { padding: 22px 14px 40px; }
+    .hero { padding: 22px; }
+    .hero-main { display: block; }
 
     .logo-box {
         width: 100%;
@@ -451,21 +419,12 @@ h1 {
         margin-bottom: 18px;
     }
 
-    h1 {
-        font-size: 30px;
-    }
+    h1 { font-size: 30px; }
 
-    .menu {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .menu { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; }
 
-    .grid {
-        grid-template-columns: 1fr;
-    }
-
-    .section-head {
-        display: block;
-    }
+    .section-head { display: block; }
 
     .count-badge {
         display: inline-block;
@@ -579,7 +538,7 @@ function showCraft() {
         <div class="section-head">
             <div>
                 <div class="section-title">제작 정보</div>
-                <div class="section-desc">아이템명, 재료명, 분류로 검색하고 카드를 눌러 필요 재료를 확인하세요.</div>
+                <div class="section-desc">검색어가 있으면 전체 제작 정보에서 검색됩니다. 카드를 누르면 필요 재료가 펼쳐집니다.</div>
             </div>
             <div class="count-badge" id="countBadge">총 ${crafts.length}개</div>
         </div>
@@ -656,9 +615,11 @@ function renderCrafts() {
         clearBtn.style.display = searchKeyword ? "block" : "none";
     }
 
-    let list = currentCategory === "ALL"
+    let list = searchKeyword
         ? crafts
-        : crafts.filter(c => c.category === currentCategory);
+        : (currentCategory === "ALL"
+            ? crafts
+            : crafts.filter(c => c.category === currentCategory));
 
     const keyword = searchKeyword.toLowerCase();
 
@@ -681,7 +642,9 @@ function renderCrafts() {
         });
     }
 
-    const categoryText = getCategoryName(currentCategory);
+    const categoryText = searchKeyword
+        ? "전체 검색"
+        : getCategoryName(currentCategory);
 
     if (resultInfo) {
         resultInfo.textContent = `분류: ${categoryText} · 검색 결과 ${list.length}개`;
