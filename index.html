@@ -133,7 +133,6 @@ h1 {
     white-space: nowrap;
 }
 
-/* 메인 */
 .home-grid {
     display: grid;
     grid-template-columns: 0.85fr 1.4fr;
@@ -207,12 +206,19 @@ h1 {
     display: inline-block;
     margin-top: 8px;
     color: #ffb52e;
-    text-decoration: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
     font-size: 13px;
     font-weight: 900;
+    text-decoration: none;
 }
 
-/* 제작 */
+.tube-link:hover {
+    text-decoration: underline;
+}
+
 .toolbar {
     display: flex;
     gap: 10px;
@@ -417,6 +423,69 @@ h1 {
     background: rgba(255,255,255,.03);
 }
 
+/* 영상 팝업 */
+.video-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 9999;
+}
+
+.video-modal.active {
+    display: flex;
+}
+
+.video-box {
+    width: min(960px, 100%);
+    background: #0d0d0d;
+    border: 1px solid rgba(255,181,46,.25);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 30px 100px rgba(0,0,0,.65);
+}
+
+.video-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.video-title {
+    font-weight: 900;
+    color: #ffb52e;
+}
+
+.video-close {
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.video-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+
+.video-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 @media (max-width: 920px) {
     .home-grid,
     .db-layout {
@@ -505,6 +574,16 @@ h1 {
 
 </div>
 
+<div class="video-modal" id="videoModal" onclick="closeVideoOutside(event)">
+    <div class="video-box">
+        <div class="video-head">
+            <div class="video-title" id="videoTitle">AXE TUBE</div>
+            <button class="video-close" onclick="closeVideo()">×</button>
+        </div>
+        <div class="video-frame" id="videoFrame"></div>
+    </div>
+</div>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwQIA-5BvzwBYCR3zIYHAZSG5eublKx2wNJlGe-qGuqyHAdjTUvQ1WBU-YzoOdXzIKB/exec";
 
@@ -552,6 +631,60 @@ function setMainActive(index) {
     });
 }
 
+function getYoutubeId(url) {
+    if (!url) return "";
+
+    const text = String(url).trim();
+
+    const patterns = [
+        /youtube\.com\/watch\?v=([^&]+)/,
+        /youtu\.be\/([^?&]+)/,
+        /youtube\.com\/embed\/([^?&]+)/,
+        /youtube\.com\/shorts\/([^?&]+)/
+    ];
+
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) return match[1];
+    }
+
+    return "";
+}
+
+function openVideo(url, title) {
+    const id = getYoutubeId(url);
+
+    if (!id) {
+        alert("유튜브 주소를 확인해주세요.");
+        return;
+    }
+
+    document.getElementById("videoTitle").textContent = title || "AXE TUBE";
+    document.getElementById("videoFrame").innerHTML = `
+        <iframe
+            src="https://www.youtube.com/embed/${id}?autoplay=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    `;
+
+    document.getElementById("videoModal").classList.add("active");
+}
+
+function closeVideo() {
+    document.getElementById("videoModal").classList.remove("active");
+    document.getElementById("videoFrame").innerHTML = "";
+}
+
+function closeVideoOutside(event) {
+    if (event.target.id === "videoModal") closeVideo();
+}
+
+function renderTubeButton(t) {
+    if (!t.url) return "";
+    return `<button class="tube-link" onclick="openVideo('${String(t.url).replace(/'/g, "\\'")}', '${String(t.title || "AXE TUBE").replace(/'/g, "\\'")}')">사이트에서 보기</button>`;
+}
+
 function showHome() {
     setMainActive(0);
 
@@ -596,7 +729,7 @@ function showHome() {
                                 <div class="item-title">${safe(t.title)}</div>
                                 <div class="item-date">${safe(t.date)}</div>
                                 <div class="item-content">${safe(t.note)}</div>
-                                ${t.url ? `<a class="tube-link" href="${t.url}" target="_blank">영상 보기</a>` : ''}
+                                ${renderTubeButton(t)}
                             </div>
                         `).join("")
                         : `<div class="ready">등록된 영상이 없습니다.</div>`
@@ -660,7 +793,7 @@ function showTube() {
                         <div class="item-title">${safe(t.title)}</div>
                         <div class="item-date">${safe(t.date)}</div>
                         <div class="item-content">${safe(t.note)}</div>
-                        ${t.url ? `<a class="tube-link" href="${t.url}" target="_blank">영상 보기</a>` : ''}
+                        ${renderTubeButton(t)}
                     </div>
                 `).join("")
                 : `<div class="ready">등록된 영상이 없습니다.</div>`
