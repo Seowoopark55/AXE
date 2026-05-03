@@ -27,7 +27,6 @@ body {
     padding: 34px 18px 60px;
 }
 
-/* HERO */
 .hero {
     position: relative;
     overflow: hidden;
@@ -53,7 +52,6 @@ body {
     background-repeat: no-repeat;
     background-position: center;
     opacity: 0.08;
-    filter: blur(0.2px);
     pointer-events: none;
 }
 
@@ -111,7 +109,6 @@ h1 {
     max-width: 720px;
 }
 
-/* MENU */
 .menu {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -147,7 +144,6 @@ h1 {
     font-weight: 850;
 }
 
-/* PANEL */
 .panel {
     background: rgba(12,12,12,0.86);
     border: 1px solid rgba(255,255,255,0.08);
@@ -187,7 +183,6 @@ h1 {
     font-weight: 800;
 }
 
-/* SEARCH */
 .search-wrap {
     margin: 18px 0 16px;
 }
@@ -244,7 +239,6 @@ h1 {
     color: #fff;
 }
 
-/* FILTER */
 .filter {
     display: flex;
     flex-wrap: wrap;
@@ -279,7 +273,6 @@ h1 {
     margin-bottom: 14px;
 }
 
-/* CARDS */
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -376,7 +369,6 @@ h1 {
     white-space: nowrap;
 }
 
-/* MATERIALS */
 .materials {
     display: none;
     margin-top: 15px;
@@ -413,7 +405,6 @@ h1 {
     white-space: nowrap;
 }
 
-/* EMPTY */
 .empty {
     color: #999;
     padding: 28px;
@@ -422,7 +413,6 @@ h1 {
     background: rgba(255,255,255,0.03);
 }
 
-/* RESPONSIVE */
 @media (max-width: 980px) {
     .menu {
         grid-template-columns: repeat(3, 1fr);
@@ -543,6 +533,15 @@ h1 {
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbyGjviirSK0lP3KMP50JkQBZip2eWS6JpGDVWWXDKeljoYhpzuohnKLllpTmja0sYikkw/exec";
 
+const categoryMap = {
+    "ALL": "전체",
+    "SMG": "SMG",
+    "PISTOL": "피스톨",
+    "REVOLVER": "리볼버",
+    "KNIFE": "나이프",
+    "ETC": "기타"
+};
+
 let crafts = [];
 let materials = [];
 let currentCategory = "ALL";
@@ -560,6 +559,10 @@ fetch(API_URL)
             <div class="empty">데이터를 불러오지 못했습니다.</div>
         `;
     });
+
+function getCategoryName(category) {
+    return categoryMap[category] || category || "-";
+}
 
 function setActiveMenu(index) {
     document.querySelectorAll(".menu-card").forEach((el, i) => {
@@ -601,7 +604,7 @@ function showCraft() {
     categories.forEach(cat => {
         html += `
             <button class="${cat === currentCategory ? "active" : ""}" onclick="filterCraft('${cat}')">
-                ${cat}
+                ${getCategoryName(cat)}
             </button>
         `;
     });
@@ -666,6 +669,7 @@ function renderCrafts() {
             const targetText = [
                 c.item_name,
                 c.category,
+                getCategoryName(c.category),
                 c.success_rate,
                 c.craft_rank,
                 c.obtain_place,
@@ -677,7 +681,7 @@ function renderCrafts() {
         });
     }
 
-    const categoryText = currentCategory === "ALL" ? "전체" : currentCategory;
+    const categoryText = getCategoryName(currentCategory);
 
     if (resultInfo) {
         resultInfo.textContent = `분류: ${categoryText} · 검색 결과 ${list.length}개`;
@@ -724,7 +728,7 @@ function renderCrafts() {
                 <div class="item-name">${c.item_name || "이름 없음"}</div>
 
                 <div class="badges">
-                    <span class="badge">${c.category || "-"}</span>
+                    <span class="badge">${getCategoryName(c.category)}</span>
                     <span class="badge rate">성공률 ${c.success_rate || "-"}%</span>
                     <span class="badge rank">랭크 ${c.craft_rank || "-"}</span>
                 </div>
