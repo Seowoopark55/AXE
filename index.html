@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXE 정보센터</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.wrap {
+    max-width: 1100px;
+    margin: auto;
+    padding: 28px 18px;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.sub {
+    color: #999;
+    margin-bottom: 24px;
+}
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.menu-card {
+    background: #151515;
+    border: 1px solid #2c2c2c;
+    border-radius: 14px;
+    padding: 18px;
+    cursor: pointer;
+}
+
+.menu-card:hover {
+    background: #1f1f1f;
+}
+
+.active-menu {
+    border-color: #00e676;
+}
+
+.section-title {
+    margin: 20px 0 12px;
+    font-size: 22px;
+}
+
+.filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.filter button {
+    background: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+}
+
+.filter button.active {
+    border-color: #00e676;
+    color: #00e676;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.card {
+    background: #151515;
+    border: 1px solid #2c2c2c;
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+}
+
+.card:hover {
+    background: #202020;
+}
+
+.item-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.meta {
+    color: #aaa;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.materials {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #333;
+    display: none;
+}
+
+.materials div {
+    color: #ddd;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.empty {
+    color: #888;
+    padding: 20px;
+    border: 1px dashed #333;
+    border-radius: 12px;
+}
+
+@media (max-width: 800px) {
+    .menu, .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    .menu, .grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+    <h1>AXE 정보센터</h1>
+    <div class="sub">회사 운영 정보 · 제작 정보 · 게임 데이터 정리</div>
+
+    <div class="menu">
+        <div class="menu-card active-menu" onclick="showCraft()">제작</div>
+        <div class="menu-card" onclick="showReady()">아이템 시세</div>
+        <div class="menu-card" onclick="showReady()">스킬</div>
+        <div class="menu-card" onclick="showReady()">생활</div>
+        <div class="menu-card" onclick="showReady()">무법지대</div>
+        <div class="menu-card" onclick="showReady()">상자</div>
+    </div>
+
+    <div id="content"></div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyGjviirSK0lP3KMP50JkQBZip2eWS6JpGDVWWXDKeljoYhpzuohnKLllpTmja0sYikkw/exec";
+
+let crafts = [];
+let materials = [];
+let currentCategory = "ALL";
+
+fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+        crafts = data.crafts;
+        materials = data.materials;
+        showCraft();
+    })
+    .catch(() => {
+        document.getElementById("content").innerHTML = `
+            <div class="empty">데이터를 불러오지 못했습니다.</div>
+        `;
+    });
+
+function setActiveMenu(index) {
+    document.querySelectorAll(".menu-card").forEach((el, i) => {
+        el.classList.toggle("active-menu", i === index);
+    });
+}
+
+function showCraft() {
+    setActiveMenu(0);
+
+    const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
+
+    let html = `
+        <div class="section-title">제작 정보</div>
+        <div class="filter">
+    `;
+
+    categories.forEach(cat => {
+        html += `<button class="${cat === currentCategory ? "active" : ""}" onclick="filterCraft('${cat}')">${cat}</button>`;
+    });
+
+    html += `
+        </div>
+        <div class="grid" id="craftGrid"></div>
+    `;
+
+    document.getElementById("content").innerHTML = html;
+
+    renderCrafts();
+}
+
+function filterCraft(cat) {
+    currentCategory = cat;
+    showCraft();
+}
+
+function renderCrafts() {
+    const grid = document.getElementById("craftGrid");
+
+    let list = currentCategory === "ALL"
+        ? crafts
+        : crafts.filter(c => c.category === currentCategory);
+
+    if (list.length === 0) {
+        grid.innerHTML = `<div class="empty">표시할 제작 정보가 없습니다.</div>`;
+        return;
+    }
+
+    grid.innerHTML = "";
+
+    list.forEach(c => {
+        const itemMaterials = materials.filter(m => m.craft_id === c.id);
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        let matHtml = "";
+
+        if (itemMaterials.length > 0) {
+            itemMaterials.forEach(m => {
+                matHtml += `<div>- ${m.material_name} x${m.quantity}</div>`;
+            });
+        } else {
+            matHtml = `<div>등록된 재료 없음</div>`;
+        }
+
+        card.innerHTML = `
+            <div class="item-name">${c.item_name}</div>
+            <div class="meta">
+                분류: ${c.category}<br>
+                성공률: ${c.success_rate}%<br>
+                제작 랭크: ${c.craft_rank}<br>
+                획득처: ${c.obtain_place || "-"}
+            </div>
+            <div class="materials">
+                ${matHtml}
+            </div>
+        `;
+
+        card.onclick = () => {
+            const matBox = card.querySelector(".materials");
+            matBox.style.display = matBox.style.display === "block" ? "none" : "block";
+        };
+
+        grid.appendChild(card);
+    });
+}
+
+function showReady() {
+    setActiveMenu(-1);
+
+    document.getElementById("content").innerHTML = `
+        <div class="section-title">준비중</div>
+        <div class="empty">아직 연결되지 않은 카테고리입니다.</div>
+    `;
+}
+</script>
+
+</body>
+</html>
