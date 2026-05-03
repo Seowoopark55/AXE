@@ -136,7 +136,7 @@ h1 {
 /* 메인 */
 .home-grid {
     display: grid;
-    grid-template-columns: 1.1fr .9fr;
+    grid-template-columns: 0.85fr 1.4fr;
     gap: 18px;
 }
 
@@ -144,30 +144,24 @@ h1 {
     border: 1px solid rgba(255,255,255,.08);
     background: rgba(0,0,0,.25);
     border-radius: 18px;
-    padding: 18px;
-}
-
-.home-card.wide {
-    grid-column: span 2;
+    padding: 16px;
 }
 
 .home-card-title {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 950;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     color: #ffb52e;
 }
 
 .notice-item,
-.tube-item,
-.preview-item {
-    padding: 12px 0;
+.tube-item {
+    padding: 10px 0;
     border-bottom: 1px solid rgba(255,255,255,.07);
 }
 
 .notice-item:last-child,
-.tube-item:last-child,
-.preview-item:last-child {
+.tube-item:last-child {
     border-bottom: none;
 }
 
@@ -429,10 +423,6 @@ h1 {
         grid-template-columns: 1fr;
     }
 
-    .home-card.wide {
-        grid-column: span 1;
-    }
-
     .tube-grid {
         grid-template-columns: 1fr;
     }
@@ -565,15 +555,14 @@ function setMainActive(index) {
 function showHome() {
     setMainActive(0);
 
-    const recentNotices = notices.slice(-5).reverse();
-    const recentTubes = tubes.slice(-4).reverse();
-    const recentCrafts = crafts.slice(-6).reverse();
+    const recentNotices = notices.slice(-4).reverse();
+    const recentTubes = tubes.slice(-6).reverse();
 
     document.getElementById("content").innerHTML = `
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">최근 공지, 영상, 제작 정보 업데이트를 한눈에 확인하세요.</div>
+                <div class="section-desc">최근 공지와 AXE TUBE 업데이트를 확인하세요.</div>
             </div>
             <div class="count">AXE HUB</div>
         </div>
@@ -598,20 +587,6 @@ function showHome() {
             </div>
 
             <div class="home-card">
-                <div class="home-card-title">최신 제작 정보</div>
-                ${
-                    recentCrafts.length
-                    ? recentCrafts.map(c => `
-                        <div class="preview-item">
-                            <div class="item-title">${safe(c.item_name)}</div>
-                            <div class="item-content">${catName(c.category)} · 성공률 ${safe(c.success_rate)}% · 랭크 ${safe(c.craft_rank)}</div>
-                        </div>
-                    `).join("")
-                    : `<div class="ready">등록된 제작 정보가 없습니다.</div>`
-                }
-            </div>
-
-            <div class="home-card wide">
                 <div class="home-card-title">AXE TUBE</div>
                 <div class="tube-grid">
                     ${
