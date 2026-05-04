@@ -427,7 +427,6 @@ h1 {
     width: 100%;
     max-height: 420px;
     object-fit: contain;
-}
     border-radius: 14px;
     border: 1px solid rgba(255,255,255,.12);
     background: #000;
@@ -452,7 +451,7 @@ h1 {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 18px;
+    padding: 6px;
     z-index: 9999;
 }
 
@@ -506,13 +505,7 @@ h1 {
     border: 0;
 }
 
-.image-modal {
-    padding: 6px;
-}
-
 .image-modal img {
-    width: auto;
-    height: auto;
     max-width: 99vw;
     max-height: 98vh;
     object-fit: contain;
@@ -669,6 +662,18 @@ function escapeText(v) {
 
 function catName(cat) {
     return categoryMap[cat] || cat || "-";
+}
+
+function scrollToElement(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    setTimeout(() => {
+        el.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }, 50);
 }
 
 function setMainActive(index) {
@@ -1028,6 +1033,7 @@ function selectItem(id) {
     selectedId = id;
     renderList();
     renderDetail(id);
+    scrollToElement("detailBox");
 }
 
 function renderEmptyDetail() {
@@ -1247,6 +1253,8 @@ function selectBriefingMap(id) {
             <div class="item-content">${safe(map.note)}</div>
         </div>
     `;
+
+    scrollToElement("mapDetailBox");
 }
 
 function showOutlawGuides() {
