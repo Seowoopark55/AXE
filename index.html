@@ -497,8 +497,6 @@ function getValidOperations(){
 
 function showOperationList(){
     selectedOperationId="";
-    operationCategory="ALL";
-
     const buttons=document.querySelectorAll(".sub-filter button");
     if(buttons.length>=2){
         buttons[0].classList.remove("active");
@@ -593,14 +591,17 @@ function showCraft(){
     setMainActive(4);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
-    let html=`${infoMenu("제작")}
+    let html=`
     <div class="section-head">
         <div>
-            <div class="section-title">제작 정보</div>
-            <div class="section-desc">좌측 목록에서 아이템을 선택하면 우측에 상세 제작 정보가 표시됩니다.</div>
+            <div class="section-title">정보</div>
+            <div class="section-desc">게임 플레이에 필요한 각종 정보를 확인합니다.</div>
         </div>
         <div class="count" id="countBox">총 ${crafts.length}개</div>
     </div>
+
+    ${infoMenu("제작")}
+
     <div class="toolbar">
         <div class="search">
             <input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" oninput="onSearch(this.value)">
