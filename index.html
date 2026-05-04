@@ -43,14 +43,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .main-menu button.active::before{transform:scaleX(1)}
 
 .info-menu,.sub-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.info-menu button,.sub-filter button,.back-btn,.tube-submit-open{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:850;transition:.18s ease}
+.info-menu button,.sub-filter button,.back-btn,.tube-submit-open,.guide-video-btn{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:850;transition:.18s ease}
 .info-menu button.active,.sub-filter button.active{color:#ffb52e;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.65)}
-.outlaw-tabs{position:relative;align-items:center}
-.outlaw-tabs button{position:relative;overflow:hidden}
-.outlaw-tabs button.active{color:#ffb52e;background:rgba(255,181,46,.08);border-color:rgba(255,181,46,.65);box-shadow:none}
-.outlaw-tabs button.active::after{display:none}
-.outlaw-tabs button:hover{box-shadow:none}
-.back-btn:hover,.info-menu button:hover,.sub-filter button:hover,.tube-submit-open:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.back-btn:hover,.info-menu button:hover,.sub-filter button:hover,.tube-submit-open:hover,.guide-video-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.guide-video-btn{margin-top:10px;color:#ffb52e;border-color:rgba(255,181,46,.35);background:rgba(255,181,46,.08)}
 
 .panel{border:1px solid rgba(255,255,255,.08);background:rgba(12,12,12,.88);border-radius:22px;padding:22px}
 .section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px}
@@ -572,12 +568,6 @@ function showOperationList(){
     renderOperationList();
 }
 
-function setOperationCategory(cat){
-    operationCategory=cat;
-    selectedOperationId="";
-    showOperationList();
-}
-
 function getFilteredOperations(){
     let list=getValidOperations();
     if(operationCategory!=="ALL")list=list.filter(o=>o.category===operationCategory);
@@ -1097,6 +1087,8 @@ function selectOutlawGuide(id){
         <div class="guide-route-title">${safe(group)}</div>
         ${routeMap[group].map(step=>{
             const img=getGuideImagePath(step.image||step.step_image||"");
+            const video=String(step.video_url||step.video||step.youtube_url||"").trim();
+
             return `
                 <div class="guide-step">
                     <div class="guide-step-head">
@@ -1105,6 +1097,7 @@ function selectOutlawGuide(id){
                     </div>
                     <div class="guide-step-content">${safe(step.content||step.description||step.note)}</div>
                     ${img?`<img class="guide-step-image" src="${img}" onerror="this.style.display='none'" onclick="openImageModal('${img}')">`:""}
+                    ${video?`<button class="guide-video-btn" onclick="openVideo('${escapeText(video)}','${escapeText(step.title||guide.map_name)}')">▶ 동영상 재생</button>`:""}
                 </div>
             `;
         }).join("")}
