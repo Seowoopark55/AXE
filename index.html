@@ -58,7 +58,14 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 .notice-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;transition:.16s ease}
 .notice-item:last-child{border-bottom:none}
-.notice-item:hover{background:rgba(255,181,46,.045);padding-left:8px}
+.notice-item{
+  transition:transform .16s ease, background .16s ease;
+}
+
+.notice-item:hover{
+  background:rgba(255,181,46,.045);
+  transform:translateX(6px);
+}
 .notice-board-head{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;padding:12px 16px;color:#888;font-size:12px;font-weight:900;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
 .notice-row{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;align-items:center;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:.16s ease}
 .notice-row:hover{background:rgba(255,181,46,.06);padding-left:22px}
