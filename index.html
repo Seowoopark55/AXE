@@ -74,51 +74,33 @@ h1 {
     line-height: 1.6;
 }
 
-.main-menu {
+.main-menu,
+.info-menu,
+.sub-filter {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 18px;
 }
 
-.main-menu button {
+.main-menu button,
+.info-menu button,
+.sub-filter button {
     background: rgba(20,20,20,.92);
     color: #bbb;
     border: 1px solid rgba(255,255,255,.09);
     border-radius: 999px;
-    padding: 9px 17px;
+    padding: 8px 15px;
     cursor: pointer;
     font-weight: 850;
 }
 
-.main-menu button.active {
+.main-menu button.active,
+.info-menu button.active,
+.sub-filter button.active {
     color: #ffb52e;
     background: rgba(255,181,46,.1);
     border-color: rgba(255,181,46,.65);
-}
-
-.info-menu {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin-bottom: 18px;
-}
-
-.info-menu button {
-    background: rgba(255,255,255,.045);
-    color: #cfcfcf;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 999px;
-    padding: 7px 13px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 850;
-}
-
-.info-menu button.active {
-    color: #ffb52e;
-    border-color: rgba(255,181,46,.6);
-    background: rgba(255,181,46,.09);
 }
 
 .panel {
@@ -227,10 +209,11 @@ h1 {
     transition: .15s ease;
 }
 
-.tube-card:hover {
+.tube-card:hover,
+.map-row:hover,
+.item-row:hover {
     border-color: rgba(255,181,46,.45);
     background: rgba(255,181,46,.06);
-    transform: translateY(-2px);
 }
 
 .tube-thumb {
@@ -247,10 +230,7 @@ h1 {
     display: block;
 }
 
-.tube-body {
-    padding: 13px;
-}
-
+/* 제작 / 무법지대 공통 */
 .toolbar {
     display: flex;
     gap: 10px;
@@ -279,30 +259,6 @@ h1 {
     top: 50%;
     transform: translateY(-50%);
     color: #ffb52e;
-}
-
-.sub-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin-bottom: 16px;
-}
-
-.sub-filter button {
-    background: rgba(255,255,255,.045);
-    color: #cfcfcf;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 999px;
-    padding: 7px 12px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 800;
-}
-
-.sub-filter button.active {
-    color: #ffb52e;
-    border-color: rgba(255,181,46,.6);
-    background: rgba(255,181,46,.09);
 }
 
 .result-info {
@@ -334,10 +290,6 @@ h1 {
     padding: 15px 16px;
     border-bottom: 1px solid rgba(255,255,255,.06);
     cursor: pointer;
-}
-
-.item-row:hover {
-    background: rgba(255,255,255,.045);
 }
 
 .item-row.active {
@@ -447,6 +399,15 @@ h1 {
     font-weight: 950;
 }
 
+.map-image {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: #000;
+    margin-bottom: 18px;
+    cursor: zoom-in;
+}
+
 .ready {
     padding: 28px;
     color: #999;
@@ -455,10 +416,12 @@ h1 {
     background: rgba(255,255,255,.03);
 }
 
-.video-modal {
+/* 영상 모달 */
+.video-modal,
+.image-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.78);
+    background: rgba(0,0,0,.82);
     display: none;
     align-items: center;
     justify-content: center;
@@ -466,7 +429,8 @@ h1 {
     z-index: 9999;
 }
 
-.video-modal.active {
+.video-modal.active,
+.image-modal.active {
     display: flex;
 }
 
@@ -476,7 +440,6 @@ h1 {
     border: 1px solid rgba(255,181,46,.25);
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 30px 100px rgba(0,0,0,.65);
 }
 
 .video-head {
@@ -514,6 +477,13 @@ h1 {
     width: 100%;
     height: 100%;
     border: 0;
+}
+
+.image-modal img {
+    max-width: 96vw;
+    max-height: 92vh;
+    border-radius: 14px;
+    border: 1px solid rgba(255,181,46,.35);
 }
 
 @media (max-width: 920px) {
@@ -609,6 +579,10 @@ h1 {
     </div>
 </div>
 
+<div class="image-modal" id="imageModal" onclick="closeImageModal()">
+    <img id="imageModalImg" src="">
+</div>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwQIA-5BvzwBYCR3zIYHAZSG5eublKx2wNJlGe-qGuqyHAdjTUvQ1WBU-YzoOdXzIKB/exec";
 
@@ -625,9 +599,13 @@ let crafts = [];
 let materials = [];
 let notices = [];
 let tubes = [];
+let briefingMaps = [];
+let outlawGuides = [];
+
 let currentCategory = "ALL";
 let searchKeyword = "";
 let selectedId = "";
+let selectedMapId = "";
 
 fetch(API_URL)
     .then(res => res.json())
@@ -636,6 +614,8 @@ fetch(API_URL)
         materials = data.materials || [];
         notices = data.notices || [];
         tubes = data.tubes || [];
+        briefingMaps = data.briefingMaps || [];
+        outlawGuides = data.outlawGuides || [];
         showHome();
     })
     .catch(() => {
@@ -670,7 +650,6 @@ function formatDate(v) {
 function getYoutubeId(url) {
     if (!url) return "";
     const text = String(url).trim();
-
     const patterns = [
         /youtube\.com\/watch\?v=([^&]+)/,
         /youtu\.be\/([^?&]+)/,
@@ -695,7 +674,6 @@ function getTubeThumb(t) {
 
 function openVideo(url, title) {
     const id = getYoutubeId(url);
-
     if (!id) {
         alert("유튜브 주소를 확인해주세요.");
         return;
@@ -722,6 +700,16 @@ function closeVideoOutside(event) {
     if (event.target.id === "videoModal") closeVideo();
 }
 
+function openImageModal(src) {
+    document.getElementById("imageModalImg").src = src;
+    document.getElementById("imageModal").classList.add("active");
+}
+
+function closeImageModal() {
+    document.getElementById("imageModal").classList.remove("active");
+    document.getElementById("imageModalImg").src = "";
+}
+
 function renderTubeCard(t) {
     return `
         <div class="tube-card" onclick="openVideo('${escapeText(t.url)}', '${escapeText(t.title)}')">
@@ -737,6 +725,7 @@ function renderTubeCard(t) {
     `;
 }
 
+/* 메인 */
 function showHome() {
     setMainActive(0);
 
@@ -851,7 +840,7 @@ function infoMenu(active) {
         ["아이템 시세", "showInfoReady('아이템 시세')"],
         ["스킬", "showInfoReady('스킬')"],
         ["생활", "showInfoReady('생활')"],
-        ["무법지대", "showInfoReady('무법지대')"],
+        ["무법지대", "showOutlaw()"],
         ["상자", "showInfoReady('상자')"]
     ];
 
@@ -864,6 +853,7 @@ function infoMenu(active) {
     `;
 }
 
+/* 제작 */
 function showCraft() {
     setMainActive(3);
 
@@ -1059,6 +1049,126 @@ function renderDetail(id) {
             <div class="material-title">필요 재료</div>
             ${materialHtml}
         </div>
+    `;
+}
+
+/* 무법지대 */
+function showOutlaw() {
+    setMainActive(3);
+
+    document.getElementById("content").innerHTML = `
+        ${infoMenu("무법지대")}
+
+        <div class="section-head">
+            <div>
+                <div class="section-title">무법지대</div>
+                <div class="section-desc">전투 브리핑용 지도와 무법지대 공략을 확인합니다.</div>
+            </div>
+            <div class="count">${briefingMaps.length}개 지역</div>
+        </div>
+
+        <div class="sub-filter">
+            <button class="active" onclick="showBriefingMaps()">브리핑맵</button>
+            <button onclick="showOutlawGuides()">무법지대 공략</button>
+        </div>
+
+        <div id="outlawContent"></div>
+    `;
+
+    showBriefingMaps();
+}
+
+function showBriefingMaps() {
+    selectedMapId = "";
+
+    document.getElementById("outlawContent").innerHTML = `
+        <div class="db-layout">
+            <div class="item-list">
+                <div class="list-scroll" id="mapListBox">
+                    ${
+                        briefingMaps.length
+                        ? briefingMaps.map(m => `
+                            <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
+                                <div class="item-name">${safe(m.map_name)}</div>
+                                <div class="item-sub">좌표: ${safe(m.coord)}</div>
+                            </div>
+                        `).join("")
+                        : `<div class="ready">등록된 브리핑맵이 없습니다.</div>`
+                    }
+                </div>
+            </div>
+
+            <div class="detail" id="mapDetailBox">
+                <div class="empty-detail">좌측 목록에서 브리핑맵을 선택하세요.</div>
+            </div>
+        </div>
+    `;
+}
+
+function selectBriefingMap(id) {
+    selectedMapId = id;
+
+    const map = briefingMaps.find(m => String(m.id) === String(id));
+    if (!map) return;
+
+    const img = `./images/outlaw/${map.id}.png`;
+
+    document.getElementById("mapListBox").innerHTML = briefingMaps.map(m => `
+        <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
+            <div class="item-name">${safe(m.map_name)}</div>
+            <div class="item-sub">좌표: ${safe(m.coord)}</div>
+        </div>
+    `).join("");
+
+    document.getElementById("mapDetailBox").innerHTML = `
+        <div class="detail-title">${safe(map.map_name)}</div>
+
+        <div class="badges">
+            <span class="badge gold">브리핑맵</span>
+            <span class="badge">좌표 ${safe(map.coord)}</span>
+            <span class="badge">수정일 ${formatDate(map.updated_at)}</span>
+        </div>
+
+        <img class="map-image" src="${img}" onerror="this.src='./axe.png'" onclick="openImageModal('${img}')">
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">지역명</div>
+                <div class="info-value">${safe(map.map_name)}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">좌표</div>
+                <div class="info-value">${safe(map.coord)}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">수정일</div>
+                <div class="info-value">${formatDate(map.updated_at)}</div>
+            </div>
+        </div>
+
+        <div class="home-card">
+            <div class="home-card-title">설명</div>
+            <div class="item-content">${safe(map.description)}</div>
+            <div class="item-content">${safe(map.note)}</div>
+        </div>
+    `;
+}
+
+function showOutlawGuides() {
+    const list = outlawGuides.slice().reverse();
+
+    document.getElementById("outlawContent").innerHTML = `
+        ${
+            list.length
+            ? list.map(g => `
+                <div class="home-card" style="margin-bottom:12px;">
+                    <div class="home-card-title">${safe(g.title)}</div>
+                    <div class="item-date">${formatDate(g.updated_at)}</div>
+                    <div class="item-content">${safe(g.content)}</div>
+                </div>
+            `).join("")
+            : `<div class="ready">등록된 무법지대 공략이 없습니다.</div>`
+        }
     `;
 }
 </script>
