@@ -128,6 +128,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .material-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);color:#ddd}
 .qty{color:#ffb52e;font-weight:950}
 .map-image{width:100%;max-height:420px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#000;margin-bottom:14px;cursor:zoom-in;display:block}
+
+/* 무법지대 공략 */
+.guide-main-image{width:100%;max-height:460px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#000;margin-bottom:18px;cursor:zoom-in;display:block}
+.guide-route-title{font-size:21px;font-weight:950;color:#ffb52e;margin:22px 0 12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.guide-step{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:16px;padding:16px;margin-bottom:14px}
+.guide-step-head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.guide-step-no{display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,181,46,.35);background:rgba(255,181,46,.09);color:#ffb52e;font-size:13px;font-weight:950}
+.guide-step-title{font-size:17px;font-weight:950;color:#fff}
+.guide-step-content{white-space:pre-line;line-height:1.65;color:#bbb;font-size:14px;margin-bottom:12px}
+.guide-step-image{width:100%;max-height:420px;object-fit:contain;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#000;cursor:zoom-in;display:block}
 .operation-content{white-space:pre-line;line-height:1.75;font-size:15px;color:#ddd}
 .ready{padding:28px;color:#999;border:1px dashed rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.03)}
 .video-modal,.image-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:6px;z-index:9999}
@@ -246,6 +256,7 @@ const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버
 let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
+let selectedGuideId="";
 let operationCategory="ALL",selectedOperationId="";
 
 fetch(API_URL)
@@ -949,17 +960,133 @@ function selectBriefingMap(id){
 }
 
 function showOutlawGuides(){
-    const list=outlawGuides.slice().reverse();
+    selectedGuideId="";
+    const groups=getOutlawGuideGroups();
 
-    document.getElementById("outlawContent").innerHTML=list.length
-        ? list.map(g=>`
-            <div class="home-card" style="margin-bottom:12px;">
-                <div class="home-card-title">${safe(g.title)}</div>
-                <div class="item-date">${formatDate(g.updated_at)}</div>
-                <div class="item-content">${safe(g.content)}</div>
-            </div>
-        `).join("")
-        : `<div class="ready">등록된 무법지대 공략이 없습니다.</div>`;
+    if(groups.length===0){
+        document.getElementById("outlawContent").innerHTML=`<div class="ready">등록된 무법지대 공략이 없습니다.</div>`;
+        return;
+    }
+
+    selectedGuideId=groups[0].id;
+
+    document.getElementById("outlawContent").innerHTML=`
+        <div class="db-layout outlaw-layout">
+            <div class="item-list"><div class="list-scroll" id="guideListBox"></div></div>
+            <div class="detail map-detail" id="guideDetailBox"><div class="empty-detail">좌측 목록에서 공략을 선택하세요.</div></div>
+        </div>`;
+
+    renderOutlawGuideList();
+    selectOutlawGuide(selectedGuideId);
+}
+
+function getOutlawGuideGroups(){
+    const map={};
+
+    outlawGuides.forEach((row,index)=>{
+        const id=String(row.id||row.map_id||row.map_name||row.title||`guide_${index}`).trim();
+        if(!id||id==="-")return;
+
+        if(!map[id]){
+            map[id]={
+                id:id,
+                map_name:row.map_name||row.title||id,
+                coord:row.coord||row.coordinate||"",
+                main_image:row.main_image||row.route_image||row.map_image||"",
+                updated_at:row.updated_at||row.date||"",
+                rows:[]
+            };
+        }
+
+        if(!map[id].main_image&&(row.main_image||row.route_image||row.map_image)){
+            map[id].main_image=row.main_image||row.route_image||row.map_image;
+        }
+        if(!map[id].coord&&(row.coord||row.coordinate)){
+            map[id].coord=row.coord||row.coordinate;
+        }
+        if(!map[id].updated_at&&(row.updated_at||row.date)){
+            map[id].updated_at=row.updated_at||row.date;
+        }
+
+        map[id].rows.push(row);
+    });
+
+    return Object.values(map).sort((a,b)=>{
+        const ao=Math.min(...a.rows.map(r=>Number(r.order||999999)));
+        const bo=Math.min(...b.rows.map(r=>Number(r.order||999999)));
+        return ao-bo;
+    });
+}
+
+function renderOutlawGuideList(){
+    const box=document.getElementById("guideListBox");
+    if(!box)return;
+
+    const groups=getOutlawGuideGroups();
+    box.innerHTML=groups.map(g=>`
+        <div class="item-row ${selectedGuideId===g.id?"active":""}" onclick="selectOutlawGuide('${escapeText(g.id)}')">
+            <div class="item-name">${safe(g.map_name)}</div>
+            <div class="item-sub">좌표: ${safe(g.coord)}</div>
+        </div>
+    `).join("");
+}
+
+function getGuideImagePath(v){
+    const image=String(v||"").trim();
+    if(!image||image==="-")return "";
+    return image;
+}
+
+function selectOutlawGuide(id){
+    selectedGuideId=id;
+    renderOutlawGuideList();
+
+    const guide=getOutlawGuideGroups().find(g=>String(g.id)===String(id));
+    if(!guide)return;
+
+    const rows=guide.rows.slice().sort((a,b)=>Number(a.order||0)-Number(b.order||0));
+    const mainImage=getGuideImagePath(guide.main_image);
+
+    const routeGroups=[];
+    const routeMap={};
+
+    rows.forEach((r,index)=>{
+        const group=String(r.route_group||r.group||r.section||"공략").trim()||"공략";
+        if(!routeMap[group]){
+            routeMap[group]=[];
+            routeGroups.push(group);
+        }
+        routeMap[group].push({...r,_index:index});
+    });
+
+    const routesHtml=routeGroups.map(group=>`
+        <div class="guide-route-title">${safe(group)}</div>
+        ${routeMap[group].map(step=>{
+            const img=getGuideImagePath(step.image||step.step_image||"");
+            return `
+                <div class="guide-step">
+                    <div class="guide-step-head">
+                        <span class="guide-step-no">${safe(step.step_no||step.step||"")}</span>
+                        <div class="guide-step-title">${safe(step.title)}</div>
+                    </div>
+                    <div class="guide-step-content">${safe(step.content||step.description||step.note)}</div>
+                    ${img?`<img class="guide-step-image" src="${img}" onerror="this.style.display='none'" onclick="openImageModal('${img}')">`:""}
+                </div>
+            `;
+        }).join("")}
+    `).join("");
+
+    document.getElementById("guideDetailBox").innerHTML=`
+        <div class="detail-title">${safe(guide.map_name)}</div>
+        <div class="badges">
+            <span class="badge gold">무법지대 공략</span>
+            <span class="badge">좌표 ${safe(guide.coord)}</span>
+            ${guide.updated_at?`<span class="badge">수정일 ${formatDate(guide.updated_at)}</span>`:""}
+        </div>
+        ${mainImage?`<img class="guide-main-image" src="${mainImage}" onerror="this.style.display='none'" onclick="openImageModal('${mainImage}')">`:""}
+        ${routesHtml}
+    `;
+    scrollToElement("guideDetailBox");
 }
 </script>
 </body>
