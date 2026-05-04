@@ -45,6 +45,11 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .info-menu,.sub-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
 .info-menu button,.sub-filter button,.back-btn,.tube-submit-open{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:850;transition:.18s ease}
 .info-menu button.active,.sub-filter button.active{color:#ffb52e;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.65)}
+.outlaw-tabs{position:relative;align-items:center}
+.outlaw-tabs button{position:relative;overflow:hidden}
+.outlaw-tabs button.active{color:#ffb52e;background:rgba(255,181,46,.08);border-color:rgba(255,181,46,.65);box-shadow:none}
+.outlaw-tabs button.active::after{display:none}
+.outlaw-tabs button:hover{box-shadow:none}
 .back-btn:hover,.info-menu button:hover,.sub-filter button:hover,.tube-submit-open:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
 
 .panel{border:1px solid rgba(255,255,255,.08);background:rgba(12,12,12,.88);border-radius:22px;padding:22px}
@@ -856,15 +861,25 @@ function showOutlaw(){
             </div>
             <div class="count">${briefingMaps.length}개 지역</div>
         </div>
-        <div class="sub-filter">
-            <button class="active" onclick="showBriefingMaps()">브리핑맵</button>
-            <button onclick="showOutlawGuides()">무법지대 공략</button>
+        <div class="sub-filter outlaw-tabs" id="outlawTabs">
+            <button id="outlawTabMap" class="active" onclick="showBriefingMaps()">브리핑맵</button>
+            <button id="outlawTabGuide" onclick="showOutlawGuides()">무법지대 공략</button>
         </div>
         <div id="outlawContent"></div>`;
     showBriefingMaps();
 }
 
+function setOutlawTab(tab){
+    const mapBtn=document.getElementById("outlawTabMap");
+    const guideBtn=document.getElementById("outlawTabGuide");
+    if(!mapBtn||!guideBtn)return;
+
+    mapBtn.classList.toggle("active",tab==="map");
+    guideBtn.classList.toggle("active",tab==="guide");
+}
+
 function showBriefingMaps(){
+    setOutlawTab("map");
     selectedMapId="";
 
     document.getElementById("outlawContent").innerHTML=`
@@ -960,6 +975,7 @@ function selectBriefingMap(id){
 }
 
 function showOutlawGuides(){
+    setOutlawTab("guide");
     selectedGuideId="";
     const groups=getOutlawGuideGroups();
 
