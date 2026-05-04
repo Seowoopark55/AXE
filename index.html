@@ -134,7 +134,6 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .qty{color:#ffb52e;font-weight:950}
 .map-image{width:100%;max-height:420px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#000;margin-bottom:14px;cursor:zoom-in;display:block}
 
-/* 무법지대 공략 */
 .guide-main-image{width:100%;max-height:460px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#000;margin-bottom:18px;cursor:zoom-in;display:block}
 .guide-route-title{font-size:21px;font-weight:950;color:#ffb52e;margin:22px 0 12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
 .guide-step{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:16px;padding:16px;margin-bottom:14px}
@@ -153,13 +152,13 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .video-close{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:18px}
 .video-frame{width:100%;aspect-ratio:16/9;background:#000}
 .video-frame iframe{width:100%;height:100%;border:0}
-.image-modal{overflow:auto}
-.image-modal img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35);cursor:default;transition:none;transform-origin:center center}
-.image-close{position:fixed;top:18px;right:18px;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.72);color:#fff;font-size:24px;font-weight:900;line-height:1;cursor:pointer;z-index:10050;display:flex;align-items:center;justify-content:center;transition:.18s ease;box-shadow:0 10px 28px rgba(0,0,0,.35)}
-.image-close:hover{color:#ffb52e;border-color:rgba(255,181,46,.65);background:rgba(20,20,20,.92);transform:translateY(-1px)}
 
+.image-modal{padding:18px;overflow:auto}
+.image-modal-box{position:relative;display:inline-block;max-width:95vw;max-height:90vh}
+.image-modal-box img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35);background:#000;display:block;cursor:default;transition:none;transform-origin:center center}
+.image-close{position:absolute;top:10px;right:10px;width:42px;height:42px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.72);color:#fff;font-size:24px;font-weight:900;line-height:1;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;transition:.18s ease;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.image-close:hover{color:#ffb52e;border-color:rgba(255,181,46,.7);background:rgba(20,20,20,.95);transform:scale(1.04)}
 
-/* 플리카 계산기 */
 .plica-panel{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:18px;padding:18px;margin-bottom:18px}
 .plica-control-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .plica-input-box{display:flex;flex-direction:column;gap:7px;min-width:190px}
@@ -184,7 +183,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .plica-black{background:linear-gradient(145deg,#000,#222);border-color:rgba(255,255,255,.24)}
 
 @media(max-width:920px){.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
-@media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
+@media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}.image-close{width:38px;height:38px;font-size:22px;top:8px;right:8px}}
 </style>
 </head>
 
@@ -228,8 +227,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <div class="image-modal" id="imageModal" onclick="closeImageModal()">
-    <button class="image-close" onclick="event.stopPropagation(); closeImageModal();" aria-label="사진 닫기">×</button>
-    <img id="imageModalImg" src="">
+    <div class="image-modal-box" onclick="event.stopPropagation();">
+        <button class="image-close" onclick="closeImageModal();" aria-label="사진 닫기">×</button>
+        <img id="imageModalImg" src="">
+    </div>
 </div>
 
 <div class="form-modal" id="tubeFormModal" onclick="closeTubeFormOutside(event)">
@@ -646,7 +647,6 @@ function infoMenu(active){
     const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
-
 
 function showPlicaCalculator(){
     setMainActive(4);
