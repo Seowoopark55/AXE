@@ -56,9 +56,9 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .home-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);border-radius:18px;padding:16px}
 .home-card-title{font-size:18px;font-weight:950;margin-bottom:12px;color:#ffb52e}
 
-.notice-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;transition:.16s ease}
+.notice-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;transition:transform .16s ease,background .16s ease}
 .notice-item:last-child{border-bottom:none}
-.notice-item:hover{background:rgba(255,181,46,.045);padding-left:8px}
+.notice-item:hover{background:rgba(255,181,46,.045);transform:translateX(6px)}
 .notice-board-head{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;padding:12px 16px;color:#888;font-size:12px;font-weight:900;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
 .notice-row{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;align-items:center;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:.16s ease}
 .notice-row:hover{background:rgba(255,181,46,.06);padding-left:22px}
@@ -497,19 +497,15 @@ function getValidOperations(){
 
 function showOperationList(){
     selectedOperationId="";
+    operationCategory="ALL";
+
     const buttons=document.querySelectorAll(".sub-filter button");
     if(buttons.length>=2){
         buttons[0].classList.remove("active");
         buttons[1].classList.add("active");
     }
 
-    const validOps=getValidOperations();
-    const categories=["ALL",...new Set(validOps.map(o=>o.category).filter(v=>v&&String(v).trim()!==""&&String(v).trim()!=="-"))];
-
     document.getElementById("noticeContent").innerHTML=`
-        <div class="sub-filter">
-            ${categories.map(cat=>`<button class="${operationCategory===cat?"active":""}" onclick="setOperationCategory('${escapeText(cat)}')">${cat==="ALL"?"전체":cat}</button>`).join("")}
-        </div>
         <div class="db-layout">
             <div class="item-list"><div class="list-scroll" id="operationListBox"></div></div>
             <div class="detail" id="operationDetailBox"><div class="empty-detail">좌측 목록에서 운영 기준을 선택하세요.</div></div>
