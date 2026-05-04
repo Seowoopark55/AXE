@@ -155,6 +155,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .video-frame iframe{width:100%;height:100%;border:0}
 .image-modal{overflow:auto}
 .image-modal img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35);cursor:default;transition:none;transform-origin:center center}
+.image-close{position:fixed;top:18px;right:18px;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.72);color:#fff;font-size:24px;font-weight:900;line-height:1;cursor:pointer;z-index:10050;display:flex;align-items:center;justify-content:center;transition:.18s ease;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.image-close:hover{color:#ffb52e;border-color:rgba(255,181,46,.65);background:rgba(20,20,20,.92);transform:translateY(-1px)}
 
 
 /* 플리카 계산기 */
@@ -226,6 +228,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+    <button class="image-close" onclick="event.stopPropagation(); closeImageModal();" aria-label="사진 닫기">×</button>
     <img id="imageModalImg" src="">
 </div>
 
