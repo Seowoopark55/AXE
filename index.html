@@ -17,7 +17,13 @@ body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),tran
 @keyframes pulseLogo{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(255,181,46,0)}50%{transform:scale(1.04);box-shadow:0 0 34px rgba(255,181,46,.22)}}
 
 .wrap{max-width:1280px;margin:auto;padding:28px 18px 50px}
-.hero{display:flex;align-items:center;gap:22px;padding:26px;margin-bottom:18px;border-radius:24px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),#101010;cursor:pointer;transition:.22s ease}
+.hero{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:22px;min-height:184px;padding:30px 34px;margin-bottom:18px;border-radius:24px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.13),rgba(255,255,255,.025)),#101010;cursor:pointer;transition:.22s ease}
+.hero>*{position:relative;z-index:2}
+.hero::after{content:"AXE";position:absolute;right:34px;top:50%;transform:translateY(-50%);z-index:0;font-size:112px;font-weight:950;color:rgba(255,255,255,.035);letter-spacing:9px;line-height:1;pointer-events:none;animation:heroWatermarkFloat 5.5s ease-in-out infinite}
+.hero::before{content:"NETWORK";position:absolute;right:42px;bottom:26px;z-index:1;font-size:14px;font-weight:950;color:rgba(255,181,46,.22);letter-spacing:6px;pointer-events:none}
+.hero-shine{position:absolute!important;inset:-80px auto -80px -35%;z-index:1!important;width:32%;background:linear-gradient(90deg,transparent,rgba(255,181,46,.08),rgba(255,255,255,.08),transparent);transform:skewX(-18deg);animation:heroShine 5.8s ease-in-out infinite;pointer-events:none}
+@keyframes heroWatermarkFloat{0%,100%{transform:translateY(-50%) translateX(0);opacity:1}50%{transform:translateY(-52%) translateX(-8px);opacity:.82}}
+@keyframes heroShine{0%{left:-45%;opacity:0}18%{opacity:1}42%{left:115%;opacity:0}100%{left:115%;opacity:0}}
 .hero:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.45);box-shadow:0 16px 45px rgba(0,0,0,.35)}
 .logo-box{width:128px;height:128px;border-radius:22px;background:rgba(0,0,0,.35);border:1px solid rgba(255,181,46,.2);display:flex;align-items:center;justify-content:center;padding:12px}
 .logo-box img{max-width:100%;max-height:100%;object-fit:contain}
@@ -134,7 +140,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .video-frame iframe{width:100%;height:100%;border:0}
 .image-modal img{max-width:99vw;max-height:98vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35)}
 @media(max-width:920px){.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
-@media(max-width:620px){.wrap{padding:20px 14px 40px}.hero{display:block;padding:22px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
+@media(max-width:620px){.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
 </head>
 
@@ -147,6 +153,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 <div class="wrap">
     <div class="hero" onclick="showHome()">
+        <div class="hero-shine"></div>
         <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
         <div>
             <div class="kicker">AXE COMPANY NETWORK</div>
