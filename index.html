@@ -7,6 +7,15 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),transparent 34%),linear-gradient(180deg,#050505 0%,#111 45%,#070707 100%);color:#fff;font-family:Arial,sans-serif}
+
+#loadingScreen{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at top,rgba(255,181,46,.16),transparent 35%),#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .35s ease,visibility .35s ease}
+#loadingScreen.hide{opacity:0;visibility:hidden}
+.loading-logo{width:120px;height:120px;border-radius:24px;border:1px solid rgba(255,181,46,.35);background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:14px;animation:pulseLogo 1.4s ease-in-out infinite}
+.loading-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.loading-title{margin-top:20px;font-size:28px;font-weight:950;color:#ffb52e;letter-spacing:1px}
+.loading-text{margin-top:8px;font-size:13px;color:#aaa;letter-spacing:.4px}
+@keyframes pulseLogo{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(255,181,46,0)}50%{transform:scale(1.04);box-shadow:0 0 34px rgba(255,181,46,.22)}}
+
 .wrap{max-width:1280px;margin:auto;padding:28px 18px 50px}
 .hero{display:flex;align-items:center;gap:22px;padding:26px;margin-bottom:18px;border-radius:24px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),#101010;cursor:pointer;transition:.22s ease}
 .hero:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.45);box-shadow:0 16px 45px rgba(0,0,0,.35)}
@@ -109,6 +118,12 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </head>
 
 <body>
+<div id="loadingScreen">
+    <div class="loading-logo"><img src="./axe.png" alt="AXE 로고"></div>
+    <div class="loading-title">AXE NET</div>
+    <div class="loading-text">시스템 접속 중...</div>
+</div>
+
 <div class="wrap">
     <div class="hero" onclick="showHome()">
         <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
@@ -164,10 +179,19 @@ fetch(API_URL)
     outlawGuides=data.outlawGuides||[];
     operations=data.operations||[];
     showHome();
+    hideLoading();
 })
 .catch(()=>{
     document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
+    hideLoading();
 });
+
+function hideLoading(){
+    const loading=document.getElementById("loadingScreen");
+    if(!loading)return;
+    loading.classList.add("hide");
+    setTimeout(()=>loading.remove(),400);
+}
 
 function safe(v){return v===undefined||v===null||v===""?"-":v}
 function escapeText(v){return String(v||"").replace(/'/g,"\\'").replace(/`/g,"\\`")}
