@@ -1111,7 +1111,7 @@ function selectBriefingMap(id) {
     const map = briefingMaps.find(m => String(m.id) === String(id));
     if (!map) return;
 
-    const img = `./images/outlaw/${map.id}.png`;
+    const img = `./${map.id}.png`;
 
     document.getElementById("mapListBox").innerHTML = briefingMaps.map(m => `
         <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
