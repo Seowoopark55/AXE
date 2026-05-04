@@ -139,8 +139,34 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .video-frame{width:100%;aspect-ratio:16/9;background:#000}
 .video-frame iframe{width:100%;height:100%;border:0}
 .image-modal img{max-width:99vw;max-height:98vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35)}
-@media(max-width:920px){.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
-@media(max-width:620px){.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
+
+
+/* 플리카 계산기 */
+.plica-panel{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:18px;padding:18px;margin-bottom:18px}
+.plica-control-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.plica-input-box{display:flex;flex-direction:column;gap:7px;min-width:190px}
+.plica-label{color:#aaa;font-size:13px;font-weight:850}
+.plica-input{width:190px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 13px;outline:none;font-size:16px}
+.plica-input:focus{border-color:rgba(255,181,46,.65)}
+.plica-preset-box{display:flex;flex-wrap:wrap;gap:8px}
+.plica-btn{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;width:48px;height:42px;cursor:pointer;font-weight:900;transition:.18s ease}
+.plica-btn:hover,.plica-btn.active{color:#ffb52e;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.65);transform:translateY(-1px)}
+.plica-summary{margin-top:14px;color:#aaa;font-size:13px}
+.plica-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.plica-card{border-radius:16px;padding:18px;border:1px solid rgba(255,255,255,.1);min-height:120px;box-shadow:0 14px 30px rgba(0,0,0,.22);transition:.18s ease}
+.plica-card:hover{transform:translateY(-2px);box-shadow:0 18px 38px rgba(0,0,0,.28)}
+.plica-title{font-size:18px;font-weight:950;margin-bottom:7px}
+.plica-point{font-size:13px;margin-bottom:12px;opacity:.86}
+.plica-price{font-size:23px;font-weight:950}
+.plica-bronze{background:linear-gradient(145deg,#3a2a1f,#6d4c41)}
+.plica-silver{background:linear-gradient(145deg,#5f6a72,#cfd8dc);color:#111}
+.plica-gold{background:linear-gradient(145deg,#8d6e00,#ffd700);color:#111}
+.plica-platinum{background:linear-gradient(145deg,#4f5b62,#90a4ae)}
+.plica-diamond{background:linear-gradient(145deg,#004d66,#00e5ff);color:#111}
+.plica-black{background:linear-gradient(145deg,#000,#222);border-color:rgba(255,255,255,.24)}
+
+@media(max-width:920px){.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
+@media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
 </head>
 
@@ -583,8 +609,92 @@ function showInfo(){
 }
 
 function infoMenu(active){
-    const menus=[["제작","showCraft()"]];
+    const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
+}
+
+
+function showPlicaCalculator(){
+    setMainActive(4);
+
+    document.getElementById("content").innerHTML=`
+    <div class="section-head">
+        <div>
+            <div class="section-title">정보</div>
+            <div class="section-desc">게임 플레이에 필요한 각종 정보를 확인합니다.</div>
+        </div>
+        <div class="count">PLICA</div>
+    </div>
+
+    ${infoMenu("플리카 계산기")}
+
+    <div class="plica-panel">
+        <div class="plica-control-row">
+            <div class="plica-input-box">
+                <div class="plica-label">비율 입력 (예: 38 또는 38000)</div>
+                <input class="plica-input" type="number" id="plicaRate" value="38" oninput="calcPlica()">
+            </div>
+            <div class="plica-preset-box">
+                <button class="plica-btn" onclick="setPlicaRate(37,this)">37</button>
+                <button class="plica-btn active" onclick="setPlicaRate(38,this)">38</button>
+                <button class="plica-btn" onclick="setPlicaRate(39,this)">39</button>
+                <button class="plica-btn" onclick="setPlicaRate(40,this)">40</button>
+                <button class="plica-btn" onclick="setPlicaRate(41,this)">41</button>
+                <button class="plica-btn" onclick="setPlicaRate(42,this)">42</button>
+                <button class="plica-btn" onclick="setPlicaRate(43,this)">43</button>
+                <button class="plica-btn" onclick="setPlicaRate(44,this)">44</button>
+                <button class="plica-btn" onclick="setPlicaRate(45,this)">45</button>
+            </div>
+        </div>
+        <div class="plica-summary" id="plicaSummary"></div>
+    </div>
+
+    <div class="plica-grid" id="plicaCards"></div>`;
+
+    calcPlica();
+}
+
+const plicaCards=[
+    {name:"브론즈 카드",point:1000,cls:"plica-bronze"},
+    {name:"실버 카드",point:2625,cls:"plica-silver"},
+    {name:"골드 카드",point:4950,cls:"plica-gold"},
+    {name:"플래티넘 카드",point:10350,cls:"plica-platinum"},
+    {name:"다이아 카드",point:18000,cls:"plica-diamond"},
+    {name:"블랙 카드",point:37500,cls:"plica-black"}
+];
+
+function setPlicaRate(v,btn){
+    const input=document.getElementById("plicaRate");
+    if(input)input.value=v;
+    document.querySelectorAll(".plica-btn").forEach(b=>b.classList.remove("active"));
+    if(btn)btn.classList.add("active");
+    calcPlica();
+}
+
+function plicaNum(n){
+    return Math.round(n).toLocaleString();
+}
+
+function calcPlica(){
+    const input=document.getElementById("plicaRate");
+    const wrap=document.getElementById("plicaCards");
+    const summary=document.getElementById("plicaSummary");
+    if(!input||!wrap||!summary)return;
+
+    let value=Number(input.value)||0;
+    let rate=value<1000?value*1000:value;
+
+    wrap.innerHTML=plicaCards.map(c=>{
+        const game=c.point*rate/1000;
+        return `
+        <div class="plica-card ${c.cls}">
+            <div class="plica-title">${c.name}</div>
+            <div class="plica-point">${c.point.toLocaleString()}P</div>
+            <div class="plica-price">${plicaNum(game)} 달러</div>
+        </div>`;
+    }).join("");
+
+    summary.innerHTML=`현재 비율: ${plicaNum(rate)} / 1000P`;
 }
 
 function showCraft(){
