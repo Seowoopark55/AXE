@@ -176,7 +176,7 @@ function showNotice(){
     setMainActive(1);
     document.getElementById("content").innerHTML=`
         <div class="section-head"><div><div class="section-title">공지사항</div><div class="section-desc">공지사항과 운영 기준을 확인합니다.</div></div><div class="count">NOTICE</div></div>
-        <div class="sub-filter"><button class="active" onclick="showNoticeList()">공지사항</button><button onclick="showOperationList()">운영기준</button></div>
+        <div class="sub-filter"><button class="active" onclick="showNoticeList()">일반공지</button><button onclick="showOperationList()">운영기준</button></div>
         <div id="noticeContent"></div>`;
     showNoticeList();
 }
