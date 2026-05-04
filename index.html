@@ -75,6 +75,7 @@ h1 {
 }
 
 .main-menu,
+.info-menu,
 .sub-filter {
     display: flex;
     flex-wrap: wrap;
@@ -83,6 +84,7 @@ h1 {
 }
 
 .main-menu button,
+.info-menu button,
 .sub-filter button {
     background: rgba(20,20,20,.92);
     color: #bbb;
@@ -94,6 +96,7 @@ h1 {
 }
 
 .main-menu button.active,
+.info-menu button.active,
 .sub-filter button.active {
     color: #ffb52e;
     background: rgba(255,181,46,.1);
@@ -594,8 +597,7 @@ h1 {
         <button class="active" onclick="showHome()">메인</button>
         <button onclick="showNotice()">공지사항</button>
         <button onclick="showTube()">AXE TUBE</button>
-        <button onclick="showCraft()">제작</button>
-        <button onclick="showOutlaw()">무법지대</button>
+        <button onclick="showInfo()">정보</button>
     </div>
 
     <div class="panel" id="content"></div>
@@ -617,7 +619,7 @@ h1 {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbx0hwESR2tXsrHaY0nlecTmufuIIRYWil6qhnYmZMoM6tgbxGIIkkRSyeppU-ilI5bORA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbydcbJtniMCWcbF5MXYC2P16BO4Iw5kqC6tnCqHHZ8CMkqvAGmtyZi0F7QWzGixytzIYg/exec";
 
 const categoryMap = {
     ALL: "전체",
@@ -643,7 +645,6 @@ let selectedId = "";
 let mapSearchKeyword = "";
 let selectedMapId = "";
 
-let noticeMode = "notice";
 let operationCategory = "ALL";
 let selectedOperationId = "";
 
@@ -678,12 +679,8 @@ function catName(cat) {
 function scrollToElement(id) {
     const el = document.getElementById(id);
     if (!el) return;
-
     setTimeout(() => {
-        el.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
 }
 
@@ -828,7 +825,6 @@ function showHome() {
 
 function showNotice() {
     setMainActive(1);
-    noticeMode = "notice";
 
     document.getElementById("content").innerHTML = `
         <div class="section-head">
@@ -851,7 +847,6 @@ function showNotice() {
 }
 
 function showNoticeList() {
-    noticeMode = "notice";
     const list = notices.slice().reverse();
 
     const buttons = document.querySelectorAll(".sub-filter button");
@@ -881,7 +876,6 @@ function showNoticeList() {
 }
 
 function showOperationList() {
-    noticeMode = "operation";
     selectedOperationId = "";
 
     const buttons = document.querySelectorAll(".sub-filter button");
@@ -992,12 +986,34 @@ function showTube() {
     `;
 }
 
+function showInfo() {
+    setMainActive(3);
+    showCraft();
+}
+
+function infoMenu(active) {
+    const menus = [
+        ["제작", "showCraft()"],
+        ["무법지대", "showOutlaw()"]
+    ];
+
+    return `
+        <div class="info-menu">
+            ${menus.map(m => `
+                <button class="${m[0] === active ? "active" : ""}" onclick="${m[1]}">${m[0]}</button>
+            `).join("")}
+        </div>
+    `;
+}
+
 function showCraft() {
     setMainActive(3);
 
     const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
 
     let html = `
+        ${infoMenu("제작")}
+
         <div class="section-head">
             <div>
                 <div class="section-title">제작 정보</div>
@@ -1172,9 +1188,11 @@ function renderDetail(id) {
 }
 
 function showOutlaw() {
-    setMainActive(4);
+    setMainActive(3);
 
     document.getElementById("content").innerHTML = `
+        ${infoMenu("무법지대")}
+
         <div class="section-head">
             <div>
                 <div class="section-title">무법지대</div>
