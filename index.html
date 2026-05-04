@@ -3,21 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXE 정보센터</title>
+<title>AXE NET</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),transparent 34%),linear-gradient(180deg,#050505 0%,#111 45%,#070707 100%);color:#fff;font-family:Arial,sans-serif}
 .wrap{max-width:1280px;margin:auto;padding:28px 18px 50px}
-.hero{display:flex;align-items:center;gap:22px;padding:26px;margin-bottom:18px;border-radius:24px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),#101010;cursor:pointer}
+.hero{display:flex;align-items:center;gap:22px;padding:26px;margin-bottom:18px;border-radius:24px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),#101010;cursor:pointer;transition:.22s ease}
+.hero:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.45);box-shadow:0 16px 45px rgba(0,0,0,.35)}
 .logo-box{width:128px;height:128px;border-radius:22px;background:rgba(0,0,0,.35);border:1px solid rgba(255,181,46,.2);display:flex;align-items:center;justify-content:center;padding:12px}
 .logo-box img{max-width:100%;max-height:100%;object-fit:contain}
 .kicker{color:#ffb52e;font-size:13px;font-weight:800;letter-spacing:1.4px;margin-bottom:8px}
-h1{margin:0;font-size:38px;font-weight:950}
+h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .sub{margin-top:10px;color:#c4c4c4;font-size:15px;line-height:1.6}
-.main-menu,.info-menu,.sub-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.main-menu button,.info-menu button,.sub-filter button,.back-btn{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:850}
-.main-menu button.active,.info-menu button.active,.sub-filter button.active{color:#ffb52e;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.65)}
-.back-btn:hover,.main-menu button:hover,.info-menu button:hover,.sub-filter button:hover{color:#ffb52e;border-color:rgba(255,181,46,.45)}
+
+.main-menu{display:flex;align-items:center;gap:0;margin:0 0 22px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(5,5,5,.88);overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.main-menu button{position:relative;min-width:132px;height:58px;background:transparent;color:#cfcfcf;border:0;border-right:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:15px;font-weight:900;letter-spacing:.2px;transition:.22s ease}
+.main-menu button:last-child{border-right:0}
+.main-menu button::before{content:"";position:absolute;left:18px;right:18px;bottom:0;height:3px;background:#ffb52e;transform:scaleX(0);transform-origin:center;transition:.22s ease}
+.main-menu button::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,181,46,.12),transparent);opacity:0;transition:.22s ease}
+.main-menu button:hover{color:#fff;transform:translateY(-1px)}
+.main-menu button:hover::after{opacity:1}
+.main-menu button:hover::before{transform:scaleX(.55)}
+.main-menu button.active{color:#ffb52e;background:rgba(255,181,46,.08)}
+.main-menu button.active::before{transform:scaleX(1)}
+
+.info-menu,.sub-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.info-menu button,.sub-filter button,.back-btn{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:850;transition:.18s ease}
+.info-menu button.active,.sub-filter button.active{color:#ffb52e;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.65)}
+.back-btn:hover,.info-menu button:hover,.sub-filter button:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
 .panel{border:1px solid rgba(255,255,255,.08);background:rgba(12,12,12,.88);border-radius:22px;padding:22px}
 .section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px}
 .section-title{font-size:25px;font-weight:950}
@@ -26,12 +39,12 @@ h1{margin:0;font-size:38px;font-weight:950}
 .home-grid{display:grid;grid-template-columns:.85fr 1.4fr;gap:18px}
 .home-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);border-radius:18px;padding:16px}
 .home-card-title{font-size:18px;font-weight:950;margin-bottom:12px;color:#ffb52e}
-.notice-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer}
+.notice-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;transition:.16s ease}
 .notice-item:last-child{border-bottom:none}
-.notice-item:hover{background:rgba(255,181,46,.045)}
+.notice-item:hover{background:rgba(255,181,46,.045);padding-left:8px}
 .notice-board-head{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;padding:12px 16px;color:#888;font-size:12px;font-weight:900;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
-.notice-row{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;align-items:center;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}
-.notice-row:hover{background:rgba(255,181,46,.06)}
+.notice-row{display:grid;grid-template-columns:1fr 130px 80px;gap:12px;align-items:center;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:.16s ease}
+.notice-row:hover{background:rgba(255,181,46,.06);padding-left:22px}
 .notice-row-title{font-size:15px;font-weight:900}
 .notice-row-date,.notice-row-type{font-size:12px;color:#888}
 .notice-detail-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
@@ -41,10 +54,11 @@ h1{margin:0;font-size:38px;font-weight:950}
 .item-content{margin-top:6px;font-size:13px;color:#aaa;line-height:1.5}
 .important{display:inline-block;margin-right:6px;color:#ff5d5d;font-weight:950}
 .tube-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.tube-card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:14px;overflow:hidden;cursor:pointer;transition:.15s ease}
-.tube-card:hover,.item-row:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.06)}
+.tube-card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:14px;overflow:hidden;cursor:pointer;transition:.18s ease}
+.tube-card:hover,.item-row:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.06);transform:translateY(-2px)}
 .tube-thumb{width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
-.tube-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.tube-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.25s ease}
+.tube-card:hover .tube-thumb img{transform:scale(1.04)}
 .tube-body{padding:13px}
 .toolbar{display:flex;gap:10px;margin-bottom:14px}
 .search{flex:1;position:relative}
@@ -56,7 +70,7 @@ h1{margin:0;font-size:38px;font-weight:950}
 .outlaw-layout{grid-template-columns:270px 1fr;gap:14px}
 .item-list{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22);overflow:hidden}
 .list-scroll{max-height:560px;overflow-y:auto}
-.item-row{padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}
+.item-row{padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:.16s ease}
 .item-row.active{background:rgba(255,181,46,.1);border-left:3px solid #ffb52e}
 .item-name{font-size:16px;font-weight:900}
 .item-sub{margin-top:5px;color:#888;font-size:12px}
@@ -89,8 +103,8 @@ h1{margin:0;font-size:38px;font-weight:950}
 .video-frame{width:100%;aspect-ratio:16/9;background:#000}
 .video-frame iframe{width:100%;height:100%;border:0}
 .image-modal img{max-width:99vw;max-height:98vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35)}
-@media(max-width:920px){.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}}
-@media(max-width:620px){.wrap{padding:20px 14px 40px}.hero{display:block;padding:22px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:30px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
+@media(max-width:920px){.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
+@media(max-width:620px){.wrap{padding:20px 14px 40px}.hero{display:block;padding:22px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
 </head>
 
@@ -99,9 +113,9 @@ h1{margin:0;font-size:38px;font-weight:950}
     <div class="hero" onclick="showHome()">
         <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
         <div>
-            <div class="kicker">AXE COMPANY DATABASE</div>
-            <h1>AXE 정보센터</h1>
-            <div class="sub">회사 운영 기준, 공지, 영상, 제작 정보와 브리핑맵을 빠르게 확인하는 내부 정보 허브입니다.</div>
+            <div class="kicker">AXE COMPANY NETWORK</div>
+            <h1>AXE NET</h1>
+            <div class="sub">AXE 내부 운영 시스템</div>
         </div>
     </div>
 
@@ -219,7 +233,7 @@ function showHome(){
                 <div class="section-title">메인</div>
                 <div class="section-desc">최근 일반공지와 AXE TUBE 업데이트를 확인하세요.</div>
             </div>
-            <div class="count">AXE HUB</div>
+            <div class="count">AXE NET</div>
         </div>
 
         <div class="home-grid">
