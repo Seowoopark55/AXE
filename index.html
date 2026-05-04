@@ -210,7 +210,6 @@ h1 {
 }
 
 .tube-card:hover,
-.map-row:hover,
 .item-row:hover {
     border-color: rgba(255,181,46,.45);
     background: rgba(255,181,46,.06);
@@ -230,7 +229,7 @@ h1 {
     display: block;
 }
 
-/* 제작 / 무법지대 공통 */
+/* 공통 검색 */
 .toolbar {
     display: flex;
     gap: 10px;
@@ -251,6 +250,10 @@ h1 {
     color: #fff;
     padding: 0 42px 0 15px;
     outline: none;
+}
+
+.search input:focus {
+    border-color: rgba(255,181,46,.7);
 }
 
 .search-mark {
@@ -416,7 +419,7 @@ h1 {
     background: rgba(255,255,255,.03);
 }
 
-/* 영상 모달 */
+/* 모달 */
 .video-modal,
 .image-modal {
     position: fixed;
@@ -605,6 +608,8 @@ let outlawGuides = [];
 let currentCategory = "ALL";
 let searchKeyword = "";
 let selectedId = "";
+
+let mapSearchKeyword = "";
 let selectedMapId = "";
 
 fetch(API_URL)
@@ -1082,20 +1087,18 @@ function showBriefingMaps() {
     selectedMapId = "";
 
     document.getElementById("outlawContent").innerHTML = `
+        <div class="toolbar">
+            <div class="search">
+                <input id="mapSearchInput" type="text" placeholder="지역명, 좌표, 설명, 메모 검색" value="${mapSearchKeyword}" oninput="onMapSearch(this.value)">
+                <span class="search-mark">⌕</span>
+            </div>
+        </div>
+
+        <div class="result-info" id="mapResultInfo"></div>
+
         <div class="db-layout">
             <div class="item-list">
-                <div class="list-scroll" id="mapListBox">
-                    ${
-                        briefingMaps.length
-                        ? briefingMaps.map(m => `
-                            <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
-                                <div class="item-name">${safe(m.map_name)}</div>
-                                <div class="item-sub">좌표: ${safe(m.coord)}</div>
-                            </div>
-                        `).join("")
-                        : `<div class="ready">등록된 브리핑맵이 없습니다.</div>`
-                    }
-                </div>
+                <div class="list-scroll" id="mapListBox"></div>
             </div>
 
             <div class="detail" id="mapDetailBox">
@@ -1103,6 +1106,74 @@ function showBriefingMaps() {
             </div>
         </div>
     `;
+
+    renderMapList();
+}
+
+function onMapSearch(value) {
+    mapSearchKeyword = value.trim();
+    selectedMapId = "";
+    renderMapList();
+    renderEmptyMapDetail();
+}
+
+function getFilteredMaps() {
+    const keyword = mapSearchKeyword.toLowerCase();
+
+    if (!keyword) return briefingMaps;
+
+    return briefingMaps.filter(m => {
+        const target = [
+            m.id,
+            m.map_name,
+            m.description,
+            m.note,
+            m.updated_at,
+            m.coord
+        ].join(" ").toLowerCase();
+
+        return target.includes(keyword);
+    });
+}
+
+function renderMapList() {
+    const mapListBox = document.getElementById("mapListBox");
+    const mapResultInfo = document.getElementById("mapResultInfo");
+
+    if (!mapListBox) return;
+
+    const list = getFilteredMaps();
+
+    if (mapResultInfo) {
+        mapResultInfo.textContent = `브리핑맵 검색 결과 ${list.length}개`;
+    }
+
+    if (list.length === 0) {
+        mapListBox.innerHTML = `<div class="ready">검색 결과가 없습니다.</div>`;
+        renderEmptyMapDetail();
+        return;
+    }
+
+    mapListBox.innerHTML = list.map(m => `
+        <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
+            <div class="item-name">${safe(m.map_name)}</div>
+            <div class="item-sub">좌표: ${safe(m.coord)}</div>
+        </div>
+    `).join("");
+}
+
+function renderEmptyMapDetail() {
+    const box = document.getElementById("mapDetailBox");
+    if (!box) return;
+    box.innerHTML = `<div class="empty-detail">좌측 목록에서 브리핑맵을 선택하세요.</div>`;
+}
+
+function getMapImagePath(map) {
+    if (map.image && String(map.image).trim() !== "" && String(map.image).trim() !== "-") {
+        return String(map.image).trim();
+    }
+
+    return `./${map.id}.png`;
 }
 
 function selectBriefingMap(id) {
@@ -1111,14 +1182,9 @@ function selectBriefingMap(id) {
     const map = briefingMaps.find(m => String(m.id) === String(id));
     if (!map) return;
 
-    const img = `./${map.id}.png`;
+    renderMapList();
 
-    document.getElementById("mapListBox").innerHTML = briefingMaps.map(m => `
-        <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
-            <div class="item-name">${safe(m.map_name)}</div>
-            <div class="item-sub">좌표: ${safe(m.coord)}</div>
-        </div>
-    `).join("");
+    const img = getMapImagePath(map);
 
     document.getElementById("mapDetailBox").innerHTML = `
         <div class="detail-title">${safe(map.map_name)}</div>
