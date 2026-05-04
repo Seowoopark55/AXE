@@ -4,592 +4,94 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AXE 정보센터</title>
-
 <style>
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    background:
-        radial-gradient(circle at top, rgba(255,181,46,.14), transparent 34%),
-        linear-gradient(180deg, #050505 0%, #111 45%, #070707 100%);
-    color: #fff;
-    font-family: Arial, sans-serif;
-}
-
-.wrap {
-    max-width: 1280px;
-    margin: auto;
-    padding: 28px 18px 50px;
-}
-
-.hero {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-    padding: 26px;
-    margin-bottom: 18px;
-    border-radius: 24px;
-    border: 1px solid rgba(255,181,46,.2);
-    background: linear-gradient(135deg, rgba(255,181,46,.12), rgba(255,255,255,.025)), #101010;
-    cursor: pointer;
-}
-
-.logo-box {
-    width: 128px;
-    height: 128px;
-    border-radius: 22px;
-    background: rgba(0,0,0,.35);
-    border: 1px solid rgba(255,181,46,.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-}
-
-.logo-box img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.kicker {
-    color: #ffb52e;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 1.4px;
-    margin-bottom: 8px;
-}
-
-h1 {
-    margin: 0;
-    font-size: 38px;
-    font-weight: 950;
-}
-
-.sub {
-    margin-top: 10px;
-    color: #c4c4c4;
-    font-size: 15px;
-    line-height: 1.6;
-}
-
-.main-menu,
-.info-menu,
-.sub-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-}
-
-.main-menu button,
-.info-menu button,
-.sub-filter button {
-    background: rgba(20,20,20,.92);
-    color: #bbb;
-    border: 1px solid rgba(255,255,255,.09);
-    border-radius: 999px;
-    padding: 8px 15px;
-    cursor: pointer;
-    font-weight: 850;
-}
-
-.main-menu button.active,
-.info-menu button.active,
-.sub-filter button.active {
-    color: #ffb52e;
-    background: rgba(255,181,46,.1);
-    border-color: rgba(255,181,46,.65);
-}
-
-.panel {
-    border: 1px solid rgba(255,255,255,.08);
-    background: rgba(12,12,12,.88);
-    border-radius: 22px;
-    padding: 22px;
-}
-
-.section-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: flex-end;
-    margin-bottom: 18px;
-}
-
-.section-title {
-    font-size: 25px;
-    font-weight: 950;
-}
-
-.section-desc {
-    color: #909090;
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-.count {
-    color: #ffb52e;
-    background: rgba(255,181,46,.09);
-    border: 1px solid rgba(255,181,46,.25);
-    border-radius: 999px;
-    padding: 8px 13px;
-    font-size: 13px;
-    font-weight: 850;
-    white-space: nowrap;
-}
-
-.home-grid {
-    display: grid;
-    grid-template-columns: 0.85fr 1.4fr;
-    gap: 18px;
-}
-
-.home-card {
-    border: 1px solid rgba(255,255,255,.08);
-    background: rgba(0,0,0,.25);
-    border-radius: 18px;
-    padding: 16px;
-}
-
-.home-card-title {
-    font-size: 18px;
-    font-weight: 950;
-    margin-bottom: 12px;
-    color: #ffb52e;
-}
-
-.notice-item {
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,.07);
-}
-
-.notice-item:last-child {
-    border-bottom: none;
-}
-
-.item-title {
-    font-size: 15px;
-    font-weight: 900;
-}
-
-.item-date {
-    margin-top: 5px;
-    font-size: 12px;
-    color: #888;
-}
-
-.item-content {
-    margin-top: 6px;
-    font-size: 13px;
-    color: #aaa;
-    line-height: 1.5;
-}
-
-.important {
-    display: inline-block;
-    margin-right: 6px;
-    color: #ff5d5d;
-    font-weight: 950;
-}
-
-.tube-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-}
-
-.tube-card {
-    border: 1px solid rgba(255,255,255,.08);
-    background: rgba(255,255,255,.035);
-    border-radius: 14px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: .15s ease;
-}
-
-.tube-card:hover,
-.item-row:hover {
-    border-color: rgba(255,181,46,.45);
-    background: rgba(255,181,46,.06);
-}
-
-.tube-thumb {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #000;
-    overflow: hidden;
-}
-
-.tube-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.toolbar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-}
-
-.search {
-    flex: 1;
-    position: relative;
-}
-
-.search input {
-    width: 100%;
-    height: 46px;
-    border-radius: 13px;
-    border: 1px solid rgba(255,255,255,.1);
-    background: #151515;
-    color: #fff;
-    padding: 0 42px 0 15px;
-    outline: none;
-}
-
-.search input:focus {
-    border-color: rgba(255,181,46,.7);
-}
-
-.search-mark {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #ffb52e;
-}
-
-.result-info {
-    color: #888;
-    font-size: 13px;
-    margin-bottom: 12px;
-}
-
-.db-layout {
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 18px;
-    min-height: 560px;
-}
-
-.outlaw-layout {
-    grid-template-columns: 270px 1fr;
-    gap: 14px;
-}
-
-.item-list {
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 16px;
-    background: rgba(0,0,0,.22);
-    overflow: hidden;
-}
-
-.list-scroll {
-    max-height: 560px;
-    overflow-y: auto;
-}
-
-.item-row {
-    padding: 15px 16px;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    cursor: pointer;
-}
-
-.item-row.active {
-    background: rgba(255,181,46,.1);
-    border-left: 3px solid #ffb52e;
-}
-
-.item-name {
-    font-size: 16px;
-    font-weight: 900;
-}
-
-.item-sub {
-    margin-top: 5px;
-    color: #888;
-    font-size: 12px;
-}
-
-.detail {
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 16px;
-    background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.015)), rgba(0,0,0,.25);
-    padding: 24px;
-}
-
-.map-detail {
-    padding: 14px;
-}
-
-.empty-detail {
-    min-height: 240px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-    border: 1px dashed rgba(255,255,255,.12);
-    border-radius: 14px;
-}
-
-.detail-title {
-    font-size: 30px;
-    font-weight: 950;
-    margin-bottom: 14px;
-}
-
-.map-detail .detail-title {
-    font-size: 26px;
-    margin-bottom: 10px;
-}
-
-.badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin-bottom: 18px;
-}
-
-.map-detail .badges {
-    margin-bottom: 12px;
-}
-
-.badge {
-    font-size: 13px;
-    font-weight: 850;
-    padding: 7px 10px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.1);
-    color: #ddd;
-}
-
-.badge.gold {
-    color: #ffb52e;
-    background: rgba(255,181,46,.09);
-    border-color: rgba(255,181,46,.28);
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.map-detail .info-grid {
-    margin-bottom: 12px;
-}
-
-.info-card {
-    background: rgba(0,0,0,.3);
-    border: 1px solid rgba(255,255,255,.07);
-    border-radius: 13px;
-    padding: 13px;
-}
-
-.info-label {
-    color: #888;
-    font-size: 12px;
-    margin-bottom: 6px;
-}
-
-.info-value {
-    font-weight: 900;
-    font-size: 16px;
-}
-
-.material-title {
-    font-size: 18px;
-    font-weight: 950;
-    margin-bottom: 10px;
-}
-
-.material-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 11px 0;
-    border-bottom: 1px solid rgba(255,255,255,.07);
-    color: #ddd;
-}
-
-.qty {
-    color: #ffb52e;
-    font-weight: 950;
-}
-
-.map-image {
-    width: 100%;
-    max-height: 420px;
-    object-fit: contain;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.12);
-    background: #000;
-    margin-bottom: 14px;
-    cursor: zoom-in;
-    display: block;
-}
-
-.operation-content {
-    white-space: pre-line;
-    line-height: 1.75;
-    font-size: 15px;
-    color: #ddd;
-}
-
-.ready {
-    padding: 28px;
-    color: #999;
-    border: 1px dashed rgba(255,255,255,.14);
-    border-radius: 16px;
-    background: rgba(255,255,255,.03);
-}
-
-.video-modal,
-.image-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.82);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    z-index: 9999;
-}
-
-.video-modal.active,
-.image-modal.active {
-    display: flex;
-}
-
-.video-box {
-    width: min(960px, 100%);
-    background: #0d0d0d;
-    border: 1px solid rgba(255,181,46,.25);
-    border-radius: 18px;
-    overflow: hidden;
-}
-
-.video-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-.video-title {
-    font-weight: 900;
-    color: #ffb52e;
-}
-
-.video-close {
-    background: rgba(255,255,255,.08);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 999px;
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-    font-size: 18px;
-}
-
-.video-frame {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #000;
-}
-
-.video-frame iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-}
-
-.image-modal img {
-    max-width: 99vw;
-    max-height: 98vh;
-    object-fit: contain;
-    border-radius: 10px;
-    border: 1px solid rgba(255,181,46,.35);
-}
-
-@media (max-width: 920px) {
-    .home-grid,
-    .db-layout,
-    .outlaw-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .tube-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .list-scroll {
-        max-height: 360px;
-    }
-
-    .logo-box {
-        width: 110px;
-        height: 110px;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 620px) {
-    .wrap {
-        padding: 20px 14px 40px;
-    }
-
-    .hero {
-        display: block;
-        padding: 22px;
-    }
-
-    .logo-box {
-        width: 100%;
-        height: 130px;
-        margin-bottom: 16px;
-    }
-
-    h1 {
-        font-size: 30px;
-    }
-
-    .section-head {
-        display: block;
-    }
-
-    .count {
-        display: inline-block;
-        margin-top: 10px;
-    }
-}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),transparent 34%),linear-gradient(180deg,#050505 0%,#111 45%,#070707 100%);color:#fff;font-family:Arial,sans-serif}
+.wrap{max-width:1280px;margin:auto;padding:28px 18px 50px}
+.hero{display:flex;align-items:center;gap:22px;padding:26px;margin-bottom:18px;border-radius:24px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),#101010;cursor:pointer}
+.logo-box{width:128px;height:128px;border-radius:22px;background:rgba(0,0,0,.35);border:1px solid rgba(255,181,46,.2);display:flex;align-items:center;justify-content:center;padding:12px}
+.logo-box img{max-width:100%;max-height:100%;object-fit:contain}
+.kicker{color:#ffb52e;font-size:13px;font-weight:800;letter-spacing:1.4px;margin-bottom:8px}
+h1{margin:0;font-size:38px;font-weight:950}
+.sub{margin-top:10px;color:#c4c4c4;font-size:15px;line-height:1.6}
+.main-menu,.info-menu,.sub-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.main-menu button,.info-menu button,.sub-filter button{background:rgba(20,20,20,.92);color:#bbb;border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:850}
+.main-menu button.active,.info-menu button.active,.sub-filter button.active{color:#ffb52e;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.65)}
+.panel{border:1px solid rgba(255,255,255,.08);background:rgba(12,12,12,.88);border-radius:22px;padding:22px}
+.section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px}
+.section-title{font-size:25px;font-weight:950}
+.section-desc{color:#909090;font-size:13px;margin-top:5px}
+.count{color:#ffb52e;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.25);border-radius:999px;padding:8px 13px;font-size:13px;font-weight:850;white-space:nowrap}
+.home-grid{display:grid;grid-template-columns:.85fr 1.4fr;gap:18px}
+.home-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);border-radius:18px;padding:16px}
+.home-card-title{font-size:18px;font-weight:950;margin-bottom:12px;color:#ffb52e}
+.notice-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.notice-item:last-child{border-bottom:none}
+.item-title{font-size:15px;font-weight:900}
+.item-date{margin-top:5px;font-size:12px;color:#888}
+.item-content{margin-top:6px;font-size:13px;color:#aaa;line-height:1.5}
+.important{display:inline-block;margin-right:6px;color:#ff5d5d;font-weight:950}
+.tube-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tube-card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:14px;overflow:hidden;cursor:pointer;transition:.15s ease}
+.tube-card:hover,.item-row:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.06)}
+.tube-thumb{width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
+.tube-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.toolbar{display:flex;gap:10px;margin-bottom:14px}
+.search{flex:1;position:relative}
+.search input{width:100%;height:46px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 42px 0 15px;outline:none}
+.search input:focus{border-color:rgba(255,181,46,.7)}
+.search-mark{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:#ffb52e}
+.result-info{color:#888;font-size:13px;margin-bottom:12px}
+.db-layout{display:grid;grid-template-columns:360px 1fr;gap:18px;min-height:560px}
+.outlaw-layout{grid-template-columns:270px 1fr;gap:14px}
+.item-list{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22);overflow:hidden}
+.list-scroll{max-height:560px;overflow-y:auto}
+.item-row{padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}
+.item-row.active{background:rgba(255,181,46,.1);border-left:3px solid #ffb52e}
+.item-name{font-size:16px;font-weight:900}
+.item-sub{margin-top:5px;color:#888;font-size:12px}
+.detail{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(0,0,0,.25);padding:24px}
+.map-detail{padding:14px}
+.empty-detail{min-height:240px;display:flex;align-items:center;justify-content:center;color:#888;border:1px dashed rgba(255,255,255,.12);border-radius:14px}
+.detail-title{font-size:30px;font-weight:950;margin-bottom:14px}
+.map-detail .detail-title{font-size:26px;margin-bottom:10px}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.map-detail .badges{margin-bottom:12px}
+.badge{font-size:13px;font-weight:850;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#ddd}
+.badge.gold{color:#ffb52e;background:rgba(255,181,46,.09);border-color:rgba(255,181,46,.28)}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.map-detail .info-grid{margin-bottom:12px}
+.info-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px}
+.info-label{color:#888;font-size:12px;margin-bottom:6px}
+.info-value{font-weight:900;font-size:16px}
+.material-title{font-size:18px;font-weight:950;margin-bottom:10px}
+.material-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);color:#ddd}
+.qty{color:#ffb52e;font-weight:950}
+.map-image{width:100%;max-height:420px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#000;margin-bottom:14px;cursor:zoom-in;display:block}
+.operation-content{white-space:pre-line;line-height:1.75;font-size:15px;color:#ddd}
+.ready{padding:28px;color:#999;border:1px dashed rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.03)}
+.video-modal,.image-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:6px;z-index:9999}
+.video-modal.active,.image-modal.active{display:flex}
+.video-box{width:min(960px,100%);background:#0d0d0d;border:1px solid rgba(255,181,46,.25);border-radius:18px;overflow:hidden}
+.video-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.video-title{font-weight:900;color:#ffb52e}
+.video-close{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:18px}
+.video-frame{width:100%;aspect-ratio:16/9;background:#000}
+.video-frame iframe{width:100%;height:100%;border:0}
+.image-modal img{max-width:99vw;max-height:98vh;object-fit:contain;border-radius:10px;border:1px solid rgba(255,181,46,.35)}
+@media(max-width:920px){.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.wrap{padding:20px 14px 40px}.hero{display:block;padding:22px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:30px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
 </head>
 
 <body>
 <div class="wrap">
-
     <div class="hero" onclick="showHome()">
-        <div class="logo-box">
-            <img src="./axe.png" alt="AXE 로고">
-        </div>
+        <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
         <div>
             <div class="kicker">AXE COMPANY DATABASE</div>
             <h1>AXE 정보센터</h1>
-            <div class="sub">
-                회사 운영 기준, 공지, 영상, 제작 정보와 브리핑맵을 빠르게 확인하는 내부 정보 허브입니다.
-            </div>
+            <div class="sub">회사 운영 기준, 공지, 영상, 제작 정보와 브리핑맵을 빠르게 확인하는 내부 정보 허브입니다.</div>
         </div>
     </div>
 
@@ -601,7 +103,6 @@ h1 {
     </div>
 
     <div class="panel" id="content"></div>
-
 </div>
 
 <div class="video-modal" id="videoModal" onclick="closeVideoOutside(event)">
@@ -621,754 +122,203 @@ h1 {
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbydcbJtniMCWcbF5MXYC2P16BO4Iw5kqC6tnCqHHZ8CMkqvAGmtyZi0F7QWzGixytzIYg/exec";
 
-const categoryMap = {
-    ALL: "전체",
-    SMG: "SMG",
-    PISTOL: "피스톨",
-    REVOLVER: "리볼버",
-    KNIFE: "나이프",
-    ETC: "기타"
-};
+const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts = [];
-let materials = [];
-let notices = [];
-let tubes = [];
-let briefingMaps = [];
-let outlawGuides = [];
-let operations = [];
-
-let currentCategory = "ALL";
-let searchKeyword = "";
-let selectedId = "";
-
-let mapSearchKeyword = "";
-let selectedMapId = "";
-
-let operationCategory = "ALL";
-let selectedOperationId = "";
+let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[];
+let currentCategory="ALL",searchKeyword="",selectedId="";
+let mapSearchKeyword="",selectedMapId="";
+let operationCategory="ALL",selectedOperationId="";
 
 fetch(API_URL)
-    .then(res => res.json())
-    .then(data => {
-        crafts = data.crafts || [];
-        materials = data.materials || [];
-        notices = data.notices || [];
-        tubes = data.tubes || [];
-        briefingMaps = data.briefingMaps || [];
-        outlawGuides = data.outlawGuides || [];
-        operations = data.operations || [];
-        showHome();
-    })
-    .catch(() => {
-        document.getElementById("content").innerHTML = `<div class="ready">데이터를 불러오지 못했습니다.</div>`;
-    });
+.then(res=>res.json())
+.then(data=>{
+    crafts=data.crafts||[];
+    materials=data.materials||[];
+    notices=data.notices||[];
+    tubes=data.tubes||[];
+    briefingMaps=data.briefingMaps||[];
+    outlawGuides=data.outlawGuides||[];
+    operations=data.operations||[];
+    showHome();
+})
+.catch(()=>{
+    document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
+});
 
-function safe(v) {
-    return v === undefined || v === null || v === "" ? "-" : v;
-}
+function safe(v){return v===undefined||v===null||v===""?"-":v}
+function escapeText(v){return String(v||"").replace(/'/g,"\\'")}
+function catName(cat){return categoryMap[cat]||cat||"-"}
+function scrollToElement(id){const el=document.getElementById(id);if(!el)return;setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
+function setMainActive(index){document.querySelectorAll(".main-menu button").forEach((btn,i)=>btn.classList.toggle("active",i===index))}
+function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
+function getYoutubeId(url){if(!url)return "";const text=String(url).trim();const patterns=[/youtube\.com\/watch\?v=([^&]+)/,/youtu\.be\/([^?&]+)/,/youtube\.com\/embed\/([^?&]+)/,/youtube\.com\/shorts\/([^?&]+)/];for(const p of patterns){const m=text.match(p);if(m&&m[1])return m[1]}return ""}
+function getTubeThumb(t){if(t.thumbnail&&String(t.thumbnail).trim()!=="")return t.thumbnail;const id=getYoutubeId(t.url);if(!id)return "./axe.png";return `https://img.youtube.com/vi/${id}/hqdefault.jpg`}
+function openVideo(url,title){const id=getYoutubeId(url);if(!id){alert("유튜브 주소를 확인해주세요.");return}document.getElementById("videoTitle").textContent=title||"AXE TUBE";document.getElementById("videoFrame").innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;document.getElementById("videoModal").classList.add("active")}
+function closeVideo(){document.getElementById("videoModal").classList.remove("active");document.getElementById("videoFrame").innerHTML=""}
+function closeVideoOutside(event){if(event.target.id==="videoModal")closeVideo()}
+function openImageModal(src){document.getElementById("imageModalImg").src=src;document.getElementById("imageModal").classList.add("active")}
+function closeImageModal(){document.getElementById("imageModal").classList.remove("active");document.getElementById("imageModalImg").src=""}
+function renderTubeCard(t){return `<div class="tube-card" onclick="openVideo('${escapeText(t.url)}','${escapeText(t.title)}')"><div class="tube-thumb"><img src="${getTubeThumb(t)}" onerror="this.src='./axe.png'"></div><div class="tube-body"><div class="item-title">${safe(t.title)}</div><div class="item-date">${formatDate(t.date)}</div><div class="item-content">${safe(t.note)}</div></div></div>`}
 
-function escapeText(v) {
-    return String(v || "").replace(/'/g, "\\'");
-}
-
-function catName(cat) {
-    return categoryMap[cat] || cat || "-";
-}
-
-function scrollToElement(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-}
-
-function setMainActive(index) {
-    document.querySelectorAll(".main-menu button").forEach((btn, i) => {
-        btn.classList.toggle("active", i === index);
-    });
-}
-
-function formatDate(v) {
-    if (!v) return "-";
-    const d = new Date(v);
-    if (isNaN(d.getTime())) return v;
-    return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
-}
-
-function getYoutubeId(url) {
-    if (!url) return "";
-    const text = String(url).trim();
-    const patterns = [
-        /youtube\.com\/watch\?v=([^&]+)/,
-        /youtu\.be\/([^?&]+)/,
-        /youtube\.com\/embed\/([^?&]+)/,
-        /youtube\.com\/shorts\/([^?&]+)/
-    ];
-
-    for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match && match[1]) return match[1];
-    }
-
-    return "";
-}
-
-function getTubeThumb(t) {
-    if (t.thumbnail && String(t.thumbnail).trim() !== "") return t.thumbnail;
-    const id = getYoutubeId(t.url);
-    if (!id) return "./axe.png";
-    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-}
-
-function openVideo(url, title) {
-    const id = getYoutubeId(url);
-    if (!id) {
-        alert("유튜브 주소를 확인해주세요.");
-        return;
-    }
-
-    document.getElementById("videoTitle").textContent = title || "AXE TUBE";
-    document.getElementById("videoFrame").innerHTML = `
-        <iframe
-            src="https://www.youtube.com/embed/${id}?autoplay=1"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-        </iframe>
-    `;
-
-    document.getElementById("videoModal").classList.add("active");
-}
-
-function closeVideo() {
-    document.getElementById("videoModal").classList.remove("active");
-    document.getElementById("videoFrame").innerHTML = "";
-}
-
-function closeVideoOutside(event) {
-    if (event.target.id === "videoModal") closeVideo();
-}
-
-function openImageModal(src) {
-    document.getElementById("imageModalImg").src = src;
-    document.getElementById("imageModal").classList.add("active");
-}
-
-function closeImageModal() {
-    document.getElementById("imageModal").classList.remove("active");
-    document.getElementById("imageModalImg").src = "";
-}
-
-function renderTubeCard(t) {
-    return `
-        <div class="tube-card" onclick="openVideo('${escapeText(t.url)}', '${escapeText(t.title)}')">
-            <div class="tube-thumb">
-                <img src="${getTubeThumb(t)}" onerror="this.src='./axe.png'">
-            </div>
-            <div class="tube-body">
-                <div class="item-title">${safe(t.title)}</div>
-                <div class="item-date">${formatDate(t.date)}</div>
-                <div class="item-content">${safe(t.note)}</div>
-            </div>
-        </div>
-    `;
-}
-
-function showHome() {
+function showHome(){
     setMainActive(0);
-
-    const recentNotices = notices.slice(-4).reverse();
-    const recentTubes = tubes.slice(-6).reverse();
-
-    document.getElementById("content").innerHTML = `
-        <div class="section-head">
-            <div>
-                <div class="section-title">메인</div>
-                <div class="section-desc">최근 공지와 AXE TUBE 업데이트를 확인하세요.</div>
-            </div>
-            <div class="count">AXE HUB</div>
-        </div>
-
+    const recentNotices=notices.slice(-4).reverse();
+    const recentTubes=tubes.slice(-6).reverse();
+    document.getElementById("content").innerHTML=`
+        <div class="section-head"><div><div class="section-title">메인</div><div class="section-desc">최근 공지와 AXE TUBE 업데이트를 확인하세요.</div></div><div class="count">AXE HUB</div></div>
         <div class="home-grid">
-            <div class="home-card">
-                <div class="home-card-title">공지사항</div>
-                ${
-                    recentNotices.length
-                    ? recentNotices.map(n => `
-                        <div class="notice-item">
-                            <div class="item-title">
-                                ${String(n.important).toUpperCase() === "TRUE" ? '<span class="important">중요</span>' : ''}
-                                ${safe(n.title)}
-                            </div>
-                            <div class="item-date">${formatDate(n.date)}</div>
-                            <div class="item-content">${safe(n.content)}</div>
-                        </div>
-                    `).join("")
-                    : `<div class="ready">등록된 공지사항이 없습니다.</div>`
-                }
-            </div>
-
-            <div class="home-card">
-                <div class="home-card-title">AXE TUBE</div>
-                <div class="tube-grid">
-                    ${
-                        recentTubes.length
-                        ? recentTubes.map(t => renderTubeCard(t)).join("")
-                        : `<div class="ready">등록된 영상이 없습니다.</div>`
-                    }
-                </div>
-            </div>
-        </div>
-    `;
+            <div class="home-card"><div class="home-card-title">공지사항</div>${recentNotices.length?recentNotices.map(n=>`<div class="notice-item"><div class="item-title">${String(n.important).toUpperCase()==="TRUE"?'<span class="important">중요</span>':''}${safe(n.title)}</div><div class="item-date">${formatDate(n.date)}</div><div class="item-content">${safe(n.content)}</div></div>`).join(""):`<div class="ready">등록된 공지사항이 없습니다.</div>`}</div>
+            <div class="home-card"><div class="home-card-title">AXE TUBE</div><div class="tube-grid">${recentTubes.length?recentTubes.map(t=>renderTubeCard(t)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}</div></div>
+        </div>`;
 }
 
-function showNotice() {
+function showNotice(){
     setMainActive(1);
-
-    document.getElementById("content").innerHTML = `
-        <div class="section-head">
-            <div>
-                <div class="section-title">공지사항</div>
-                <div class="section-desc">공지사항과 운영 기준을 확인합니다.</div>
-            </div>
-            <div class="count">NOTICE</div>
-        </div>
-
-        <div class="sub-filter">
-            <button class="active" onclick="showNoticeList()">공지사항</button>
-            <button onclick="showOperationList()">운영기준</button>
-        </div>
-
-        <div id="noticeContent"></div>
-    `;
-
+    document.getElementById("content").innerHTML=`
+        <div class="section-head"><div><div class="section-title">공지사항</div><div class="section-desc">공지사항과 운영 기준을 확인합니다.</div></div><div class="count">NOTICE</div></div>
+        <div class="sub-filter"><button class="active" onclick="showNoticeList()">공지사항</button><button onclick="showOperationList()">운영기준</button></div>
+        <div id="noticeContent"></div>`;
     showNoticeList();
 }
 
-function showNoticeList() {
-    const list = notices.slice().reverse();
-
-    const buttons = document.querySelectorAll(".sub-filter button");
-    if (buttons.length >= 2) {
-        buttons[0].classList.add("active");
-        buttons[1].classList.remove("active");
-    }
-
-    document.getElementById("noticeContent").innerHTML = `
-        <div class="home-card">
-            ${
-                list.length
-                ? list.map(n => `
-                    <div class="notice-item">
-                        <div class="item-title">
-                            ${String(n.important).toUpperCase() === "TRUE" ? '<span class="important">중요</span>' : ''}
-                            ${safe(n.title)}
-                        </div>
-                        <div class="item-date">${formatDate(n.date)}</div>
-                        <div class="item-content">${safe(n.content)}</div>
-                    </div>
-                `).join("")
-                : `<div class="ready">등록된 공지사항이 없습니다.</div>`
-            }
-        </div>
-    `;
+function showNoticeList(){
+    const list=notices.slice().reverse();
+    const buttons=document.querySelectorAll(".sub-filter button");
+    if(buttons.length>=2){buttons[0].classList.add("active");buttons[1].classList.remove("active")}
+    document.getElementById("noticeContent").innerHTML=`
+        <div class="home-card">${list.length?list.map(n=>`<div class="notice-item"><div class="item-title">${String(n.important).toUpperCase()==="TRUE"?'<span class="important">중요</span>':''}${safe(n.title)}</div><div class="item-date">${formatDate(n.date)}</div><div class="item-content">${safe(n.content)}</div></div>`).join(""):`<div class="ready">등록된 공지사항이 없습니다.</div>`}</div>`;
 }
 
-function showOperationList() {
-    selectedOperationId = "";
+function getValidOperations(){
+    return operations.filter(o=>{
+        const title=String(o.title||"").trim();
+        const id=String(o.id||"").trim();
+        return title!==""&&title!=="-"&&id!==""&&id!=="-";
+    });
+}
 
-    const buttons = document.querySelectorAll(".sub-filter button");
-    if (buttons.length >= 2) {
-        buttons[0].classList.remove("active");
-        buttons[1].classList.add("active");
-    }
-
-    const categories = ["ALL", ...new Set(operations.map(o => o.category).filter(Boolean))];
-
-    document.getElementById("noticeContent").innerHTML = `
-        <div class="sub-filter">
-            ${categories.map(cat => `
-                <button class="${operationCategory === cat ? "active" : ""}" onclick="setOperationCategory('${escapeText(cat)}')">
-                    ${cat === "ALL" ? "전체" : cat}
-                </button>
-            `).join("")}
-        </div>
-
+function showOperationList(){
+    selectedOperationId="";
+    const buttons=document.querySelectorAll(".sub-filter button");
+    if(buttons.length>=2){buttons[0].classList.remove("active");buttons[1].classList.add("active")}
+    const validOps=getValidOperations();
+    const categories=["ALL",...new Set(validOps.map(o=>o.category).filter(v=>v&&String(v).trim()!==""&&String(v).trim()!=="-"))];
+    document.getElementById("noticeContent").innerHTML=`
+        <div class="sub-filter">${categories.map(cat=>`<button class="${operationCategory===cat?"active":""}" onclick="setOperationCategory('${escapeText(cat)}')">${cat==="ALL"?"전체":cat}</button>`).join("")}</div>
         <div class="db-layout">
-            <div class="item-list">
-                <div class="list-scroll" id="operationListBox"></div>
-            </div>
-
-            <div class="detail" id="operationDetailBox">
-                <div class="empty-detail">좌측 목록에서 운영 기준을 선택하세요.</div>
-            </div>
-        </div>
-    `;
-
+            <div class="item-list"><div class="list-scroll" id="operationListBox"></div></div>
+            <div class="detail" id="operationDetailBox"><div class="empty-detail">좌측 목록에서 운영 기준을 선택하세요.</div></div>
+        </div>`;
     renderOperationList();
 }
 
-function setOperationCategory(cat) {
-    operationCategory = cat;
-    selectedOperationId = "";
-    showOperationList();
+function setOperationCategory(cat){operationCategory=cat;selectedOperationId="";showOperationList()}
+function getFilteredOperations(){
+    let list=getValidOperations();
+    if(operationCategory!=="ALL")list=list.filter(o=>o.category===operationCategory);
+    return list.slice().sort((a,b)=>Number(a.order||0)-Number(b.order||0));
 }
-
-function getFilteredOperations() {
-    let list = operationCategory === "ALL"
-        ? operations
-        : operations.filter(o => o.category === operationCategory);
-
-    return list.slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+function renderOperationList(){
+    const listBox=document.getElementById("operationListBox");if(!listBox)return;
+    const list=getFilteredOperations();
+    if(list.length===0){listBox.innerHTML=`<div class="ready">등록된 운영 기준이 없습니다.</div>`;return}
+    listBox.innerHTML=list.map(op=>`<div class="item-row ${selectedOperationId===op.id?"active":""}" onclick="selectOperation('${escapeText(op.id)}')"><div class="item-name">${safe(op.title)}</div><div class="item-sub">${safe(op.category)}</div></div>`).join("");
 }
-
-function renderOperationList() {
-    const listBox = document.getElementById("operationListBox");
-    if (!listBox) return;
-
-    const list = getFilteredOperations();
-
-    if (list.length === 0) {
-        listBox.innerHTML = `<div class="ready">등록된 운영 기준이 없습니다.</div>`;
-        return;
-    }
-
-    listBox.innerHTML = list.map(op => `
-        <div class="item-row ${selectedOperationId === op.id ? "active" : ""}" onclick="selectOperation('${escapeText(op.id)}')">
-            <div class="item-name">${safe(op.title)}</div>
-            <div class="item-sub">${safe(op.category)}</div>
-        </div>
-    `).join("");
-}
-
-function selectOperation(id) {
-    selectedOperationId = id;
+function selectOperation(id){
+    selectedOperationId=id;
     renderOperationList();
-
-    const op = operations.find(o => String(o.id) === String(id));
-    if (!op) return;
-
-    document.getElementById("operationDetailBox").innerHTML = `
+    const op=operations.find(o=>String(o.id)===String(id));
+    if(!op)return;
+    document.getElementById("operationDetailBox").innerHTML=`
         <div class="detail-title">${safe(op.title)}</div>
-
-        <div class="badges">
-            <span class="badge gold">${safe(op.category)}</span>
-            <span class="badge">순서 ${safe(op.order)}</span>
-        </div>
-
-        <div class="operation-content">${safe(op.content)}</div>
-    `;
-
+        <div class="badges"><span class="badge gold">${safe(op.category)}</span></div>
+        <div class="operation-content">${safe(op.content)}</div>`;
     scrollToElement("operationDetailBox");
 }
 
-function showTube() {
+function showTube(){
     setMainActive(2);
-    const list = tubes.slice().reverse();
-
-    document.getElementById("content").innerHTML = `
-        <div class="section-head">
-            <div>
-                <div class="section-title">AXE TUBE</div>
-                <div class="section-desc">회사 활동 영상, 전투 클립, 공략 영상을 모아둔 공간입니다.</div>
-            </div>
-            <div class="count">${list.length}개</div>
-        </div>
-
-        <div class="tube-grid">
-            ${
-                list.length
-                ? list.map(t => renderTubeCard(t)).join("")
-                : `<div class="ready">등록된 영상이 없습니다.</div>`
-            }
-        </div>
-    `;
+    const list=tubes.slice().reverse();
+    document.getElementById("content").innerHTML=`<div class="section-head"><div><div class="section-title">AXE TUBE</div><div class="section-desc">회사 활동 영상, 전투 클립, 공략 영상을 모아둔 공간입니다.</div></div><div class="count">${list.length}개</div></div><div class="tube-grid">${list.length?list.map(t=>renderTubeCard(t)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}</div>`;
 }
 
-function showInfo() {
+function showInfo(){setMainActive(3);showCraft()}
+function infoMenu(active){const menus=[["제작","showCraft()"],["무법지대","showOutlaw()"]];return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`}
+
+function showCraft(){
     setMainActive(3);
-    showCraft();
-}
-
-function infoMenu(active) {
-    const menus = [
-        ["제작", "showCraft()"],
-        ["무법지대", "showOutlaw()"]
-    ];
-
-    return `
-        <div class="info-menu">
-            ${menus.map(m => `
-                <button class="${m[0] === active ? "active" : ""}" onclick="${m[1]}">${m[0]}</button>
-            `).join("")}
-        </div>
-    `;
-}
-
-function showCraft() {
-    setMainActive(3);
-
-    const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
-
-    let html = `
-        ${infoMenu("제작")}
-
-        <div class="section-head">
-            <div>
-                <div class="section-title">제작 정보</div>
-                <div class="section-desc">좌측 목록에서 아이템을 선택하면 우측에 상세 제작 정보가 표시됩니다.</div>
-            </div>
-            <div class="count" id="countBox">총 ${crafts.length}개</div>
-        </div>
-
-        <div class="toolbar">
-            <div class="search">
-                <input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" oninput="onSearch(this.value)">
-                <span class="search-mark">⌕</span>
-            </div>
-        </div>
-
-        <div class="sub-filter">
-    `;
-
-    categories.forEach(cat => {
-        html += `<button class="${cat === currentCategory ? "active" : ""}" onclick="setCategory('${cat}')">${catName(cat)}</button>`;
-    });
-
-    html += `
-        </div>
-
-        <div class="result-info" id="resultInfo"></div>
-
-        <div class="db-layout">
-            <div class="item-list">
-                <div class="list-scroll" id="listBox"></div>
-            </div>
-            <div class="detail" id="detailBox">
-                <div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById("content").innerHTML = html;
+    const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
+    let html=`${infoMenu("제작")}<div class="section-head"><div><div class="section-title">제작 정보</div><div class="section-desc">좌측 목록에서 아이템을 선택하면 우측에 상세 제작 정보가 표시됩니다.</div></div><div class="count" id="countBox">총 ${crafts.length}개</div></div><div class="toolbar"><div class="search"><input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" oninput="onSearch(this.value)"><span class="search-mark">⌕</span></div></div><div class="sub-filter">`;
+    categories.forEach(cat=>{html+=`<button class="${cat===currentCategory?"active":""}" onclick="setCategory('${cat}')">${catName(cat)}</button>`});
+    html+=`</div><div class="result-info" id="resultInfo"></div><div class="db-layout"><div class="item-list"><div class="list-scroll" id="listBox"></div></div><div class="detail" id="detailBox"><div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div></div></div>`;
+    document.getElementById("content").innerHTML=html;
     renderList();
 }
 
-function setCategory(cat) {
-    currentCategory = cat;
-    selectedId = "";
-    showCraft();
-}
-
-function onSearch(value) {
-    searchKeyword = value.trim();
-    selectedId = "";
-    renderList();
-    renderEmptyDetail();
-}
-
-function getFilteredList() {
-    let list = searchKeyword
-        ? crafts
-        : (currentCategory === "ALL" ? crafts : crafts.filter(c => c.category === currentCategory));
-
-    const keyword = searchKeyword.toLowerCase();
-
-    if (keyword) {
-        list = list.filter(c => {
-            const itemMaterials = materials.filter(m => m.craft_id === c.id);
-            const target = [
-                c.item_name,
-                c.category,
-                catName(c.category),
-                c.success_rate,
-                c.craft_rank,
-                c.obtain_place,
-                c.note,
-                ...itemMaterials.map(m => m.material_name)
-            ].join(" ").toLowerCase();
-
-            return target.includes(keyword);
-        });
-    }
-
+function setCategory(cat){currentCategory=cat;selectedId="";showCraft()}
+function onSearch(value){searchKeyword=value.trim();selectedId="";renderList();renderEmptyDetail()}
+function getFilteredList(){
+    let list=searchKeyword?crafts:(currentCategory==="ALL"?crafts:crafts.filter(c=>c.category===currentCategory));
+    const keyword=searchKeyword.toLowerCase();
+    if(keyword){list=list.filter(c=>{const itemMaterials=materials.filter(m=>m.craft_id===c.id);const target=[c.item_name,c.category,catName(c.category),c.success_rate,c.craft_rank,c.obtain_place,c.note,...itemMaterials.map(m=>m.material_name)].join(" ").toLowerCase();return target.includes(keyword)})}
     return list;
 }
-
-function renderList() {
-    const listBox = document.getElementById("listBox");
-    const resultInfo = document.getElementById("resultInfo");
-    const countBox = document.getElementById("countBox");
-
-    if (!listBox) return;
-
-    const list = getFilteredList();
-    const modeText = searchKeyword ? "전체 검색" : catName(currentCategory);
-
-    resultInfo.textContent = `분류: ${modeText} · 검색 결과 ${list.length}개`;
-    countBox.textContent = `${list.length}개 표시`;
-
-    if (list.length === 0) {
-        listBox.innerHTML = `<div class="ready">검색 결과가 없습니다.</div>`;
-        renderEmptyDetail();
-        return;
-    }
-
-    listBox.innerHTML = list.map(c => `
-        <div class="item-row ${selectedId === c.id ? "active" : ""}" onclick="selectItem('${c.id}')">
-            <div class="item-name">${safe(c.item_name)}</div>
-            <div class="item-sub">${catName(c.category)}</div>
-        </div>
-    `).join("");
+function renderList(){
+    const listBox=document.getElementById("listBox"),resultInfo=document.getElementById("resultInfo"),countBox=document.getElementById("countBox");if(!listBox)return;
+    const list=getFilteredList(),modeText=searchKeyword?"전체 검색":catName(currentCategory);
+    resultInfo.textContent=`분류: ${modeText} · 검색 결과 ${list.length}개`;
+    countBox.textContent=`${list.length}개 표시`;
+    if(list.length===0){listBox.innerHTML=`<div class="ready">검색 결과가 없습니다.</div>`;renderEmptyDetail();return}
+    listBox.innerHTML=list.map(c=>`<div class="item-row ${selectedId===c.id?"active":""}" onclick="selectItem('${c.id}')"><div class="item-name">${safe(c.item_name)}</div><div class="item-sub">${catName(c.category)}</div></div>`).join("");
+}
+function selectItem(id){selectedId=id;renderList();renderDetail(id);scrollToElement("detailBox")}
+function renderEmptyDetail(){const detailBox=document.getElementById("detailBox");if(!detailBox)return;detailBox.innerHTML=`<div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>`}
+function renderDetail(id){
+    const detailBox=document.getElementById("detailBox"),item=crafts.find(c=>c.id===id);
+    if(!item){renderEmptyDetail();return}
+    const itemMaterials=materials.filter(m=>m.craft_id===id);
+    const materialHtml=itemMaterials.length?itemMaterials.map(m=>`<div class="material-row"><span>${safe(m.material_name)}</span><span class="qty">x${safe(m.quantity)}</span></div>`).join(""):`<div class="material-row"><span>등록된 재료 없음</span></div>`;
+    detailBox.innerHTML=`<div class="detail-title">${safe(item.item_name)}</div><div class="badges"><span class="badge gold">${catName(item.category)}</span><span class="badge">성공률 ${safe(item.success_rate)}%</span><span class="badge">랭크 ${safe(item.craft_rank)}</span></div><div class="info-grid"><div class="info-card"><div class="info-label">분류</div><div class="info-value">${catName(item.category)}</div></div><div class="info-card"><div class="info-label">성공률</div><div class="info-value">${safe(item.success_rate)}%</div></div><div class="info-card"><div class="info-label">획득처</div><div class="info-value">${safe(item.obtain_place)}</div></div></div><div><div class="material-title">필요 재료</div>${materialHtml}</div>`;
 }
 
-function selectItem(id) {
-    selectedId = id;
-    renderList();
-    renderDetail(id);
-    scrollToElement("detailBox");
-}
-
-function renderEmptyDetail() {
-    const detailBox = document.getElementById("detailBox");
-    if (!detailBox) return;
-    detailBox.innerHTML = `<div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>`;
-}
-
-function renderDetail(id) {
-    const detailBox = document.getElementById("detailBox");
-    const item = crafts.find(c => c.id === id);
-
-    if (!item) {
-        renderEmptyDetail();
-        return;
-    }
-
-    const itemMaterials = materials.filter(m => m.craft_id === id);
-
-    let materialHtml = itemMaterials.length
-        ? itemMaterials.map(m => `
-            <div class="material-row">
-                <span>${safe(m.material_name)}</span>
-                <span class="qty">x${safe(m.quantity)}</span>
-            </div>
-        `).join("")
-        : `<div class="material-row"><span>등록된 재료 없음</span></div>`;
-
-    detailBox.innerHTML = `
-        <div class="detail-title">${safe(item.item_name)}</div>
-
-        <div class="badges">
-            <span class="badge gold">${catName(item.category)}</span>
-            <span class="badge">성공률 ${safe(item.success_rate)}%</span>
-            <span class="badge">랭크 ${safe(item.craft_rank)}</span>
-        </div>
-
-        <div class="info-grid">
-            <div class="info-card">
-                <div class="info-label">분류</div>
-                <div class="info-value">${catName(item.category)}</div>
-            </div>
-            <div class="info-card">
-                <div class="info-label">성공률</div>
-                <div class="info-value">${safe(item.success_rate)}%</div>
-            </div>
-            <div class="info-card">
-                <div class="info-label">획득처</div>
-                <div class="info-value">${safe(item.obtain_place)}</div>
-            </div>
-        </div>
-
-        <div>
-            <div class="material-title">필요 재료</div>
-            ${materialHtml}
-        </div>
-    `;
-}
-
-function showOutlaw() {
+function showOutlaw(){
     setMainActive(3);
-
-    document.getElementById("content").innerHTML = `
-        ${infoMenu("무법지대")}
-
-        <div class="section-head">
-            <div>
-                <div class="section-title">무법지대</div>
-                <div class="section-desc">전투 브리핑용 지도와 무법지대 공략을 확인합니다.</div>
-            </div>
-            <div class="count">${briefingMaps.length}개 지역</div>
-        </div>
-
-        <div class="sub-filter">
-            <button class="active" onclick="showBriefingMaps()">브리핑맵</button>
-            <button onclick="showOutlawGuides()">무법지대 공략</button>
-        </div>
-
-        <div id="outlawContent"></div>
-    `;
-
+    document.getElementById("content").innerHTML=`${infoMenu("무법지대")}<div class="section-head"><div><div class="section-title">무법지대</div><div class="section-desc">전투 브리핑용 지도와 무법지대 공략을 확인합니다.</div></div><div class="count">${briefingMaps.length}개 지역</div></div><div class="sub-filter"><button class="active" onclick="showBriefingMaps()">브리핑맵</button><button onclick="showOutlawGuides()">무법지대 공략</button></div><div id="outlawContent"></div>`;
     showBriefingMaps();
 }
-
-function showBriefingMaps() {
-    selectedMapId = "";
-
-    document.getElementById("outlawContent").innerHTML = `
-        <div class="toolbar">
-            <div class="search">
-                <input id="mapSearchInput" type="text" placeholder="지역명, 좌표, 설명, 메모 검색" value="${mapSearchKeyword}" oninput="onMapSearch(this.value)">
-                <span class="search-mark">⌕</span>
-            </div>
-        </div>
-
-        <div class="result-info" id="mapResultInfo"></div>
-
-        <div class="db-layout outlaw-layout">
-            <div class="item-list">
-                <div class="list-scroll" id="mapListBox"></div>
-            </div>
-
-            <div class="detail map-detail" id="mapDetailBox">
-                <div class="empty-detail">좌측 목록에서 브리핑맵을 선택하세요.</div>
-            </div>
-        </div>
-    `;
-
+function showBriefingMaps(){
+    selectedMapId="";
+    document.getElementById("outlawContent").innerHTML=`<div class="toolbar"><div class="search"><input id="mapSearchInput" type="text" placeholder="지역명, 좌표, 설명, 메모 검색" value="${mapSearchKeyword}" oninput="onMapSearch(this.value)"><span class="search-mark">⌕</span></div></div><div class="result-info" id="mapResultInfo"></div><div class="db-layout outlaw-layout"><div class="item-list"><div class="list-scroll" id="mapListBox"></div></div><div class="detail map-detail" id="mapDetailBox"><div class="empty-detail">좌측 목록에서 브리핑맵을 선택하세요.</div></div></div>`;
     renderMapList();
 }
-
-function onMapSearch(value) {
-    mapSearchKeyword = value.trim();
-    selectedMapId = "";
+function onMapSearch(value){mapSearchKeyword=value.trim();selectedMapId="";renderMapList();renderEmptyMapDetail()}
+function getFilteredMaps(){
+    const keyword=mapSearchKeyword.toLowerCase();
+    if(!keyword)return briefingMaps;
+    return briefingMaps.filter(m=>[m.id,m.map_name,m.description,m.note,m.updated_at,m.coord].join(" ").toLowerCase().includes(keyword));
+}
+function renderMapList(){
+    const mapListBox=document.getElementById("mapListBox"),mapResultInfo=document.getElementById("mapResultInfo");
+    if(!mapListBox)return;
+    const list=getFilteredMaps();
+    if(mapResultInfo)mapResultInfo.textContent=`브리핑맵 검색 결과 ${list.length}개`;
+    if(list.length===0){mapListBox.innerHTML=`<div class="ready">검색 결과가 없습니다.</div>`;renderEmptyMapDetail();return}
+    mapListBox.innerHTML=list.map(m=>`<div class="item-row ${selectedMapId===m.id?"active":""}" onclick="selectBriefingMap('${escapeText(m.id)}')"><div class="item-name">${safe(m.map_name)}</div><div class="item-sub">좌표: ${safe(m.coord)}</div></div>`).join("");
+}
+function renderEmptyMapDetail(){const box=document.getElementById("mapDetailBox");if(!box)return;box.innerHTML=`<div class="empty-detail">좌측 목록에서 브리핑맵을 선택하세요.</div>`}
+function getMapImagePath(map){if(map.image&&String(map.image).trim()!==""&&String(map.image).trim()!=="-")return String(map.image).trim();return `./${map.id}.png`}
+function selectBriefingMap(id){
+    selectedMapId=id;
+    const map=briefingMaps.find(m=>String(m.id)===String(id));if(!map)return;
     renderMapList();
-    renderEmptyMapDetail();
-}
-
-function getFilteredMaps() {
-    const keyword = mapSearchKeyword.toLowerCase();
-
-    if (!keyword) return briefingMaps;
-
-    return briefingMaps.filter(m => {
-        const target = [
-            m.id,
-            m.map_name,
-            m.description,
-            m.note,
-            m.updated_at,
-            m.coord
-        ].join(" ").toLowerCase();
-
-        return target.includes(keyword);
-    });
-}
-
-function renderMapList() {
-    const mapListBox = document.getElementById("mapListBox");
-    const mapResultInfo = document.getElementById("mapResultInfo");
-
-    if (!mapListBox) return;
-
-    const list = getFilteredMaps();
-
-    if (mapResultInfo) {
-        mapResultInfo.textContent = `브리핑맵 검색 결과 ${list.length}개`;
-    }
-
-    if (list.length === 0) {
-        mapListBox.innerHTML = `<div class="ready">검색 결과가 없습니다.</div>`;
-        renderEmptyMapDetail();
-        return;
-    }
-
-    mapListBox.innerHTML = list.map(m => `
-        <div class="item-row ${selectedMapId === m.id ? "active" : ""}" onclick="selectBriefingMap('${escapeText(m.id)}')">
-            <div class="item-name">${safe(m.map_name)}</div>
-            <div class="item-sub">좌표: ${safe(m.coord)}</div>
-        </div>
-    `).join("");
-}
-
-function renderEmptyMapDetail() {
-    const box = document.getElementById("mapDetailBox");
-    if (!box) return;
-    box.innerHTML = `<div class="empty-detail">좌측 목록에서 브리핑맵을 선택하세요.</div>`;
-}
-
-function getMapImagePath(map) {
-    if (map.image && String(map.image).trim() !== "" && String(map.image).trim() !== "-") {
-        return String(map.image).trim();
-    }
-
-    return `./${map.id}.png`;
-}
-
-function selectBriefingMap(id) {
-    selectedMapId = id;
-
-    const map = briefingMaps.find(m => String(m.id) === String(id));
-    if (!map) return;
-
-    renderMapList();
-
-    const img = getMapImagePath(map);
-
-    document.getElementById("mapDetailBox").innerHTML = `
-        <div class="detail-title">${safe(map.map_name)}</div>
-
-        <div class="badges">
-            <span class="badge gold">브리핑맵</span>
-            <span class="badge">좌표 ${safe(map.coord)}</span>
-            <span class="badge">수정일 ${formatDate(map.updated_at)}</span>
-        </div>
-
-        <img class="map-image" src="${img}" onerror="this.src='./axe.png'" onclick="openImageModal('${img}')">
-
-        <div class="info-grid">
-            <div class="info-card">
-                <div class="info-label">지역명</div>
-                <div class="info-value">${safe(map.map_name)}</div>
-            </div>
-            <div class="info-card">
-                <div class="info-label">좌표</div>
-                <div class="info-value">${safe(map.coord)}</div>
-            </div>
-            <div class="info-card">
-                <div class="info-label">수정일</div>
-                <div class="info-value">${formatDate(map.updated_at)}</div>
-            </div>
-        </div>
-
-        <div class="home-card">
-            <div class="home-card-title">설명</div>
-            <div class="item-content">${safe(map.description)}</div>
-            <div class="item-content">${safe(map.note)}</div>
-        </div>
-    `;
-
+    const img=getMapImagePath(map);
+    document.getElementById("mapDetailBox").innerHTML=`<div class="detail-title">${safe(map.map_name)}</div><div class="badges"><span class="badge gold">브리핑맵</span><span class="badge">좌표 ${safe(map.coord)}</span><span class="badge">수정일 ${formatDate(map.updated_at)}</span></div><img class="map-image" src="${img}" onerror="this.src='./axe.png'" onclick="openImageModal('${img}')"><div class="info-grid"><div class="info-card"><div class="info-label">지역명</div><div class="info-value">${safe(map.map_name)}</div></div><div class="info-card"><div class="info-label">좌표</div><div class="info-value">${safe(map.coord)}</div></div><div class="info-card"><div class="info-label">수정일</div><div class="info-value">${formatDate(map.updated_at)}</div></div></div><div class="home-card"><div class="home-card-title">설명</div><div class="item-content">${safe(map.description)}</div><div class="item-content">${safe(map.note)}</div></div>`;
     scrollToElement("mapDetailBox");
 }
-
-function showOutlawGuides() {
-    const list = outlawGuides.slice().reverse();
-
-    document.getElementById("outlawContent").innerHTML = `
-        ${
-            list.length
-            ? list.map(g => `
-                <div class="home-card" style="margin-bottom:12px;">
-                    <div class="home-card-title">${safe(g.title)}</div>
-                    <div class="item-date">${formatDate(g.updated_at)}</div>
-                    <div class="item-content">${safe(g.content)}</div>
-                </div>
-            `).join("")
-            : `<div class="ready">등록된 무법지대 공략이 없습니다.</div>`
-        }
-    `;
+function showOutlawGuides(){
+    const list=outlawGuides.slice().reverse();
+    document.getElementById("outlawContent").innerHTML=list.length?list.map(g=>`<div class="home-card" style="margin-bottom:12px;"><div class="home-card-title">${safe(g.title)}</div><div class="item-date">${formatDate(g.updated_at)}</div><div class="item-content">${safe(g.content)}</div></div>`).join(""):`<div class="ready">등록된 무법지대 공략이 없습니다.</div>`;
 }
 </script>
-
 </body>
 </html>
