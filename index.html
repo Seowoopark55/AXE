@@ -75,7 +75,6 @@ h1 {
 }
 
 .main-menu,
-.info-menu,
 .sub-filter {
     display: flex;
     flex-wrap: wrap;
@@ -84,7 +83,6 @@ h1 {
 }
 
 .main-menu button,
-.info-menu button,
 .sub-filter button {
     background: rgba(20,20,20,.92);
     color: #bbb;
@@ -96,7 +94,6 @@ h1 {
 }
 
 .main-menu button.active,
-.info-menu button.active,
 .sub-filter button.active {
     color: #ffb52e;
     background: rgba(255,181,46,.1);
@@ -435,6 +432,13 @@ h1 {
     display: block;
 }
 
+.operation-content {
+    white-space: pre-line;
+    line-height: 1.75;
+    font-size: 15px;
+    color: #ddd;
+}
+
 .ready {
     padding: 28px;
     color: #999;
@@ -581,7 +585,7 @@ h1 {
             <div class="kicker">AXE COMPANY DATABASE</div>
             <h1>AXE 정보센터</h1>
             <div class="sub">
-                회사 활동에 필요한 공지, 영상, 제작 정보와 게임 데이터를 빠르게 확인하는 내부 정보 허브입니다.
+                회사 운영 기준, 공지, 영상, 제작 정보와 브리핑맵을 빠르게 확인하는 내부 정보 허브입니다.
             </div>
         </div>
     </div>
@@ -590,7 +594,8 @@ h1 {
         <button class="active" onclick="showHome()">메인</button>
         <button onclick="showNotice()">공지사항</button>
         <button onclick="showTube()">AXE TUBE</button>
-        <button onclick="showInfo()">정보</button>
+        <button onclick="showCraft()">제작</button>
+        <button onclick="showOutlaw()">무법지대</button>
     </div>
 
     <div class="panel" id="content"></div>
@@ -612,7 +617,7 @@ h1 {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyeqe4rM5xQVsybP87YZllMUMGd8kvJLUZIAhV7oCKP6H4BxMkeoXcvukYgAMCbHydVoA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx0hwESR2tXsrHaY0nlecTmufuIIRYWil6qhnYmZMoM6tgbxGIIkkRSyeppU-ilI5bORA/exec";
 
 const categoryMap = {
     ALL: "전체",
@@ -629,6 +634,7 @@ let notices = [];
 let tubes = [];
 let briefingMaps = [];
 let outlawGuides = [];
+let operations = [];
 
 let currentCategory = "ALL";
 let searchKeyword = "";
@@ -636,6 +642,10 @@ let selectedId = "";
 
 let mapSearchKeyword = "";
 let selectedMapId = "";
+
+let noticeMode = "notice";
+let operationCategory = "ALL";
+let selectedOperationId = "";
 
 fetch(API_URL)
     .then(res => res.json())
@@ -646,6 +656,7 @@ fetch(API_URL)
         tubes = data.tubes || [];
         briefingMaps = data.briefingMaps || [];
         outlawGuides = data.outlawGuides || [];
+        operations = data.operations || [];
         showHome();
     })
     .catch(() => {
@@ -817,17 +828,39 @@ function showHome() {
 
 function showNotice() {
     setMainActive(1);
-    const list = notices.slice().reverse();
+    noticeMode = "notice";
 
     document.getElementById("content").innerHTML = `
         <div class="section-head">
             <div>
                 <div class="section-title">공지사항</div>
-                <div class="section-desc">회사 운영 관련 공지와 업데이트 내역입니다.</div>
+                <div class="section-desc">공지사항과 운영 기준을 확인합니다.</div>
             </div>
-            <div class="count">${list.length}개</div>
+            <div class="count">NOTICE</div>
         </div>
 
+        <div class="sub-filter">
+            <button class="active" onclick="showNoticeList()">공지사항</button>
+            <button onclick="showOperationList()">운영기준</button>
+        </div>
+
+        <div id="noticeContent"></div>
+    `;
+
+    showNoticeList();
+}
+
+function showNoticeList() {
+    noticeMode = "notice";
+    const list = notices.slice().reverse();
+
+    const buttons = document.querySelectorAll(".sub-filter button");
+    if (buttons.length >= 2) {
+        buttons[0].classList.add("active");
+        buttons[1].classList.remove("active");
+    }
+
+    document.getElementById("noticeContent").innerHTML = `
         <div class="home-card">
             ${
                 list.length
@@ -845,6 +878,95 @@ function showNotice() {
             }
         </div>
     `;
+}
+
+function showOperationList() {
+    noticeMode = "operation";
+    selectedOperationId = "";
+
+    const buttons = document.querySelectorAll(".sub-filter button");
+    if (buttons.length >= 2) {
+        buttons[0].classList.remove("active");
+        buttons[1].classList.add("active");
+    }
+
+    const categories = ["ALL", ...new Set(operations.map(o => o.category).filter(Boolean))];
+
+    document.getElementById("noticeContent").innerHTML = `
+        <div class="sub-filter">
+            ${categories.map(cat => `
+                <button class="${operationCategory === cat ? "active" : ""}" onclick="setOperationCategory('${escapeText(cat)}')">
+                    ${cat === "ALL" ? "전체" : cat}
+                </button>
+            `).join("")}
+        </div>
+
+        <div class="db-layout">
+            <div class="item-list">
+                <div class="list-scroll" id="operationListBox"></div>
+            </div>
+
+            <div class="detail" id="operationDetailBox">
+                <div class="empty-detail">좌측 목록에서 운영 기준을 선택하세요.</div>
+            </div>
+        </div>
+    `;
+
+    renderOperationList();
+}
+
+function setOperationCategory(cat) {
+    operationCategory = cat;
+    selectedOperationId = "";
+    showOperationList();
+}
+
+function getFilteredOperations() {
+    let list = operationCategory === "ALL"
+        ? operations
+        : operations.filter(o => o.category === operationCategory);
+
+    return list.slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+}
+
+function renderOperationList() {
+    const listBox = document.getElementById("operationListBox");
+    if (!listBox) return;
+
+    const list = getFilteredOperations();
+
+    if (list.length === 0) {
+        listBox.innerHTML = `<div class="ready">등록된 운영 기준이 없습니다.</div>`;
+        return;
+    }
+
+    listBox.innerHTML = list.map(op => `
+        <div class="item-row ${selectedOperationId === op.id ? "active" : ""}" onclick="selectOperation('${escapeText(op.id)}')">
+            <div class="item-name">${safe(op.title)}</div>
+            <div class="item-sub">${safe(op.category)}</div>
+        </div>
+    `).join("");
+}
+
+function selectOperation(id) {
+    selectedOperationId = id;
+    renderOperationList();
+
+    const op = operations.find(o => String(o.id) === String(id));
+    if (!op) return;
+
+    document.getElementById("operationDetailBox").innerHTML = `
+        <div class="detail-title">${safe(op.title)}</div>
+
+        <div class="badges">
+            <span class="badge gold">${safe(op.category)}</span>
+            <span class="badge">순서 ${safe(op.order)}</span>
+        </div>
+
+        <div class="operation-content">${safe(op.content)}</div>
+    `;
+
+    scrollToElement("operationDetailBox");
 }
 
 function showTube() {
@@ -870,38 +992,12 @@ function showTube() {
     `;
 }
 
-function showInfo() {
-    setMainActive(3);
-    showCraft();
-}
-
-function infoMenu(active) {
-    const menus = [
-        ["제작", "showCraft()"],
-        ["아이템 시세", "showInfoReady('아이템 시세')"],
-        ["스킬", "showInfoReady('스킬')"],
-        ["생활", "showInfoReady('생활')"],
-        ["무법지대", "showOutlaw()"],
-        ["상자", "showInfoReady('상자')"]
-    ];
-
-    return `
-        <div class="info-menu">
-            ${menus.map(m => `
-                <button class="${m[0] === active ? "active" : ""}" onclick="${m[1]}">${m[0]}</button>
-            `).join("")}
-        </div>
-    `;
-}
-
 function showCraft() {
     setMainActive(3);
 
     const categories = ["ALL", ...new Set(crafts.map(c => c.category).filter(Boolean))];
 
     let html = `
-        ${infoMenu("제작")}
-
         <div class="section-head">
             <div>
                 <div class="section-title">제작 정보</div>
@@ -941,24 +1037,6 @@ function showCraft() {
 
     document.getElementById("content").innerHTML = html;
     renderList();
-}
-
-function showInfoReady(title) {
-    setMainActive(3);
-
-    document.getElementById("content").innerHTML = `
-        ${infoMenu(title)}
-
-        <div class="section-head">
-            <div>
-                <div class="section-title">${title}</div>
-                <div class="section-desc">아직 연결되지 않은 정보 카테고리입니다.</div>
-            </div>
-            <div class="count">준비중</div>
-        </div>
-
-        <div class="ready">해당 정보는 추후 추가 예정입니다.</div>
-    `;
 }
 
 function setCategory(cat) {
@@ -1094,11 +1172,9 @@ function renderDetail(id) {
 }
 
 function showOutlaw() {
-    setMainActive(3);
+    setMainActive(4);
 
     document.getElementById("content").innerHTML = `
-        ${infoMenu("무법지대")}
-
         <div class="section-head">
             <div>
                 <div class="section-title">무법지대</div>
