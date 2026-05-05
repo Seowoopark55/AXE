@@ -477,6 +477,45 @@ let operationCategory="ALL",selectedOperationId="";
 let questSearchKeyword="",questJobFilter="";
 let processSearchKeyword="",processJobFilter="";
 let modBookTypeFilter="접두",modBookCategoryFilter="",modBookSearchKeyword="";
+let currentMainSection="";
+
+function resetInfoState(){
+    currentCategory="ALL";
+    searchKeyword="";
+    selectedId="";
+    questSearchKeyword="";
+    questJobFilter="";
+    processSearchKeyword="";
+    processJobFilter="";
+    modBookTypeFilter="접두";
+    modBookCategoryFilter="";
+    modBookSearchKeyword="";
+}
+
+function resetNoticeState(){
+    operationCategory="ALL";
+    selectedOperationId="";
+}
+
+function resetOutlawState(){
+    mapSearchKeyword="";
+    selectedMapId="";
+    selectedGuideId="";
+}
+
+function resetUtilityState(){
+}
+
+function enterMainSection(section){
+    if(currentMainSection===section)return;
+
+    if(section==="notice")resetNoticeState();
+    if(section==="outlaw")resetOutlawState();
+    if(section==="info")resetInfoState();
+    if(section==="utility")resetUtilityState();
+
+    currentMainSection=section;
+}
 
 fetch(API_URL)
 .then(res=>res.json())
@@ -515,6 +554,47 @@ function setMainActive(index){document.querySelectorAll(".main-menu button").for
 function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
 function getNoticeId(n,i){return String(n.id||n.title||i)}
 function isImportant(v){return String(v).toUpperCase()==="TRUE"}
+
+function handleSearchKey(event,type){
+    if(event.key!=="Escape")return;
+
+    event.preventDefault();
+    event.currentTarget.value="";
+
+    if(type==="craft"){
+        searchKeyword="";
+        selectedId="";
+        renderList();
+        renderEmptyDetail();
+        return;
+    }
+
+    if(type==="map"){
+        mapSearchKeyword="";
+        selectedMapId="";
+        renderMapList();
+        renderEmptyMapDetail();
+        return;
+    }
+
+    if(type==="quest"){
+        questSearchKeyword="";
+        renderQuestTable();
+        return;
+    }
+
+    if(type==="process"){
+        processSearchKeyword="";
+        renderProcessCards();
+        return;
+    }
+
+    if(type==="modbook"){
+        modBookSearchKeyword="";
+        renderModBookList();
+        renderEmptyModBookDetail();
+    }
+}
 
 function getYoutubeId(url){
     if(!url)return "";
@@ -653,6 +733,7 @@ function renderTubeCard(t){
 }
 
 function showHome(){
+    enterMainSection("home");
     setMainActive(0);
     const recentNotices=notices.slice(-4).reverse();
     const recentTubes=tubes.slice(-6).reverse();
@@ -692,6 +773,7 @@ function showHome(){
 }
 
 function showNotice(){
+    enterMainSection("notice");
     setMainActive(1);
     document.getElementById("content").innerHTML=`
         <div class="section-head">
@@ -848,6 +930,7 @@ function selectOperation(id){
 }
 
 function showTube(){
+    enterMainSection("tube");
     setMainActive(2);
     const list=tubes.slice().reverse();
 
@@ -870,6 +953,7 @@ function showTube(){
 }
 
 function showInfo(){
+    enterMainSection("info");
     setMainActive(4);
     showCraft();
 }
@@ -885,6 +969,7 @@ function utilityMenu(active){
 }
 
 function showUtility(){
+    enterMainSection("utility");
     setMainActive(5);
     showPlicaCalculator();
 }
@@ -992,7 +1077,7 @@ function showQuest(){
     <div class="quest-panel">
         <div class="toolbar">
             <div class="search">
-                <input id="questSearchInput" type="text" placeholder="아이템명, 직업, 랭크 검색" value="${questSearchKeyword}" oninput="onQuestSearch(this.value)">
+                <input id="questSearchInput" type="text" placeholder="아이템명, 직업, 랭크 검색" value="${questSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'quest')" oninput="onQuestSearch(this.value)">
                 <span class="search-mark">⌕</span>
             </div>
         </div>
@@ -1101,7 +1186,7 @@ function showProcess(){
     <div class="quest-panel">
         <div class="toolbar">
             <div class="search">
-                <input id="processSearchInput" type="text" placeholder="아이템명, 재료명, 직업 검색" value="${processSearchKeyword}" oninput="onProcessSearch(this.value)">
+                <input id="processSearchInput" type="text" placeholder="아이템명, 재료명, 직업 검색" value="${processSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'process')" oninput="onProcessSearch(this.value)">
                 <span class="search-mark">⌕</span>
             </div>
         </div>
@@ -1368,7 +1453,7 @@ function showModBooks(){
         </div>
         <div class="toolbar">
             <div class="search">
-                <input id="modBookSearchInput" type="text" placeholder="이름, 부위, 옵션 검색" value="${modBookSearchKeyword}" oninput="onModBookSearch(this.value)">
+                <input id="modBookSearchInput" type="text" placeholder="이름, 부위, 옵션 검색" value="${modBookSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'modbook')" oninput="onModBookSearch(this.value)">
                 <span class="search-mark">⌕</span>
             </div>
         </div>
@@ -1531,7 +1616,7 @@ function showCraft(){
 
     <div class="toolbar">
         <div class="search">
-            <input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" oninput="onSearch(this.value)">
+            <input id="searchInput" type="text" placeholder="아이템명 또는 재료명 검색" value="${searchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'craft')" oninput="onSearch(this.value)">
             <span class="search-mark">⌕</span>
         </div>
     </div>
@@ -1807,6 +1892,7 @@ function renderDetail(id){
 }
 
 function showOutlaw(){
+    enterMainSection("outlaw");
     setMainActive(3);
 
     document.getElementById("content").innerHTML=`
@@ -1841,7 +1927,7 @@ function showBriefingMaps(){
     document.getElementById("outlawContent").innerHTML=`
         <div class="toolbar">
             <div class="search">
-                <input id="mapSearchInput" type="text" placeholder="지역명, 좌표, 설명, 메모 검색" value="${mapSearchKeyword}" oninput="onMapSearch(this.value)">
+                <input id="mapSearchInput" type="text" placeholder="지역명, 좌표, 설명, 메모 검색" value="${mapSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'map')" oninput="onMapSearch(this.value)">
                 <span class="search-mark">⌕</span>
             </div>
         </div>
