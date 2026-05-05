@@ -214,26 +214,27 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .quest-note{color:#aaa;font-size:13px}
 
 .process-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.process-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:18px;padding:18px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:.18s ease}
+.process-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:18px;padding:18px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:.18s ease}
 .process-card:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.38);box-shadow:0 18px 42px rgba(0,0,0,.28)}
-.process-card::after{content:"";position:absolute;right:-50px;top:-50px;width:118px;height:118px;border-radius:50%;background:rgba(255,181,46,.052);pointer-events:none}
-.process-card-head{position:relative;z-index:1;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
-.process-title{font-size:22px;font-weight:950;color:#fff;letter-spacing:-.2px}
-.process-sub{margin-top:6px;color:#888;font-size:12px;font-weight:850}
+.process-card::after{content:"";position:absolute;right:-46px;top:-52px;width:118px;height:118px;border-radius:50%;background:radial-gradient(circle,rgba(255,181,46,.12),rgba(255,181,46,.025) 62%,transparent 70%);pointer-events:none}
+.process-card-head{position:relative;z-index:1;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
+.process-title{font-size:23px;font-weight:950;color:#fff;letter-spacing:-.2px;line-height:1.2}
+.process-sub{margin-top:7px;color:#8d8d8d;font-size:12px;font-weight:850}
 .process-type-badge{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,181,46,.34);background:rgba(255,181,46,.09);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
 .process-rank-badge{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.055);color:#ddd;font-size:12px;font-weight:950;white-space:nowrap;margin-left:6px}
-.process-flow-simple{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;margin:13px 0 15px;padding:15px 16px;border-radius:16px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.07)}
-.process-flow-item{min-width:0}
-.process-flow-label{color:#888;font-size:11px;font-weight:950;margin-bottom:7px;letter-spacing:.2px}
+.process-flow-simple{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);gap:10px;align-items:stretch;margin:12px 0 14px;padding:14px;border-radius:16px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.07)}
+.process-flow-item{min-width:0;padding:3px 2px}
+.process-flow-label{color:#8e8e8e;font-size:11px;font-weight:950;margin-bottom:8px;letter-spacing:.2px}
 .process-flow-value{font-size:16px;font-weight:950;color:#f2f2f2;line-height:1.45;word-break:keep-all}
-.process-arrow{font-size:22px;font-weight:950;color:#ffb52e;padding:0 3px;opacity:.95}
-.process-summary-line{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
-.process-pill{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:8px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);color:#d7d7d7;font-size:13px;font-weight:900;line-height:1.25}
-.process-pill strong{color:#fff;font-weight:950}
-.process-pill.reward{color:#ffb52e;border-color:rgba(255,181,46,.22);background:rgba(255,181,46,.07)}
-.process-pill.reward strong{color:#ffb52e}
+.process-arrow{display:flex;align-items:center;justify-content:center;color:#ffb52e;font-size:24px;font-weight:950;opacity:.95;position:relative}
+.process-arrow::before{content:"";position:absolute;left:50%;top:5px;bottom:5px;width:1px;background:rgba(255,255,255,.08);transform:translateX(-50%);z-index:-1}
+.process-bottom-info{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}
+.process-info-line{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;min-height:34px;color:#d7d7d7;font-size:13px;line-height:1.35}
+.process-info-line span{color:#8e8e8e;font-size:12px;font-weight:950;letter-spacing:.2px}
+.process-info-line strong{color:#fff;font-size:14px;font-weight:950;word-break:keep-all}
+.process-info-line.reward strong{color:#ffb52e}
 .process-note{position:relative;z-index:1;margin-top:10px;color:#aaa;font-size:13px;line-height:1.5;padding-left:2px}
-@media(max-width:920px){.process-card-grid{grid-template-columns:1fr}.process-flow-simple{grid-template-columns:1fr}.process-arrow{text-align:center;transform:rotate(90deg);padding:2px 0}.process-summary-line{gap:7px}}
+@media(max-width:920px){.process-card-grid{grid-template-columns:1fr}.process-flow-simple{grid-template-columns:1fr}.process-arrow{min-height:28px;transform:rotate(90deg)}.process-arrow::before{display:none}.process-bottom-info{grid-template-columns:1fr}}
 
 
 @media(max-width:920px){.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
@@ -931,7 +932,7 @@ function showProcess(){
     <div class="section-head">
         <div>
             <div class="section-title">정보</div>
-            <div class="section-desc">생활직 가공/재련 재료와 납품 보상을 확인합니다.</div>
+            <div class="section-desc">생활직 가공/재련 재료와 퀘스트 보상을 확인합니다.</div>
         </div>
         <div class="count" id="processCountBox">총 ${processes.length}개</div>
     </div>
@@ -1061,9 +1062,15 @@ function renderProcessCards(){
                 </div>
             </div>
 
-            <div class="process-summary-line">
-                <span class="process-pill">납품 <strong>${processQuestText(p)}</strong></span>
-                <span class="process-pill reward">보상 <strong>${formatProcessReward(p)}</strong></span>
+            <div class="process-bottom-info">
+                <div class="process-info-line">
+                    <span>퀘스트</span>
+                    <strong>${processQuestText(p)}</strong>
+                </div>
+                <div class="process-info-line reward">
+                    <span>보상</span>
+                    <strong>${formatProcessReward(p)}</strong>
+                </div>
             </div>
 
             ${p.note?`<div class="process-note">${safe(p.note)}</div>`:""}
