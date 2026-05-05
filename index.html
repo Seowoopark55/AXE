@@ -149,6 +149,21 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .guide-video-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:22px;background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:38px;font-weight:950;padding-left:5px;box-shadow:0 14px 38px rgba(0,0,0,.45);transition:.18s ease}
 .guide-video-thumb:hover .guide-video-play{color:#ffb52e;border-color:rgba(255,181,46,.65);transform:translate(-50%,-50%) scale(1.06)}
 .guide-video-label{position:absolute;left:12px;bottom:12px;padding:7px 11px;border-radius:999px;background:rgba(0,0,0,.72);color:#ffb52e;font-size:12px;font-weight:900;border:1px solid rgba(255,181,46,.35)}
+
+.final-material-section{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+.final-material-desc{font-size:12px;color:#888;margin:-4px 0 12px;line-height:1.5}
+.final-material-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.final-material-card{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;border:1px solid rgba(255,181,46,.16);background:linear-gradient(135deg,rgba(255,181,46,.055),rgba(255,255,255,.025));box-shadow:0 10px 24px rgba(0,0,0,.16)}
+.final-material-name{font-size:14px;font-weight:900;color:#eee;line-height:1.35}
+.final-material-qty{font-size:15px;font-weight:950;color:#ffb52e;white-space:nowrap}
+.final-material-tag{margin-left:7px;font-size:11px;color:#888;font-weight:850}
+.recipe-breakdown{margin-top:14px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(0,0,0,.22);overflow:hidden}
+.recipe-breakdown-title{padding:11px 13px;color:#ffb52e;font-size:13px;font-weight:950;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,181,46,.045)}
+.recipe-breakdown-row{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.055);font-size:13px;color:#bbb;line-height:1.45}
+.recipe-breakdown-row:last-child{border-bottom:0}
+.recipe-breakdown-row strong{color:#eee}
+.recipe-breakdown-row span:last-child{color:#ffb52e;font-weight:900;text-align:right}
+
 .operation-content{white-space:pre-line;line-height:1.75;font-size:15px;color:#ddd}
 .ready{padding:28px;color:#999;border:1px dashed rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.03)}
 .video-modal,.image-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:6px;z-index:9999}
@@ -392,11 +407,11 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbybLQDGUudi_0deQ7938yaRBRgKSvQ2JRvVkgvbujmV1xnChFQFKpG1xwXAisyBYC_Iyw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzv_s_aWryA-MnSVafVayNjRA-Af5k5r0KYNCixGPZ5KoLJvfvdt0-nIkIRkR5maYjYIQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[];
+let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
@@ -416,6 +431,7 @@ fetch(API_URL)
     operations=data.operations||[];
     quests=data.quests||[];
     processes=data.processes||data.processData||data.processing||[];
+    materialRecipes=data.materialRecipes||data.material_recipes||data.recipes||[];
     showHome();
     hideLoading();
 })
@@ -1267,6 +1283,138 @@ function renderEmptyDetail(){
     detailBox.innerHTML=`<div class="empty-detail">좌측 목록에서 제작 아이템을 선택하세요.</div>`;
 }
 
+
+function numValue(v, fallback=0){
+    if(v===undefined||v===null||v==="")return fallback;
+    const n=Number(String(v).replace(/,/g,""));
+    return isNaN(n)?fallback:n;
+}
+
+function cleanName(v){
+    return String(v||"").trim();
+}
+
+function addTotal(map,name,qty,tag){
+    const key=cleanName(name);
+    if(!key||qty<=0)return;
+    if(!map[key])map[key]={name:key,qty:0,tags:new Set()};
+    map[key].qty+=qty;
+    if(tag)map[key].tags.add(tag);
+}
+
+function findMaterialRecipe(name){
+    const target=cleanName(name);
+    return materialRecipes.find(r=>cleanName(r.item_name)===target);
+}
+
+function findProcessRecipe(name){
+    const target=cleanName(name);
+    return processes.find(r=>cleanName(r.item_name)===target);
+}
+
+function getRecipeInputs(row){
+    const list=[];
+    for(let i=1;i<=3;i++){
+        const name=cleanName(row[`input${i}`]);
+        const qty=numValue(row[`input${i}_qty`],0);
+        if(name&&qty>0)list.push({name,qty});
+    }
+    return list;
+}
+
+function getProcessInputs(row){
+    const list=[];
+    const input1=cleanName(row.input1);
+    const input1Qty=numValue(row.input1_qty,0);
+    const input2=cleanName(row.input2);
+    const input2Qty=numValue(row.input2_qty,0);
+    if(input1&&input1Qty>0)list.push({name:input1,qty:input1Qty});
+    if(input2&&input2Qty>0)list.push({name:input2,qty:input2Qty});
+    return list;
+}
+
+function expandToRawMaterials(name,qty,depth,trail,breakdowns){
+    const clean=cleanName(name);
+    const amount=numValue(qty,0);
+    if(!clean||amount<=0)return [];
+    if(depth>8||trail.includes(clean))return [{name:clean,qty:amount,tag:"직접 준비"}];
+
+    const recipe=findMaterialRecipe(clean);
+    if(recipe){
+        const inputs=getRecipeInputs(recipe);
+        if(inputs.length){
+            breakdowns.push({target:clean,qty:amount,inputs:inputs.map(i=>`${i.name} x${formatQty(i.qty*amount)}`).join(" + ")});
+            return inputs.flatMap(input=>expandToRawMaterials(input.name,input.qty*amount,depth+1,[...trail,clean],breakdowns));
+        }
+    }
+
+    const process=findProcessRecipe(clean);
+    if(process){
+        const inputs=getProcessInputs(process);
+        const outputQty=Math.max(1,numValue(process.output_qty,1));
+        const runs=Math.ceil(amount/outputQty);
+        if(inputs.length){
+            breakdowns.push({target:clean,qty:amount,inputs:inputs.map(i=>`${i.name} x${formatQty(i.qty*runs)}`).join(" + ")});
+            return inputs.flatMap(input=>expandToRawMaterials(input.name,input.qty*runs,depth+1,[...trail,clean],breakdowns));
+        }
+    }
+
+    return [{name:clean,qty:amount,tag:"직접 준비"}];
+}
+
+function formatQty(v){
+    const n=numValue(v,0);
+    if(Number.isInteger(n))return n.toLocaleString();
+    return n.toLocaleString(undefined,{maximumFractionDigits:2});
+}
+
+function buildFinalMaterialInfo(itemMaterials){
+    const totals={};
+    const breakdowns=[];
+    itemMaterials.forEach(m=>{
+        const name=cleanName(m.material_name);
+        const qty=numValue(m.quantity,0);
+        const raws=expandToRawMaterials(name,qty,0,[],breakdowns);
+        raws.forEach(r=>addTotal(totals,r.name,r.qty,r.tag));
+    });
+    return {
+        totals:Object.values(totals).sort((a,b)=>a.name.localeCompare(b.name,"ko")),
+        breakdowns
+    };
+}
+
+function renderFinalMaterials(itemMaterials){
+    if(!itemMaterials.length)return "";
+    const info=buildFinalMaterialInfo(itemMaterials);
+    if(!info.totals.length)return "";
+    const totalHtml=info.totals.map(m=>`
+        <div class="final-material-card">
+            <div class="final-material-name">${safe(m.name)}${m.tags.size?`<span class="final-material-tag">${Array.from(m.tags).join(", ")}</span>`:""}</div>
+            <div class="final-material-qty">x${formatQty(m.qty)}</div>
+        </div>
+    `).join("");
+    const breakdownHtml=info.breakdowns.length?`
+        <div class="recipe-breakdown">
+            <div class="recipe-breakdown-title">하위 재료 계산 기준</div>
+            ${info.breakdowns.map(b=>`
+                <div class="recipe-breakdown-row">
+                    <strong>${safe(b.target)} x${formatQty(b.qty)}</strong>
+                    <span>${safe(b.inputs)}</span>
+                </div>
+            `).join("")}
+        </div>
+    `:"";
+
+    return `
+        <div class="final-material-section">
+            <div class="material-title">최종 원재료 합계</div>
+            <div class="final-material-desc">중간 재료를 만드는 데 필요한 하위 재료까지 합산한 준비 목록입니다.</div>
+            <div class="final-material-grid">${totalHtml}</div>
+            ${breakdownHtml}
+        </div>
+    `;
+}
+
 function renderDetail(id){
     const detailBox=document.getElementById("detailBox");
     const item=crafts.find(c=>c.id===id);
@@ -1280,6 +1428,7 @@ function renderDetail(id){
     const materialHtml=itemMaterials.length
         ? itemMaterials.map(m=>`<div class="material-row"><span>${safe(m.material_name)}</span><span class="qty">x${safe(m.quantity)}</span></div>`).join("")
         : `<div class="material-row"><span>등록된 재료 없음</span></div>`;
+    const finalMaterialHtml=renderFinalMaterials(itemMaterials);
 
     detailBox.innerHTML=`
         <div class="detail-title">${safe(item.item_name)}</div>
@@ -1296,6 +1445,7 @@ function renderDetail(id){
         <div>
             <div class="material-title">필요 재료</div>
             ${materialHtml}
+            ${finalMaterialHtml}
         </div>`;
 }
 
