@@ -594,7 +594,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzF130f9ts-dwqMhasq0I4yswlzoiVevJgdXyb_CHY0YPEHcXc9EEaiSTDsJyCf5z3mrw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby95J1EpZn2kn8y0lJSgJ91CmEUj776ibHuxznCcbrLTPm4D884t5OBHVYLUFHSSy57kQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -930,7 +930,8 @@ function submitTubePost(){
                 category:category,
                 order:"",
                 views:0,
-                likes:0
+                likes:0,
+                updated_at:""
             };
             tubes.unshift(newTube);
             alert("AXE TUBE 글이 등록되었습니다.");
@@ -1167,10 +1168,11 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}</div>
+            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}${comment.updated_at?` · 수정 ${formatDate(comment.updated_at)}`:""}</div>
             <div class="comment-actions">
                 <button class="comment-mini-btn ${liked?"liked":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">👍 ${liked?"취소":"추천"} ${Number(comment.likes||0)}</button>
                 ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+                <button class="comment-mini-btn" onclick="editComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
                 <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
             </div>
         </div>
@@ -1179,6 +1181,43 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
         ${replyHtml}
     </div>`;
 }
+
+function editComment(scope,commentId,ownerId){
+    const isBoard=scope==="board";
+    const list=isBoard?boardComments:tubeComments;
+    const getId=isBoard?getCommentId:getTubeCommentId;
+    const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
+    if(!target){alert("댓글을 찾을 수 없습니다.");return;}
+
+    const password=prompt("댓글 수정 비밀번호를 입력하세요.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+
+    const content=prompt("댓글 내용을 수정하세요.",String(target.content||""));
+    if(content===null)return;
+    if(!content.trim()){
+        alert("댓글 내용은 비울 수 없습니다.");
+        return;
+    }
+
+    const api=isBoard?postBoardApi:postTubeApi;
+    const payload=isBoard
+        ? {type:"board_comment_update",comment_id:commentId,password:password.trim(),content:content.trim()}
+        : {type:"tube_comment_update",comment_id:commentId,password:password.trim(),content:content.trim()};
+
+    api(payload)
+    .then(data=>{
+        if(data.result==="success"){
+            target.content=content.trim();
+            target.updated_at=data.updated_at||new Date().toISOString();
+            if(isBoard){openBoardDetail(ownerId);}else{openTubeDetail(ownerId,false);}
+        }else{
+            alert(data.message||"댓글 수정 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 수정 중 오류가 발생했습니다."));
+}
+
 function renderTubeCommentsHtml(tubeId){
     const comments=getCommentsByTube(tubeId);
     if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
@@ -1217,7 +1256,8 @@ function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
                 writer:writer,
                 content:content,
                 date:data.date||new Date().toISOString(),
-                likes:0
+                likes:0,
+                updated_at:""
             });
             openTubeDetail(tubeId,false);
         }else{
@@ -1299,6 +1339,62 @@ function unlikeTubeComment(commentId,tubeId){
     .catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));
 }
 
+
+function editTubePost(id){
+    const target=findTubeById(id);
+    if(!target){alert("영상 게시글을 찾을 수 없습니다.");return;}
+
+    const password=prompt("영상 게시글 수정 비밀번호를 입력하세요.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+
+    const title=prompt("영상 제목을 수정하세요.",String(target.title||""));
+    if(title===null)return;
+    const url=prompt("유튜브 링크를 수정하세요.",String(target.url||""));
+    if(url===null)return;
+    const thumbnail=prompt("썸네일 주소를 수정하세요. 비워두면 유튜브 썸네일을 사용합니다.",String(target.thumbnail||""));
+    if(thumbnail===null)return;
+    const category=prompt("분류를 수정하세요.",String(target.category||"일반"));
+    if(category===null)return;
+    const content=prompt("내용을 수정하세요.",String(target.content||""));
+    if(content===null)return;
+
+    if(!title.trim()||!url.trim()){
+        alert("영상 제목과 유튜브 링크는 비울 수 없습니다.");
+        return;
+    }
+
+    if(!url.includes("youtube.com")&&!url.includes("youtu.be")){
+        alert("유튜브 링크를 입력해주세요.");
+        return;
+    }
+
+    postTubeApi({
+        type:"tube_update",
+        id:id,
+        password:password.trim(),
+        title:title.trim(),
+        url:url.trim(),
+        thumbnail:thumbnail.trim(),
+        category:category.trim()||"일반",
+        content:content.trim()
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            target.title=title.trim();
+            target.url=url.trim();
+            target.thumbnail=thumbnail.trim();
+            target.category=category.trim()||"일반";
+            target.content=content.trim();
+            target.updated_at=data.updated_at||new Date().toISOString();
+            openTubeDetail(id,false);
+        }else{
+            alert(data.message||"영상 게시글 수정 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("영상 게시글 수정 중 오류가 발생했습니다."));
+}
+
 function deleteTubePost(id){
     const password=prompt("영상 게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
     if(password===null)return;
@@ -1354,10 +1450,12 @@ function openTubeDetail(id,addView=true){
                 <span class="board-badge">조회 ${Number(target.views||0)}</span>
                 <span class="board-badge">👍 추천 ${Number(target.likes||0)}</span>
                 <span class="board-badge">댓글 ${comments.length}</span>
+                ${target.updated_at?`<span class="board-badge">수정 ${formatDate(target.updated_at)}</span>`:""}
             </div>
             ${videoHtml}
             <div class="board-detail-actions">
                 <button class="board-like-btn ${hasLikedTube(id)?'liked':''}" onclick="toggleTubeLike('${escapeText(id)}')">${hasLikedTube(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
+                <button class="board-action-btn" onclick="editTubePost('${escapeText(id)}')">게시글 수정</button>
                 <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">게시글 삭제</button>
             </div>
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -1458,7 +1556,8 @@ function submitBoardPost(){
                 content:content,
                 order:"",
                 views:0,
-                likes:0
+                likes:0,
+                updated_at:""
             };
             boards.unshift(newPost);
             clearBoardForm();
@@ -1569,9 +1668,11 @@ function openBoardDetail(id){
                 <span class="board-badge">조회 ${Number(target.views||0)}</span>
                 <span class="board-badge">👍 추천 ${Number(target.likes||0)}</span>
                 <span class="board-badge">댓글 ${comments.length}</span>
+                ${target.updated_at?`<span class="board-badge">수정 ${formatDate(target.updated_at)}</span>`:""}
             </div>
             <div class="board-detail-actions">
                 <button class="board-like-btn ${hasLikedBoardPost(id)?'liked':''}" onclick="toggleBoardLike('${escapeText(id)}')">${hasLikedBoardPost(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
+                <button class="board-action-btn" onclick="editBoardPost('${escapeText(id)}')">게시글 수정</button>
                 <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">게시글 삭제</button>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
@@ -1626,7 +1727,8 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){
                 writer:writer,
                 content:content,
                 date:data.date||new Date().toISOString(),
-                likes:0
+                likes:0,
+                updated_at:""
             });
             openBoardDetail(postId);
         }else{
@@ -1796,6 +1898,49 @@ function unlikeBoardPost(id){
         }
     })
     .catch(()=>alert("추천 취소 중 오류가 발생했습니다."));
+}
+
+
+function editBoardPost(id){
+    const target=findBoardPostById(id);
+    if(!target){alert("게시글을 찾을 수 없습니다.");return;}
+
+    const password=prompt("게시글 수정 비밀번호를 입력하세요.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+
+    const title=prompt("제목을 수정하세요.",String(target.title||""));
+    if(title===null)return;
+    const category=prompt("분류를 수정하세요.",String(target.category||"일반"));
+    if(category===null)return;
+    const content=prompt("내용을 수정하세요.",String(target.content||""));
+    if(content===null)return;
+
+    if(!title.trim()||!content.trim()){
+        alert("제목과 내용은 비울 수 없습니다.");
+        return;
+    }
+
+    postBoardApi({
+        type:"board_update",
+        id:id,
+        password:password.trim(),
+        title:title.trim(),
+        category:category.trim()||"일반",
+        content:content.trim()
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            target.title=title.trim();
+            target.category=category.trim()||"일반";
+            target.content=content.trim();
+            target.updated_at=data.updated_at||new Date().toISOString();
+            openBoardDetail(id);
+        }else{
+            alert(data.message||"게시글 수정 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("게시글 수정 중 오류가 발생했습니다."));
 }
 
 function deleteBoardPost(id){
