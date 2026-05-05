@@ -440,6 +440,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .board-action-btn{height:38px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-weight:950;cursor:pointer;transition:.18s ease}
 .board-action-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
 .board-action-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,80,80,.45)}
+.board-like-btn{height:44px;padding:0 18px;border-radius:14px;border:1px solid rgba(255,181,46,.55);background:linear-gradient(135deg,#ffcf61,#ffb52e 55%,#ff8c00);color:#111;font-size:15px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:0 10px 26px rgba(255,181,46,.22)}
+.board-like-btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 14px 34px rgba(255,181,46,.28)}
 .comment-section{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
 .comment-title{font-size:18px;font-weight:950;color:#ffb52e;margin-bottom:12px}
 .comment-list{display:grid;gap:9px;margin-bottom:14px}
@@ -449,7 +451,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .comment-content{white-space:pre-line;line-height:1.55;color:#ddd;font-size:14px}
 .comment-delete{border:0;background:transparent;color:#888;cursor:pointer;font-size:12px;font-weight:900}
 .comment-delete:hover{color:#ff6b6b}
-.comment-form-grid{display:grid;grid-template-columns:160px 1fr 96px;gap:8px;align-items:stretch}
+.comment-form-grid{display:grid;grid-template-columns:140px 150px 1fr 96px;gap:8px;align-items:stretch}
 .comment-input,.comment-textarea{border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:12px;padding:11px;outline:none;font-family:Arial,sans-serif}
 .comment-textarea{min-height:44px;resize:vertical}
 .comment-submit{border:0;border-radius:12px;background:#ffb52e;color:#111;font-weight:950;cursor:pointer}
@@ -557,14 +559,17 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             <div class="form-label">내용</div>
             <textarea class="form-textarea" id="boardContent" placeholder="내용을 입력하세요"></textarea>
 
+            <div class="form-label">삭제 비밀번호</div>
+            <input class="form-input" id="boardPassword" type="password" placeholder="게시글 삭제 시 사용할 비밀번호">
+
             <button class="form-submit" onclick="submitBoardPost()">등록하기</button>
-            <div class="form-help">등록한 글은 자유게시판에 바로 표시됩니다.</div>
+            <div class="form-help">등록한 글은 자유게시판에 바로 표시됩니다. 삭제 시 작성 때 입력한 비밀번호가 필요합니다.</div>
         </div>
     </div>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxkNCEAX_u2B7fEnYCKCELof0zIzswJaIiRJuYjEpItI4EJtvH0oUlBKMFDWFKYFDDg3w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw38UnN2uOQLrHcP0D-fx_kL63Bs_9x2mWHNf-1R9MjYf_ltSVKMBFYcywYdnGCeni8xQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -942,6 +947,7 @@ function clearBoardForm(){
     document.getElementById("boardTitle").value="";
     document.getElementById("boardCategory").value="일반";
     document.getElementById("boardContent").value="";
+    document.getElementById("boardPassword").value="";
 }
 
 function submitBoardPost(){
@@ -949,9 +955,10 @@ function submitBoardPost(){
     const title=document.getElementById("boardTitle").value.trim();
     const category=document.getElementById("boardCategory").value.trim()||"일반";
     const content=document.getElementById("boardContent").value.trim();
+    const password=document.getElementById("boardPassword").value.trim();
 
-    if(!writer||!title||!content){
-        alert("작성자, 제목, 내용은 필수입니다.");
+    if(!writer||!title||!content||!password){
+        alert("작성자, 제목, 내용, 삭제 비밀번호는 필수입니다.");
         return;
     }
 
@@ -960,7 +967,8 @@ function submitBoardPost(){
         writer:writer,
         title:title,
         category:category,
-        content:content
+        content:content,
+        password:password
     })
     .then(data=>{
         if(data.result==="success"){
@@ -1042,7 +1050,7 @@ function renderBoardList(){
             <div class="board-table-cell">${safe(post.writer)}</div>
             <div class="board-table-cell">${formatDate(post.date)}</div>
             <div class="board-table-cell">${Number(post.views||0)}</div>
-            <div class="board-table-cell">${Number(post.likes||0)}</div>
+            <div class="board-table-cell">👍 ${Number(post.likes||0)}</div>
         </div>`;
     }).join("");
 }
@@ -1083,11 +1091,11 @@ function openBoardDetail(id){
                 <span class="board-badge">작성자 ${safe(target.writer)}</span>
                 <span class="board-badge">${formatDate(target.date)}</span>
                 <span class="board-badge">조회 ${Number(target.views||0)}</span>
-                <span class="board-badge">추천 ${Number(target.likes||0)}</span>
+                <span class="board-badge">👍 추천 ${Number(target.likes||0)}</span>
                 <span class="board-badge">댓글 ${comments.length}</span>
             </div>
             <div class="board-detail-actions">
-                <button class="board-action-btn" onclick="likeBoardPost('${escapeText(id)}')">추천</button>
+                <button class="board-like-btn" onclick="likeBoardPost('${escapeText(id)}')">👍 추천 ${Number(target.likes||0)}</button>
                 <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">게시글 삭제</button>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
@@ -1096,6 +1104,7 @@ function openBoardDetail(id){
                 <div class="comment-list" id="commentListBox">${renderBoardCommentsHtml(id)}</div>
                 <div class="comment-form-grid">
                     <input class="comment-input" id="commentWriter" placeholder="작성자">
+                    <input class="comment-input" id="commentPassword" type="password" placeholder="삭제 비밀번호">
                     <textarea class="comment-textarea" id="commentContent" placeholder="댓글을 입력하세요"></textarea>
                     <button class="comment-submit" onclick="addBoardComment('${escapeText(id)}')">등록</button>
                 </div>
@@ -1121,10 +1130,11 @@ function renderBoardCommentsHtml(postId){
 
 function addBoardComment(postId){
     const writer=document.getElementById("commentWriter").value.trim()||"익명";
+    const password=document.getElementById("commentPassword").value.trim();
     const content=document.getElementById("commentContent").value.trim();
 
-    if(!content){
-        alert("댓글 내용을 입력해주세요.");
+    if(!content||!password){
+        alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");
         return;
     }
 
@@ -1132,7 +1142,8 @@ function addBoardComment(postId){
         type:"board_comment_add",
         post_id:postId,
         writer:writer,
-        content:content
+        content:content,
+        password:password
     })
     .then(data=>{
         if(data.result==="success"){
@@ -1152,15 +1163,17 @@ function addBoardComment(postId){
 }
 
 function deleteBoardComment(commentId,postId){
-    if(!confirm("댓글을 삭제할까요?"))return;
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
 
-    postBoardApi({type:"board_comment_delete",comment_id:commentId})
+    postBoardApi({type:"board_comment_delete",comment_id:commentId,password:password.trim()})
     .then(data=>{
         if(data.result==="success"){
             boardComments=boardComments.filter((comment,index)=>getCommentId(comment,index)!==String(commentId));
             openBoardDetail(postId);
         }else{
-            alert("댓글 삭제 중 오류가 발생했습니다.");
+            alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
         }
     })
     .catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
@@ -1181,16 +1194,18 @@ function likeBoardPost(id){
 }
 
 function deleteBoardPost(id){
-    if(!confirm("게시글을 삭제할까요? 댓글도 함께 삭제됩니다."))return;
+    const password=prompt("게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
 
-    postBoardApi({type:"board_delete",id:id})
+    postBoardApi({type:"board_delete",id:id,password:password.trim()})
     .then(data=>{
         if(data.result==="success"){
             boards=boards.filter((post,index)=>getBoardId(post,index)!==String(id));
             boardComments=boardComments.filter(comment=>String(comment.post_id)!==String(id));
             showBoard();
         }else{
-            alert("게시글 삭제 중 오류가 발생했습니다.");
+            alert(data.message||"게시글 삭제 중 오류가 발생했습니다.");
         }
     })
     .catch(()=>alert("게시글 삭제 중 오류가 발생했습니다."));
