@@ -190,17 +190,27 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .plica-diamond{background:linear-gradient(145deg,#004d66,#00e5ff);color:#111}
 .plica-black{background:linear-gradient(145deg,#000,#222);border-color:rgba(255,255,255,.24)}
 
-.quest-panel{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:18px;padding:16px;margin-bottom:16px}
-.quest-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.quest-table-wrap{border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:rgba(0,0,0,.22)}
-.quest-table{width:100%;border-collapse:collapse;min-width:720px}
-.quest-table th{background:rgba(255,181,46,.08);color:#ffb52e;font-size:13px;font-weight:950;text-align:left;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
-.quest-table td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.06);color:#ddd;font-size:14px;vertical-align:middle}
+.quest-panel{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.quest-filter-title{margin:0 0 9px 2px;color:#888;font-size:12px;font-weight:950;letter-spacing:.8px}
+.quest-filter{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.quest-filter button{position:relative;overflow:hidden;min-width:86px;height:42px;padding:0 18px;border-radius:13px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.018)),#111;color:#aaa;cursor:pointer;font-size:14px;font-weight:950;letter-spacing:.2px;transition:.2s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.quest-filter button:hover{color:#fff;border-color:rgba(255,181,46,.42);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.28)}
+.quest-filter button.active{color:#111;background:linear-gradient(135deg,#ffcf61,#ffb52e 55%,#ff8c00);border-color:rgba(255,181,46,.85);box-shadow:0 10px 26px rgba(255,181,46,.22)}
+.quest-filter button.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(255,255,255,.78)}
+.quest-filter button.active::after{content:"";position:absolute;inset:-45% auto -45% -40%;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);animation:questBtnShine 3.8s ease-in-out infinite}
+@keyframes questBtnShine{0%{left:-45%;opacity:0}20%{opacity:.9}48%{left:125%;opacity:0}100%{left:125%;opacity:0}}
+.quest-table-wrap{border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),rgba(0,0,0,.25);box-shadow:0 16px 36px rgba(0,0,0,.25)}
+.quest-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}
+.quest-table th{position:sticky;top:0;z-index:1;background:linear-gradient(180deg,rgba(255,181,46,.16),rgba(255,181,46,.07)),#121212;color:#ffb52e;font-size:12px;font-weight:950;text-align:left;padding:14px 15px;border-bottom:1px solid rgba(255,181,46,.18);letter-spacing:.4px}
+.quest-table td{padding:15px 15px;border-bottom:1px solid rgba(255,255,255,.06);color:#ddd;font-size:14px;vertical-align:middle;background:rgba(255,255,255,.012);transition:.16s ease}
+.quest-table tr:nth-child(even) td{background:rgba(255,255,255,.026)}
 .quest-table tr:last-child td{border-bottom:none}
-.quest-table tr:hover td{background:rgba(255,181,46,.045)}
-.quest-item{font-weight:950;color:#fff}
-.quest-reward{font-weight:950;color:#ffb52e;white-space:nowrap}
-.quest-rank{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:26px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:900;color:#ddd}
+.quest-table tr:hover td{background:rgba(255,181,46,.07);transform:translateX(2px)}
+.quest-item{font-weight:950;color:#fff;letter-spacing:.1px}
+.quest-job-badge{display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:28px;padding:0 10px;border-radius:999px;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
+.quest-qty{font-weight:950;color:#fff}
+.quest-reward{display:inline-flex;align-items:center;gap:6px;font-weight:950;color:#ffb52e;white-space:nowrap;padding:6px 10px;border-radius:999px;background:rgba(255,181,46,.08);border:1px solid rgba(255,181,46,.2)}
+.quest-rank{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:27px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:950;color:#ddd}
 .quest-note{color:#aaa;font-size:13px}
 
 
@@ -290,7 +300,7 @@ let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
 let operationCategory="ALL",selectedOperationId="";
-let questSearchKeyword="",questJobFilter="ALL";
+let questSearchKeyword="",questJobFilter="";
 
 fetch(API_URL)
 .then(res=>res.json())
@@ -777,7 +787,8 @@ function calcPlica(){
 
 function showQuest(){
     setMainActive(4);
-    const jobs=["ALL",...new Set(quests.map(q=>q.job).filter(Boolean))];
+    const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
+    if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
     let html=`
     <div class="section-head">
@@ -797,10 +808,11 @@ function showQuest(){
                 <span class="search-mark">⌕</span>
             </div>
         </div>
+        <div class="quest-filter-title">직업 선택</div>
         <div class="quest-filter">`;
 
     jobs.forEach(job=>{
-        html+=`<button class="${questJobFilter===job?"active":""}" onclick="setQuestJob('${escapeText(job)}')">${job==="ALL"?"전체":safe(job)}</button>`;
+        html+=`<button class="${questJobFilter===job?"active":""}" onclick="setQuestJob('${escapeText(job)}')">${safe(job)}</button>`;
     });
 
     html+=`</div>
@@ -838,7 +850,7 @@ function onQuestSearch(value){
 
 function getFilteredQuests(){
     let list=quests.slice();
-    if(questJobFilter!=="ALL")list=list.filter(q=>String(q.job)===String(questJobFilter));
+    if(questJobFilter)list=list.filter(q=>String(q.job)===String(questJobFilter));
 
     const keyword=questSearchKeyword.toLowerCase();
     if(keyword){
@@ -865,7 +877,7 @@ function renderQuestTable(){
     if(!body)return;
 
     const list=getFilteredQuests();
-    if(info)info.textContent=`분류: ${questJobFilter==="ALL"?"전체":questJobFilter} · 검색 결과 ${list.length}개`;
+    if(info)info.textContent=`분류: ${questJobFilter||"-"} · 검색 결과 ${list.length}개`;
     if(count)count.textContent=`${list.length}개 표시`;
 
     if(list.length===0){
@@ -875,9 +887,9 @@ function renderQuestTable(){
 
     body.innerHTML=list.map(q=>`
         <tr>
-            <td>${safe(q.job)}</td>
+            <td><span class="quest-job-badge">${safe(q.job)}</span></td>
             <td><span class="quest-item">${safe(q.item_name)}</span></td>
-            <td>${safe(q.required_qty)}</td>
+            <td><span class="quest-qty">${safe(q.required_qty)}</span></td>
             <td><span class="quest-reward">${formatQuestReward(q)}</span></td>
             <td><span class="quest-rank">${safe(q.rank)}</span></td>
             <td><span class="quest-note">${safe(q.note)}</span></td>
