@@ -400,7 +400,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <div class="wrap">
-    <div class="hero" onclick="showHome()">
+    <div class="hero" onclick="navigateMain('home')">
         <div class="hero-shine"></div>
         <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
         <div>
@@ -411,12 +411,12 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     </div>
 
     <div class="main-menu">
-        <button class="active" onclick="showHome()">메인</button>
-        <button onclick="showNotice()">공지사항</button>
-        <button onclick="showTube()">AXE TUBE</button>
-        <button onclick="showOutlaw()">무법지대</button>
-        <button onclick="showInfo()">정보</button>
-        <button onclick="showUtility()">편의기능</button>
+        <button class="active" onclick="navigateMain('home')">메인</button>
+        <button onclick="navigateMain('notice')">공지사항</button>
+        <button onclick="navigateMain('tube')">AXE TUBE</button>
+        <button onclick="navigateMain('outlaw')">무법지대</button>
+        <button onclick="navigateMain('info')">정보</button>
+        <button onclick="navigateMain('utility')">편의기능</button>
     </div>
 
     <div class="panel" id="content"></div>
@@ -478,6 +478,48 @@ let questSearchKeyword="",questJobFilter="";
 let processSearchKeyword="",processJobFilter="";
 let modBookTypeFilter="접두",modBookCategoryFilter="",modBookSearchKeyword="";
 let currentMainSection="";
+let currentHistoryPage="home";
+const mainPageKeys=["home","notice","tube","outlaw","info","utility"];
+
+function normalizeMainPage(page){
+    return mainPageKeys.includes(page)?page:"home";
+}
+
+function renderMainPage(page){
+    const target=normalizeMainPage(page);
+    currentHistoryPage=target;
+
+    if(target==="home"){showHome();return;}
+    if(target==="notice"){showNotice();return;}
+    if(target==="tube"){showTube();return;}
+    if(target==="outlaw"){showOutlaw();return;}
+    if(target==="info"){showInfo();return;}
+    if(target==="utility"){showUtility();return;}
+
+    showHome();
+}
+
+function navigateMain(page,push=true){
+    const target=normalizeMainPage(page);
+
+    if(push&&currentHistoryPage!==target){
+        history.pushState({page:target},"","#"+target);
+    }
+
+    renderMainPage(target);
+}
+
+function initMainHistory(){
+    const hash=normalizeMainPage(location.hash.replace("#","")||"home");
+    currentHistoryPage=hash;
+    history.replaceState({page:hash},"",location.hash?"#"+hash:location.pathname+location.search);
+    renderMainPage(hash);
+}
+
+window.addEventListener("popstate",function(event){
+    const page=event.state&&event.state.page?event.state.page:(location.hash.replace("#","")||"home");
+    renderMainPage(page);
+});
 
 function resetInfoState(){
     currentCategory="ALL";
@@ -531,7 +573,7 @@ fetch(API_URL)
     processes=data.processes||data.processData||data.processing||[];
     materialRecipes=data.materialRecipes||data.material_recipes||data.recipes||[];
     modBooks=data.modBooks||data.mod_books||[];
-    showHome();
+    initMainHistory();
     hideLoading();
 })
 .catch(()=>{
