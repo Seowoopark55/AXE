@@ -547,9 +547,6 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             <div class="form-label">분류</div>
             <input class="form-input" id="tubeCategory" value="일반" placeholder="일반">
 
-            <div class="form-label">카드 설명</div>
-            <input class="form-input" id="tubeNote" placeholder="목록 카드에 짧게 보일 설명">
-
             <div class="form-label">내용</div>
             <textarea class="form-textarea" id="tubeContent" placeholder="상세 내용이나 상황을 입력하세요"></textarea>
 
@@ -591,7 +588,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwVb4Gdbk5zG9Qbx8hAYOV-dwPUgodKs7XuIZaulH9vQi4DFUbjri7sJP-FAMVRwAKvLQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwB5LVOaRuo5Y2ZXcbC1i9HsLYA3rL4_7D6DT0dTofsbPR3Xj8cPQD3YkgAIrBkZfVpyg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -800,6 +797,12 @@ function getTubeThumb(t){
     return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
 }
 
+function getTubePreview(t){
+    const text=String(t.content||"").trim();
+    if(!text)return "상세 내용을 확인하려면 영상을 선택하세요.";
+    return text.length>60?text.substring(0,60)+"...":text;
+}
+
 function getVideoThumb(url){
     const id=getYoutubeId(url);
     if(!id)return "./axe.png";
@@ -875,7 +878,6 @@ function clearTubeForm(){
     document.getElementById("tubeUrl").value="";
     document.getElementById("tubeThumbnail").value="";
     document.getElementById("tubeCategory").value="일반";
-    document.getElementById("tubeNote").value="";
     document.getElementById("tubeContent").value="";
     document.getElementById("tubePassword").value="";
 }
@@ -886,7 +888,6 @@ function submitTubePost(){
     const url=document.getElementById("tubeUrl").value.trim();
     const thumbnail=document.getElementById("tubeThumbnail").value.trim();
     const category=document.getElementById("tubeCategory").value.trim()||"일반";
-    const note=document.getElementById("tubeNote").value.trim();
     const content=document.getElementById("tubeContent").value.trim();
     const password=document.getElementById("tubePassword").value.trim();
 
@@ -907,7 +908,6 @@ function submitTubePost(){
         url:url,
         thumbnail:thumbnail,
         category:category,
-        note:note,
         content:content,
         password:password
     })
@@ -919,9 +919,8 @@ function submitTubePost(){
                 url:url,
                 thumbnail:thumbnail,
                 date:data.date||new Date().toISOString(),
-                note:note||content,
                 writer:writer,
-                content:content||note,
+                content:content,
                 category:category,
                 order:"",
                 views:0,
@@ -977,7 +976,7 @@ function renderTubeCard(t,index){
         <div class="tube-body">
             <div class="item-title">${safe(t.title)}</div>
             <div class="item-date">${formatDate(t.date)}</div>
-            <div class="item-content">${safe(t.note)}</div>
+            <div class="item-content">${safe(getTubePreview(t))}</div>
             <div class="tube-meta-line">
                 <span class="tube-stat-badge">조회 ${Number(t.views||0)}</span>
                 <span class="tube-stat-badge like">👍 ${Number(t.likes||0)}</span>
@@ -1189,7 +1188,7 @@ function openTubeDetail(id,addView=true){
     const videoHtml=youtubeId
         ? `<div class="tube-detail-video"><iframe src="https://www.youtube.com/embed/${youtubeId}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
         : `<div class="ready">유튜브 주소를 확인해주세요.</div>`;
-    const detailContent=String(target.content||"").trim()||String(target.note||"").trim();
+    const detailContent=String(target.content||"").trim();
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
