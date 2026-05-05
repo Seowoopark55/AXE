@@ -85,6 +85,13 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .tube-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.25s ease}
 .tube-card:hover .tube-thumb img{transform:scale(1.04)}
 .tube-body{padding:13px}
+.tube-meta-line{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;color:#888;font-size:12px}
+.tube-stat-badge{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#aaa;font-size:12px;font-weight:900}
+.tube-stat-badge.like{color:#91bdff;background:rgba(76,154,255,.12);border-color:rgba(76,154,255,.38)}
+.tube-stat-badge.comment{color:#c8adff;background:rgba(156,95,255,.16);border-color:rgba(156,95,255,.48)}
+.tube-detail-video{width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);margin:14px 0 16px}
+.tube-detail-video iframe{width:100%;height:100%;border:0;display:block}
+
 
 .form-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:14px;z-index:9999}
 .form-modal.active{display:flex}
@@ -572,11 +579,11 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby0DHmOKHOxCs_nWQg7gso7BNS6EouxEfu_OfDf5Oe-6RnMcq0dVzxHiQ25URP2PeC-kQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwnq9fEFux8sTdybAUK9AgGY6dg4HaIqfiu5aLMV-6RvZoPFpVdTgwva_hZJ8dSvWLDwg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[];
+let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
@@ -683,6 +690,7 @@ fetch(API_URL)
     materials=data.materials||[];
     notices=data.notices||[];
     tubes=data.tubes||[];
+    tubeComments=data.tubeComments||data.tube_comments||data.tube댓글||[];
     briefingMaps=data.briefingMaps||[];
     outlawGuides=data.outlawGuides||[];
     operations=data.operations||[];
@@ -897,8 +905,293 @@ function submitTubeRequest(){
     });
 }
 
-function renderTubeCard(t){
-    return `<div class="tube-card" onclick="openVideo('${escapeText(t.url)}','${escapeText(t.title)}')"><div class="tube-thumb"><img src="${getTubeThumb(t)}" onerror="this.src='./axe.png'"></div><div class="tube-body"><div class="item-title">${safe(t.title)}</div><div class="item-date">${formatDate(t.date)}</div><div class="item-content">${safe(t.note)}</div></div></div>`;
+function getTubeId(t,index){
+    return String(t.id||t.title||index);
+}
+
+function getSortedTubes(){
+    return tubes.slice().sort((a,b)=>{
+        const ao=Number(a.order||0);
+        const bo=Number(b.order||0);
+        if(ao||bo)return ao-bo;
+        const ad=new Date(a.date||0).getTime()||0;
+        const bd=new Date(b.date||0).getTime()||0;
+        return bd-ad;
+    });
+}
+
+function getTubeCommentId(comment,index){
+    return String(comment.comment_id||comment.id||index);
+}
+
+function getCommentsByTube(tubeId){
+    return tubeComments.filter(c=>String(c.tube_id)===String(tubeId)).sort((a,b)=>{
+        const ad=new Date(a.date||0).getTime()||0;
+        const bd=new Date(b.date||0).getTime()||0;
+        return ad-bd;
+    });
+}
+
+function renderTubeCard(t,index){
+    const id=getTubeId(t,index||0);
+    const comments=getCommentsByTube(id).length;
+    return `<div class="tube-card" onclick="openTubeDetail('${escapeText(id)}')">
+        <div class="tube-thumb"><img src="${getTubeThumb(t)}" onerror="this.src='./axe.png'"></div>
+        <div class="tube-body">
+            <div class="item-title">${safe(t.title)}</div>
+            <div class="item-date">${formatDate(t.date)}</div>
+            <div class="item-content">${safe(t.note)}</div>
+            <div class="tube-meta-line">
+                <span class="tube-stat-badge">조회 ${Number(t.views||0)}</span>
+                <span class="tube-stat-badge like">👍 ${Number(t.likes||0)}</span>
+                <span class="tube-stat-badge comment">💬 ${comments}</span>
+            </div>
+        </div>
+    </div>`;
+}
+
+function findTubeById(id){
+    const list=getSortedTubes();
+    for(let i=0;i<list.length;i++){
+        if(getTubeId(list[i],i)===String(id))return list[i];
+    }
+    return null;
+}
+
+function postTubeApi(payload){
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json());
+}
+
+function getTubeLikeClientId(){
+    const key="axe_tube_like_client_id";
+    let id=localStorage.getItem(key);
+    if(!id){
+        id="client_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);
+        localStorage.setItem(key,id);
+    }
+    return id;
+}
+
+function getLikedTubes(){
+    try{
+        return JSON.parse(localStorage.getItem("axe_tube_liked_posts")||"[]");
+    }catch(e){
+        return [];
+    }
+}
+
+function hasLikedTube(id){
+    return getLikedTubes().includes(String(id));
+}
+
+function markTubeLiked(id){
+    const list=getLikedTubes();
+    const key=String(id);
+    if(!list.includes(key)){
+        list.push(key);
+        localStorage.setItem("axe_tube_liked_posts",JSON.stringify(list));
+    }
+}
+
+function unmarkTubeLiked(id){
+    const key=String(id);
+    const list=getLikedTubes().filter(item=>String(item)!==key);
+    localStorage.setItem("axe_tube_liked_posts",JSON.stringify(list));
+}
+
+function toggleTubeLike(id){
+    if(hasLikedTube(id)){
+        unlikeTube(id);
+        return;
+    }
+    likeTube(id);
+}
+
+function likeTube(id){
+    postTubeApi({
+        type:"tube_like",
+        id:id,
+        client_id:getTubeLikeClientId()
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            markTubeLiked(id);
+            const target=findTubeById(id);
+            if(target)target.likes=Number(target.likes||0)+1;
+            openTubeDetail(id,false);
+        }else if(data.result==="duplicate"){
+            markTubeLiked(id);
+            alert(data.message||"이미 추천한 영상입니다.");
+            openTubeDetail(id,false);
+        }else{
+            alert(data.message||"추천 처리 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("추천 처리 중 오류가 발생했습니다."));
+}
+
+function unlikeTube(id){
+    postTubeApi({
+        type:"tube_unlike",
+        id:id,
+        client_id:getTubeLikeClientId()
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkTubeLiked(id);
+            const target=findTubeById(id);
+            if(target)target.likes=Math.max(0,Number(target.likes||0)-1);
+            openTubeDetail(id,false);
+        }else if(data.result==="not_found"){
+            unmarkTubeLiked(id);
+            openTubeDetail(id,false);
+        }else{
+            alert(data.message||"추천 취소 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("추천 취소 중 오류가 발생했습니다."));
+}
+
+function renderTubeCommentsHtml(tubeId){
+    const comments=getCommentsByTube(tubeId);
+    if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
+
+    return comments.map((comment,index)=>{
+        const commentId=getTubeCommentId(comment,index);
+        return `<div class="comment-item">
+            <div class="comment-meta">
+                <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}</div>
+                <button class="comment-delete" onclick="deleteTubeComment('${escapeText(commentId)}','${escapeText(tubeId)}')">삭제</button>
+            </div>
+            <div class="comment-content">${safe(comment.content)}</div>
+        </div>`;
+    }).join("");
+}
+
+function addTubeComment(tubeId){
+    const writer=document.getElementById("tubeCommentWriter").value.trim()||"익명";
+    const password=document.getElementById("tubeCommentPassword").value.trim();
+    const content=document.getElementById("tubeCommentContent").value.trim();
+
+    if(!content||!password){
+        alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");
+        return;
+    }
+
+    postTubeApi({
+        type:"tube_comment_add",
+        tube_id:tubeId,
+        writer:writer,
+        content:content,
+        password:password
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            tubeComments.push({
+                comment_id:data.comment_id||String(Date.now()),
+                tube_id:tubeId,
+                writer:writer,
+                content:content,
+                date:data.date||new Date().toISOString()
+            });
+            openTubeDetail(tubeId,false);
+        }else{
+            alert(data.message||"댓글 등록 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
+}
+
+function deleteTubeComment(commentId,tubeId){
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+
+    postTubeApi({type:"tube_comment_delete",comment_id:commentId,password:password.trim()})
+    .then(data=>{
+        if(data.result==="success"){
+            tubeComments=tubeComments.filter((comment,index)=>getTubeCommentId(comment,index)!==String(commentId));
+            openTubeDetail(tubeId,false);
+        }else{
+            alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
+}
+
+function deleteTubePost(id){
+    const password=prompt("영상 게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+
+    postTubeApi({type:"tube_delete",id:id,password:password.trim()})
+    .then(data=>{
+        if(data.result==="success"){
+            tubes=tubes.filter((tube,index)=>getTubeId(tube,index)!==String(id));
+            tubeComments=tubeComments.filter(comment=>String(comment.tube_id)!==String(id));
+            showTube();
+        }else{
+            alert(data.message||"영상 게시글 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("영상 게시글 삭제 중 오류가 발생했습니다."));
+}
+
+function openTubeDetail(id,addView=true){
+    setMainActive(2);
+    const target=findTubeById(id);
+    if(!target){showTube();return;}
+
+    if(addView){
+        postTubeApi({type:"tube_view",id:id}).catch(()=>{});
+        target.views=Number(target.views||0)+1;
+    }
+
+    const comments=getCommentsByTube(id);
+    const youtubeId=getYoutubeId(target.url);
+    const videoHtml=youtubeId
+        ? `<div class="tube-detail-video"><iframe src="https://www.youtube.com/embed/${youtubeId}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+        : `<div class="ready">유튜브 주소를 확인해주세요.</div>`;
+    const detailContent=String(target.content||"").trim()||String(target.note||"").trim();
+
+    document.getElementById("content").innerHTML=`
+        <div class="section-head">
+            <div>
+                <div class="section-title">AXE TUBE</div>
+                <div class="section-desc">영상 상세 내용과 댓글을 확인합니다.</div>
+            </div>
+            <div class="count">TUBE</div>
+        </div>
+
+        <button class="back-btn" onclick="showTube()">목록으로</button>
+
+        <div class="board-detail-card" id="tubeDetailBox" style="margin-top:14px;">
+            <div class="board-detail-title">${safe(target.title)}</div>
+            <div class="board-detail-meta">
+                <span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span>
+                <span class="board-badge">작성자 ${safe(target.writer||"AXE")}</span>
+                <span class="board-badge">${formatDate(target.date)}</span>
+                <span class="board-badge">조회 ${Number(target.views||0)}</span>
+                <span class="board-badge">👍 추천 ${Number(target.likes||0)}</span>
+                <span class="board-badge">댓글 ${comments.length}</span>
+            </div>
+            ${videoHtml}
+            <div class="board-detail-actions">
+                <button class="board-like-btn ${hasLikedTube(id)?'liked':''}" onclick="toggleTubeLike('${escapeText(id)}')">${hasLikedTube(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
+                <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">게시글 삭제</button>
+            </div>
+            ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
+            <div class="comment-section">
+                <div class="comment-title">댓글 ${comments.length}</div>
+                <div class="comment-list" id="tubeCommentListBox">${renderTubeCommentsHtml(id)}</div>
+                <div class="comment-form-grid">
+                    <input class="comment-input" id="tubeCommentWriter" placeholder="작성자">
+                    <input class="comment-input" id="tubeCommentPassword" type="password" placeholder="삭제 비밀번호">
+                    <textarea class="comment-textarea" id="tubeCommentContent" placeholder="댓글을 입력하세요"></textarea>
+                    <button class="comment-submit" onclick="addTubeComment('${escapeText(id)}')">등록</button>
+                </div>
+            </div>
+        </div>`;
 }
 
 
@@ -1299,7 +1592,7 @@ function showHome(){
     enterMainSection("home");
     setMainActive(0);
     const recentNotices=notices.slice(-4).reverse();
-    const recentTubes=tubes.slice(-6).reverse();
+    const recentTubes=getSortedTubes().slice(0,6);
     const recentBoards=getSortedBoards().slice(0,4);
 
     document.getElementById("content").innerHTML=`
@@ -1330,7 +1623,7 @@ function showHome(){
             <div class="home-card">
                 <div class="home-card-title">AXE TUBE</div>
                 <div class="tube-grid">
-                    ${recentTubes.length?recentTubes.map(t=>renderTubeCard(t)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
+                    ${recentTubes.length?recentTubes.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
                 </div>
             </div>
         </div>
@@ -1508,7 +1801,7 @@ function selectOperation(id){
 function showTube(){
     enterMainSection("tube");
     setMainActive(2);
-    const list=tubes.slice().reverse();
+    const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
@@ -1524,7 +1817,7 @@ function showTube(){
         </div>
 
         <div class="tube-grid">
-            ${list.length?list.map(t=>renderTubeCard(t)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
+            ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
         </div>`;
 }
 
