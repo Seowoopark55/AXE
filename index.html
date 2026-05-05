@@ -456,16 +456,22 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .comment-title{font-size:18px;font-weight:950;color:#ffb52e;margin-bottom:12px}
 .comment-list{display:grid;gap:9px;margin-bottom:14px}
 .comment-item{border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);border-radius:13px;padding:12px 13px}
+.comment-item.reply{margin-left:28px;background:rgba(255,255,255,.025);border-color:rgba(156,95,255,.22)}
 .comment-meta{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:7px;color:#888;font-size:12px}
 .comment-writer{color:#ffb52e;font-weight:950}
 .comment-content{white-space:pre-line;line-height:1.55;color:#ddd;font-size:14px}
-.comment-delete{border:0;background:transparent;color:#888;cursor:pointer;font-size:12px;font-weight:900}
-.comment-delete:hover{color:#ff6b6b}
+.comment-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.comment-mini-btn{height:28px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#aaa;cursor:pointer;font-size:12px;font-weight:900;transition:.16s ease}
+.comment-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45)}
+.comment-mini-btn.liked{color:#fff;background:rgba(40,125,255,.28);border-color:rgba(90,160,255,.75)}
+.comment-mini-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
+.comment-reply-form{display:none;grid-template-columns:130px 145px 1fr 82px;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+.comment-reply-form.active{display:grid}
 .comment-form-grid{display:grid;grid-template-columns:140px 150px 1fr 96px;gap:8px;align-items:stretch}
 .comment-input,.comment-textarea{border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:12px;padding:11px;outline:none;font-family:Arial,sans-serif}
 .comment-textarea{min-height:44px;resize:vertical}
 .comment-submit{border:0;border-radius:12px;background:#ffb52e;color:#111;font-weight:950;cursor:pointer}
-@media(max-width:760px){.board-table-head{display:none}.board-table-row{grid-template-columns:1fr;gap:5px}.board-table-row:hover{padding-left:16px}.comment-form-grid{grid-template-columns:1fr}.comment-submit{height:42px}}
+@media(max-width:760px){.board-table-head{display:none}.board-table-row{grid-template-columns:1fr;gap:5px}.board-table-row:hover{padding-left:16px}.comment-form-grid,.comment-reply-form{grid-template-columns:1fr}.comment-submit{height:42px}.comment-item.reply{margin-left:14px}}
 
 @media(max-width:920px){.board-layout{grid-template-columns:1fr}.board-list-scroll{max-height:330px}.home-board-list{grid-template-columns:1fr}}
 
@@ -588,7 +594,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwB5LVOaRuo5Y2ZXcbC1i9HsLYA3rL4_7D6DT0dTofsbPR3Xj8cPQD3YkgAIrBkZfVpyg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzF130f9ts-dwqMhasq0I4yswlzoiVevJgdXyb_CHY0YPEHcXc9EEaiSTDsJyCf5z3mrw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1088,26 +1094,106 @@ function unlikeTube(id){
     .catch(()=>alert("추천 취소 중 오류가 발생했습니다."));
 }
 
+
+function getCommentLikeClientId(scope){
+    const key="axe_"+scope+"_comment_like_client_id";
+    let id=localStorage.getItem(key);
+    if(!id){
+        id="client_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);
+        localStorage.setItem(key,id);
+    }
+    return id;
+}
+
+function getLikedComments(scope){
+    try{
+        return JSON.parse(localStorage.getItem("axe_"+scope+"_liked_comments")||"[]");
+    }catch(e){
+        return [];
+    }
+}
+
+function hasLikedComment(scope,commentId){
+    return getLikedComments(scope).includes(String(commentId));
+}
+
+function markCommentLiked(scope,commentId){
+    const list=getLikedComments(scope);
+    const key=String(commentId);
+    if(!list.includes(key)){
+        list.push(key);
+        localStorage.setItem("axe_"+scope+"_liked_comments",JSON.stringify(list));
+    }
+}
+
+function unmarkCommentLiked(scope,commentId){
+    const key=String(commentId);
+    const list=getLikedComments(scope).filter(item=>String(item)!==key);
+    localStorage.setItem("axe_"+scope+"_liked_comments",JSON.stringify(list));
+}
+
+function getRootComments(comments){
+    return comments.filter(c=>!String(c.parent_comment_id||"").trim());
+}
+
+function getReplyComments(comments,parentId){
+    return comments.filter(c=>String(c.parent_comment_id||"")===String(parentId));
+}
+
+function toggleCommentReplyForm(formId){
+    const form=document.getElementById(formId);
+    if(!form)return;
+    form.classList.toggle("active");
+}
+
+function renderReplyForm(scope,ownerId,parentCommentId){
+    const prefix=scope+"Reply_"+String(parentCommentId).replace(/[^a-zA-Z0-9_\-]/g,"_");
+    const addFn=scope==="board"?"addBoardComment":"addTubeComment";
+    return `<div class="comment-reply-form" id="${prefix}Form">
+        <input class="comment-input" id="${prefix}Writer" placeholder="작성자">
+        <input class="comment-input" id="${prefix}Password" type="password" placeholder="삭제 비밀번호">
+        <textarea class="comment-textarea" id="${prefix}Content" placeholder="답글을 입력하세요"></textarea>
+        <button class="comment-submit" onclick="${addFn}('${escapeText(ownerId)}','${escapeText(parentCommentId)}','${prefix}')">등록</button>
+    </div>`;
+}
+
+function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
+    const commentId=scope==="board"?getCommentId(comment,index):getTubeCommentId(comment,index);
+    const liked=hasLikedComment(scope,commentId);
+    const deleteFn=scope==="board"?"deleteBoardComment":"deleteTubeComment";
+    const likeFn=scope==="board"?"toggleBoardCommentLike":"toggleTubeCommentLike";
+    const formId=scope+"Reply_"+String(commentId).replace(/[^a-zA-Z0-9_\-]/g,"_")+"Form";
+    const replies=getReplyComments(allComments,commentId);
+    const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
+    return `<div class="comment-item ${isReply?"reply":""}">
+        <div class="comment-meta">
+            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}</div>
+            <div class="comment-actions">
+                <button class="comment-mini-btn ${liked?"liked":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">👍 ${liked?"취소":"추천"} ${Number(comment.likes||0)}</button>
+                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+                <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
+            </div>
+        </div>
+        <div class="comment-content">${safe(comment.content)}</div>
+        ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
+        ${replyHtml}
+    </div>`;
+}
 function renderTubeCommentsHtml(tubeId){
     const comments=getCommentsByTube(tubeId);
     if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
 
-    return comments.map((comment,index)=>{
-        const commentId=getTubeCommentId(comment,index);
-        return `<div class="comment-item">
-            <div class="comment-meta">
-                <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}</div>
-                <button class="comment-delete" onclick="deleteTubeComment('${escapeText(commentId)}','${escapeText(tubeId)}')">삭제</button>
-            </div>
-            <div class="comment-content">${safe(comment.content)}</div>
-        </div>`;
-    }).join("");
+    const roots=getRootComments(comments);
+    return roots.map((comment,index)=>renderCommentItem("tube",tubeId,comment,index,comments,false)).join("");
 }
 
-function addTubeComment(tubeId){
-    const writer=document.getElementById("tubeCommentWriter").value.trim()||"익명";
-    const password=document.getElementById("tubeCommentPassword").value.trim();
-    const content=document.getElementById("tubeCommentContent").value.trim();
+function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
+    const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"tubeCommentWriter");
+    const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"tubeCommentPassword");
+    const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"tubeCommentContent");
+    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const password=passwordEl?passwordEl.value.trim():"";
+    const content=contentEl?contentEl.value.trim():"";
 
     if(!content||!password){
         alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");
@@ -1117,6 +1203,7 @@ function addTubeComment(tubeId){
     postTubeApi({
         type:"tube_comment_add",
         tube_id:tubeId,
+        parent_comment_id:parentCommentId||"",
         writer:writer,
         content:content,
         password:password
@@ -1126,9 +1213,11 @@ function addTubeComment(tubeId){
             tubeComments.push({
                 comment_id:data.comment_id||String(Date.now()),
                 tube_id:tubeId,
+                parent_comment_id:parentCommentId||"",
                 writer:writer,
                 content:content,
-                date:data.date||new Date().toISOString()
+                date:data.date||new Date().toISOString(),
+                likes:0
             });
             openTubeDetail(tubeId,false);
         }else{
@@ -1139,20 +1228,75 @@ function addTubeComment(tubeId){
 }
 
 function deleteTubeComment(commentId,tubeId){
-    const password=prompt("댓글 삭제 비밀번호를 입력하세요.");
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
 
     postTubeApi({type:"tube_comment_delete",comment_id:commentId,password:password.trim()})
     .then(data=>{
         if(data.result==="success"){
-            tubeComments=tubeComments.filter((comment,index)=>getTubeCommentId(comment,index)!==String(commentId));
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            tubeComments=tubeComments.filter((comment,index)=>!deleted.includes(getTubeCommentId(comment,index)));
+            deleted.forEach(id=>unmarkCommentLiked("tube",id));
             openTubeDetail(tubeId,false);
         }else{
             alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
         }
     })
     .catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
+}
+
+function toggleTubeCommentLike(commentId,tubeId){
+    if(hasLikedComment("tube",commentId)){
+        unlikeTubeComment(commentId,tubeId);
+        return;
+    }
+    likeTubeComment(commentId,tubeId);
+}
+
+function likeTubeComment(commentId,tubeId){
+    postTubeApi({
+        type:"tube_comment_like",
+        comment_id:commentId,
+        client_id:getCommentLikeClientId("tube")
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            markCommentLiked("tube",commentId);
+            const target=tubeComments.find((comment,index)=>getTubeCommentId(comment,index)===String(commentId));
+            if(target)target.likes=Number(target.likes||0)+1;
+            openTubeDetail(tubeId,false);
+        }else if(data.result==="duplicate"){
+            markCommentLiked("tube",commentId);
+            alert(data.message||"이미 추천한 댓글입니다.");
+            openTubeDetail(tubeId,false);
+        }else{
+            alert(data.message||"댓글 추천 처리 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 추천 처리 중 오류가 발생했습니다."));
+}
+
+function unlikeTubeComment(commentId,tubeId){
+    postTubeApi({
+        type:"tube_comment_unlike",
+        comment_id:commentId,
+        client_id:getCommentLikeClientId("tube")
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkCommentLiked("tube",commentId);
+            const target=tubeComments.find((comment,index)=>getTubeCommentId(comment,index)===String(commentId));
+            if(target)target.likes=Math.max(0,Number(target.likes||0)-1);
+            openTubeDetail(tubeId,false);
+        }else if(data.result==="not_found"){
+            unmarkCommentLiked("tube",commentId);
+            openTubeDetail(tubeId,false);
+        }else{
+            alert(data.message||"댓글 추천 취소 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));
 }
 
 function deleteTubePost(id){
@@ -1448,22 +1592,17 @@ function renderBoardCommentsHtml(postId){
     const comments=getCommentsByPost(postId);
     if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
 
-    return comments.map((comment,index)=>{
-        const commentId=getCommentId(comment,index);
-        return `<div class="comment-item">
-            <div class="comment-meta">
-                <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}</div>
-                <button class="comment-delete" onclick="deleteBoardComment('${escapeText(commentId)}','${escapeText(postId)}')">삭제</button>
-            </div>
-            <div class="comment-content">${safe(comment.content)}</div>
-        </div>`;
-    }).join("");
+    const roots=getRootComments(comments);
+    return roots.map((comment,index)=>renderCommentItem("board",postId,comment,index,comments,false)).join("");
 }
 
-function addBoardComment(postId){
-    const writer=document.getElementById("commentWriter").value.trim()||"익명";
-    const password=document.getElementById("commentPassword").value.trim();
-    const content=document.getElementById("commentContent").value.trim();
+function addBoardComment(postId,parentCommentId="",inputPrefix=""){
+    const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"commentWriter");
+    const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"commentPassword");
+    const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"commentContent");
+    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const password=passwordEl?passwordEl.value.trim():"";
+    const content=contentEl?contentEl.value.trim():"";
 
     if(!content||!password){
         alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");
@@ -1473,6 +1612,7 @@ function addBoardComment(postId){
     postBoardApi({
         type:"board_comment_add",
         post_id:postId,
+        parent_comment_id:parentCommentId||"",
         writer:writer,
         content:content,
         password:password
@@ -1482,9 +1622,11 @@ function addBoardComment(postId){
             boardComments.push({
                 comment_id:data.comment_id||String(Date.now()),
                 post_id:postId,
+                parent_comment_id:parentCommentId||"",
                 writer:writer,
                 content:content,
-                date:data.date||new Date().toISOString()
+                date:data.date||new Date().toISOString(),
+                likes:0
             });
             openBoardDetail(postId);
         }else{
@@ -1495,14 +1637,16 @@ function addBoardComment(postId){
 }
 
 function deleteBoardComment(commentId,postId){
-    const password=prompt("댓글 삭제 비밀번호를 입력하세요.");
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
 
     postBoardApi({type:"board_comment_delete",comment_id:commentId,password:password.trim()})
     .then(data=>{
         if(data.result==="success"){
-            boardComments=boardComments.filter((comment,index)=>getCommentId(comment,index)!==String(commentId));
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            boardComments=boardComments.filter((comment,index)=>!deleted.includes(getCommentId(comment,index)));
+            deleted.forEach(id=>unmarkCommentLiked("board",id));
             openBoardDetail(postId);
         }else{
             alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
@@ -1511,6 +1655,58 @@ function deleteBoardComment(commentId,postId){
     .catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
 }
 
+function toggleBoardCommentLike(commentId,postId){
+    if(hasLikedComment("board",commentId)){
+        unlikeBoardComment(commentId,postId);
+        return;
+    }
+    likeBoardComment(commentId,postId);
+}
+
+function likeBoardComment(commentId,postId){
+    postBoardApi({
+        type:"board_comment_like",
+        comment_id:commentId,
+        client_id:getCommentLikeClientId("board")
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            markCommentLiked("board",commentId);
+            const target=boardComments.find((comment,index)=>getCommentId(comment,index)===String(commentId));
+            if(target)target.likes=Number(target.likes||0)+1;
+            openBoardDetail(postId);
+        }else if(data.result==="duplicate"){
+            markCommentLiked("board",commentId);
+            alert(data.message||"이미 추천한 댓글입니다.");
+            openBoardDetail(postId);
+        }else{
+            alert(data.message||"댓글 추천 처리 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 추천 처리 중 오류가 발생했습니다."));
+}
+
+function unlikeBoardComment(commentId,postId){
+    postBoardApi({
+        type:"board_comment_unlike",
+        comment_id:commentId,
+        client_id:getCommentLikeClientId("board")
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkCommentLiked("board",commentId);
+            const target=boardComments.find((comment,index)=>getCommentId(comment,index)===String(commentId));
+            if(target)target.likes=Math.max(0,Number(target.likes||0)-1);
+            openBoardDetail(postId);
+        }else if(data.result==="not_found"){
+            unmarkCommentLiked("board",commentId);
+            openBoardDetail(postId);
+        }else{
+            alert(data.message||"댓글 추천 취소 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));
+}
 
 function getBoardLikeClientId(){
     const key="axe_board_like_client_id";
