@@ -335,6 +335,21 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 
+.skill-rank-panel{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.skill-rank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.skill-rank-card{border:1px solid rgba(255,255,255,.075);background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.24);border-radius:16px;padding:15px 16px;transition:.16s ease;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.skill-rank-card:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045)}
+.skill-rank-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.skill-rank-name{font-size:18px;font-weight:950;color:#fff;letter-spacing:-.1px;line-height:1.25}
+.skill-rank-skill{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 9px;border-radius:999px;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
+.skill-rank-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#cfcfcf;font-size:13px;line-height:1.5}
+.skill-rank-label{color:#858585;font-size:12px;font-weight:950;margin-right:2px}
+.skill-rank-point{font-weight:950;color:#ffb52e;white-space:nowrap}
+.skill-rank-note{color:#aaa;font-size:13px}
+.skill-rank-dot{width:3px;height:3px;border-radius:999px;background:rgba(255,255,255,.25);display:inline-block}
+@media(max-width:920px){.skill-rank-grid{grid-template-columns:1fr}}
+
+
 .modbook-guide{margin-bottom:16px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));color:#aaa;font-size:13px;line-height:1.6}
 .modbook-guide strong{color:#ffb52e}
 .modbook-type-tabs{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -465,11 +480,11 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw7NBXQw0iF8hb2xO3Bs3FrRhkCEMmOeMguWVY5YMfbTg20loIyy2H1avTSWk5a3wtQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzVJjT-eKtNxCosQFm3dY79YcpPdJ2pz61LQrs_LskqJxDumnhhBjP69owKvMTfHVyH2g/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[];
+let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
@@ -477,6 +492,7 @@ let operationCategory="ALL",selectedOperationId="";
 let questSearchKeyword="",questJobFilter="";
 let processSearchKeyword="",processJobFilter="";
 let modBookTypeFilter="접두",modBookCategoryFilter="",modBookSearchKeyword="";
+let skillRankSearchKeyword="",skillRankFilter="";
 let currentMainSection="";
 let currentHistoryPage="home";
 const mainPageKeys=["home","notice","tube","outlaw","info","utility"];
@@ -532,6 +548,8 @@ function resetInfoState(){
     modBookTypeFilter="접두";
     modBookCategoryFilter="";
     modBookSearchKeyword="";
+    skillRankSearchKeyword="";
+    skillRankFilter="";
 }
 
 function resetNoticeState(){
@@ -573,6 +591,7 @@ fetch(API_URL)
     processes=data.processes||data.processData||data.processing||[];
     materialRecipes=data.materialRecipes||data.material_recipes||data.recipes||[];
     modBooks=data.modBooks||data.mod_books||[];
+    skillRanks=data.skillRanks||data.skill_ranks||data.craftRanks||[];
     initMainHistory();
     hideLoading();
 })
@@ -635,6 +654,13 @@ function handleSearchKey(event,type){
         modBookSearchKeyword="";
         renderModBookList();
         renderEmptyModBookDetail();
+        return;
+    }
+
+    if(type==="skillrank"){
+        skillRankSearchKeyword="";
+        renderSkillRankList();
+        return;
     }
 }
 
@@ -1001,7 +1027,7 @@ function showInfo(){
 }
 
 function infoMenu(active){
-    const menus=[["제작","showCraft()"],["퀘스트","showQuest()"],["가공/재련","showProcess()"],["개조서","showModBooks()"]];
+    const menus=[["제작","showCraft()"],["퀘스트","showQuest()"],["가공/재련","showProcess()"],["개조서","showModBooks()"],["스킬랭크","showSkillRanks()"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
@@ -1364,6 +1390,109 @@ function renderProcessCards(){
     }).join("");
 }
 
+
+
+function showSkillRanks(){
+    setMainActive(4);
+    const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
+    if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
+
+    let html=`
+    <div class="section-head">
+        <div>
+            <div class="section-title">정보</div>
+            <div class="section-desc">스킬별 랭크업 필요 포인트를 확인합니다.</div>
+        </div>
+        <div class="count" id="skillRankCountBox">총 ${skillRanks.length}개</div>
+    </div>
+
+    ${infoMenu("스킬랭크")}
+
+    <div class="skill-rank-panel">
+        <div class="toolbar">
+            <div class="search">
+                <input id="skillRankSearchInput" type="text" placeholder="스킬, 랭크, 포인트 검색" value="${skillRankSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'skillrank')" oninput="onSkillRankSearch(this.value)">
+                <span class="search-mark">⌕</span>
+            </div>
+        </div>
+        <div class="quest-filter-title">스킬 선택</div>
+        <div class="quest-filter">`;
+
+    skills.forEach(skill=>{
+        html+=`<button class="${skillRankFilter===skill?"active":""}" onclick="setSkillRankFilter('${escapeText(skill)}')">${safe(skill)}</button>`;
+    });
+
+    html+=`</div>
+        <div class="result-info" id="skillRankResultInfo"></div>
+        <div class="skill-rank-grid" id="skillRankGrid"></div>
+    </div>`;
+
+    document.getElementById("content").innerHTML=html;
+    renderSkillRankList();
+}
+
+function setSkillRankFilter(skill){
+    skillRankFilter=skill;
+    showSkillRanks();
+}
+
+function onSkillRankSearch(value){
+    skillRankSearchKeyword=value.trim();
+    renderSkillRankList();
+}
+
+function getFilteredSkillRanks(){
+    let list=skillRanks.slice();
+    if(skillRankFilter)list=list.filter(r=>String(r.skill)===String(skillRankFilter));
+
+    const keyword=skillRankSearchKeyword.toLowerCase();
+    if(keyword){
+        list=list.filter(r=>[
+            r.skill,r.rank,r.required_point,r.point_type,r.note
+        ].join(" ").toLowerCase().includes(keyword));
+    }
+
+    return list.sort((a,b)=>Number(a.order||999999)-Number(b.order||999999));
+}
+
+function formatSkillPoint(row){
+    const point=String(row.required_point||"").trim();
+    const type=String(row.point_type||"").trim();
+    if(!point)return "-";
+    return `${point}${type}`;
+}
+
+function renderSkillRankList(){
+    const grid=document.getElementById("skillRankGrid");
+    const info=document.getElementById("skillRankResultInfo");
+    const count=document.getElementById("skillRankCountBox");
+    if(!grid)return;
+
+    const list=getFilteredSkillRanks();
+    if(info)info.textContent=`분류: ${skillRankFilter||"-"} · 검색 결과 ${list.length}개`;
+    if(count)count.textContent=`${list.length}개 표시`;
+
+    if(list.length===0){
+        grid.innerHTML=`<div class="ready">등록된 스킬랭크 정보가 없습니다.</div>`;
+        return;
+    }
+
+    grid.innerHTML=list.map(r=>{
+        const point=formatSkillPoint(r);
+        const note=String(r.note||"").trim();
+        return `
+        <div class="skill-rank-card">
+            <div class="skill-rank-top">
+                <div class="skill-rank-name">${safe(r.rank)}</div>
+                <span class="skill-rank-skill">${safe(r.skill)}</span>
+            </div>
+            <div class="skill-rank-line">
+                ${point!=="-"?`<span><span class="skill-rank-label">필요 포인트</span><span class="skill-rank-point">${safe(point)}</span></span>`:`<span><span class="skill-rank-label">필요 포인트</span><span>-</span></span>`}
+                ${note?`<span class="skill-rank-dot"></span><span class="skill-rank-note">${safe(note)}</span>`:""}
+            </div>
+        </div>`;
+    }).join("");
+}
 
 
 function normalizeModType(v){
