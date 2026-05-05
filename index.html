@@ -336,27 +336,27 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 .skill-rank-panel{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.038),rgba(255,255,255,.012)),rgba(0,0,0,.25);border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 12px 28px rgba(0,0,0,.18)}
-.skill-rank-toolbar{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}
-.skill-rank-filter-head{display:block;margin-bottom:8px}
-.skill-rank-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;justify-content:center}
-.skill-rank-tabs button{min-width:auto;height:36px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.016)),#111;color:#aaa;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
-.skill-rank-tabs button:hover{color:#fff;border-color:rgba(255,181,46,.38);transform:translateY(-1px)}
+.skill-rank-toolbar{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px}
+.skill-rank-filter-head{display:block;margin-bottom:8px;text-align:center}
+.skill-rank-tabs{width:min(100%,560px);margin:0 auto 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;padding:8px;border:1px solid rgba(255,255,255,.07);border-radius:16px;background:rgba(0,0,0,.22)}
+.skill-rank-tabs button{height:36px;padding:0 10px;border-radius:11px;border:1px solid transparent;background:transparent;color:#9b9b9b;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:none;white-space:nowrap}
+.skill-rank-tabs button:hover{color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);transform:translateY(-1px)}
 .skill-rank-tabs button.active{color:#111;background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);border-color:rgba(255,181,46,.85);box-shadow:0 8px 20px rgba(255,181,46,.18)}
-.skill-rank-list{width:min(100%,520px);margin:0 auto;border:1px solid rgba(255,255,255,.075);border-radius:14px;background:rgba(0,0,0,.2);overflow:hidden}
-.skill-rank-header{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center;padding:8px 12px;color:#777;font-size:11px;font-weight:950;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);text-align:center}
-.skill-rank-row{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.055);transition:.15s ease;min-height:40px}
+.skill-rank-list{width:min(100%,480px);margin:0 auto;border:1px solid rgba(255,255,255,.075);border-radius:14px;background:rgba(0,0,0,.2);overflow:hidden}
+.skill-rank-header{display:grid;grid-template-columns:1fr 78px;gap:6px;align-items:center;padding:7px 10px;color:#777;font-size:11px;font-weight:950;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);text-align:center}
+.skill-rank-row{display:grid;grid-template-columns:1fr 78px;gap:6px;align-items:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.055);transition:.15s ease;min-height:36px}
 .skill-rank-row:last-child{border-bottom:0}
 .skill-rank-row:hover{background:rgba(255,181,46,.045)}
 .skill-rank-cell{min-width:0;display:flex;align-items:center;justify-content:center}
 .skill-rank-cell-label{display:none;color:#777;font-size:10px;font-weight:950;margin-bottom:3px}
 .skill-rank-name{font-size:14px;font-weight:950;color:#fff;line-height:1.25;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-.skill-rank-arrow{color:#ffb52e;font-weight:950;margin:0 6px;opacity:.95}
-.skill-rank-pointbox{display:inline-flex;align-items:center;justify-content:center;min-width:66px;height:28px;padding:0 10px;border-radius:999px;background:rgba(255,181,46,.1);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:13px;font-weight:950;white-space:nowrap}
+.skill-rank-arrow{color:#ffb52e;font-weight:950;margin:0 5px;opacity:.95}
+.skill-rank-pointbox{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:26px;padding:0 8px;border-radius:999px;background:rgba(255,181,46,.1);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:13px;font-weight:950;white-space:nowrap}
 .skill-rank-pointbox.empty{color:#777;background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.075);font-size:12px}
-.skill-rank-summary{color:#888;font-size:12px;font-weight:850;margin:0 0 10px 2px;text-align:center}
+.skill-rank-summary{display:none}
 .skill-rank-skill{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 9px;border-radius:999px;background:rgba(255,181,46,.08);border:1px solid rgba(255,181,46,.24);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
 .skill-rank-note{display:none}
-@media(max-width:760px){.skill-rank-list{width:100%}.skill-rank-row,.skill-rank-header{grid-template-columns:1fr 86px;padding:8px 10px}.skill-rank-name{font-size:13px}.skill-rank-pointbox{min-width:60px;height:27px;font-size:12px}}
+@media(max-width:760px){.skill-rank-tabs{grid-template-columns:repeat(auto-fit,minmax(74px,1fr));padding:7px}.skill-rank-tabs button{height:34px;font-size:12px}.skill-rank-list{width:100%}.skill-rank-row,.skill-rank-header{grid-template-columns:1fr 72px;padding:7px 9px}.skill-rank-name{font-size:13px}.skill-rank-pointbox{min-width:52px;height:25px;font-size:12px}}
 @media(max-width:920px){.process-card-grid{grid-template-columns:1fr}.process-flow-simple{grid-template-columns:1fr}.process-arrow{min-height:28px;transform:rotate(90deg)}.process-arrow::before{display:none}.process-bottom-info{grid-template-columns:1fr}}
 
 
@@ -1361,7 +1361,7 @@ function showSkillRanks(){
             <div class="section-title">정보</div>
             <div class="section-desc">스킬별 랭크업 필요 포인트를 확인합니다.</div>
         </div>
-        <div class="count" id="skillRankCountBox">총 ${skillRanks.length}개</div>
+        <div class="count">SKILL</div>
     </div>
 
     ${infoMenu("스킬랭크")}
@@ -1445,8 +1445,7 @@ function renderSkillRankList(){
 
     const list=getFilteredSkillRanks();
     const mode=skillRankSearchKeyword?"전체 검색":`${skillRankFilter||"-"}`;
-    if(info)info.textContent=`${mode} · ${list.length}개`;
-    if(count)count.textContent=`${list.length}개 표시`;
+    if(info)info.textContent=skillRankSearchKeyword?`전체 검색`:``;
 
     if(list.length===0){
         grid.innerHTML=`<div class="ready">등록된 스킬랭크 정보가 없습니다.</div>`;
