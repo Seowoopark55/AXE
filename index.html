@@ -419,6 +419,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .board-row-meta{display:flex;flex-wrap:wrap;gap:7px;color:#888;font-size:12px}
 .board-badge{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#bbb;font-size:12px;font-weight:900}
 .board-badge.gold{color:#ffb52e;background:rgba(255,181,46,.09);border-color:rgba(255,181,46,.28)}
+.board-comment-count-badge{display:inline-flex;align-items:center;min-height:22px;margin-left:6px;padding:0 8px;border-radius:999px;background:rgba(76,154,255,.16);border:1px solid rgba(76,154,255,.46);color:#8ec5ff;font-size:12px;font-weight:950;vertical-align:middle}
 .board-detail-card{border:1px solid rgba(255,255,255,.08);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(0,0,0,.24);padding:22px;min-height:280px}
 .board-detail-title{font-size:28px;font-weight:950;color:#fff;line-height:1.25;margin-bottom:10px}
 .board-detail-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
@@ -440,8 +441,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .board-action-btn{height:38px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-weight:950;cursor:pointer;transition:.18s ease}
 .board-action-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
 .board-action-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,80,80,.45)}
-.board-like-btn{height:44px;padding:0 18px;border-radius:14px;border:1px solid rgba(255,181,46,.55);background:linear-gradient(135deg,#ffcf61,#ffb52e 55%,#ff8c00);color:#111;font-size:15px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:0 10px 26px rgba(255,181,46,.22)}
-.board-like-btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 14px 34px rgba(255,181,46,.28)}
+.board-like-btn{height:46px;padding:0 20px;border-radius:15px;border:1px solid rgba(76,154,255,.72);background:linear-gradient(135deg,#4c9aff,#1d5fff 58%,#1236a8);color:#fff;font-size:16px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:0 12px 30px rgba(76,154,255,.26)}
+.board-like-btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 16px 38px rgba(76,154,255,.34)}
+.board-like-btn.liked{border-color:rgba(255,255,255,.14);background:linear-gradient(135deg,#2a2a2a,#151515);color:#999;box-shadow:none;cursor:not-allowed}
+.board-like-btn.liked:hover{filter:none;transform:none;box-shadow:none}
 .comment-section{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
 .comment-title{font-size:18px;font-weight:950;color:#ffb52e;margin-bottom:12px}
 .comment-list{display:grid;gap:9px;margin-bottom:14px}
@@ -569,7 +572,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw38UnN2uOQLrHcP0D-fx_kL63Bs_9x2mWHNf-1R9MjYf_ltSVKMBFYcywYdnGCeni8xQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxsSN_CpeMcfFj1a_jFPnt1EYg2h5jXI2_UrFKijzdf4X8UMp58Bjgk5ui8TIT5LaVLTg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1044,7 +1047,7 @@ function renderBoardList(){
     box.innerHTML=list.map((post,index)=>{
         const id=getBoardId(post,index);
         const commentCount=getCommentsByPost(id).length;
-        const title=safe(post.title)+(commentCount?` <span class="board-badge gold">${commentCount}</span>`:"");
+        const title=safe(post.title)+(commentCount?` <span class="board-comment-count-badge">💬 ${commentCount}</span>`:"");
         return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}')">
             <div class="board-table-title">${title}</div>
             <div class="board-table-cell">${safe(post.writer)}</div>
@@ -1095,7 +1098,7 @@ function openBoardDetail(id){
                 <span class="board-badge">댓글 ${comments.length}</span>
             </div>
             <div class="board-detail-actions">
-                <button class="board-like-btn" onclick="likeBoardPost('${escapeText(id)}')">👍 추천 ${Number(target.likes||0)}</button>
+                <button class="board-like-btn ${hasLikedBoardPost(id)?'liked':''}" onclick="likeBoardPost('${escapeText(id)}')">${hasLikedBoardPost(id)?'추천 완료':'👍 추천'} ${Number(target.likes||0)}</button>
                 <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">게시글 삭제</button>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
@@ -1179,15 +1182,61 @@ function deleteBoardComment(commentId,postId){
     .catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
 }
 
+
+function getBoardLikeClientId(){
+    const key="axe_board_like_client_id";
+    let id=localStorage.getItem(key);
+    if(!id){
+        id="client_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);
+        localStorage.setItem(key,id);
+    }
+    return id;
+}
+
+function getLikedBoardPosts(){
+    try{
+        return JSON.parse(localStorage.getItem("axe_board_liked_posts")||"[]");
+    }catch(e){
+        return [];
+    }
+}
+
+function hasLikedBoardPost(id){
+    return getLikedBoardPosts().includes(String(id));
+}
+
+function markBoardPostLiked(id){
+    const list=getLikedBoardPosts();
+    const key=String(id);
+    if(!list.includes(key)){
+        list.push(key);
+        localStorage.setItem("axe_board_liked_posts",JSON.stringify(list));
+    }
+}
+
 function likeBoardPost(id){
-    postBoardApi({type:"board_like",id:id})
+    if(hasLikedBoardPost(id)){
+        alert("이미 추천한 게시글입니다.");
+        return;
+    }
+
+    postBoardApi({
+        type:"board_like",
+        id:id,
+        client_id:getBoardLikeClientId()
+    })
     .then(data=>{
         if(data.result==="success"){
+            markBoardPostLiked(id);
             const target=findBoardPostById(id);
             if(target)target.likes=Number(target.likes||0)+1;
             openBoardDetail(id);
+        }else if(data.result==="duplicate"){
+            markBoardPostLiked(id);
+            alert(data.message||"이미 추천한 게시글입니다.");
+            openBoardDetail(id);
         }else{
-            alert("추천 처리 중 오류가 발생했습니다.");
+            alert(data.message||"추천 처리 중 오류가 발생했습니다.");
         }
     })
     .catch(()=>alert("추천 처리 중 오류가 발생했습니다."));
