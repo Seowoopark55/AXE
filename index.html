@@ -414,6 +414,14 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 @media(max-width:920px){.modbook-layout{grid-template-columns:1fr}.modbook-list-scroll{max-height:330px}.modbook-detail-name{font-size:24px}}
 
 
+.inline-edit-form{margin-top:14px;padding:14px;border:1px solid rgba(255,181,46,.22);background:rgba(255,181,46,.045);border-radius:16px}
+.inline-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.inline-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.inline-edit-help{font-size:12px;color:#888;line-height:1.5;margin-top:6px}
+.comment-edit-form{margin-top:10px;padding:12px;border:1px solid rgba(255,181,46,.18);background:rgba(255,181,46,.04);border-radius:13px}
+.comment-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+@media(max-width:760px){.inline-edit-grid{grid-template-columns:1fr}.inline-edit-actions,.comment-edit-actions{justify-content:stretch}.inline-edit-actions button,.comment-edit-actions button{flex:1}}
+
 /* 자유게시판 */
 .board-actions{display:flex;justify-content:flex-end;margin-bottom:14px}
 .board-layout{display:grid;grid-template-columns:360px 1fr;gap:18px;min-height:560px}
@@ -594,7 +602,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby95J1EpZn2kn8y0lJSgJ91CmEUj776ibHuxznCcbrLTPm4D884t5OBHVYLUFHSSy57kQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyqFinvLRh9vm-e6LxxoOvz7zZGgA2KNW35eaJVn9EifkMnVy6xNOM1UesXNHuhrkxBUQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -733,6 +741,9 @@ function hideLoading(){
 
 function safe(v){return v===undefined||v===null||v===""?"-":v}
 function escapeText(v){return String(v||"").replace(/'/g,"\\'").replace(/`/g,"\\`")}
+function escapeAttr(v){return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function escapeTextarea(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function domSafeId(v){return String(v||"").replace(/[^a-zA-Z0-9_\-]/g,"_")}
 function catName(cat){return categoryMap[cat]||cat||"-"}
 function scrollToElement(id){const el=document.getElementById(id);if(!el)return;setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function setMainActive(index){document.querySelectorAll(".main-menu button").forEach((btn,i)=>btn.classList.toggle("active",i===index))}
@@ -1172,44 +1183,73 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
             <div class="comment-actions">
                 <button class="comment-mini-btn ${liked?"liked":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">👍 ${liked?"취소":"추천"} ${Number(comment.likes||0)}</button>
                 ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
-                <button class="comment-mini-btn" onclick="editComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
+                <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
                 <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
             </div>
         </div>
-        <div class="comment-content">${safe(comment.content)}</div>
+        <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
+        <div id="commentEdit_${scope}_${domSafeId(commentId)}"></div>
         ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
         ${replyHtml}
     </div>`;
 }
 
-function editComment(scope,commentId,ownerId){
+function startEditComment(scope,commentId,ownerId){
     const isBoard=scope==="board";
     const list=isBoard?boardComments:tubeComments;
     const getId=isBoard?getCommentId:getTubeCommentId;
     const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
     if(!target){alert("댓글을 찾을 수 없습니다.");return;}
 
-    const password=prompt("댓글 수정 비밀번호를 입력하세요.");
-    if(password===null)return;
-    if(!password.trim()){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+    const box=document.getElementById(`commentEdit_${scope}_${domSafeId(commentId)}`);
+    const contentBox=document.getElementById(`commentContent_${scope}_${domSafeId(commentId)}`);
+    if(!box)return;
 
-    const content=prompt("댓글 내용을 수정하세요.",String(target.content||""));
-    if(content===null)return;
-    if(!content.trim()){
-        alert("댓글 내용은 비울 수 없습니다.");
-        return;
-    }
+    if(contentBox)contentBox.style.display="none";
+    box.innerHTML=`
+        <div class="comment-edit-form">
+            <textarea class="comment-textarea" id="commentEditContent_${scope}_${domSafeId(commentId)}" placeholder="댓글 내용을 수정하세요">${escapeTextarea(target.content||"")}</textarea>
+            <input class="comment-input" id="commentEditPassword_${scope}_${domSafeId(commentId)}" type="password" placeholder="수정 비밀번호">
+            <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
+            <div class="comment-edit-actions">
+                <button class="board-action-btn" onclick="submitEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">저장</button>
+                <button class="board-action-btn danger" onclick="cancelEditComment('${scope}','${escapeText(commentId)}')">취소</button>
+            </div>
+        </div>`;
+}
+
+function cancelEditComment(scope,commentId){
+    const box=document.getElementById(`commentEdit_${scope}_${domSafeId(commentId)}`);
+    const contentBox=document.getElementById(`commentContent_${scope}_${domSafeId(commentId)}`);
+    if(box)box.innerHTML="";
+    if(contentBox)contentBox.style.display="";
+}
+
+function submitEditComment(scope,commentId,ownerId){
+    const isBoard=scope==="board";
+    const contentEl=document.getElementById(`commentEditContent_${scope}_${domSafeId(commentId)}`);
+    const passwordEl=document.getElementById(`commentEditPassword_${scope}_${domSafeId(commentId)}`);
+    const content=contentEl?contentEl.value.trim():"";
+    const password=passwordEl?passwordEl.value.trim():"";
+
+    if(!content){alert("댓글 내용은 비울 수 없습니다.");return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
 
     const api=isBoard?postBoardApi:postTubeApi;
     const payload=isBoard
-        ? {type:"board_comment_update",comment_id:commentId,password:password.trim(),content:content.trim()}
-        : {type:"tube_comment_update",comment_id:commentId,password:password.trim(),content:content.trim()};
+        ? {type:"board_comment_update",comment_id:commentId,password:password,content:content}
+        : {type:"tube_comment_update",comment_id:commentId,password:password,content:content};
 
     api(payload)
     .then(data=>{
         if(data.result==="success"){
-            target.content=content.trim();
-            target.updated_at=data.updated_at||new Date().toISOString();
+            const list=isBoard?boardComments:tubeComments;
+            const getId=isBoard?getCommentId:getTubeCommentId;
+            const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
+            if(target){
+                target.content=content;
+                target.updated_at=data.updated_at||new Date().toISOString();
+            }
             if(isBoard){openBoardDetail(ownerId);}else{openTubeDetail(ownerId,false);}
         }else{
             alert(data.message||"댓글 수정 중 오류가 발생했습니다.");
@@ -1340,52 +1380,70 @@ function unlikeTubeComment(commentId,tubeId){
 }
 
 
-function editTubePost(id){
+function startEditTubePost(id){
     const target=findTubeById(id);
     if(!target){alert("영상 게시글을 찾을 수 없습니다.");return;}
 
-    const password=prompt("영상 게시글 수정 비밀번호를 입력하세요.");
-    if(password===null)return;
-    if(!password.trim()){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+    const box=document.getElementById("tubeDetailBox");
+    if(!box)return;
 
-    const title=prompt("영상 제목을 수정하세요.",String(target.title||""));
-    if(title===null)return;
-    const url=prompt("유튜브 링크를 수정하세요.",String(target.url||""));
-    if(url===null)return;
-    const thumbnail=prompt("썸네일 주소를 수정하세요. 비워두면 유튜브 썸네일을 사용합니다.",String(target.thumbnail||""));
-    if(thumbnail===null)return;
-    const category=prompt("분류를 수정하세요.",String(target.category||"일반"));
-    if(category===null)return;
-    const content=prompt("내용을 수정하세요.",String(target.content||""));
-    if(content===null)return;
+    box.innerHTML=`
+        <div class="board-detail-title">영상 게시글 수정</div>
+        <div class="board-detail-meta">
+            <span class="board-badge gold">AXE TUBE</span>
+            <span class="board-badge">작성자 ${safe(target.writer||"AXE")}</span>
+            <span class="board-badge">${formatDate(target.date)}</span>
+        </div>
+        <div class="inline-edit-form">
+            <div class="inline-edit-grid">
+                <input class="form-input" id="tubeEditTitle" value="${escapeAttr(target.title||"")}" placeholder="영상 제목">
+                <input class="form-input" id="tubeEditCategory" value="${escapeAttr(target.category||"일반")}" placeholder="분류">
+            </div>
+            <input class="form-input" id="tubeEditUrl" value="${escapeAttr(target.url||"")}" placeholder="유튜브 링크" style="margin-bottom:10px;">
+            <input class="form-input" id="tubeEditThumbnail" value="${escapeAttr(target.thumbnail||"")}" placeholder="썸네일 주소 선택사항. 비우면 유튜브 썸네일 사용" style="margin-bottom:10px;">
+            <textarea class="form-textarea" id="tubeEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea>
+            <input class="form-input" id="tubeEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;">
+            <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
+            <div class="inline-edit-actions">
+                <button class="board-action-btn" onclick="submitTubePostEdit('${escapeText(id)}')">저장</button>
+                <button class="board-action-btn danger" onclick="openTubeDetail('${escapeText(id)}',false)">취소</button>
+            </div>
+        </div>`;
+    scrollToElement("tubeDetailBox");
+}
 
-    if(!title.trim()||!url.trim()){
-        alert("영상 제목과 유튜브 링크는 비울 수 없습니다.");
-        return;
-    }
+function submitTubePostEdit(id){
+    const target=findTubeById(id);
+    if(!target){alert("영상 게시글을 찾을 수 없습니다.");return;}
 
-    if(!url.includes("youtube.com")&&!url.includes("youtu.be")){
-        alert("유튜브 링크를 입력해주세요.");
-        return;
-    }
+    const title=document.getElementById("tubeEditTitle").value.trim();
+    const url=document.getElementById("tubeEditUrl").value.trim();
+    const thumbnail=document.getElementById("tubeEditThumbnail").value.trim();
+    const category=document.getElementById("tubeEditCategory").value.trim()||"일반";
+    const content=document.getElementById("tubeEditContent").value.trim();
+    const password=document.getElementById("tubeEditPassword").value.trim();
+
+    if(!title||!url){alert("영상 제목과 유튜브 링크는 비울 수 없습니다.");return;}
+    if(!url.includes("youtube.com")&&!url.includes("youtu.be")){alert("유튜브 링크를 입력해주세요.");return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
 
     postTubeApi({
         type:"tube_update",
         id:id,
-        password:password.trim(),
-        title:title.trim(),
-        url:url.trim(),
-        thumbnail:thumbnail.trim(),
-        category:category.trim()||"일반",
-        content:content.trim()
+        password:password,
+        title:title,
+        url:url,
+        thumbnail:thumbnail,
+        category:category,
+        content:content
     })
     .then(data=>{
         if(data.result==="success"){
-            target.title=title.trim();
-            target.url=url.trim();
-            target.thumbnail=thumbnail.trim();
-            target.category=category.trim()||"일반";
-            target.content=content.trim();
+            target.title=title;
+            target.url=url;
+            target.thumbnail=thumbnail;
+            target.category=category;
+            target.content=content;
             target.updated_at=data.updated_at||new Date().toISOString();
             openTubeDetail(id,false);
         }else{
@@ -1455,7 +1513,7 @@ function openTubeDetail(id,addView=true){
             ${videoHtml}
             <div class="board-detail-actions">
                 <button class="board-like-btn ${hasLikedTube(id)?'liked':''}" onclick="toggleTubeLike('${escapeText(id)}')">${hasLikedTube(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
-                <button class="board-action-btn" onclick="editTubePost('${escapeText(id)}')">게시글 수정</button>
+                <button class="board-action-btn" onclick="startEditTubePost('${escapeText(id)}')">게시글 수정</button>
                 <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">게시글 삭제</button>
             </div>
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -1672,7 +1730,7 @@ function openBoardDetail(id){
             </div>
             <div class="board-detail-actions">
                 <button class="board-like-btn ${hasLikedBoardPost(id)?'liked':''}" onclick="toggleBoardLike('${escapeText(id)}')">${hasLikedBoardPost(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
-                <button class="board-action-btn" onclick="editBoardPost('${escapeText(id)}')">게시글 수정</button>
+                <button class="board-action-btn" onclick="startEditBoardPost('${escapeText(id)}')">게시글 수정</button>
                 <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">게시글 삭제</button>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
@@ -1901,39 +1959,61 @@ function unlikeBoardPost(id){
 }
 
 
-function editBoardPost(id){
+function startEditBoardPost(id){
     const target=findBoardPostById(id);
     if(!target){alert("게시글을 찾을 수 없습니다.");return;}
 
-    const password=prompt("게시글 수정 비밀번호를 입력하세요.");
-    if(password===null)return;
-    if(!password.trim()){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+    const box=document.getElementById("boardDetailBox");
+    if(!box)return;
 
-    const title=prompt("제목을 수정하세요.",String(target.title||""));
-    if(title===null)return;
-    const category=prompt("분류를 수정하세요.",String(target.category||"일반"));
-    if(category===null)return;
-    const content=prompt("내용을 수정하세요.",String(target.content||""));
-    if(content===null)return;
+    box.innerHTML=`
+        <div class="board-detail-title">게시글 수정</div>
+        <div class="board-detail-meta">
+            <span class="board-badge gold">자유게시판</span>
+            <span class="board-badge">작성자 ${safe(target.writer)}</span>
+            <span class="board-badge">${formatDate(target.date)}</span>
+        </div>
+        <div class="inline-edit-form">
+            <div class="inline-edit-grid">
+                <input class="form-input" id="boardEditTitle" value="${escapeAttr(target.title||"")}" placeholder="제목">
+                <input class="form-input" id="boardEditCategory" value="${escapeAttr(target.category||"일반")}" placeholder="분류">
+            </div>
+            <textarea class="form-textarea" id="boardEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea>
+            <input class="form-input" id="boardEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;">
+            <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
+            <div class="inline-edit-actions">
+                <button class="board-action-btn" onclick="submitBoardPostEdit('${escapeText(id)}')">저장</button>
+                <button class="board-action-btn danger" onclick="openBoardDetail('${escapeText(id)}')">취소</button>
+            </div>
+        </div>`;
+    scrollToElement("boardDetailBox");
+}
 
-    if(!title.trim()||!content.trim()){
-        alert("제목과 내용은 비울 수 없습니다.");
-        return;
-    }
+function submitBoardPostEdit(id){
+    const target=findBoardPostById(id);
+    if(!target){alert("게시글을 찾을 수 없습니다.");return;}
+
+    const title=document.getElementById("boardEditTitle").value.trim();
+    const category=document.getElementById("boardEditCategory").value.trim()||"일반";
+    const content=document.getElementById("boardEditContent").value.trim();
+    const password=document.getElementById("boardEditPassword").value.trim();
+
+    if(!title||!content){alert("제목과 내용은 비울 수 없습니다.");return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
 
     postBoardApi({
         type:"board_update",
         id:id,
-        password:password.trim(),
-        title:title.trim(),
-        category:category.trim()||"일반",
-        content:content.trim()
+        password:password,
+        title:title,
+        category:category,
+        content:content
     })
     .then(data=>{
         if(data.result==="success"){
-            target.title=title.trim();
-            target.category=category.trim()||"일반";
-            target.content=content.trim();
+            target.title=title;
+            target.category=category;
+            target.content=content;
             target.updated_at=data.updated_at||new Date().toISOString();
             openBoardDetail(id);
         }else{
