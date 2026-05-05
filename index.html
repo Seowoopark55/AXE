@@ -199,19 +199,24 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .quest-filter button.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(255,255,255,.78)}
 .quest-filter button.active::after{content:"";position:absolute;inset:-45% auto -45% -40%;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);animation:questBtnShine 3.8s ease-in-out infinite}
 @keyframes questBtnShine{0%{left:-45%;opacity:0}20%{opacity:.9}48%{left:125%;opacity:0}100%{left:125%;opacity:0}}
-.quest-table-wrap{border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),rgba(0,0,0,.25);box-shadow:0 16px 36px rgba(0,0,0,.25)}
-.quest-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}
-.quest-table th{position:sticky;top:0;z-index:1;background:linear-gradient(180deg,rgba(255,181,46,.16),rgba(255,181,46,.07)),#121212;color:#ffb52e;font-size:12px;font-weight:950;text-align:left;padding:14px 15px;border-bottom:1px solid rgba(255,181,46,.18);letter-spacing:.4px}
-.quest-table td{padding:15px 15px;border-bottom:1px solid rgba(255,255,255,.06);color:#ddd;font-size:14px;vertical-align:middle;background:rgba(255,255,255,.012);transition:.16s ease}
-.quest-table tr:nth-child(even) td{background:rgba(255,255,255,.026)}
-.quest-table tr:last-child td{border-bottom:none}
-.quest-table tr:hover td{background:rgba(255,181,46,.07);transform:translateX(2px)}
-.quest-item{font-weight:950;color:#fff;letter-spacing:.1px}
-.quest-job-badge{display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:28px;padding:0 10px;border-radius:999px;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
-.quest-qty{font-weight:950;color:#fff}
-.quest-reward{display:inline-flex;align-items:center;gap:6px;font-weight:950;color:#ffb52e;white-space:nowrap;padding:6px 10px;border-radius:999px;background:rgba(255,181,46,.08);border:1px solid rgba(255,181,46,.2)}
-.quest-rank{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:27px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:950;color:#ddd}
-.quest-note{color:#aaa;font-size:13px}
+.quest-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.quest-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.014)),rgba(0,0,0,.28);padding:14px 15px;transition:.16s ease;box-shadow:0 12px 26px rgba(0,0,0,.18)}
+.quest-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#ffb52e,rgba(255,181,46,.12));opacity:.75}
+.quest-card:hover{border-color:rgba(255,181,46,.35);background:linear-gradient(145deg,rgba(255,181,46,.075),rgba(255,255,255,.018)),rgba(0,0,0,.32);transform:translateY(-1px)}
+.quest-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.quest-item{font-size:17px;font-weight:950;color:#fff;letter-spacing:.1px;line-height:1.25}
+.quest-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.quest-job-badge,.quest-rank{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:950;white-space:nowrap}
+.quest-job-badge{background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e}
+.quest-rank{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#ddd}
+.quest-card-body{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#aaa;font-size:13px;font-weight:850}
+.quest-line{display:flex;align-items:center;gap:6px;min-width:0}
+.quest-label{color:#858585;font-size:12px;font-weight:950}
+.quest-qty{color:#fff;font-weight:950;white-space:nowrap}
+.quest-reward{color:#ffb52e;font-weight:950;white-space:nowrap}
+.quest-dot{width:3px;height:3px;border-radius:999px;background:rgba(255,255,255,.22)}
+.quest-note{color:#cfcfcf;font-size:12px;font-weight:850;white-space:nowrap}
+@media(max-width:920px){.quest-list{grid-template-columns:1fr}}
 
 .process-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .process-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:18px;padding:18px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:.18s ease}
@@ -842,25 +847,11 @@ function showQuest(){
 
     html+=`</div>
         <div class="result-info" id="questResultInfo"></div>
-        <div class="quest-table-wrap" style="overflow-x:auto;">
-            <table class="quest-table">
-                <thead>
-                    <tr>
-                        <th>직업</th>
-                        <th>아이템</th>
-                        <th>완료 수량</th>
-                        <th>보상</th>
-                        <th>랭크</th>
-                        <th>비고</th>
-                    </tr>
-                </thead>
-                <tbody id="questTableBody"></tbody>
-            </table>
-        </div>
+        <div class="quest-list" id="questListBox"></div>
     </div>`;
 
     document.getElementById("content").innerHTML=html;
-    renderQuestTable();
+    renderQuestList();
 }
 
 function setQuestJob(job){
@@ -870,7 +861,7 @@ function setQuestJob(job){
 
 function onQuestSearch(value){
     questSearchKeyword=value.trim();
-    renderQuestTable();
+    renderQuestList();
 }
 
 function getFilteredQuests(){
@@ -895,31 +886,42 @@ function formatQuestReward(q){
     return parts.join(" / ");
 }
 
-function renderQuestTable(){
-    const body=document.getElementById("questTableBody");
+function renderQuestList(){
+    const box=document.getElementById("questListBox");
     const info=document.getElementById("questResultInfo");
     const count=document.getElementById("questCountBox");
-    if(!body)return;
+    if(!box)return;
 
     const list=getFilteredQuests();
     if(info)info.textContent=`분류: ${questJobFilter||"-"} · 검색 결과 ${list.length}개`;
     if(count)count.textContent=`${list.length}개 표시`;
 
     if(list.length===0){
-        body.innerHTML=`<tr><td colspan="6"><div class="ready">등록된 퀘스트 정보가 없습니다.</div></td></tr>`;
+        box.innerHTML=`<div class="ready">등록된 퀘스트 정보가 없습니다.</div>`;
         return;
     }
 
-    body.innerHTML=list.map(q=>`
-        <tr>
-            <td><span class="quest-job-badge">${safe(q.job)}</span></td>
-            <td><span class="quest-item">${safe(q.item_name)}</span></td>
-            <td><span class="quest-qty">${safe(q.required_qty)}</span></td>
-            <td><span class="quest-reward">${formatQuestReward(q)}</span></td>
-            <td><span class="quest-rank">${safe(q.rank)}</span></td>
-            <td><span class="quest-note">${safe(q.note)}</span></td>
-        </tr>
-    `).join("");
+    box.innerHTML=list.map(q=>{
+        const rank=String(q.rank||"").trim();
+        const note=String(q.note||"").trim();
+        const showRank=rank&&rank!=="-";
+        return `
+        <div class="quest-card">
+            <div class="quest-card-top">
+                <div class="quest-item">${safe(q.item_name)}</div>
+                <div class="quest-meta">
+                    <span class="quest-job-badge">${safe(q.job)}</span>
+                    ${showRank?`<span class="quest-rank">${safe(q.rank)}</span>`:""}
+                </div>
+            </div>
+            <div class="quest-card-body">
+                <div class="quest-line"><span class="quest-label">필요</span><span class="quest-qty">${safe(q.required_qty)}개</span></div>
+                <span class="quest-dot"></span>
+                <div class="quest-line"><span class="quest-label">보상</span><span class="quest-reward">${formatQuestReward(q)}</span></div>
+                ${note?`<span class="quest-dot"></span><span class="quest-note">${safe(q.note)}</span>`:""}
+            </div>
+        </div>`;
+    }).join("");
 }
 
 
