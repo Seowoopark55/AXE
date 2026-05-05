@@ -1281,7 +1281,7 @@ function showModBooks(){
         </div>
         ${infoMenu("개조서")}
         <div class="modbook-guide">
-            <strong>접두</strong>는 파란색, <strong>접미</strong>는 빨간색으로 표시됩니다. 옵션 앞의 <strong>*</strong>는 디버프, <strong>!</strong>는 1티어 표시로 처리됩니다.
+            <strong>접두</strong>는 파란색, <strong>접미</strong>는 빨간색으로 표시됩니다.
         </div>
         <div class="modbook-type-tabs">
             <button class="${modBookTypeFilter==="접두"?"active prefix":""}" onclick="setModBookType('접두')">접두</button>
@@ -1394,7 +1394,7 @@ function selectModBook(key){
         <div class="modbook-detail-titleline">
             <div class="modbook-detail-name">${safe(target.name)}</div>
             <span class="modbook-badge ${typeCls}">${safe(normalizeModType(target.type))}</span>
-            ${hasTier1?`<span class="modbook-badge tier1">1티어 포함</span>`:""}
+            ${hasTier1?`<span class="modbook-badge tier1">1티어</span>`:""}
         </div>
         <div class="modbook-detail-sub">
             <span class="modbook-badge">${safe(target.category)}</span>
