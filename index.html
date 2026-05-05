@@ -335,19 +335,28 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 
-.skill-rank-panel{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 14px 34px rgba(0,0,0,.22)}
-.skill-rank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.skill-rank-card{border:1px solid rgba(255,255,255,.075);background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.24);border-radius:16px;padding:15px 16px;transition:.16s ease;box-shadow:0 10px 24px rgba(0,0,0,.18)}
-.skill-rank-card:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045)}
-.skill-rank-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
-.skill-rank-name{font-size:18px;font-weight:950;color:#fff;letter-spacing:-.1px;line-height:1.25}
-.skill-rank-skill{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 9px;border-radius:999px;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
-.skill-rank-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#cfcfcf;font-size:13px;line-height:1.5}
-.skill-rank-label{color:#858585;font-size:12px;font-weight:950;margin-right:2px}
-.skill-rank-point{font-weight:950;color:#ffb52e;white-space:nowrap}
-.skill-rank-note{color:#aaa;font-size:13px}
-.skill-rank-dot{width:3px;height:3px;border-radius:999px;background:rgba(255,255,255,.25);display:inline-block}
-@media(max-width:920px){.skill-rank-grid{grid-template-columns:1fr}}
+.skill-rank-panel{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 14px 34px rgba(0,0,0,.2)}
+.skill-rank-toolbar{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px}
+.skill-rank-filter-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.skill-rank-current{font-size:13px;color:#aaa;font-weight:900}
+.skill-rank-current strong{color:#ffb52e}
+.skill-rank-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.skill-rank-tabs button{min-width:auto;height:36px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.016)),#111;color:#aaa;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.skill-rank-tabs button:hover{color:#fff;border-color:rgba(255,181,46,.38);transform:translateY(-1px)}
+.skill-rank-tabs button.active{color:#111;background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);border-color:rgba(255,181,46,.85);box-shadow:0 8px 20px rgba(255,181,46,.18)}
+.skill-rank-list{border:1px solid rgba(255,255,255,.075);border-radius:16px;background:rgba(0,0,0,.2);overflow:hidden}
+.skill-rank-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.06);transition:.15s ease}
+.skill-rank-row:last-child{border-bottom:0}
+.skill-rank-row:hover{background:rgba(255,181,46,.045)}
+.skill-rank-left{min-width:0}
+.skill-rank-name{font-size:16px;font-weight:950;color:#fff;line-height:1.25;letter-spacing:-.1px}
+.skill-rank-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px;color:#888;font-size:12px;font-weight:850}
+.skill-rank-skill{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;border-radius:999px;background:rgba(255,181,46,.08);border:1px solid rgba(255,181,46,.24);color:#ffb52e;font-size:11px;font-weight:950;white-space:nowrap}
+.skill-rank-pointbox{display:flex;align-items:center;justify-content:center;min-width:74px;height:34px;padding:0 12px;border-radius:999px;background:rgba(255,181,46,.1);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:14px;font-weight:950;white-space:nowrap}
+.skill-rank-pointbox.empty{color:#777;background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.075);font-size:12px}
+.skill-rank-note{color:#aaa;font-size:12px;line-height:1.45}
+.skill-rank-summary{color:#888;font-size:12px;font-weight:850;margin:0 0 10px 2px}
+@media(max-width:620px){.skill-rank-row{grid-template-columns:1fr;gap:8px}.skill-rank-pointbox{justify-content:flex-start;width:max-content}}
 
 
 .modbook-guide{margin-bottom:16px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));color:#aaa;font-size:13px;line-height:1.6}
@@ -526,10 +535,10 @@ function navigateMain(page,push=true){
 }
 
 function initMainHistory(){
-    const hash=normalizeMainPage(location.hash.replace("#","")||"home");
-    currentHistoryPage=hash;
-    history.replaceState({page:hash},"",location.hash?"#"+hash:location.pathname+location.search);
-    renderMainPage(hash);
+    const startPage="home";
+    currentHistoryPage=startPage;
+    history.replaceState({page:startPage},"",location.pathname+location.search);
+    renderMainPage(startPage);
 }
 
 window.addEventListener("popstate",function(event){
@@ -1409,22 +1418,27 @@ function showSkillRanks(){
     ${infoMenu("스킬랭크")}
 
     <div class="skill-rank-panel">
-        <div class="toolbar">
-            <div class="search">
-                <input id="skillRankSearchInput" type="text" placeholder="스킬, 랭크, 포인트 검색" value="${skillRankSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'skillrank')" oninput="onSkillRankSearch(this.value)">
-                <span class="search-mark">⌕</span>
+        <div class="skill-rank-toolbar">
+            <div class="toolbar" style="margin-bottom:0;">
+                <div class="search">
+                    <input id="skillRankSearchInput" type="text" placeholder="스킬, 랭크, 포인트 검색" value="${skillRankSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'skillrank')" oninput="onSkillRankSearch(this.value)">
+                    <span class="search-mark">⌕</span>
+                </div>
             </div>
         </div>
-        <div class="quest-filter-title">스킬 선택</div>
-        <div class="quest-filter">`;
+        <div class="skill-rank-filter-head">
+            <div class="quest-filter-title" style="margin-bottom:0;">스킬 선택</div>
+            <div class="skill-rank-current">현재 <strong>${safe(skillRankFilter||"-")}</strong></div>
+        </div>
+        <div class="skill-rank-tabs">`;
 
     skills.forEach(skill=>{
         html+=`<button class="${skillRankFilter===skill?"active":""}" onclick="setSkillRankFilter('${escapeText(skill)}')">${safe(skill)}</button>`;
     });
 
     html+=`</div>
-        <div class="result-info" id="skillRankResultInfo"></div>
-        <div class="skill-rank-grid" id="skillRankGrid"></div>
+        <div class="skill-rank-summary" id="skillRankResultInfo"></div>
+        <div class="skill-rank-list" id="skillRankGrid"></div>
     </div>`;
 
     document.getElementById("content").innerHTML=html;
@@ -1443,22 +1457,29 @@ function onSkillRankSearch(value){
 
 function getFilteredSkillRanks(){
     let list=skillRanks.slice();
-    if(skillRankFilter)list=list.filter(r=>String(r.skill)===String(skillRankFilter));
-
     const keyword=skillRankSearchKeyword.toLowerCase();
+
     if(keyword){
         list=list.filter(r=>[
             r.skill,r.rank,r.required_point,r.point_type,r.note
         ].join(" ").toLowerCase().includes(keyword));
+    }else if(skillRankFilter){
+        list=list.filter(r=>String(r.skill)===String(skillRankFilter));
     }
 
-    return list.sort((a,b)=>Number(a.order||999999)-Number(b.order||999999));
+    return list.sort((a,b)=>{
+        if(keyword){
+            const skillCompare=String(a.skill||"").localeCompare(String(b.skill||""),"ko");
+            if(skillCompare!==0)return skillCompare;
+        }
+        return Number(a.order||999999)-Number(b.order||999999);
+    });
 }
 
 function formatSkillPoint(row){
     const point=String(row.required_point||"").trim();
     const type=String(row.point_type||"").trim();
-    if(!point)return "-";
+    if(!point)return "";
     return `${point}${type}`;
 }
 
@@ -1469,7 +1490,8 @@ function renderSkillRankList(){
     if(!grid)return;
 
     const list=getFilteredSkillRanks();
-    if(info)info.textContent=`분류: ${skillRankFilter||"-"} · 검색 결과 ${list.length}개`;
+    const mode=skillRankSearchKeyword?"전체 검색":`분류: ${skillRankFilter||"-"}`;
+    if(info)info.textContent=`${mode} · ${list.length}개`;
     if(count)count.textContent=`${list.length}개 표시`;
 
     if(list.length===0){
@@ -1481,15 +1503,15 @@ function renderSkillRankList(){
         const point=formatSkillPoint(r);
         const note=String(r.note||"").trim();
         return `
-        <div class="skill-rank-card">
-            <div class="skill-rank-top">
+        <div class="skill-rank-row">
+            <div class="skill-rank-left">
                 <div class="skill-rank-name">${safe(r.rank)}</div>
-                <span class="skill-rank-skill">${safe(r.skill)}</span>
+                <div class="skill-rank-meta">
+                    <span class="skill-rank-skill">${safe(r.skill)}</span>
+                    ${note?`<span class="skill-rank-note">${safe(note)}</span>`:""}
+                </div>
             </div>
-            <div class="skill-rank-line">
-                ${point!=="-"?`<span><span class="skill-rank-label">필요 포인트</span><span class="skill-rank-point">${safe(point)}</span></span>`:`<span><span class="skill-rank-label">필요 포인트</span><span>-</span></span>`}
-                ${note?`<span class="skill-rank-dot"></span><span class="skill-rank-note">${safe(note)}</span>`:""}
-            </div>
+            ${point?`<div class="skill-rank-pointbox">${safe(point)}</div>`:`<div class="skill-rank-pointbox empty">미기입</div>`}
         </div>`;
     }).join("");
 }
