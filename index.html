@@ -213,6 +213,27 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .quest-rank{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:27px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:950;color:#ddd}
 .quest-note{color:#aaa;font-size:13px}
 
+.process-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.process-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:18px;padding:17px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:.18s ease}
+.process-card:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.35);box-shadow:0 18px 42px rgba(0,0,0,.28)}
+.process-card::after{content:"";position:absolute;right:-46px;top:-46px;width:110px;height:110px;border-radius:50%;background:rgba(255,181,46,.055);pointer-events:none}
+.process-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:13px}
+.process-title{font-size:20px;font-weight:950;color:#fff}
+.process-sub{margin-top:5px;color:#888;font-size:12px;font-weight:850}
+.process-type-badge{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,181,46,.3);background:rgba(255,181,46,.09);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
+.process-flow{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:12px 0;padding:13px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.07)}
+.process-box{min-height:56px;border-radius:13px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075);padding:11px}
+.process-box-label{color:#888;font-size:11px;font-weight:950;margin-bottom:7px}
+.process-box-value{font-size:14px;font-weight:950;color:#ddd;line-height:1.45}
+.process-arrow{font-size:22px;font-weight:950;color:#ffb52e}
+.process-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.process-meta-card{border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.026);padding:11px}
+.process-meta-label{color:#888;font-size:11px;font-weight:950;margin-bottom:6px}
+.process-meta-value{font-size:14px;font-weight:950;color:#fff}
+.process-reward{color:#ffb52e}
+.process-note{margin-top:10px;color:#aaa;font-size:13px;line-height:1.5}
+@media(max-width:920px){.process-card-grid{grid-template-columns:1fr}.process-flow{grid-template-columns:1fr}.process-arrow{text-align:center;transform:rotate(90deg)}.process-meta{grid-template-columns:1fr}}
+
 
 @media(max-width:920px){.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
 @media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
@@ -291,16 +312,17 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxYh9btCMiZ1EcP8y7EziyZfL1ine7-vVXQghIQen3uHr1qKp1sGbxnrGdrVOIdedcu0g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbybLQDGUudi_0deQ7938yaRBRgKSvQ2JRvVkgvbujmV1xnChFQFKpG1xwXAisyBYC_Iyw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[];
+let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
 let operationCategory="ALL",selectedOperationId="";
 let questSearchKeyword="",questJobFilter="";
+let processSearchKeyword="",processJobFilter="";
 
 fetch(API_URL)
 .then(res=>res.json())
@@ -313,6 +335,7 @@ fetch(API_URL)
     outlawGuides=data.outlawGuides||[];
     operations=data.operations||[];
     quests=data.quests||[];
+    processes=data.processes||data.processData||data.processing||[];
     showHome();
     hideLoading();
 })
@@ -696,7 +719,7 @@ function showInfo(){
 }
 
 function infoMenu(active){
-    const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"],["퀘스트","showQuest()"]];
+    const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"],["퀘스트","showQuest()"],["가공/재련","showProcess()"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
@@ -896,6 +919,161 @@ function renderQuestTable(){
         </tr>
     `).join("");
 }
+
+
+function showProcess(){
+    setMainActive(4);
+    const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
+    if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
+
+    let html=`
+    <div class="section-head">
+        <div>
+            <div class="section-title">정보</div>
+            <div class="section-desc">생활직 가공/재련 재료와 납품 보상을 확인합니다.</div>
+        </div>
+        <div class="count" id="processCountBox">총 ${processes.length}개</div>
+    </div>
+
+    ${infoMenu("가공/재련")}
+
+    <div class="quest-panel">
+        <div class="toolbar">
+            <div class="search">
+                <input id="processSearchInput" type="text" placeholder="아이템명, 재료명, 직업 검색" value="${processSearchKeyword}" oninput="onProcessSearch(this.value)">
+                <span class="search-mark">⌕</span>
+            </div>
+        </div>
+        <div class="quest-filter-title">직업 선택</div>
+        <div class="quest-filter">`;
+
+    jobs.forEach(job=>{
+        html+=`<button class="${processJobFilter===job?"active":""}" onclick="setProcessJob('${escapeText(job)}')">${safe(job)}</button>`;
+    });
+
+    html+=`</div>
+        <div class="result-info" id="processResultInfo"></div>
+        <div class="process-card-grid" id="processCardGrid"></div>
+    </div>`;
+
+    document.getElementById("content").innerHTML=html;
+    renderProcessCards();
+}
+
+function setProcessJob(job){
+    processJobFilter=job;
+    showProcess();
+}
+
+function onProcessSearch(value){
+    processSearchKeyword=value.trim();
+    renderProcessCards();
+}
+
+function getFilteredProcesses(){
+    let list=processes.slice();
+    if(processJobFilter)list=list.filter(p=>String(p.job)===String(processJobFilter));
+
+    const keyword=processSearchKeyword.toLowerCase();
+    if(keyword){
+        list=list.filter(p=>[
+            p.job,p.process_type,p.item_name,p.input1,p.input1_qty,p.input2,p.input2_qty,
+            p.output_qty,p.quest_qty,p.reward_money,p.reward_xp,p.rank,p.note
+        ].join(" ").toLowerCase().includes(keyword));
+    }
+
+    return list.sort((a,b)=>Number(a.order||999999)-Number(b.order||999999));
+}
+
+function processMaterialText(p){
+    const parts=[];
+    const input1=String(p.input1||"").trim();
+    const input1Qty=Number(p.input1_qty||0);
+    const input2=String(p.input2||"").trim();
+    const input2Qty=Number(p.input2_qty||0);
+
+    if(input1)parts.push(`${input1} x${input1Qty||safe(p.input1_qty)}`);
+    if(input2&&input2Qty>0)parts.push(`${input2} x${input2Qty}`);
+
+    return parts.length?parts.join(" + "):"-";
+}
+
+function processOutputText(p){
+    const qty=Number(p.output_qty||0);
+    return `${safe(p.item_name)} x${qty||safe(p.output_qty)}`;
+}
+
+function processQuestText(p){
+    const qty=Number(p.quest_qty||0);
+    return `${safe(p.item_name)} x${qty||safe(p.quest_qty)} 납품`;
+}
+
+function formatProcessReward(p){
+    const money=Number(p.reward_money||0);
+    const xp=Number(p.reward_xp||0);
+    const parts=[];
+    if(money>0)parts.push(`${money.toLocaleString()}$`);
+    if(xp>0)parts.push(`XP ${xp.toLocaleString()}`);
+    return parts.length?parts.join(" / "):"-";
+}
+
+function renderProcessCards(){
+    const grid=document.getElementById("processCardGrid");
+    const info=document.getElementById("processResultInfo");
+    const count=document.getElementById("processCountBox");
+    if(!grid)return;
+
+    const list=getFilteredProcesses();
+    if(info)info.textContent=`분류: ${processJobFilter||"-"} · 검색 결과 ${list.length}개`;
+    if(count)count.textContent=`${list.length}개 표시`;
+
+    if(list.length===0){
+        grid.innerHTML=`<div class="ready">등록된 가공/재련 정보가 없습니다.</div>`;
+        return;
+    }
+
+    grid.innerHTML=list.map(p=>`
+        <div class="process-card">
+            <div class="process-card-head">
+                <div>
+                    <div class="process-title">${safe(p.item_name)}</div>
+                    <div class="process-sub">${safe(p.job)} · ${safe(p.process_type)}</div>
+                </div>
+                <span class="process-type-badge">${safe(p.process_type)}</span>
+            </div>
+
+            <div class="process-flow">
+                <div class="process-box">
+                    <div class="process-box-label">재료</div>
+                    <div class="process-box-value">${processMaterialText(p)}</div>
+                </div>
+                <div class="process-arrow">→</div>
+                <div class="process-box">
+                    <div class="process-box-label">생산</div>
+                    <div class="process-box-value">${processOutputText(p)}</div>
+                </div>
+            </div>
+
+            <div class="process-meta">
+                <div class="process-meta-card">
+                    <div class="process-meta-label">퀘스트</div>
+                    <div class="process-meta-value">${processQuestText(p)}</div>
+                </div>
+                <div class="process-meta-card">
+                    <div class="process-meta-label">보상</div>
+                    <div class="process-meta-value process-reward">${formatProcessReward(p)}</div>
+                </div>
+                <div class="process-meta-card">
+                    <div class="process-meta-label">랭크</div>
+                    <div class="process-meta-value">${safe(p.rank)}</div>
+                </div>
+            </div>
+
+            ${p.note?`<div class="process-note">${safe(p.note)}</div>`:""}
+        </div>
+    `).join("");
+}
+
 
 function showCraft(){
     setMainActive(4);
