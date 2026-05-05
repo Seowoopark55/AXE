@@ -190,6 +190,20 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .plica-diamond{background:linear-gradient(145deg,#004d66,#00e5ff);color:#111}
 .plica-black{background:linear-gradient(145deg,#000,#222);border-color:rgba(255,255,255,.24)}
 
+.quest-panel{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:18px;padding:16px;margin-bottom:16px}
+.quest-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.quest-table-wrap{border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:rgba(0,0,0,.22)}
+.quest-table{width:100%;border-collapse:collapse;min-width:720px}
+.quest-table th{background:rgba(255,181,46,.08);color:#ffb52e;font-size:13px;font-weight:950;text-align:left;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.quest-table td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.06);color:#ddd;font-size:14px;vertical-align:middle}
+.quest-table tr:last-child td{border-bottom:none}
+.quest-table tr:hover td{background:rgba(255,181,46,.045)}
+.quest-item{font-weight:950;color:#fff}
+.quest-reward{font-weight:950;color:#ffb52e;white-space:nowrap}
+.quest-rank{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:26px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:900;color:#ddd}
+.quest-note{color:#aaa;font-size:13px}
+
+
 @media(max-width:920px){.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
 @media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
@@ -267,15 +281,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbydvHN2emJxaiw_NfO-LPyfpR-PlL9UPPSjY17eMOcYMwslQRfcJy3ONug3zhT75fQxeA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxYh9btCMiZ1EcP8y7EziyZfL1ine7-vVXQghIQen3uHr1qKp1sGbxnrGdrVOIdedcu0g/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[];
+let crafts=[],materials=[],notices=[],tubes=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
 let operationCategory="ALL",selectedOperationId="";
+let questSearchKeyword="",questJobFilter="ALL";
 
 fetch(API_URL)
 .then(res=>res.json())
@@ -287,6 +302,7 @@ fetch(API_URL)
     briefingMaps=data.briefingMaps||[];
     outlawGuides=data.outlawGuides||[];
     operations=data.operations||[];
+    quests=data.quests||[];
     showHome();
     hideLoading();
 })
@@ -670,7 +686,7 @@ function showInfo(){
 }
 
 function infoMenu(active){
-    const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"]];
+    const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"],["퀘스트","showQuest()"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
@@ -756,6 +772,117 @@ function calcPlica(){
     }).join("");
 
     summary.innerHTML=`현재 비율: ${plicaNum(rate)} / 1000P`;
+}
+
+
+function showQuest(){
+    setMainActive(4);
+    const jobs=["ALL",...new Set(quests.map(q=>q.job).filter(Boolean))];
+
+    let html=`
+    <div class="section-head">
+        <div>
+            <div class="section-title">정보</div>
+            <div class="section-desc">생활직 퀘스트 보상 정보를 확인합니다.</div>
+        </div>
+        <div class="count" id="questCountBox">총 ${quests.length}개</div>
+    </div>
+
+    ${infoMenu("퀘스트")}
+
+    <div class="quest-panel">
+        <div class="toolbar">
+            <div class="search">
+                <input id="questSearchInput" type="text" placeholder="아이템명, 직업, 랭크 검색" value="${questSearchKeyword}" oninput="onQuestSearch(this.value)">
+                <span class="search-mark">⌕</span>
+            </div>
+        </div>
+        <div class="quest-filter">`;
+
+    jobs.forEach(job=>{
+        html+=`<button class="${questJobFilter===job?"active":""}" onclick="setQuestJob('${escapeText(job)}')">${job==="ALL"?"전체":safe(job)}</button>`;
+    });
+
+    html+=`</div>
+        <div class="result-info" id="questResultInfo"></div>
+        <div class="quest-table-wrap" style="overflow-x:auto;">
+            <table class="quest-table">
+                <thead>
+                    <tr>
+                        <th>직업</th>
+                        <th>아이템</th>
+                        <th>완료 수량</th>
+                        <th>보상</th>
+                        <th>랭크</th>
+                        <th>비고</th>
+                    </tr>
+                </thead>
+                <tbody id="questTableBody"></tbody>
+            </table>
+        </div>
+    </div>`;
+
+    document.getElementById("content").innerHTML=html;
+    renderQuestTable();
+}
+
+function setQuestJob(job){
+    questJobFilter=job;
+    showQuest();
+}
+
+function onQuestSearch(value){
+    questSearchKeyword=value.trim();
+    renderQuestTable();
+}
+
+function getFilteredQuests(){
+    let list=quests.slice();
+    if(questJobFilter!=="ALL")list=list.filter(q=>String(q.job)===String(questJobFilter));
+
+    const keyword=questSearchKeyword.toLowerCase();
+    if(keyword){
+        list=list.filter(q=>[q.job,q.item_name,q.required_qty,q.reward_money,q.reward_xp,q.rank,q.note].join(" ").toLowerCase().includes(keyword));
+    }
+
+    return list.sort((a,b)=>Number(a.order||999999)-Number(b.order||999999));
+}
+
+function formatQuestReward(q){
+    const money=Number(q.reward_money||0);
+    const xp=Number(q.reward_xp||0);
+    const parts=[];
+    if(money>0)parts.push(`${money.toLocaleString()}$`);
+    if(xp>0)parts.push(`XP ${xp.toLocaleString()}`);
+    if(parts.length===0)return "-";
+    return parts.join(" / ");
+}
+
+function renderQuestTable(){
+    const body=document.getElementById("questTableBody");
+    const info=document.getElementById("questResultInfo");
+    const count=document.getElementById("questCountBox");
+    if(!body)return;
+
+    const list=getFilteredQuests();
+    if(info)info.textContent=`분류: ${questJobFilter==="ALL"?"전체":questJobFilter} · 검색 결과 ${list.length}개`;
+    if(count)count.textContent=`${list.length}개 표시`;
+
+    if(list.length===0){
+        body.innerHTML=`<tr><td colspan="6"><div class="ready">등록된 퀘스트 정보가 없습니다.</div></td></tr>`;
+        return;
+    }
+
+    body.innerHTML=list.map(q=>`
+        <tr>
+            <td>${safe(q.job)}</td>
+            <td><span class="quest-item">${safe(q.item_name)}</span></td>
+            <td>${safe(q.required_qty)}</td>
+            <td><span class="quest-reward">${formatQuestReward(q)}</span></td>
+            <td><span class="quest-rank">${safe(q.rank)}</span></td>
+            <td><span class="quest-note">${safe(q.note)}</span></td>
+        </tr>
+    `).join("");
 }
 
 function showCraft(){
