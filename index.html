@@ -373,6 +373,14 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .modbook-option.tier1{box-shadow:inset 0 0 0 1px rgba(255,181,46,.26);background:linear-gradient(90deg,rgba(255,181,46,.105),rgba(255,255,255,.035))}
 .modbook-option-marker{display:inline-block;margin-right:6px;font-size:11px;font-weight:950;color:#ffb52e}
 .modbook-note{padding-top:12px;border-top:1px solid rgba(255,255,255,.07);color:#999;font-size:13px;line-height:1.55}
+
+.modbook-pricebox{margin-top:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(255,181,46,.085),rgba(255,255,255,.028));border:1px solid rgba(255,181,46,.22)}
+.modbook-price-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.modbook-price-title{font-size:12px;font-weight:950;color:#ffb52e;letter-spacing:.2px}
+.modbook-price-date{font-size:12px;color:#888;font-weight:850;white-space:nowrap}
+.modbook-price-value{font-size:20px;font-weight:950;color:#fff;line-height:1.2}
+.modbook-price-note{margin-top:6px;color:#aaa;font-size:12px;line-height:1.45}
+.modbook-badge.price{color:#ffcf75;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32)}
 .modbook-empty{min-height:250px;display:flex;align-items:center;justify-content:center;color:#888;border:1px dashed rgba(255,255,255,.13);border-radius:16px;background:rgba(255,255,255,.025)}
 @media(max-width:920px){.modbook-layout{grid-template-columns:1fr}.modbook-list-scroll{max-height:330px}.modbook-detail-name{font-size:24px}}
 
@@ -457,7 +465,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyqJIJJG-cAMyHaDOywlVJiOOiQzo98wLjJa5KguK9od6TppocqhRUaNVQDBj0KQ_X2qw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw7NBXQw0iF8hb2xO3Bs3FrRhkCEMmOeMguWVY5YMfbTg20loIyy2H1avTSWk5a3wtQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1294,6 +1302,35 @@ function formatModSuccessRate(v){
     return raw;
 }
 
+
+function formatModPrice(v){
+    if(v===undefined||v===null||v==="")return "";
+    const raw=String(v).trim().replace(/,/g,"");
+    if(!raw)return "";
+    const n=Number(raw);
+    if(!isNaN(n))return `${Math.round(n).toLocaleString()}$`;
+    return String(v).trim();
+}
+
+function hasRecentPrice(m){
+    return m.recent_price!==undefined&&m.recent_price!==null&&String(m.recent_price).trim()!=="";
+}
+
+function renderModRecentPrice(m){
+    if(!hasRecentPrice(m))return "";
+    const price=formatModPrice(m.recent_price);
+    const date=m.recent_date?formatDate(m.recent_date):"";
+    const note=String(m.price_note||"").trim();
+    return `<div class="modbook-pricebox">
+        <div class="modbook-price-head">
+            <div class="modbook-price-title">최근 거래가</div>
+            ${date?`<div class="modbook-price-date">${safe(date)}</div>`:""}
+        </div>
+        <div class="modbook-price-value">${safe(price)}</div>
+        ${note?`<div class="modbook-price-note">${safe(note)}</div>`:""}
+    </div>`;
+}
+
 function renderModOption(v){
     const opt=parseModOption(v);
     if(!opt)return "";
@@ -1386,6 +1423,9 @@ function getFilteredModBooks(){
             cleanModText(m.option2),
             cleanModText(m.option3),
             formatModSuccessRate(m.success_rate),
+            formatModPrice(m.recent_price),
+            formatDate(m.recent_date),
+            m.price_note,
             m.note,
             m.category,
             m.type
@@ -1424,6 +1464,7 @@ function renderModBookList(){
                 <span class="modbook-badge ${typeCls}">${safe(normalizeModType(m.type))}</span>
                 <span class="modbook-badge">${safe(m.category)}</span>
                 <span class="modbook-badge">${safe(formatModSuccessRate(m.success_rate))}</span>
+                ${hasRecentPrice(m)?`<span class="modbook-badge price">${safe(formatModPrice(m.recent_price))}</span>`:""}
                 ${hasTier1Mark(m)?`<span class="modbook-badge tier1">1티어</span>`:""}
             </div>
         </div>`;
@@ -1467,6 +1508,7 @@ function selectModBook(key){
         <div class="modbook-options">
             ${options||`<div class="modbook-option">등록된 옵션이 없습니다.</div>`}
         </div>
+        ${renderModRecentPrice(target)}
         ${target.note?`<div class="modbook-note">${safe(target.note)}</div>`:""}
     `;
     scrollToElement("modBookDetailBox");
