@@ -1255,11 +1255,49 @@ function parseModOption(v){
     return {text,isDebuff,isTier1};
 }
 
+function parseModName(v){
+    let text=String(v||"").trim();
+    if(!text)return {text:"",isTier1:false,isDebuff:false};
+    let isDebuff=false;
+    let isTier1=false;
+    while(text.startsWith("*")||text.startsWith("!")){
+        if(text.startsWith("*")){isDebuff=true;text=text.slice(1).trim();continue}
+        if(text.startsWith("!")){isTier1=true;text=text.slice(1).trim();continue}
+    }
+    return {text,isTier1,isDebuff};
+}
+
+function cleanModText(v){
+    const opt=parseModOption(v);
+    return opt?opt.text:String(v||"").replace(/^[*!]+/,"").trim();
+}
+
+function hasTier1Mark(m){
+    const name=parseModName(m.name);
+    if(name.isTier1)return true;
+    return [m.option1,m.option2,m.option3].some(v=>{
+        const opt=parseModOption(v);
+        return opt&&opt.isTier1;
+    });
+}
+
+function formatModSuccessRate(v){
+    if(v===undefined||v===null||v==="")return "-";
+    const raw=String(v).trim();
+    if(!raw)return "-";
+    if(raw.includes("%"))return raw;
+    const n=Number(raw);
+    if(!isNaN(n)){
+        if(n>0&&n<=1)return `${Math.round(n*100)}%`;
+        return `${n}%`;
+    }
+    return raw;
+}
+
 function renderModOption(v){
     const opt=parseModOption(v);
     if(!opt)return "";
     return `<div class="modbook-option ${opt.isDebuff?"debuff":""} ${opt.isTier1?"tier1":""}">
-        ${opt.isTier1?`<span class="modbook-option-marker">1티어</span>`:""}
         ${opt.isDebuff?`<span class="modbook-option-marker">디버프</span>`:""}
         ${safe(opt.text)}
     </div>`;
@@ -1338,12 +1376,32 @@ function renderModBookCategories(){
 
 function getFilteredModBooks(){
     const keyword=modBookSearchKeyword.toLowerCase();
-    let list=modBooks.filter(m=>normalizeModType(m.type)===modBookTypeFilter);
-    if(modBookCategoryFilter)list=list.filter(m=>String(m.category||"기타").trim()===modBookCategoryFilter);
+    let list=modBooks.slice();
+
     if(keyword){
-        list=list.filter(m=>[m.name,m.parts,m.option1,m.option2,m.option3,m.success_rate,m.note,m.category,m.type].join(" ").toLowerCase().includes(keyword));
+        list=list.filter(m=>[
+            parseModName(m.name).text,
+            m.parts,
+            cleanModText(m.option1),
+            cleanModText(m.option2),
+            cleanModText(m.option3),
+            formatModSuccessRate(m.success_rate),
+            m.note,
+            m.category,
+            m.type
+        ].join(" ").toLowerCase().includes(keyword));
+    }else{
+        list=list.filter(m=>normalizeModType(m.type)===modBookTypeFilter);
+        if(modBookCategoryFilter)list=list.filter(m=>String(m.category||"기타").trim()===modBookCategoryFilter);
     }
-    return list.slice().sort((a,b)=>Number(a.order||999999)-Number(b.order||999999));
+
+    return list.slice().sort((a,b)=>{
+        const ta=normalizeModType(a.type).localeCompare(normalizeModType(b.type),"ko");
+        if(keyword&&ta!==0)return ta;
+        const ca=String(a.category||"").localeCompare(String(b.category||""),"ko");
+        if(keyword&&ca!==0)return ca;
+        return Number(a.order||999999)-Number(b.order||999999);
+    });
 }
 
 function getModBookKey(m,index){
@@ -1355,17 +1413,18 @@ function renderModBookList(){
     const info=document.getElementById("modBookResultInfo");
     if(!box)return;
     const list=getFilteredModBooks();
-    if(info)info.textContent=`${modBookTypeFilter} · ${modBookCategoryFilter||"분류 없음"} · ${list.length}개`;
+    if(info)info.textContent=modBookSearchKeyword?`전체 검색 · ${list.length}개`:`${modBookTypeFilter} · ${modBookCategoryFilter||"분류 없음"} · ${list.length}개`;
     if(!list.length){box.innerHTML=`<div class="ready">검색 결과가 없습니다.</div>`;return}
     box.innerHTML=list.map((m,i)=>{
         const key=getModBookKey(m,i);
         const typeCls=isPrefixType(m.type)?"prefix":"suffix";
         return `<div class="modbook-row" onclick="selectModBook('${escapeText(key)}')">
-            <div class="modbook-row-name">${safe(m.name)}</div>
+            <div class="modbook-row-name">${safe(parseModName(m.name).text)}</div>
             <div class="modbook-row-meta">
                 <span class="modbook-badge ${typeCls}">${safe(normalizeModType(m.type))}</span>
                 <span class="modbook-badge">${safe(m.category)}</span>
-                <span class="modbook-badge">${safe(m.success_rate)}</span>
+                <span class="modbook-badge">${safe(formatModSuccessRate(m.success_rate))}</span>
+                ${hasTier1Mark(m)?`<span class="modbook-badge tier1">1티어</span>`:""}
             </div>
         </div>`;
     }).join("");
@@ -1388,17 +1447,18 @@ function selectModBook(key){
 
     const typeCls=isPrefixType(target.type)?"prefix":"suffix";
     const options=[target.option1,target.option2,target.option3].map(renderModOption).filter(Boolean).join("");
-    const hasTier1=[target.option1,target.option2,target.option3].some(v=>{const opt=parseModOption(v);return opt&&opt.isTier1});
+    const nameInfo=parseModName(target.name);
+    const hasTier1=hasTier1Mark(target);
 
     document.getElementById("modBookDetailBox").innerHTML=`
         <div class="modbook-detail-titleline">
-            <div class="modbook-detail-name">${safe(target.name)}</div>
+            <div class="modbook-detail-name">${safe(nameInfo.text)}</div>
             <span class="modbook-badge ${typeCls}">${safe(normalizeModType(target.type))}</span>
             ${hasTier1?`<span class="modbook-badge tier1">1티어</span>`:""}
         </div>
         <div class="modbook-detail-sub">
             <span class="modbook-badge">${safe(target.category)}</span>
-            <span class="modbook-badge">성공률 ${safe(target.success_rate)}</span>
+            <span class="modbook-badge">성공률 ${safe(formatModSuccessRate(target.success_rate))}</span>
         </div>
         <div class="modbook-parts">
             <div class="modbook-parts-label">적용 부위</div>
