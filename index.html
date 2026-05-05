@@ -528,24 +528,36 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 <div class="form-modal" id="tubeFormModal" onclick="closeTubeFormOutside(event)">
     <div class="form-box">
         <div class="form-head">
-            <div class="form-title">AXE TUBE 영상 등록 신청</div>
+            <div class="form-title">AXE TUBE 글쓰기</div>
             <button class="form-close" onclick="closeTubeForm()">×</button>
         </div>
         <div class="form-body">
-            <div class="form-label">이름</div>
-            <input class="form-input" id="tubeRequestName" placeholder="이름을 입력하세요">
+            <div class="form-label">작성자</div>
+            <input class="form-input" id="tubeWriter" placeholder="작성자를 입력하세요">
 
             <div class="form-label">영상 제목</div>
-            <input class="form-input" id="tubeRequestTitle" placeholder="영상 제목을 입력하세요">
-
-            <div class="form-label">내용</div>
-            <textarea class="form-textarea" id="tubeRequestContent" placeholder="영상 설명이나 상황을 입력하세요"></textarea>
+            <input class="form-input" id="tubeTitle" placeholder="영상 제목을 입력하세요">
 
             <div class="form-label">유튜브 링크</div>
-            <input class="form-input" id="tubeRequestUrl" placeholder="https://youtube.com/...">
+            <input class="form-input" id="tubeUrl" placeholder="https://youtube.com/...">
 
-            <button class="form-submit" onclick="submitTubeRequest()">등록 신청하기</button>
-            <div class="form-help">제출된 영상은 확인 후 AXE TUBE에 등록될 수 있습니다.</div>
+            <div class="form-label">썸네일 주소 <span style="color:#777;font-weight:700;">선택</span></div>
+            <input class="form-input" id="tubeThumbnail" placeholder="비워두면 유튜브 썸네일을 자동 사용합니다">
+
+            <div class="form-label">분류</div>
+            <input class="form-input" id="tubeCategory" value="일반" placeholder="일반">
+
+            <div class="form-label">카드 설명</div>
+            <input class="form-input" id="tubeNote" placeholder="목록 카드에 짧게 보일 설명">
+
+            <div class="form-label">내용</div>
+            <textarea class="form-textarea" id="tubeContent" placeholder="상세 내용이나 상황을 입력하세요"></textarea>
+
+            <div class="form-label">삭제 비밀번호</div>
+            <input class="form-input" id="tubePassword" type="password" placeholder="삭제할 때 사용할 비밀번호">
+
+            <button class="form-submit" onclick="submitTubePost()">등록하기</button>
+            <div class="form-help">등록한 영상은 AXE TUBE에 바로 표시됩니다.</div>
         </div>
     </div>
 </div>
@@ -579,7 +591,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwnq9fEFux8sTdybAUK9AgGY6dg4HaIqfiu5aLMV-6RvZoPFpVdTgwva_hZJ8dSvWLDwg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwVb4Gdbk5zG9Qbx8hAYOV-dwPUgodKs7XuIZaulH9vQi4DFUbjri7sJP-FAMVRwAKvLQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -858,20 +870,28 @@ function closeTubeFormOutside(event){
 }
 
 function clearTubeForm(){
-    document.getElementById("tubeRequestName").value="";
-    document.getElementById("tubeRequestTitle").value="";
-    document.getElementById("tubeRequestContent").value="";
-    document.getElementById("tubeRequestUrl").value="";
+    document.getElementById("tubeWriter").value="";
+    document.getElementById("tubeTitle").value="";
+    document.getElementById("tubeUrl").value="";
+    document.getElementById("tubeThumbnail").value="";
+    document.getElementById("tubeCategory").value="일반";
+    document.getElementById("tubeNote").value="";
+    document.getElementById("tubeContent").value="";
+    document.getElementById("tubePassword").value="";
 }
 
-function submitTubeRequest(){
-    const name=document.getElementById("tubeRequestName").value.trim();
-    const title=document.getElementById("tubeRequestTitle").value.trim();
-    const content=document.getElementById("tubeRequestContent").value.trim();
-    const url=document.getElementById("tubeRequestUrl").value.trim();
+function submitTubePost(){
+    const writer=document.getElementById("tubeWriter").value.trim();
+    const title=document.getElementById("tubeTitle").value.trim();
+    const url=document.getElementById("tubeUrl").value.trim();
+    const thumbnail=document.getElementById("tubeThumbnail").value.trim();
+    const category=document.getElementById("tubeCategory").value.trim()||"일반";
+    const note=document.getElementById("tubeNote").value.trim();
+    const content=document.getElementById("tubeContent").value.trim();
+    const password=document.getElementById("tubePassword").value.trim();
 
-    if(!name||!title||!url){
-        alert("이름, 영상 제목, 유튜브 링크는 필수입니다.");
+    if(!writer||!title||!url||!password){
+        alert("작성자, 영상 제목, 유튜브 링크, 삭제 비밀번호는 필수입니다.");
         return;
     }
 
@@ -880,24 +900,41 @@ function submitTubeRequest(){
         return;
     }
 
-    fetch(API_URL,{
-        method:"POST",
-        body:JSON.stringify({
-            type:"tube_request",
-            name:name,
-            title:title,
-            content:content,
-            url:url
-        })
+    postTubeApi({
+        type:"tube_post",
+        writer:writer,
+        title:title,
+        url:url,
+        thumbnail:thumbnail,
+        category:category,
+        note:note,
+        content:content,
+        password:password
     })
-    .then(res=>res.json())
     .then(data=>{
         if(data.result==="success"){
-            alert("영상 등록 신청이 완료되었습니다.");
+            const newTube={
+                id:data.id||String(Date.now()),
+                title:title,
+                url:url,
+                thumbnail:thumbnail,
+                date:data.date||new Date().toISOString(),
+                note:note||content,
+                writer:writer,
+                content:content||note,
+                category:category,
+                order:"",
+                views:0,
+                likes:0
+            };
+            tubes.unshift(newTube);
+            alert("AXE TUBE 글이 등록되었습니다.");
             clearTubeForm();
             closeTubeForm();
+            showTube();
+            setTimeout(()=>openTubeDetail(getTubeId(newTube,0),false),80);
         }else{
-            alert("등록 중 오류가 발생했습니다.");
+            alert(data.message||"등록 중 오류가 발생했습니다.");
         }
     })
     .catch(()=>{
@@ -1807,13 +1844,13 @@ function showTube(){
         <div class="section-head">
             <div>
                 <div class="section-title">AXE TUBE</div>
-                <div class="section-desc">AXE 활동 영상과 게임 플레이 장면을 확인합니다.</div>
+                <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
             </div>
             <div class="count">${list.length}개</div>
         </div>
 
         <div class="tube-actions">
-            <button class="tube-submit-open" onclick="openTubeForm()">영상 등록 신청</button>
+            <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
         </div>
 
         <div class="tube-grid">
