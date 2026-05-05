@@ -150,19 +150,26 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .guide-video-thumb:hover .guide-video-play{color:#ffb52e;border-color:rgba(255,181,46,.65);transform:translate(-50%,-50%) scale(1.06)}
 .guide-video-label{position:absolute;left:12px;bottom:12px;padding:7px 11px;border-radius:999px;background:rgba(0,0,0,.72);color:#ffb52e;font-size:12px;font-weight:900;border:1px solid rgba(255,181,46,.35)}
 
-.final-material-section{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
-.final-material-desc{font-size:12px;color:#888;margin:-4px 0 12px;line-height:1.5}
-.final-material-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.final-material-card{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;border:1px solid rgba(255,181,46,.16);background:linear-gradient(135deg,rgba(255,181,46,.055),rgba(255,255,255,.025));box-shadow:0 10px 24px rgba(0,0,0,.16)}
-.final-material-name{font-size:14px;font-weight:900;color:#eee;line-height:1.35}
-.final-material-qty{font-size:15px;font-weight:950;color:#ffb52e;white-space:nowrap}
-.final-material-tag{margin-left:7px;font-size:11px;color:#888;font-weight:850}
-.recipe-breakdown{margin-top:14px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(0,0,0,.22);overflow:hidden}
-.recipe-breakdown-title{padding:11px 13px;color:#ffb52e;font-size:13px;font-weight:950;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,181,46,.045)}
-.recipe-breakdown-row{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.055);font-size:13px;color:#bbb;line-height:1.45}
+.final-material-section{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.final-material-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,181,46,.18);background:linear-gradient(135deg,rgba(255,181,46,.07),rgba(255,255,255,.025));cursor:pointer;transition:.18s ease;user-select:none}
+.final-material-toggle:hover{border-color:rgba(255,181,46,.42);background:linear-gradient(135deg,rgba(255,181,46,.105),rgba(255,255,255,.035));transform:translateY(-1px)}
+.final-material-toggle-left{min-width:0;display:flex;flex-direction:column;gap:4px}
+.final-material-toggle-title{font-size:14px;font-weight:950;color:#ffb52e;letter-spacing:.1px}
+.final-material-toggle-summary{font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:720px;line-height:1.35}
+.final-material-toggle-action{flex:none;color:#ffb52e;font-size:12px;font-weight:950;border:1px solid rgba(255,181,46,.28);background:rgba(255,181,46,.07);border-radius:999px;padding:7px 10px;white-space:nowrap}
+.final-material-detail{display:none;margin-top:12px}
+.final-material-detail.active{display:block}
+.final-material-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.final-material-card{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.23)}
+.final-material-name{font-size:13px;font-weight:900;color:#ddd;line-height:1.35;min-width:0}
+.final-material-qty{font-size:14px;font-weight:950;color:#ffb52e;white-space:nowrap}
+.final-material-tag{margin-left:6px;font-size:10px;color:#858585;font-weight:850}
+.recipe-breakdown{margin-top:12px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(0,0,0,.2);overflow:hidden}
+.recipe-breakdown-title{padding:10px 12px;color:#aaa;font-size:12px;font-weight:950;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025)}
+.recipe-breakdown-row{display:grid;grid-template-columns:210px 1fr;gap:12px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px;color:#aaa;line-height:1.45}
 .recipe-breakdown-row:last-child{border-bottom:0}
-.recipe-breakdown-row strong{color:#eee}
-.recipe-breakdown-row span:last-child{color:#ffb52e;font-weight:900;text-align:right}
+.recipe-breakdown-row strong{color:#ddd}
+.recipe-breakdown-row span:last-child{color:#ffb52e;font-weight:850;text-align:left}
 
 .operation-content{white-space:pre-line;line-height:1.75;font-size:15px;color:#ddd}
 .ready{padding:28px;color:#999;border:1px dashed rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.03)}
@@ -330,7 +337,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 @media(max-width:920px){.quest-list{grid-template-columns:1fr}.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
-@media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
+@media(max-width:620px){.final-material-toggle{align-items:flex-start}.final-material-toggle-summary{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
 </head>
 
@@ -1387,15 +1394,21 @@ function renderFinalMaterials(itemMaterials){
     if(!itemMaterials.length)return "";
     const info=buildFinalMaterialInfo(itemMaterials);
     if(!info.totals.length)return "";
+
+    const preview=info.totals.slice(0,4).map(m=>`${safe(m.name)} x${formatQty(m.qty)}`).join(" · ");
+    const moreCount=Math.max(info.totals.length-4,0);
+    const summary=moreCount>0?`${preview} 외 ${moreCount}종`:preview;
+
     const totalHtml=info.totals.map(m=>`
         <div class="final-material-card">
             <div class="final-material-name">${safe(m.name)}${m.tags.size?`<span class="final-material-tag">${Array.from(m.tags).join(", ")}</span>`:""}</div>
             <div class="final-material-qty">x${formatQty(m.qty)}</div>
         </div>
     `).join("");
+
     const breakdownHtml=info.breakdowns.length?`
         <div class="recipe-breakdown">
-            <div class="recipe-breakdown-title">하위 재료 계산 기준</div>
+            <div class="recipe-breakdown-title">계산 기준</div>
             ${info.breakdowns.map(b=>`
                 <div class="recipe-breakdown-row">
                     <strong>${safe(b.target)} x${formatQty(b.qty)}</strong>
@@ -1407,12 +1420,27 @@ function renderFinalMaterials(itemMaterials){
 
     return `
         <div class="final-material-section">
-            <div class="material-title">최종 원재료 합계</div>
-            <div class="final-material-desc">중간 재료를 만드는 데 필요한 하위 재료까지 합산한 준비 목록입니다.</div>
-            <div class="final-material-grid">${totalHtml}</div>
-            ${breakdownHtml}
+            <div class="final-material-toggle" onclick="toggleFinalMaterials()">
+                <div class="final-material-toggle-left">
+                    <div class="final-material-toggle-title">최종 원재료 ${info.totals.length}종</div>
+                    <div class="final-material-toggle-summary">${summary}</div>
+                </div>
+                <div class="final-material-toggle-action" id="finalMaterialToggleText">보기 ▼</div>
+            </div>
+            <div class="final-material-detail" id="finalMaterialDetail">
+                <div class="final-material-grid">${totalHtml}</div>
+                ${breakdownHtml}
+            </div>
         </div>
     `;
+}
+
+function toggleFinalMaterials(){
+    const detail=document.getElementById("finalMaterialDetail");
+    const text=document.getElementById("finalMaterialToggleText");
+    if(!detail||!text)return;
+    const active=detail.classList.toggle("active");
+    text.textContent=active?"숨기기 ▲":"보기 ▼";
 }
 
 function renderDetail(id){
