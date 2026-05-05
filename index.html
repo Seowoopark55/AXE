@@ -199,24 +199,20 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .quest-filter button.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(255,255,255,.78)}
 .quest-filter button.active::after{content:"";position:absolute;inset:-45% auto -45% -40%;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);animation:questBtnShine 3.8s ease-in-out infinite}
 @keyframes questBtnShine{0%{left:-45%;opacity:0}20%{opacity:.9}48%{left:125%;opacity:0}100%{left:125%;opacity:0}}
-.quest-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.quest-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.014)),rgba(0,0,0,.28);padding:14px 15px;transition:.16s ease;box-shadow:0 12px 26px rgba(0,0,0,.18)}
-.quest-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#ffb52e,rgba(255,181,46,.12));opacity:.75}
-.quest-card:hover{border-color:rgba(255,181,46,.35);background:linear-gradient(145deg,rgba(255,181,46,.075),rgba(255,255,255,.018)),rgba(0,0,0,.32);transform:translateY(-1px)}
-.quest-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
-.quest-item{font-size:17px;font-weight:950;color:#fff;letter-spacing:.1px;line-height:1.25}
-.quest-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.quest-job-badge,.quest-rank{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:950;white-space:nowrap}
-.quest-job-badge{background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e}
-.quest-rank{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#ddd}
-.quest-card-body{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#aaa;font-size:13px;font-weight:850}
-.quest-line{display:flex;align-items:center;gap:6px;min-width:0}
-.quest-label{color:#858585;font-size:12px;font-weight:950}
-.quest-qty{color:#fff;font-weight:950;white-space:nowrap}
-.quest-reward{color:#ffb52e;font-weight:950;white-space:nowrap}
-.quest-dot{width:3px;height:3px;border-radius:999px;background:rgba(255,255,255,.22)}
-.quest-note{color:#cfcfcf;font-size:12px;font-weight:850;white-space:nowrap}
-@media(max-width:920px){.quest-list{grid-template-columns:1fr}}
+.quest-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.quest-card{border:1px solid rgba(255,255,255,.075);background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.24);border-radius:15px;padding:14px 15px;transition:.16s ease;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.quest-card:hover{transform:translateY(-2px);border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045)}
+.quest-card-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.quest-item{font-size:17px;font-weight:950;color:#fff;letter-spacing:-.1px;line-height:1.25}
+.quest-badges{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.quest-job-badge{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 9px;border-radius:999px;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.28);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
+.quest-rank{display:inline-flex;align-items:center;justify-content:center;height:26px;min-width:34px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:950;color:#ddd;white-space:nowrap}
+.quest-card-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;color:#cfcfcf;font-size:13px;line-height:1.5}
+.quest-line-label{color:#858585;font-size:12px;font-weight:950;margin-right:4px}
+.quest-qty{font-weight:950;color:#fff}
+.quest-reward{font-weight:950;color:#ffb52e;white-space:nowrap}
+.quest-note{color:#aaa;font-size:13px}
+.quest-dot{width:3px;height:3px;border-radius:999px;background:rgba(255,255,255,.25);display:inline-block}
 
 .process-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .process-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.012)),rgba(0,0,0,.26);border-radius:18px;padding:18px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:.18s ease}
@@ -242,7 +238,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 @media(max-width:920px){.process-card-grid{grid-template-columns:1fr}.process-flow-simple{grid-template-columns:1fr}.process-arrow{min-height:28px;transform:rotate(90deg)}.process-arrow::before{display:none}.process-bottom-info{grid-template-columns:1fr}}
 
 
-@media(max-width:920px){.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
+@media(max-width:920px){.quest-list{grid-template-columns:1fr}.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
 @media(max-width:620px){.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
 </style>
 </head>
@@ -271,6 +267,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="showTube()">AXE TUBE</button>
         <button onclick="showOutlaw()">무법지대</button>
         <button onclick="showInfo()">정보</button>
+        <button onclick="showUtility()">편의기능</button>
     </div>
 
     <div class="panel" id="content"></div>
@@ -726,24 +723,33 @@ function showInfo(){
 }
 
 function infoMenu(active){
-    const menus=[["제작","showCraft()"],["플리카 계산기","showPlicaCalculator()"],["퀘스트","showQuest()"],["가공/재련","showProcess()"]];
+    const menus=[["제작","showCraft()"],["퀘스트","showQuest()"],["가공/재련","showProcess()"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
+function utilityMenu(active){
+    const menus=[["플리카 계산기","showPlicaCalculator()"]];
+    return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
+}
+
+function showUtility(){
+    setMainActive(5);
+    showPlicaCalculator();
+}
 
 function showPlicaCalculator(){
-    setMainActive(4);
+    setMainActive(5);
 
     document.getElementById("content").innerHTML=`
     <div class="section-head">
         <div>
-            <div class="section-title">정보</div>
-            <div class="section-desc">게임 플레이에 필요한 각종 정보를 확인합니다.</div>
+            <div class="section-title">편의기능</div>
+            <div class="section-desc">계산기와 보조 기능을 사용합니다.</div>
         </div>
         <div class="count">PLICA</div>
     </div>
 
-    ${infoMenu("플리카 계산기")}
+    ${utilityMenu("플리카 계산기")}
 
     <div class="plica-panel">
         <div class="plica-control-row">
@@ -851,7 +857,7 @@ function showQuest(){
     </div>`;
 
     document.getElementById("content").innerHTML=html;
-    renderQuestList();
+    renderQuestTable();
 }
 
 function setQuestJob(job){
@@ -861,7 +867,7 @@ function setQuestJob(job){
 
 function onQuestSearch(value){
     questSearchKeyword=value.trim();
-    renderQuestList();
+    renderQuestTable();
 }
 
 function getFilteredQuests(){
@@ -886,7 +892,7 @@ function formatQuestReward(q){
     return parts.join(" / ");
 }
 
-function renderQuestList(){
+function renderQuestTable(){
     const box=document.getElementById("questListBox");
     const info=document.getElementById("questResultInfo");
     const count=document.getElementById("questCountBox");
@@ -904,20 +910,19 @@ function renderQuestList(){
     box.innerHTML=list.map(q=>{
         const rank=String(q.rank||"").trim();
         const note=String(q.note||"").trim();
-        const showRank=rank&&rank!=="-";
         return `
         <div class="quest-card">
             <div class="quest-card-top">
                 <div class="quest-item">${safe(q.item_name)}</div>
-                <div class="quest-meta">
+                <div class="quest-badges">
                     <span class="quest-job-badge">${safe(q.job)}</span>
-                    ${showRank?`<span class="quest-rank">${safe(q.rank)}</span>`:""}
+                    ${rank&&rank!=="-"?`<span class="quest-rank">${safe(rank)}</span>`:""}
                 </div>
             </div>
-            <div class="quest-card-body">
-                <div class="quest-line"><span class="quest-label">필요</span><span class="quest-qty">${safe(q.required_qty)}개</span></div>
+            <div class="quest-card-line">
+                <span><span class="quest-line-label">필요</span><span class="quest-qty">${safe(q.required_qty)}개</span></span>
                 <span class="quest-dot"></span>
-                <div class="quest-line"><span class="quest-label">보상</span><span class="quest-reward">${formatQuestReward(q)}</span></div>
+                <span><span class="quest-line-label">보상</span><span class="quest-reward">${formatQuestReward(q)}</span></span>
                 ${note?`<span class="quest-dot"></span><span class="quest-note">${safe(q.note)}</span>`:""}
             </div>
         </div>`;
