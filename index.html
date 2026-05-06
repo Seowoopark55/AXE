@@ -1416,7 +1416,8 @@ function navigateMain(page,push=true){
         history.pushState({page:target},"","#"+target);
     }
 
-    refreshData({silent:true}).finally(()=>renderMainPage(target));
+    renderMainPage(target);
+    refreshDataInBackground();
 }
 
 function normalizeSubTab(page,subTab){
@@ -1469,7 +1470,8 @@ function navigateSubTab(page,subTab,push=true){
     }
 
     currentHistoryPage=target;
-    refreshData({silent:true}).finally(()=>renderSubTab(target,tab));
+    renderSubTab(target,tab);
+    refreshDataInBackground();
 }
 
 function pushListStateBeforeDetail(page){
@@ -1566,7 +1568,8 @@ function initMainHistory(){
 
 window.addEventListener("popstate",function(event){
     const state=event.state||parseHashState();
-    refreshData({silent:true}).finally(()=>renderHistoryState(state));
+    renderHistoryState(state);
+    refreshDataInBackground();
 });
 
 function resetInfoState(){
@@ -1645,6 +1648,31 @@ function refreshData(options={}){
             }
             throw err;
         });
+}
+
+let backgroundRefreshRunning=false;
+
+function refreshDataInBackground(){
+    if(backgroundRefreshRunning)return;
+    backgroundRefreshRunning=true;
+
+    const state=history.state||parseHashState();
+
+    refreshData({silent:true})
+    .then(()=>{
+        const currentState=history.state||parseHashState();
+        const samePage=JSON.stringify(state)===JSON.stringify(currentState);
+        const activeInput=document.activeElement;
+        const isWriting=activeInput&&["INPUT","TEXTAREA"].includes(activeInput.tagName);
+
+        if(samePage&&!isWriting){
+            renderHistoryState(currentState);
+        }
+    })
+    .catch(()=>{})
+    .finally(()=>{
+        backgroundRefreshRunning=false;
+    });
 }
 
 refreshData({silent:false})
