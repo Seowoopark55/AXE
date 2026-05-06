@@ -1256,6 +1256,23 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 
 
+/* AXE 도끼 뱃지 */
+.axe-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:6px;border-radius:999px;font-size:13px;font-weight:950;line-height:1;vertical-align:middle;border:1px solid rgba(255,255,255,.16);box-shadow:0 0 12px rgba(0,0,0,.25);flex:0 0 auto}
+.axe-badge::before{content:"🪓"}
+.axe-badge.admin{background:linear-gradient(135deg,#ff3cac,#7b61ff 58%,#29186d);color:#fff;border-color:rgba(255,255,255,.38);box-shadow:0 0 16px rgba(255,60,172,.28)}
+.axe-badge.bronze{background:linear-gradient(135deg,#6b3f22,#c17b45);color:#fff;border-color:rgba(193,123,69,.55)}
+.axe-badge.silver{background:linear-gradient(135deg,#8b98a5,#e6edf3);color:#111;border-color:rgba(230,237,243,.55)}
+.axe-badge.gold{background:linear-gradient(135deg,#a36b00,#ffd54a);color:#111;border-color:rgba(255,213,74,.65)}
+.axe-badge.black{background:linear-gradient(135deg,#050505,#2b2b2b);color:#fff;border-color:rgba(255,255,255,.28)}
+.axe-badge.legend{background:linear-gradient(135deg,#00e5ff,#7b61ff 52%,#ff3cac);color:#fff;border-color:rgba(255,255,255,.42);box-shadow:0 0 18px rgba(0,229,255,.24)}
+.axe-badge.unknown{background:rgba(255,255,255,.08);color:#ddd}
+.writer-with-badge{display:inline-flex;align-items:center;gap:0;min-width:0;vertical-align:middle}
+.writer-with-badge .writer-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth-user .axe-badge{width:20px;height:20px;font-size:12px;margin-right:2px}
+.comment-meta-left .writer-with-badge{margin-right:4px}
+.board-table-title .writer-with-badge,.home-board-meta .writer-with-badge,.item-date .writer-with-badge{display:inline-flex}
+@media(max-width:768px){.axe-badge{width:20px;height:20px;font-size:12px;margin-right:5px}.auth-user .axe-badge{width:19px;height:19px}}
+
 /* 회원 로그인 UI */
 .auth-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 14px;min-height:38px;position:relative;z-index:5}
 .auth-user{display:inline-flex;align-items:center;gap:6px;color:#ddd;font-size:13px;font-weight:950;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 14px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1453,7 +1470,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxvqkWnGUkXNKxhYWpFTxuBusL8TI7KLyCAmzkmyiX-_45j19bUReISvMpSwUr0MsmFsQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzQ3R_IzOF1dJxn6fcSXQQL036wHEs7iGYxizYqMlQl6MAsSbBAuSsJIgNm7j8svRjUsg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1484,7 +1501,7 @@ function renderAuthBar(){
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
-        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}"><strong>${safe(user.nickname)}</strong></div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong></div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
@@ -1571,6 +1588,26 @@ function requireLogin(message){
 function getLoginNickname(){
     const user=getCurrentUser();
     return user&&user.nickname?user.nickname:"";
+}
+
+function normalizeBadge(value){
+    const badge=String(value||"").trim().toLowerCase();
+    if(["admin","bronze","silver","gold","black","legend"].includes(badge))return badge;
+    return badge?badge:"bronze";
+}
+
+function getLoginBadge(){
+    const user=getCurrentUser();
+    return user&&user.badge?normalizeBadge(user.badge):(user&&user.role?normalizeBadge(user.role):"bronze");
+}
+
+function renderAxeBadge(value){
+    const badge=normalizeBadge(value);
+    return `<span class="axe-badge ${badge}" title="${badge.toUpperCase()}"></span>`;
+}
+
+function renderWriterName(name,badge){
+    return `<span class="writer-with-badge">${renderAxeBadge(badge)}<span class="writer-name">${safe(name||"익명")}</span></span>`;
 }
 
 function applyLoginWriterFields(){
@@ -2103,6 +2140,7 @@ function clearTubeForm(){
 function submitTubePost(){
     if(!requireLogin("AXE TUBE 글쓰기는 로그인 후 이용해주세요."))return;
     const writer=getLoginNickname();
+    const writerBadge=getLoginBadge();
     const title=document.getElementById("tubeTitle").value.trim();
     const url=document.getElementById("tubeUrl").value.trim();
     const thumbnail=document.getElementById("tubeThumbnail").value.trim();
@@ -2123,6 +2161,7 @@ function submitTubePost(){
     postTubeApi({
         type:"tube_post",
         writer:writer,
+        writer_badge:writerBadge,
         title:title,
         url:url,
         thumbnail:thumbnail,
@@ -2139,6 +2178,7 @@ function submitTubePost(){
                 thumbnail:thumbnail,
                 date:data.date||new Date().toISOString(),
                 writer:writer,
+                writer_badge:writerBadge,
                 content:content,
                 category:category,
                 order:"",
@@ -2470,7 +2510,7 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date">${formatDate(comment.date)}</span></div>
+            <div class="comment-meta-left">${renderWriterName(comment.writer||"익명",comment.writer_badge)}<span class="comment-date">${formatDate(comment.date)}</span></div>
             ${comment.updated_at?`<div class="comment-updated-label">수정됨</div>`:""}
         </div>
         <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
@@ -2567,6 +2607,7 @@ function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
     const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"tubeCommentPassword");
     const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"tubeCommentContent");
     const writer=getLoginNickname()||"익명";
+    const writerBadge=getLoginBadge();
     const password=passwordEl?passwordEl.value.trim():"";
     const content=contentEl?contentEl.value.trim():"";
 
@@ -2580,6 +2621,7 @@ function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
         tube_id:tubeId,
         parent_comment_id:parentCommentId||"",
         writer:writer,
+        writer_badge:writerBadge,
         content:content,
         password:password
     })
@@ -2590,6 +2632,7 @@ function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
                 tube_id:tubeId,
                 parent_comment_id:parentCommentId||"",
                 writer:writer,
+                writer_badge:writerBadge,
                 content:content,
                 date:data.date||new Date().toISOString(),
                 likes:0,
@@ -2732,7 +2775,7 @@ function startEditTubePost(id){
         <div class="board-detail-title">영상 게시글 수정</div>
         <div class="board-detail-meta">
             <span class="board-badge gold">AXE TUBE</span>
-            <span class="board-badge">작성자 ${safe(target.writer||"AXE")}</span>
+            <span class="board-badge">작성자 ${renderWriterName(target.writer||"AXE",target.writer_badge)}</span>
             <span class="board-badge">${formatDate(target.date)}</span>
         </div>
         <div class="inline-edit-form">
@@ -2844,7 +2887,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${renderWriterName(target.writer||"AXE",target.writer_badge)}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -2929,6 +2972,7 @@ function clearBoardForm(){
 function submitBoardPost(){
     if(!requireLogin("자유게시판 글쓰기는 로그인 후 이용해주세요."))return;
     const writer=getLoginNickname();
+    const writerBadge=getLoginBadge();
     const title=document.getElementById("boardTitle").value.trim();
     const category=document.getElementById("boardCategory").value.trim()||"일반";
     const content=document.getElementById("boardContent").value.trim();
@@ -2942,6 +2986,7 @@ function submitBoardPost(){
     postBoardApi({
         type:"board_post",
         writer:writer,
+        writer_badge:writerBadge,
         title:title,
         category:category,
         content:content,
@@ -2954,6 +2999,7 @@ function submitBoardPost(){
                 id:data.id||String(Date.now()),
                 date:data.date||new Date().toISOString(),
                 writer:writer,
+                writer_badge:writerBadge,
                 title:title,
                 category:category,
                 content:content,
@@ -3024,7 +3070,7 @@ function renderBoardList(){
         const title=safe(post.title)+(commentCount?` <span class="board-comment-count-badge">💬 ${commentCount}</span>`:"");
         return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
             <div class="board-table-title">${title}</div>
-            <div class="board-table-cell">${safe(post.writer)}</div>
+            <div class="board-table-cell">${renderWriterName(post.writer,post.writer_badge)}</div>
             <div class="board-table-cell date">${formatDate(post.date)}</div>
             <div class="board-table-cell">${Number(post.views||0)}</div>
             <div class="board-table-cell">👍 ${Number(post.likes||0)}</div>
@@ -3067,7 +3113,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${renderWriterName(target.writer,target.writer_badge)}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
@@ -3108,6 +3154,7 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){
     const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"commentPassword");
     const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"commentContent");
     const writer=getLoginNickname()||"익명";
+    const writerBadge=getLoginBadge();
     const password=passwordEl?passwordEl.value.trim():"";
     const content=contentEl?contentEl.value.trim():"";
 
@@ -3121,6 +3168,7 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){
         post_id:postId,
         parent_comment_id:parentCommentId||"",
         writer:writer,
+        writer_badge:writerBadge,
         content:content,
         password:password
     })
@@ -3131,6 +3179,7 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){
                 post_id:postId,
                 parent_comment_id:parentCommentId||"",
                 writer:writer,
+                writer_badge:writerBadge,
                 content:content,
                 date:data.date||new Date().toISOString(),
                 likes:0,
@@ -3407,7 +3456,7 @@ function startEditBoardPost(id){
         <div class="board-detail-title">게시글 수정</div>
         <div class="board-detail-meta">
             <span class="board-badge gold">자유게시판</span>
-            <span class="board-badge">작성자 ${safe(target.writer)}</span>
+            <span class="board-badge">작성자 ${renderWriterName(target.writer,target.writer_badge)}</span>
             <span class="board-badge">${formatDate(target.date)}</span>
         </div>
         <div class="inline-edit-form">
@@ -3581,7 +3630,7 @@ function renderGalleryList(){
             <div class="gallery-thumb"><img src="${thumb}" onerror="this.src='./axe.png'"></div>
             <div class="gallery-body">
                 <div class="gallery-title">${safe(post.title)}</div>
-                <div class="item-date">${safe(post.writer||"익명")} · ${formatDate(post.date)}</div>
+                <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDate(post.date)}</div>
                 <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
                 <div class="gallery-meta">
                     <span class="tube-stat-badge">조회 ${Number(post.views||0)}</span>
@@ -3646,6 +3695,7 @@ function readGalleryFiles(files){
 function submitGalleryPost(){
     if(!requireLogin("갤러리 사진 올리기는 로그인 후 이용해주세요."))return;
     const writer=getLoginNickname();
+    const writerBadge=getLoginBadge();
     const title=document.getElementById("galleryTitle").value.trim();
     const category=document.getElementById("galleryCategory").value.trim()||"일반";
     const content=document.getElementById("galleryContent").value.trim();
@@ -3656,13 +3706,14 @@ function submitGalleryPost(){
     if(!files.length){alert("업로드할 사진을 선택해주세요.");return;}
 
     readGalleryFiles(files).then(images=>{
-        return postGalleryApi({type:"gallery_post",writer:writer,title:title,category:category,content:content,password:password,images:images});
+        return postGalleryApi({type:"gallery_post",writer:writer,writer_badge:writerBadge,title:title,category:category,content:content,password:password,images:images});
     }).then(data=>{
         if(data.result==="success"){
             const newPost={
                 id:data.id||String(Date.now()),
                 date:data.date||new Date().toISOString(),
                 writer:writer,
+                writer_badge:writerBadge,
                 title:title,
                 content:content,
                 image_url:data.image_url||"",
@@ -3711,7 +3762,7 @@ function openGalleryDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer||"익명")}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${renderWriterName(target.writer||"익명",target.writer_badge)}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${images.length?`<div class="gallery-detail-images">${images.map(src=>`<img src="${src}" onclick="openImageModal('${escapeText(src)}')" onerror="this.src='./axe.png'">`).join("")}</div>`:`<div class="ready">표시할 이미지가 없습니다.</div>`}
             ${String(target.content||"").trim()?`<div class="board-detail-content">${safe(target.content)}</div>`:""}
@@ -3861,7 +3912,7 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderGalleryCommentItem(galleryId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date">${formatDate(comment.date)}</span></div>
+            <div class="comment-meta-left">${renderWriterName(comment.writer||"익명",comment.writer_badge)}<span class="comment-date">${formatDate(comment.date)}</span></div>
             ${comment.updated_at?`<div class="comment-updated-label">수정됨</div>`:""}
         </div>
         <div class="comment-content">${safe(comment.content)}</div>
@@ -3888,12 +3939,13 @@ function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){
     const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"galleryCommentPassword");
     const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"galleryCommentContent");
     const writer=getLoginNickname()||"익명";
+    const writerBadge=getLoginBadge();
     const password=passwordEl?passwordEl.value.trim():"";
     const content=contentEl?contentEl.value.trim():"";
     if(!content||!password){alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");return;}
-    postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,content:content,password:password}).then(data=>{
+    postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,writer_badge:writerBadge,content:content,password:password}).then(data=>{
         if(data.result==="success"){
-            galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,content:content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});
+            galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,writer_badge:writerBadge,content:content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});
             openGalleryDetail(galleryId,false,false);
         }else{alert(data.message||"댓글 등록 중 오류가 발생했습니다.");}
     }).catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
@@ -4010,7 +4062,7 @@ function showHome(){
                 ${recentBoards.length?recentBoards.map((post,index)=>`
                     <div class="home-board-item" onclick="navigateMain('board'); setTimeout(()=>selectBoardPost('${escapeText(getBoardId(post,index))}'),60);">
                         <div class="home-board-title">${safe(post.title)}</div>
-                        <div class="home-board-meta">${safe(post.writer)} · ${formatDate(post.date)}</div>
+                        <div class="home-board-meta">${renderWriterName(post.writer,post.writer_badge)} · ${formatDate(post.date)}</div>
                     </div>
                 `).join(""):`<div class="ready">등록된 게시글이 없습니다.</div>`}
             </div>
