@@ -3555,7 +3555,7 @@ function deleteGalleryPost(id){
 function showHome(){
     enterMainSection("home");
     setMainActive(0);
-    const recentNotices=notices.slice(-4).reverse();
+    const recentNotices=notices.slice(-3).reverse();
     const recentTubes=getSortedTubes().slice(0,6);
     const recentBoards=getSortedBoards().slice(0,4);
 
@@ -3563,14 +3563,14 @@ function showHome(){
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">최근 일반공지와 AXE TUBE 업데이트를 확인하세요.</div>
+                <div class="section-desc">AXE NET의 최신 공지와 업데이트를 확인하세요.</div>
             </div>
             <div class="count">AXE NET</div>
         </div>
 
         <div class="home-grid">
             <div class="home-card">
-                <div class="home-card-title">최근 일반공지</div>
+                <div class="home-card-title">최근 공지사항</div>
                 ${
                     recentNotices.length
                     ? recentNotices.map((n,i)=>`
