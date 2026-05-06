@@ -850,436 +850,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-item.reply{margin-top:16px!important;margin-left:8px!important;padding-left:13px!important;border-left:3px solid rgba(156,95,255,.55)}
 }
 
-
-
-/* 비추천 선택 상태 강조 */
-.reaction-btn.dislike.active{
-    border-color:rgba(255,80,80,.85)!important;
-    background:linear-gradient(135deg,rgba(255,80,80,.28),rgba(90,20,20,.38))!important;
-    color:#ff8a8a!important;
-    box-shadow:
-        0 0 0 1px rgba(255,80,80,.18) inset,
-        0 8px 22px rgba(255,80,80,.22)!important;
-}
-
-.reaction-btn.dislike.active:hover{
-    background:linear-gradient(135deg,rgba(255,80,80,.34),rgba(110,25,25,.45))!important;
-    border-color:rgba(255,110,110,.95)!important;
-    color:#ffb0b0!important;
-}
-
-.comment-reaction-btn.dislike.active{
-    color:#ff9a9a!important;
-    background:rgba(255,80,80,.22)!important;
-    border-color:rgba(255,90,90,.65)!important;
-    box-shadow:0 0 0 1px rgba(255,80,80,.12) inset!important;
-}
-
-
-
-/* 우측 노란 개수 말풍선 제거 */
-.count{display:none!important;}
-
-
-/* AXE TUBE 채널형 UI 개선 */
-.tube-channel-head{display:block;margin-bottom:18px;padding:22px 24px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(0,0,0,.22);box-shadow:0 14px 34px rgba(0,0,0,.18)}
-.tube-channel-main{min-width:0}
-.tube-channel-kicker{margin-bottom:7px;color:#ffb52e;font-size:12px;font-weight:950;letter-spacing:1.2px}
-.tube-channel-title{font-size:31px;font-weight:950;letter-spacing:.2px;line-height:1.1;color:#fff}
-.tube-channel-desc{margin-top:8px;color:#a9a9a9;font-size:14px;line-height:1.55}
-.tube-channel-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.tube-channel-stats span{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#cfcfcf;font-size:12px;font-weight:900}
-.tube-channel-action{flex:none;display:flex;align-items:center;justify-content:flex-end;padding-top:4px}
-.tube-list-shell{margin-top:14px;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(0,0,0,.2)}
-.tube-list-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:15px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.075)}
-.tube-list-title{font-size:19px;font-weight:950;color:#fff;line-height:1.2}
-.tube-list-desc{margin-top:5px;color:#888;font-size:12px;line-height:1.45}
-.tube-list-action{flex:none;display:flex;align-items:center;justify-content:flex-end}.tube-list-action .tube-submit-open{height:40px;min-width:74px}
-.tube-list-shell .tube-grid{margin-top:0}
-@media(max-width:760px){.tube-channel-head{padding:17px 16px;border-radius:17px}.tube-channel-title{font-size:25px}.tube-channel-desc{font-size:13px}.tube-list-shell{padding:14px;border-radius:17px}.tube-list-head{display:flex;align-items:center}.tube-list-action .tube-submit-open{width:auto;height:38px}}
-
-
-
-/* 모바일 댓글/대댓글 압축형 UI 개선 */
-@media(max-width:760px){
-    .comment-section{
-        margin-top:16px!important;
-        padding-top:14px!important;
-    }
-    .comment-title{
-        font-size:15px!important;
-        margin-bottom:10px!important;
-    }
-    .comment-list{
-        gap:9px!important;
-        margin-bottom:14px!important;
-    }
-    .comment-item{
-        padding:12px 12px!important;
-        border-radius:14px!important;
-        background:rgba(0,0,0,.24)!important;
-    }
-    .comment-item.reply{
-        margin-top:10px!important;
-        margin-left:6px!important;
-        padding:11px 11px 11px 12px!important;
-        border-left:2px solid rgba(156,95,255,.45)!important;
-        border-radius:13px!important;
-        background:rgba(156,95,255,.04)!important;
-        border-color:rgba(156,95,255,.18)!important;
-    }
-    .comment-meta{
-        display:flex!important;
-        align-items:center!important;
-        justify-content:space-between!important;
-        gap:8px!important;
-        margin-bottom:7px!important;
-        font-size:11px!important;
-        line-height:1.35!important;
-    }
-    .comment-meta>div:first-child{
-        margin-bottom:0!important;
-        min-width:0!important;
-        color:#8c8c8c!important;
-        white-space:nowrap!important;
-        overflow:hidden!important;
-        text-overflow:ellipsis!important;
-    }
-    .comment-writer{
-        display:inline!important;
-        margin-right:3px!important;
-        font-size:12px!important;
-        color:#ffb52e!important;
-    }
-    .comment-content{
-        font-size:14px!important;
-        line-height:1.62!important;
-        margin:7px 0 9px!important;
-        word-break:break-word!important;
-    }
-    .comment-actions{
-        display:flex!important;
-        flex-wrap:wrap!important;
-        align-items:center!important;
-        gap:5px!important;
-        padding-top:7px!important;
-        border-top:1px solid rgba(255,255,255,.045)!important;
-    }
-    .comment-reaction-group{
-        display:inline-flex!important;
-        width:auto!important;
-        gap:5px!important;
-        margin:0 4px 0 0!important;
-    }
-    .comment-reaction-btn{
-        height:28px!important;
-        min-width:45px!important;
-        padding:0 8px!important;
-        border-radius:999px!important;
-        font-size:11px!important;
-        line-height:1!important;
-        flex:0 0 auto!important;
-        background:rgba(255,255,255,.04)!important;
-    }
-    .comment-reaction-btn.like.active{
-        color:#ffcf75!important;
-        background:rgba(255,181,46,.12)!important;
-        border-color:rgba(255,181,46,.42)!important;
-    }
-    .comment-reaction-btn.dislike.active{
-        color:#ff8f8f!important;
-        background:rgba(255,80,80,.16)!important;
-        border-color:rgba(255,90,90,.46)!important;
-    }
-    .comment-mini-btn{
-        height:28px!important;
-        min-width:auto!important;
-        padding:0 7px!important;
-        border-radius:8px!important;
-        font-size:11px!important;
-        flex:0 0 auto!important;
-        color:#9b9b9b!important;
-        background:transparent!important;
-        border:1px solid rgba(255,255,255,.07)!important;
-    }
-    .comment-mini-btn:hover{
-        color:#ffb52e!important;
-        border-color:rgba(255,181,46,.32)!important;
-        background:rgba(255,181,46,.045)!important;
-    }
-    .comment-mini-btn.danger:hover{
-        color:#ff7777!important;
-        border-color:rgba(255,90,90,.38)!important;
-        background:rgba(255,80,80,.045)!important;
-    }
-    .comment-form-grid{
-        gap:7px!important;
-        padding:10px!important;
-        border-radius:13px!important;
-        background:rgba(0,0,0,.16)!important;
-        border:1px solid rgba(255,255,255,.06)!important;
-    }
-    .comment-reply-form.active{
-        gap:7px!important;
-        margin-top:9px!important;
-        padding:10px!important;
-        border-radius:12px!important;
-        background:rgba(156,95,255,.035)!important;
-        border:1px solid rgba(156,95,255,.16)!important;
-    }
-    .comment-input,.comment-textarea{
-        min-height:38px!important;
-        font-size:13px!important;
-        padding:9px 10px!important;
-        border-radius:10px!important;
-    }
-    .comment-textarea{
-        min-height:64px!important;
-        line-height:1.5!important;
-    }
-    .comment-submit{
-        height:38px!important;
-        font-size:13px!important;
-        border-radius:10px!important;
-    }
-    .comment-edit-form{
-        margin-top:9px!important;
-        padding:10px!important;
-        border-radius:12px!important;
-    }
-    .comment-edit-actions{
-        display:grid!important;
-        grid-template-columns:1fr 1fr!important;
-        gap:7px!important;
-    }
-}
-
-
-
-/* 댓글 날짜 시간 표시 및 모바일 댓글 액션 최종 정돈 */
-.comment-author-line{display:flex;align-items:center;gap:7px;min-width:0;color:#8d8d8d;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.comment-date-dot{color:#555;flex:none}
-.comment-date-text{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#8d8d8d}
-.comment-item>.comment-actions{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.055)}
-
-@media(max-width:760px){
-    .comment-item{padding:11px 11px!important;border-radius:13px!important}
-    .comment-item.reply{margin-top:9px!important;margin-left:5px!important;padding:10px 10px 10px 11px!important;border-left:2px solid rgba(156,95,255,.42)!important;border-radius:12px!important}
-    .comment-meta{display:block!important;margin-bottom:6px!important}
-    .comment-author-line{display:flex!important;width:100%!important;gap:5px!important;font-size:11px!important;line-height:1.35!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-    .comment-writer{font-size:12px!important;max-width:92px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;flex:none!important;color:#ffb52e!important}
-    .comment-date-dot{font-size:11px!important;color:#555!important;flex:none!important}
-    .comment-date-text{font-size:11px!important;color:#8a8a8a!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;min-width:0!important}
-    .comment-content{font-size:14px!important;line-height:1.58!important;margin:6px 0 8px!important}
-    .comment-item>.comment-actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:6px!important;padding-top:7px!important;border-top:1px solid rgba(255,255,255,.045)!important;overflow-x:auto!important;white-space:nowrap!important;scrollbar-width:none!important}
-    .comment-item>.comment-actions::-webkit-scrollbar{display:none!important}
-    .comment-reaction-group{display:inline-flex!important;align-items:center!important;gap:4px!important;width:auto!important;margin:0 2px 0 0!important;flex:none!important}
-    .comment-reaction-btn{height:25px!important;min-width:39px!important;padding:0 7px!important;border-radius:999px!important;font-size:10px!important;gap:3px!important;line-height:1!important;flex:none!important;background:rgba(255,255,255,.035)!important;border-color:rgba(255,255,255,.075)!important}
-    .comment-mini-btn{height:25px!important;min-width:auto!important;padding:0 6px!important;border-radius:999px!important;font-size:10px!important;line-height:1!important;flex:none!important;background:transparent!important;border-color:rgba(255,255,255,.065)!important;color:#999!important}
-    .comment-mini-btn.danger{color:#a0a0a0!important}
-    .comment-mini-btn:hover{background:rgba(255,181,46,.045)!important;color:#ffb52e!important;border-color:rgba(255,181,46,.24)!important}
-    .comment-mini-btn.danger:hover{background:rgba(255,80,80,.045)!important;color:#ff8585!important;border-color:rgba(255,80,80,.24)!important}
-    .comment-reaction-btn.like.active{color:#ffcf75!important;background:rgba(255,181,46,.12)!important;border-color:rgba(255,181,46,.38)!important}
-    .comment-reaction-btn.dislike.active{color:#ff9292!important;background:rgba(255,80,80,.16)!important;border-color:rgba(255,90,90,.42)!important}
-}
-
-
-/* 상세 상단 메타 정보 정돈: 날짜 단일 표시 + 수정됨 우측 분리 + 모바일 통계 한 줄 */
-.detail-meta-clean{
-    display:flex;
-    align-items:center;
-    flex-wrap:nowrap;
-    gap:0;
-    word-break:keep-all;
-}
-.detail-meta-author{
-    color:#ffb52e;
-    font-weight:950;
-    white-space:nowrap;
-}
-.detail-meta-time{
-    color:#d4d4d4;
-    font-weight:850;
-    white-space:nowrap;
-}
-.detail-meta-stats{
-    display:inline-flex;
-    align-items:center;
-    gap:14px;
-    margin-left:12px;
-    color:#aaa;
-    white-space:nowrap;
-}
-.detail-stat{
-    display:inline-flex;
-    align-items:center;
-    white-space:nowrap;
-}
-.detail-updated-text{
-    margin-left:auto;
-    padding-left:14px;
-    color:#777;
-    font-size:12px;
-    font-weight:850;
-    white-space:nowrap;
-}
-
-@media(max-width:760px){
-    .detail-meta-clean{
-        display:grid!important;
-        grid-template-columns:auto 1fr auto;
-        gap:5px 6px!important;
-        font-size:11px!important;
-        line-height:1.45!important;
-        padding-bottom:10px!important;
-    }
-    .detail-meta-clean .detail-meta-dot{
-        display:none!important;
-    }
-    .detail-meta-author{
-        max-width:82px;
-        overflow:hidden;
-        text-overflow:ellipsis;
-        white-space:nowrap;
-        font-size:12px;
-    }
-    .detail-meta-time{
-        min-width:0;
-        overflow:hidden;
-        text-overflow:ellipsis;
-        white-space:nowrap;
-        color:#cfcfcf;
-        font-size:11px;
-    }
-    .detail-updated-text{
-        margin-left:0!important;
-        padding-left:0!important;
-        color:#777;
-        font-size:10px;
-        font-weight:850;
-        justify-self:end;
-    }
-    .detail-meta-stats{
-        grid-column:1 / -1;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:space-between!important;
-        gap:0!important;
-        margin-left:0!important;
-        width:100%;
-        white-space:nowrap!important;
-        font-size:10px!important;
-        color:#9c9c9c;
-        overflow:visible!important;
-    }
-    .detail-stat{
-        min-width:0;
-        white-space:nowrap!important;
-    }
-}
-
-@media(max-width:380px){
-    .detail-meta-stats{
-        font-size:9px!important;
-    }
-    .detail-meta-author{max-width:72px;}
-    .detail-meta-time{font-size:10px;}
-}
-
-
-
-/* 모바일 상세 메타 최종 압축: 통계 간격 축소 + 수정됨 우측 상단 고정 */
-@media(max-width:760px){
-    .detail-meta-clean{
-        position:relative!important;
-        display:grid!important;
-        grid-template-columns:auto minmax(0,1fr) auto!important;
-        gap:4px 6px!important;
-        align-items:center!important;
-        padding-bottom:9px!important;
-    }
-    .detail-meta-author{
-        grid-column:1!important;
-        grid-row:1!important;
-        max-width:78px!important;
-        font-size:12px!important;
-    }
-    .detail-meta-time{
-        grid-column:2!important;
-        grid-row:1!important;
-        min-width:0!important;
-        font-size:11px!important;
-        overflow:hidden!important;
-        text-overflow:ellipsis!important;
-        white-space:nowrap!important;
-    }
-    .detail-updated-text{
-        grid-column:3!important;
-        grid-row:1!important;
-        justify-self:end!important;
-        align-self:center!important;
-        margin-left:0!important;
-        padding-left:0!important;
-        font-size:10px!important;
-        color:#777!important;
-        white-space:nowrap!important;
-    }
-    .detail-meta-stats{
-        grid-column:1 / -1!important;
-        grid-row:2!important;
-        display:flex!important;
-        justify-content:flex-start!important;
-        align-items:center!important;
-        gap:8px!important;
-        width:auto!important;
-        margin-left:0!important;
-        margin-top:1px!important;
-        font-size:10px!important;
-        line-height:1.3!important;
-        color:#9c9c9c!important;
-        white-space:nowrap!important;
-        overflow:hidden!important;
-    }
-    .detail-stat{
-        flex:0 0 auto!important;
-        min-width:auto!important;
-        white-space:nowrap!important;
-    }
-}
-
-@media(max-width:380px){
-    .detail-meta-stats{
-        gap:6px!important;
-        font-size:9.5px!important;
-    }
-    .detail-meta-author{max-width:68px!important;}
-    .detail-meta-time{font-size:10px!important;}
-    .detail-updated-text{font-size:9.5px!important;}
-}
-
-/* 같은 탭에서 F5 새로고침 시에는 최초 접속 로딩 연출 숨김 */
-html.reload-mode #loadingScreen{display:none!important}
-/* F5 복원 중 상단 메뉴 메인 선활성화 방지 */
-html.reload-mode .main-menu button.active{color:#cfcfcf;background:transparent}
-html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
-
-
 </style>
 </head>
 
 <body>
-<script>
-(function(){
-    try{
-        const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
-        const sameTabSession=sessionStorage.getItem("axe_net_session_alive")==="1";
-        const shouldRestoreInSameTab=sameTabSession&&!!location.hash;
-        if((nav&&nav.type==="reload")||shouldRestoreInSameTab){
-            document.documentElement.classList.add("reload-mode");
-        }
-    }catch(e){}
-})();
-</script>
 <div id="loadingScreen">
     <div class="loading-logo"><img src="./axe.png" alt="AXE 로고"></div>
     <div class="loading-title">AXE NET</div>
@@ -1299,7 +873,7 @@ html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
 
     <div class="main-menu-shell">
     <div class="main-menu">
-        <button onclick="navigateMain('home')">메인</button>
+        <button class="active" onclick="navigateMain('home')">메인</button>
         <button onclick="navigateMain('notice')">공지사항</button>
         <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('outlaw')">무법지대</button>
@@ -1392,7 +966,7 @@ html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbx3zYCP53EhF_zXTVabr_HPtcH1FOV13qi31764rUgkQdvSQCZt0R1JDkaIxbLOvRecEw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzaYWd_steZwoJets4-tJAlo2NtvrgwBkwDfDOQ4-Xtx3ulMbx5Ho1h3BwrV9diWGE5ZA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1437,7 +1011,6 @@ function navigateMain(page,push=true){
     }
 
     renderMainPage(target);
-    refreshDataInBackground();
 }
 
 function normalizeSubTab(page,subTab){
@@ -1491,7 +1064,6 @@ function navigateSubTab(page,subTab,push=true){
 
     currentHistoryPage=target;
     renderSubTab(target,tab);
-    refreshDataInBackground();
 }
 
 function pushListStateBeforeDetail(page){
@@ -1517,46 +1089,15 @@ function goBackToList(page){
     navigateMain(target);
 }
 
-function isSameTabRefresh(){
-    try{
-        return sessionStorage.getItem("axe_net_session_alive")==="1";
-    }catch(e){
-        return false;
-    }
+function initMainHistory(){
+    const startPage="home";
+    currentHistoryPage=startPage;
+    history.replaceState({page:startPage},"",location.pathname+location.search);
+    renderMainPage(startPage);
 }
 
-function markSameTabSession(){
-    try{
-        sessionStorage.setItem("axe_net_session_alive","1");
-    }catch(e){}
-}
-
-function isPageReload(){
-    const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
-    return (nav&&nav.type==="reload")||isSameTabRefresh();
-}
-
-function parseHashState(){
-    const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
-    if(!raw)return {page:"home"};
-
-    if(mainPageKeys.includes(raw))return {page:raw};
-
-    const parts=raw.split("-");
-    const page=normalizeMainPage(parts[0]);
-
-    if(parts.length>=3&&(parts[1]==="notice"||parts[1]==="board"||parts[1]==="tube")){
-        return {page:page,detailType:parts[1],id:parts.slice(2).join("-")};
-    }
-
-    if(parts.length>=2){
-        return {page:page,subTab:parts.slice(1).join("-")};
-    }
-
-    return {page:"home"};
-}
-
-function renderHistoryState(state){
+window.addEventListener("popstate",function(event){
+    const state=event.state||{};
     const page=state.page?state.page:(location.hash.replace("#","")||"home");
 
     if(state.detailType==="notice"&&state.id){
@@ -1584,27 +1125,6 @@ function renderHistoryState(state){
     }
 
     renderMainPage(page);
-}
-
-function initMainHistory(){
-    const shouldRestore=isPageReload()&&location.hash;
-    const state=shouldRestore?parseHashState():{page:"home"};
-    currentHistoryPage=state.page||"home";
-
-    if(shouldRestore){
-        history.replaceState(state,"",location.href);
-    }else{
-        history.replaceState({page:"home"},"",location.pathname+location.search);
-    }
-
-    markSameTabSession();
-    renderHistoryState(state);
-}
-
-window.addEventListener("popstate",function(event){
-    const state=event.state||parseHashState();
-    renderHistoryState(state);
-    refreshDataInBackground();
 });
 
 function resetInfoState(){
@@ -1652,7 +1172,9 @@ function enterMainSection(section){
     currentMainSection=section;
 }
 
-function applyServerData(data){
+fetch(API_URL)
+.then(res=>res.json())
+.then(data=>{
     crafts=data.crafts||[];
     materials=data.materials||[];
     notices=data.notices||[];
@@ -1668,54 +1190,11 @@ function applyServerData(data){
     skillRanks=data.skillRanks||data.skill_ranks||data.craftRanks||[];
     boards=data.boards||data.boardPosts||data.freeBoard||[];
     boardComments=data.boardComments||data.board_comments||data.comments||[];
-}
-
-function refreshData(options={}){
-    return fetch(API_URL,{cache:"no-store"})
-        .then(res=>res.json())
-        .then(data=>{
-            applyServerData(data);
-            return data;
-        })
-        .catch(err=>{
-            if(!options.silent){
-                document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
-            }
-            throw err;
-        });
-}
-
-let backgroundRefreshRunning=false;
-
-function refreshDataInBackground(){
-    if(backgroundRefreshRunning)return;
-    backgroundRefreshRunning=true;
-
-    const state=history.state||parseHashState();
-
-    refreshData({silent:true})
-    .then(()=>{
-        const currentState=history.state||parseHashState();
-        const samePage=JSON.stringify(state)===JSON.stringify(currentState);
-        const activeInput=document.activeElement;
-        const isWriting=activeInput&&["INPUT","TEXTAREA"].includes(activeInput.tagName);
-
-        if(samePage&&!isWriting){
-            renderHistoryState(currentState);
-        }
-    })
-    .catch(()=>{})
-    .finally(()=>{
-        backgroundRefreshRunning=false;
-    });
-}
-
-refreshData({silent:false})
-.then(()=>{
     initMainHistory();
     hideLoading();
 })
 .catch(()=>{
+    document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
     hideLoading();
 });
 
@@ -1735,7 +1214,6 @@ function catName(cat){return categoryMap[cat]||cat||"-"}
 function scrollToElement(id){const el=document.getElementById(id);if(!el)return;setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function setMainActive(index){document.querySelectorAll(".main-menu button").forEach((btn,i)=>btn.classList.toggle("active",i===index))}
 function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
-function formatDateTime(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`}
 function getNoticeId(n,i){return String(n.id||n.title||i)}
 function isImportant(v){return String(v).toUpperCase()==="TRUE"}
 
@@ -2256,18 +1734,18 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div class="comment-author-line"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date-dot">·</span><span class="comment-date-text">${comment.updated_at?`수정 ${formatDateTime(comment.updated_at)}`:formatDateTime(comment.date)}</span></div>
+            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
+            <div class="comment-actions">
+                <span class="comment-reaction-group">
+                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
+                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
+                </span>
+                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+                <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
+                <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
+            </div>
         </div>
         <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
-        <div class="comment-actions">
-            <span class="comment-reaction-group">
-                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
-                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
-            </span>
-            ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
-            <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
-            <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
-        </div>
         <div id="commentEdit_${scope}_${domSafeId(commentId)}"></div>
         ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
         ${replyHtml}
@@ -2628,7 +2106,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer||"AXE")}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">${formatDateTime(target.updated_at||target.date)}</span><span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span>${target.updated_at?`<span class="detail-updated-text">수정됨</span>`:""}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -2850,7 +2328,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer)}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">${formatDateTime(target.updated_at||target.date)}</span><span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span>${target.updated_at?`<span class="detail-updated-text">수정됨</span>`:""}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
@@ -3482,25 +2960,20 @@ function showTube(){
     const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
-        <div class="tube-channel-head">
-            <div class="tube-channel-main">
-                <div class="tube-channel-kicker">AXE MEDIA BOARD</div>
-                <div class="tube-channel-title">AXE TUBE</div>
-                <div class="tube-channel-desc">AXE 활동 영상과 게임 플레이 게시글을 한 곳에서 확인합니다.</div>
+        <div class="section-head">
+            <div>
+                <div class="section-title">AXE TUBE</div>
+                <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
             </div>
+            <div class="count">${list.length}개</div>
         </div>
 
-        <div class="tube-list-shell">
-            <div class="tube-list-head">
-                <div>
-                    <div class="tube-list-title">최근 영상</div>
-                    <div class="tube-list-desc">등록된 AXE TUBE 게시글 목록입니다.</div>
-                </div>
-                <div class="tube-list-action"><button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button></div>
-            </div>
-            <div class="tube-grid">
-                ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
-            </div>
+        <div class="tube-actions">
+            <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
+        </div>
+
+        <div class="tube-grid">
+            ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
         </div>`;
 }
 
@@ -3651,7 +3124,7 @@ function showQuest(){
 
 function setQuestJob(job){
     questJobFilter=job;
-    refreshData({silent:true}).finally(()=>showQuest());
+    showQuest();
 }
 
 function onQuestSearch(value){
@@ -3760,7 +3233,7 @@ function showProcess(){
 
 function setProcessJob(job){
     processJobFilter=job;
-    refreshData({silent:true}).finally(()=>showProcess());
+    showProcess();
 }
 
 function onProcessSearch(value){
@@ -3921,7 +3394,7 @@ function showSkillRanks(){
 
 function setSkillRankFilter(skill){
     skillRankFilter=skill;
-    refreshData({silent:true}).finally(()=>showSkillRanks());
+    showSkillRanks();
 }
 
 function onSkillRankSearch(value){
