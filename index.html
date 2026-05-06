@@ -4,7 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AXE NET</title>
+<script>
+(function(){
+    try{
+        const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
+        const isReload=nav?nav.type==="reload":performance.navigation&&performance.navigation.type===1;
+        if(isReload)document.documentElement.classList.add("soft-reload");
+    }catch(e){}
+})();
+</script>
 <style>
+html.soft-reload #loadingScreen{display:none!important}
+
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),transparent 34%),linear-gradient(180deg,#050505 0%,#111 45%,#070707 100%);color:#fff;font-family:Arial,sans-serif}
 
@@ -1133,7 +1144,7 @@ function navigateMain(page,push=true){
         history.pushState({page:target},"","#"+target);
     }
 
-    renderMainPage(target);
+    refreshData().finally(()=>renderMainPage(target));
 }
 
 function normalizeSubTab(page,subTab){
@@ -1186,7 +1197,7 @@ function navigateSubTab(page,subTab,push=true){
     }
 
     currentHistoryPage=target;
-    renderSubTab(target,tab);
+    refreshData().finally(()=>renderSubTab(target,tab));
 }
 
 function pushListStateBeforeDetail(page){
@@ -1212,48 +1223,79 @@ function goBackToList(page){
     navigateMain(target);
 }
 
-function initMainHistory(){
-    const startPage="home";
-    currentHistoryPage=startPage;
-    history.replaceState({page:startPage},"",location.pathname+location.search);
-    renderMainPage(startPage);
+function parseRouteFromHash(){
+    const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
+    if(!raw)return {page:"home"};
+
+    if(raw.startsWith("notice-notice-"))return {page:"notice",detailType:"notice",id:raw.substring("notice-notice-".length)};
+    if(raw.startsWith("board-board-"))return {page:"board",detailType:"board",id:raw.substring("board-board-".length)};
+    if(raw.startsWith("tube-tube-"))return {page:"tube",detailType:"tube",id:raw.substring("tube-tube-".length)};
+    if(raw.startsWith("gallery-gallery-"))return {page:"gallery",detailType:"gallery",id:raw.substring("gallery-gallery-".length)};
+
+    const subMap={
+        "notice-noticeList":{page:"notice",subTab:"noticeList"},
+        "notice-operations":{page:"notice",subTab:"operations"},
+        "outlaw-briefing":{page:"outlaw",subTab:"briefing"},
+        "outlaw-guide":{page:"outlaw",subTab:"guide"},
+        "info-craft":{page:"info",subTab:"craft"},
+        "info-quest":{page:"info",subTab:"quest"},
+        "info-process":{page:"info",subTab:"process"},
+        "info-modbook":{page:"info",subTab:"modbook"},
+        "info-skillrank":{page:"info",subTab:"skillrank"},
+        "utility-plica":{page:"utility",subTab:"plica"}
+    };
+    if(subMap[raw])return subMap[raw];
+
+    return {page:normalizeMainPage(raw)};
 }
 
-window.addEventListener("popstate",function(event){
-    const state=event.state||{};
-    const page=state.page?state.page:(location.hash.replace("#","")||"home");
+function renderRouteState(state){
+    const route=state||{page:"home"};
+    const page=normalizeMainPage(route.page||"home");
+    currentHistoryPage=page;
 
-    if(state.detailType==="notice"&&state.id){
+    if(route.detailType==="notice"&&route.id){
         renderMainPage("notice");
-        openNoticeDetail(state.id,false);
+        openNoticeDetail(route.id,false);
         return;
     }
 
-    if(state.detailType==="board"&&state.id){
+    if(route.detailType==="board"&&route.id){
         renderMainPage("board");
-        openBoardDetail(state.id,false,false);
+        openBoardDetail(route.id,false,false);
         return;
     }
 
-    if(state.detailType==="tube"&&state.id){
+    if(route.detailType==="tube"&&route.id){
         renderMainPage("tube");
-        openTubeDetail(state.id,false,false);
+        openTubeDetail(route.id,false,false);
         return;
     }
 
-    if(state.detailType==="gallery"&&state.id){
+    if(route.detailType==="gallery"&&route.id){
         renderMainPage("gallery");
-        openGalleryDetail(state.id,false,false);
+        openGalleryDetail(route.id,false,false);
         return;
     }
 
-    if(state.subTab){
+    if(route.subTab){
         renderMainPage(page);
-        renderSubTab(page,state.subTab);
+        renderSubTab(page,route.subTab);
         return;
     }
 
     renderMainPage(page);
+}
+
+function initMainHistory(){
+    const route=parseRouteFromHash();
+    currentHistoryPage=normalizeMainPage(route.page||"home");
+    history.replaceState(route,"",location.pathname+location.search+(location.hash||"#"+currentHistoryPage));
+    renderRouteState(route);
+}
+
+window.addEventListener("popstate",function(event){
+    renderRouteState(event.state||parseRouteFromHash());
 });
 
 function resetInfoState(){
@@ -1306,9 +1348,7 @@ function enterMainSection(section){
     currentMainSection=section;
 }
 
-fetch(API_URL)
-.then(res=>res.json())
-.then(data=>{
+function hydrateData(data){
     crafts=data.crafts||[];
     materials=data.materials||[];
     notices=data.notices||[];
@@ -1326,6 +1366,17 @@ fetch(API_URL)
     boardComments=data.boardComments||data.board_comments||data.comments||[];
     galleries=data.galleries||data.galleryPosts||[];
     galleryComments=data.galleryComments||data.gallery_comments||[];
+}
+
+function refreshData(){
+    return fetch(API_URL,{cache:"no-store"})
+        .then(res=>res.json())
+        .then(data=>{hydrateData(data);return data;})
+        .catch(()=>{});
+}
+
+refreshData()
+.then(()=>{
     initMainHistory();
     hideLoading();
 })
