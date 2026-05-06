@@ -58,6 +58,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .section-title{font-size:25px;font-weight:950}
 .section-desc{color:#909090;font-size:13px;margin-top:5px}
 .count{color:#ffb52e;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.25);border-radius:999px;padding:8px 13px;font-size:13px;font-weight:850;white-space:nowrap}
+.section-head .count{display:none!important}
 .home-grid{display:grid;grid-template-columns:.85fr 1.4fr;gap:18px}
 .home-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);border-radius:18px;padding:16px}
 .home-card-title{font-size:18px;font-weight:950;margin-bottom:12px;color:#ffb52e}
@@ -894,8 +895,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     <div class="main-menu">
         <button class="active" onclick="navigateMain('home')">메인</button>
         <button onclick="navigateMain('notice')">공지사항</button>
-        <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('outlaw')">무법지대</button>
+        <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('board')">자유게시판</button>
         <button onclick="navigateMain('gallery')">갤러리</button>
         <button onclick="navigateMain('info')">정보</button>
@@ -1036,7 +1037,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","tube","outlaw","board","gallery","info","utility"];
+const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","utility"];
 
 function normalizeMainPage(page){
     return mainPageKeys.includes(page)?page:"home";
@@ -2144,7 +2145,7 @@ function deleteTubePost(id){
 
 function openTubeDetail(id,addView=false,addHistory=false){
     if(addHistory)pushDetailState("tube","tube",id);
-    setMainActive(2);
+    setMainActive(3);
     currentHistoryPage="tube";
     const target=findTubeById(id);
     if(!target){showTube();return;}
@@ -3291,7 +3292,7 @@ function galleryCommentUndislike(commentId,galleryId){
 function showHome(){
     enterMainSection("home");
     setMainActive(0);
-    const recentNotices=notices.slice(-4).reverse();
+    const recentNotices=notices.slice(-3).reverse();
     const recentTubes=getSortedTubes().slice(0,6);
     const recentBoards=getSortedBoards().slice(0,4);
 
@@ -3299,14 +3300,14 @@ function showHome(){
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">최근 일반공지와 AXE TUBE 업데이트를 확인하세요.</div>
+                <div class="section-desc">최근 공지사항과 AXE TUBE 업데이트를 확인하세요.</div>
             </div>
             <div class="count">AXE NET</div>
         </div>
 
         <div class="home-grid">
             <div class="home-card">
-                <div class="home-card-title">최근 일반공지</div>
+                <div class="home-card-title">최근 공지사항</div>
                 ${
                     recentNotices.length
                     ? recentNotices.map((n,i)=>`
@@ -3316,7 +3317,7 @@ function showHome(){
                             <div class="item-content">${safe(n.content)}</div>
                         </div>
                     `).join("")
-                    : `<div class="ready">등록된 일반공지가 없습니다.</div>`
+                    : `<div class="ready">등록된 공지사항이 없습니다.</div>`
                 }
             </div>
 
@@ -3384,7 +3385,7 @@ function showNoticeList(){
                         <div class="notice-row-type">일반공지</div>
                     </div>
                 `).join("")
-                : `<div class="ready">등록된 일반공지가 없습니다.</div>`
+                : `<div class="ready">등록된 공지사항이 없습니다.</div>`
             }
         </div>
     `;
@@ -3502,7 +3503,7 @@ function selectOperation(id){
 
 function showTube(){
     enterMainSection("tube");
-    setMainActive(2);
+    setMainActive(3);
     const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
@@ -4591,7 +4592,7 @@ function renderDetail(id){
 
 function showOutlaw(){
     enterMainSection("outlaw");
-    setMainActive(3);
+    setMainActive(2);
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
