@@ -489,6 +489,131 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 @media(max-width:920px){.quest-list{grid-template-columns:1fr}.plica-grid{grid-template-columns:repeat(2,1fr)}.home-grid,.db-layout,.outlaw-layout{grid-template-columns:1fr}.tube-grid{grid-template-columns:1fr}.list-scroll{max-height:360px}.logo-box{width:110px;height:110px}.info-grid{grid-template-columns:1fr}.notice-board-head,.notice-row{grid-template-columns:1fr}.notice-row-date,.notice-row-type{margin-top:4px}.main-menu{overflow-x:auto}.main-menu button{min-width:110px}}
 @media(max-width:620px){.final-material-toggle{align-items:flex-start}.final-material-toggle-summary{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.plica-grid{grid-template-columns:1fr}.wrap{padding:20px 14px 40px}.hero{display:block;min-height:auto;padding:22px}.hero::after{right:18px;top:34px;font-size:62px;letter-spacing:4px;color:rgba(255,255,255,.025)}.hero::before{right:22px;bottom:20px;font-size:10px;letter-spacing:4px}.logo-box{width:100%;height:130px;margin-bottom:16px}h1{font-size:34px}.section-head{display:block}.count{display:inline-block;margin-top:10px}}
+
+
+/* 모바일 1차 안전 최적화: PC 기본 구조는 유지하고 768px 이하에서만 적용 */
+@media(max-width:768px){
+    body{overflow-x:hidden}
+    .wrap{max-width:100%;padding:16px 10px 34px}
+    .hero{display:flex;gap:12px;align-items:center;min-height:112px;padding:16px 14px;margin-bottom:12px;border-radius:18px}
+    .hero::after{right:12px;font-size:52px;letter-spacing:3px;opacity:.7}
+    .hero::before{right:16px;bottom:14px;font-size:9px;letter-spacing:3px}
+    .logo-box{width:74px;height:74px;min-width:74px;border-radius:16px;padding:8px;margin-bottom:0}
+    .kicker{font-size:10px;margin-bottom:5px;letter-spacing:1px}
+    h1{font-size:27px;line-height:1.05}
+    .sub{font-size:12px;line-height:1.35;margin-top:6px}
+
+    .main-menu{display:flex;overflow-x:auto;white-space:nowrap;border-radius:12px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .main-menu::-webkit-scrollbar{display:none}
+    .main-menu button{min-width:auto;flex:0 0 auto;height:42px;padding:0 15px;font-size:13px;border-right:1px solid rgba(255,255,255,.06)}
+
+    .panel{padding:14px;border-radius:18px}
+    .section-head{display:block;margin-bottom:14px}
+    .section-title{font-size:21px;line-height:1.25}
+    .section-desc{font-size:12px;line-height:1.45}
+    .count{display:inline-block;margin-top:9px;padding:7px 10px;font-size:12px}
+
+    .home-grid{grid-template-columns:1fr;gap:12px}
+    .home-card{padding:13px;border-radius:15px}
+    .home-card-title{font-size:16px;margin-bottom:10px}
+    .home-board-list{grid-template-columns:1fr;gap:8px}
+
+    .tube-actions,.board-actions{justify-content:stretch}
+    .tube-submit-open,.back-btn{width:100%;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+    .tube-grid{grid-template-columns:1fr;gap:10px}
+    .tube-card{border-radius:14px}
+    .tube-body{padding:12px}
+    .tube-thumb{aspect-ratio:16/9}
+
+    .board-layout,.db-layout,.outlaw-layout,.modbook-layout{grid-template-columns:1fr;gap:12px;min-height:auto}
+    .board-list-scroll,.list-scroll,.modbook-list-scroll{max-height:360px}
+    .board-detail-card,.detail,.modbook-detail-card{padding:14px;border-radius:15px;min-height:auto}
+    .board-detail-title,.detail-title,.modbook-detail-name{font-size:22px;line-height:1.25}
+    .board-detail-content,.notice-detail-content,.operation-content{font-size:14px;line-height:1.65;padding:14px}
+
+    .notice-board-head{display:none}
+    .notice-row{display:block;padding:13px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+    .notice-row:hover{padding-left:12px;transform:none}
+    .notice-row-title{font-size:14px;line-height:1.4;margin-bottom:6px}
+    .notice-row-date,.notice-row-type{display:inline-block;font-size:11px;margin-right:8px;color:#888}
+
+    .board-row{padding:13px 12px}
+    .board-row:hover{transform:none}
+    .board-row-title{font-size:14px;line-height:1.4}
+    .board-row-meta,.board-detail-meta{gap:5px}
+    .board-badge{font-size:11px;min-height:22px;padding:0 7px}
+
+    .form-modal{align-items:flex-start;overflow:auto;padding:12px}
+    .form-box{margin:18px 0;width:100%;border-radius:16px}
+    .form-body{padding:14px}
+    .form-input,.form-textarea{font-size:16px;padding:11px;border-radius:11px}
+    .form-textarea{min-height:96px}
+
+    .comment-item,.tube-comment-item{padding:12px!important;border-radius:13px!important}
+    .comment-reply,.tube-comment-reply{margin-left:12px!important;padding-left:10px!important}
+    .comment-actions,.tube-comment-actions,.post-actions,.tube-detail-actions{display:flex;flex-wrap:wrap;gap:7px}
+    .comment-actions button,.tube-comment-actions button,.post-actions button,.tube-detail-actions button{height:34px;padding:0 10px;font-size:12px;border-radius:10px}
+    .comment-edit-box textarea,.tube-comment-edit-box textarea{min-height:80px}
+
+    .video-box{width:100%;border-radius:15px}
+    .video-head{padding:12px}
+    .video-title{font-size:14px}
+    .video-frame{aspect-ratio:16/9}
+    .image-modal{padding:10px}
+    .image-modal-box img{max-width:94vw;max-height:84vh}
+    .image-close{width:38px;height:38px;font-size:22px;top:8px;right:8px}
+
+    .toolbar{display:block}
+    .search input{height:42px;font-size:14px}
+    .info-menu,.sub-filter,.quest-filter,.modbook-category-tabs,.modbook-type-tabs{gap:7px;margin-bottom:13px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .info-menu::-webkit-scrollbar,.sub-filter::-webkit-scrollbar,.quest-filter::-webkit-scrollbar,.modbook-category-tabs::-webkit-scrollbar,.modbook-type-tabs::-webkit-scrollbar{display:none}
+    .info-menu button,.sub-filter button,.quest-filter button,.modbook-category-tabs button,.modbook-type-tabs button{flex:0 0 auto;min-width:auto;height:38px;padding:0 13px;font-size:12px;border-radius:11px}
+
+    .info-grid{grid-template-columns:1fr;gap:8px}
+    .info-card{padding:11px}
+    .info-value{font-size:14px;line-height:1.35}
+    .badges{gap:5px;margin-bottom:12px}
+    .badge{font-size:11px;padding:6px 8px}
+
+    .map-image,.guide-main-image,.guide-step-image{max-height:72vh;border-radius:12px}
+    .guide-step{padding:13px;border-radius:14px}
+    .guide-step-head{align-items:flex-start}
+    .guide-step-title{font-size:15px;line-height:1.35}
+    .guide-step-content{font-size:13px;line-height:1.6}
+
+    .process-card-grid,.quest-list,.final-material-grid,.plica-grid{grid-template-columns:1fr;gap:10px}
+    .process-card,.quest-card{padding:14px;border-radius:15px}
+    .process-card-head,.quest-card-top{display:block}
+    .process-title{font-size:19px}
+    .process-type-badge,.process-rank-badge,.quest-job-badge,.quest-rank{margin-top:7px}
+    .process-flow-simple{grid-template-columns:1fr;gap:8px;padding:12px}
+    .process-arrow{transform:rotate(90deg);min-height:24px}
+    .process-arrow::before{display:none}
+    .process-bottom-info{grid-template-columns:1fr}
+
+    .modbook-row-name{font-size:15px;line-height:1.35}
+    .modbook-row-meta{gap:5px}
+    .modbook-badge{font-size:11px;min-height:22px;padding:0 7px}
+    .modbook-detail-titleline{gap:7px}
+    .modbook-options{gap:8px}
+    .modbook-option{font-size:13px;padding:11px}
+    .modbook-price-value{font-size:18px}
+
+    .skill-rank-tabs{width:100%;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));padding:7px}
+    .skill-rank-list{width:100%}
+}
+
+@media(max-width:420px){
+    .wrap{padding-left:8px;padding-right:8px}
+    .panel{padding:12px}
+    .hero{padding:14px 12px}
+    .logo-box{width:62px;height:62px;min-width:62px}
+    h1{font-size:24px}
+    .main-menu button{height:40px;padding:0 12px;font-size:12px}
+    .board-detail-title,.detail-title,.modbook-detail-name{font-size:20px}
+    .tube-submit-open,.back-btn{height:38px}
+}
+
 </style>
 </head>
 
