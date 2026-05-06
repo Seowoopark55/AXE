@@ -1256,10 +1256,24 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .detail-meta-time{font-size:10px!important;}
     .detail-updated-text{font-size:9.5px!important;}
 }
+
+/* F5 새로고침 시에는 최초 접속 로딩 연출 숨김 */
+html.reload-mode #loadingScreen{display:none!important}
+
 </style>
 </head>
 
 <body>
+<script>
+(function(){
+    try{
+        const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
+        if(nav&&nav.type==="reload"){
+            document.documentElement.classList.add("reload-mode");
+        }
+    }catch(e){}
+})();
+</script>
 <div id="loadingScreen">
     <div class="loading-logo"><img src="./axe.png" alt="AXE 로고"></div>
     <div class="loading-title">AXE NET</div>
