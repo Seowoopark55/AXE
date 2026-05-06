@@ -4300,6 +4300,16 @@ function selectOutlawGuide(id){
     `;
     scrollToElement("guideDetailBox");
 }
+
+/* 호환용 별칭 함수: 기존 버튼 호출명(dislikeTubeOnce) 오류 방지 */
+if (typeof dislikeTubeOnce !== "function") {
+    function dislikeTubeOnce(id){
+        if (typeof toggleTubeDislike === "function") {
+            toggleTubeDislike(id);
+        }
+    }
+}
+
 </script>
 </body>
 </html>
