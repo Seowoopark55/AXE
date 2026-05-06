@@ -1461,6 +1461,7 @@ const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버
 
 let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
+let noticeCategory="공지";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
 let operationCategory="ALL",selectedOperationId="";
@@ -1694,6 +1695,7 @@ function resetInfoState(){
 }
 
 function resetNoticeState(){
+    noticeCategory="공지";
     operationCategory="ALL";
     selectedOperationId="";
 }
@@ -3609,26 +3611,39 @@ function showNotice(){
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">운영 안내</div>
-                <div class="section-desc">일반공지와 운영기준을 확인합니다.</div>
+                <div class="section-title">공지사항</div>
+                <div class="section-desc">AXE NET의 운영 정보와 최신 소식을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
         </div>
         <div class="sub-filter">
-            <button class="active" onclick="navigateSubTab('notice','noticeList')">일반공지</button>
+            <button class="active" onclick="setNoticeCategory('공지')">공지</button>
+            <button onclick="setNoticeCategory('AXE소식')">AXE소식</button>
+            <button onclick="setNoticeCategory('패치노트')">패치노트</button>
             <button onclick="navigateSubTab('notice','operations')">운영기준</button>
         </div>
         <div id="noticeContent"></div>`;
     showNoticeList();
 }
 
+function normalizeNoticeCategory(v){
+    const text=String(v||"").trim();
+    return text||"공지";
+}
+
+function setNoticeCategory(cat){
+    noticeCategory=cat;
+    selectedOperationId="";
+    showNoticeList();
+}
+
 function showNoticeList(){
-    const list=notices.slice().reverse();
+    const list=notices.slice().reverse().filter(n=>normalizeNoticeCategory(n.category)===noticeCategory);
     const buttons=document.querySelectorAll(".sub-filter button");
-    if(buttons.length>=2){
-        buttons[0].classList.add("active");
-        buttons[1].classList.remove("active");
-    }
+    buttons.forEach(btn=>btn.classList.remove("active"));
+    const noticeTabs=["공지","AXE소식","패치노트"];
+    const tabIndex=noticeTabs.indexOf(noticeCategory);
+    if(tabIndex>=0&&buttons[tabIndex])buttons[tabIndex].classList.add("active");
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="item-list">
@@ -3643,10 +3658,10 @@ function showNoticeList(){
                     <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
                         <div class="notice-row-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
                         <div class="notice-row-date">${formatDate(n.date)}</div>
-                        <div class="notice-row-type">일반공지</div>
+                        <div class="notice-row-type">${safe(normalizeNoticeCategory(n.category))}</div>
                     </div>
                 `).join("")
-                : `<div class="ready">등록된 일반공지가 없습니다.</div>`
+                : `<div class="ready">등록된 ${safe(noticeCategory)} 항목이 없습니다.</div>`
             }
         </div>
     `;
@@ -3674,7 +3689,7 @@ function openNoticeDetail(id,addHistory=false){
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">일반공지</div>
+                <div class="section-title">공지사항</div>
                 <div class="section-desc">공지 상세 내용을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
@@ -3685,7 +3700,7 @@ function openNoticeDetail(id,addHistory=false){
         <div class="detail" style="margin-top:14px;">
             <div class="detail-title">${safe(target.title)}</div>
             <div class="notice-detail-meta">
-                <span class="badge gold">일반공지</span>
+                <span class="badge gold">${safe(normalizeNoticeCategory(target.category))}</span>
                 <span class="badge">작성일 ${formatDate(target.date)}</span>
                 ${isImportant(target.important)?'<span class="badge">중요</span>':''}
             </div>
@@ -3705,10 +3720,8 @@ function getValidOperations(){
 function showOperationList(){
     selectedOperationId="";
     const buttons=document.querySelectorAll(".sub-filter button");
-    if(buttons.length>=2){
-        buttons[0].classList.remove("active");
-        buttons[1].classList.add("active");
-    }
+    buttons.forEach(btn=>btn.classList.remove("active"));
+    if(buttons.length>=4)buttons[3].classList.add("active");
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="db-layout">
