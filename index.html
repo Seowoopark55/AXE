@@ -870,6 +870,29 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 @media(max-width:920px){.gallery-grid{grid-template-columns:repeat(2,1fr)}.gallery-detail-images{grid-template-columns:1fr}}
 @media(max-width:768px){.gallery-grid{grid-template-columns:1fr}.gallery-preview-list{grid-template-columns:repeat(3,1fr)}.main-menu::after{display:none!important;content:none!important}}
 
+
+/* 요청 반영: 제목 라인 버튼 정렬, 날짜/수정됨 정렬 */
+.section-head.with-action{align-items:flex-start;margin-bottom:12px}
+.section-head.with-action .section-action{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}
+.section-head.with-action .tube-submit-open{height:40px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px}
+.tube-actions,.board-actions{margin-bottom:10px}
+
+.detail-meta-main{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.detail-meta-updated{margin-left:auto;color:#ffcf75;font-weight:950;padding-left:14px;white-space:nowrap}
+.comment-meta-left{min-width:0;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.comment-updated-label{margin-left:auto;color:#ffcf75;font-weight:950;white-space:nowrap}
+
+@media(max-width:760px){
+    .section-head.with-action{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+    .section-head.with-action>div:first-child{min-width:0;flex:1}
+    .section-head.with-action .section-action{flex-shrink:0}
+    .section-head.with-action .tube-submit-open{width:auto;min-width:86px;height:36px;padding:0 11px;font-size:12px}
+    .detail-meta-main{display:block}
+    .detail-meta-updated{display:block;margin-left:0;padding-left:0;margin-top:5px}
+    .comment-meta-left{display:flex}
+    .comment-updated-label{margin-left:0}
+}
+
 </style>
 </head>
 
@@ -1282,7 +1305,7 @@ function domSafeId(v){return String(v||"").replace(/[^a-zA-Z0-9_\-]/g,"_")}
 function catName(cat){return categoryMap[cat]||cat||"-"}
 function scrollToElement(id){const el=document.getElementById(id);if(!el)return;setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function setMainActive(index){document.querySelectorAll(".main-menu button").forEach((btn,i)=>btn.classList.toggle("active",i===index))}
-function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
+function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
 function getNoticeId(n,i){return String(n.id||n.title||i)}
 function isImportant(v){return String(v).toUpperCase()==="TRUE"}
 
@@ -1803,7 +1826,7 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
+            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}${comment.updated_at?`<span class="comment-updated-label">수정됨</span>`:""}</div>
             <div class="comment-actions">
                 <span class="comment-reaction-group">
                     <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
@@ -2175,7 +2198,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -2312,16 +2335,14 @@ function showBoard(){
     const list=getSortedBoards();
 
     document.getElementById("content").innerHTML=`
-        <div class="section-head">
+        <div class="section-head with-action">
             <div>
                 <div class="section-title">자유게시판</div>
                 <div class="section-desc">AXE 구성원들이 자유롭게 글을 남기는 공간입니다.</div>
             </div>
-            <div class="count">${list.length}개</div>
-        </div>
-
-        <div class="board-actions">
-            <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
+            <div class="section-action">
+                <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
+            </div>
         </div>
 
         <div class="item-list">
@@ -2397,7 +2418,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
@@ -2880,15 +2901,14 @@ function showGallery(){
     selectedGalleryId="";
     const list=getSortedGalleries();
     document.getElementById("content").innerHTML=`
-        <div class="section-head">
+        <div class="section-head with-action">
             <div>
                 <div class="section-title">갤러리</div>
                 <div class="section-desc">AXE 활동 사진과 이미지를 공유하는 공간입니다.</div>
             </div>
-            <div class="count">${list.length}개</div>
-        </div>
-        <div class="board-actions">
-            <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
+            <div class="section-action">
+                <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
+            </div>
         </div>
         <div id="galleryListBox"></div>`;
     renderGalleryList();
@@ -3038,7 +3058,7 @@ function openGalleryDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer||"익명")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer||"익명")}</strong><span class="detail-meta-dot">|</span>작성일 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-updated">수정됨</span>`:""}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${images.length?`<div class="gallery-detail-images">${images.map(src=>`<img src="${src}" onclick="openImageModal('${escapeText(src)}')" onerror="this.src='./axe.png'">`).join("")}</div>`:`<div class="ready">표시할 이미지가 없습니다.</div>`}
             ${String(target.content||"").trim()?`<div class="board-detail-content">${safe(target.content)}</div>`:""}
@@ -3188,7 +3208,7 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderGalleryCommentItem(galleryId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
+            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}${comment.updated_at?`<span class="comment-updated-label">수정됨</span>`:""}</div>
             <div class="comment-actions">
                 <span class="comment-reaction-group">
                     <button class="comment-reaction-btn like ${liked?"active":""}" onclick="toggleGalleryCommentLike('${escapeText(commentId)}','${escapeText(galleryId)}')">👍 <span>${Number(comment.likes||0)}</span></button>
@@ -3348,8 +3368,8 @@ function showNotice(){
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">운영 안내</div>
-                <div class="section-desc">일반공지와 운영기준을 확인합니다.</div>
+                <div class="section-title">공지사항</div>
+                <div class="section-desc">AXE의 주요 공지사항과 운영기준을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
         </div>
@@ -3507,16 +3527,14 @@ function showTube(){
     const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
-        <div class="section-head">
+        <div class="section-head with-action">
             <div>
                 <div class="section-title">AXE TUBE</div>
                 <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
             </div>
-            <div class="count">${list.length}개</div>
-        </div>
-
-        <div class="tube-actions">
-            <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
+            <div class="section-action">
+                <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
+            </div>
         </div>
 
         <div class="tube-grid">
