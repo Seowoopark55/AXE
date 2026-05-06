@@ -1256,22 +1256,97 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 
 
-/* AXE 도끼 뱃지 */
-.axe-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:6px;border-radius:999px;font-size:13px;font-weight:950;line-height:1;vertical-align:middle;border:1px solid rgba(255,255,255,.16);box-shadow:0 0 12px rgba(0,0,0,.25);flex:0 0 auto}
-.axe-badge::before{content:"🪓"}
-.axe-badge.admin{background:linear-gradient(135deg,#ff3cac,#7b61ff 58%,#29186d);color:#fff;border-color:rgba(255,255,255,.38);box-shadow:0 0 16px rgba(255,60,172,.28)}
-.axe-badge.bronze{background:linear-gradient(135deg,#6b3f22,#c17b45);color:#fff;border-color:rgba(193,123,69,.55)}
-.axe-badge.silver{background:linear-gradient(135deg,#8b98a5,#e6edf3);color:#111;border-color:rgba(230,237,243,.55)}
-.axe-badge.gold{background:linear-gradient(135deg,#a36b00,#ffd54a);color:#111;border-color:rgba(255,213,74,.65)}
-.axe-badge.black{background:linear-gradient(135deg,#050505,#2b2b2b);color:#fff;border-color:rgba(255,255,255,.28)}
-.axe-badge.legend{background:linear-gradient(135deg,#00e5ff,#7b61ff 52%,#ff3cac);color:#fff;border-color:rgba(255,255,255,.42);box-shadow:0 0 18px rgba(0,229,255,.24)}
-.axe-badge.unknown{background:rgba(255,255,255,.08);color:#ddd}
-.writer-with-badge{display:inline-flex;align-items:center;gap:0;min-width:0;vertical-align:middle}
-.writer-with-badge .writer-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.auth-user .axe-badge{width:20px;height:20px;font-size:12px;margin-right:2px}
-.comment-meta-left .writer-with-badge{margin-right:4px}
-.board-table-title .writer-with-badge,.home-board-meta .writer-with-badge,.item-date .writer-with-badge{display:inline-flex}
-@media(max-width:768px){.axe-badge{width:20px;height:20px;font-size:12px;margin-right:5px}.auth-user .axe-badge{width:19px;height:19px}}
+/* AXE 도끼 뱃지 - PNG 이미지 버전 */
+.axe-badge{
+    display:inline-block;
+    width:12px;
+    height:12px;
+    margin-right:4px;
+    vertical-align:-1px;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-size:contain;
+    flex:0 0 auto;
+}
+
+.axe-badge::before{
+    content:"";
+}
+
+.axe-badge.admin{
+    background-image:url("/badges/admin.png");
+}
+
+.axe-badge.bronze{
+    background-image:url("/badges/bronze.png");
+}
+
+.axe-badge.silver{
+    background-image:url("/badges/silver.png");
+}
+
+.axe-badge.gold{
+    background-image:url("/badges/gold.png");
+}
+
+.axe-badge.black{
+    background-image:url("/badges/silver.png");
+    filter:brightness(.55) contrast(1.25);
+}
+
+.axe-badge.legend{
+    background-image:url("/badges/admin.png");
+    filter:hue-rotate(265deg) saturate(1.35) brightness(1.15);
+}
+
+.axe-badge.unknown{
+    background-image:url("/badges/bronze.png");
+    opacity:.75;
+}
+
+.writer-with-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:0;
+    min-width:0;
+    vertical-align:middle;
+}
+
+.writer-with-badge .writer-name{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.auth-user .axe-badge{
+    width:12px;
+    height:12px;
+    margin-right:4px;
+}
+
+.comment-meta-left .writer-with-badge{
+    margin-right:4px;
+}
+
+.board-table-title .writer-with-badge,
+.home-board-meta .writer-with-badge,
+.item-date .writer-with-badge{
+    display:inline-flex;
+}
+
+@media(max-width:768px){
+    .axe-badge{
+        width:12px;
+        height:12px;
+        margin-right:4px;
+    }
+
+    .auth-user .axe-badge{
+        width:12px;
+        height:12px;
+    }
+}
 
 /* 회원 로그인 UI */
 .auth-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 14px;min-height:38px;position:relative;z-index:5}
