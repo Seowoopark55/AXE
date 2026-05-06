@@ -12,6 +12,13 @@
         if(isReload)document.documentElement.classList.add("soft-reload");
     }catch(e){}
 })();
+try{
+    const __contentObserverTarget=document.getElementById("content");
+    if(__contentObserverTarget){
+        new MutationObserver(()=>applyLoginWriterFields()).observe(__contentObserverTarget,{childList:true,subtree:true});
+    }
+}catch(e){}
+
 </script>
 <style>
 html.soft-reload #loadingScreen{display:none!important}
@@ -1248,6 +1255,22 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-submit{height:36px!important;font-size:13px!important;border-radius:9px!important}
 }
 
+
+/* 회원 로그인 UI */
+.auth-bar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:-6px 0 18px;min-height:38px}
+.auth-user{display:inline-flex;align-items:center;gap:8px;color:#ddd;font-size:13px;font-weight:900;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 12px}
+.auth-user strong{color:#ffb52e;font-weight:950}
+.auth-btn{height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease}
+.auth-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.auth-btn.primary{background:#ffb52e;color:#111;border-color:#ffb52e}
+.auth-btn.primary:hover{color:#111;filter:brightness(1.06)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.auth-tab{height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#aaa;font-weight:950;cursor:pointer}
+.auth-tab.active{background:#ffb52e;color:#111;border-color:#ffb52e}
+.auth-message{min-height:18px;margin-top:10px;color:#ffcf75;font-size:12px;line-height:1.45}
+.login-required-hint{margin-top:8px;color:#888;font-size:12px;line-height:1.45}
+@media(max-width:768px){.auth-bar{justify-content:stretch;margin:-2px 0 12px}.auth-user{flex:1;justify-content:center;min-width:0}.auth-btn{flex:1}.auth-user span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+
 </style>
 </head>
 
@@ -1281,6 +1304,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('utility')">편의기능</button>
     </div>
     </div>
+
+    <div class="auth-bar" id="authBar"></div>
 
     <div class="panel" id="content"></div>
 </div>
@@ -1397,10 +1422,159 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     </div>
 </div>
 
+
+<div class="form-modal" id="authModal" onclick="closeAuthOutside(event)">
+    <div class="form-box">
+        <div class="form-head">
+            <div class="form-title" id="authModalTitle">로그인</div>
+            <button class="form-close" onclick="closeAuthModal()">×</button>
+        </div>
+        <div class="form-body">
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" onclick="switchAuthMode('login')">로그인</button>
+                <button class="auth-tab" id="signupTab" onclick="switchAuthMode('signup')">회원가입</button>
+            </div>
+
+            <div class="form-label">닉네임</div>
+            <input class="form-input" id="authNickname" placeholder="닉네임을 입력하세요" autocomplete="username">
+
+            <div class="form-label">비밀번호</div>
+            <input class="form-input" id="authPassword" type="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAuth()">
+
+            <button class="form-submit" id="authSubmitBtn" onclick="submitAuth()">로그인</button>
+            <div class="auth-message" id="authMessage"></div>
+            <div class="form-help">회원가입은 닉네임과 비밀번호만 사용합니다. 글쓰기와 댓글 작성 시 로그인한 닉네임이 자동 적용됩니다.</div>
+        </div>
+    </div>
+</div>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwl_e_JbXpqxSNp_q9-vtJGdSQqL2Z2TiQ8GjO8Ulrve3Pqta--A6yTvE0KTB3pUU1jSA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
+
+let authMode="login";
+const AUTH_STORAGE_KEY="axe_net_current_user";
+
+function getCurrentUser(){
+    try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||"null");}catch(e){return null;}
+}
+
+function setCurrentUser(user){
+    if(user)localStorage.setItem(AUTH_STORAGE_KEY,JSON.stringify(user));
+    else localStorage.removeItem(AUTH_STORAGE_KEY);
+    renderAuthBar();
+    applyLoginWriterFields();
+}
+
+function renderAuthBar(){
+    const box=document.getElementById("authBar");
+    if(!box)return;
+    const user=getCurrentUser();
+    if(user&&user.nickname){
+        box.innerHTML=`<div class="auth-user"><span>로그인</span><strong>${safe(user.nickname)}</strong><span>${safe(user.role||"user")}</span></div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+    }else{
+        box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
+    }
+}
+
+function openAuthModal(mode){
+    switchAuthMode(mode||"login");
+    const modal=document.getElementById("authModal");
+    if(!modal)return;
+    document.getElementById("authNickname").value="";
+    document.getElementById("authPassword").value="";
+    document.getElementById("authMessage").textContent="";
+    modal.classList.add("active");
+    setTimeout(()=>document.getElementById("authNickname")?.focus(),60);
+}
+
+function closeAuthModal(){
+    const modal=document.getElementById("authModal");
+    if(modal)modal.classList.remove("active");
+}
+
+function closeAuthOutside(event){
+    if(event.target.id==="authModal")closeAuthModal();
+}
+
+function switchAuthMode(mode){
+    authMode=mode==="signup"?"signup":"login";
+    const isSignup=authMode==="signup";
+    const title=document.getElementById("authModalTitle");
+    const btn=document.getElementById("authSubmitBtn");
+    const loginTab=document.getElementById("loginTab");
+    const signupTab=document.getElementById("signupTab");
+    if(title)title.textContent=isSignup?"회원가입":"로그인";
+    if(btn)btn.textContent=isSignup?"회원가입":"로그인";
+    if(loginTab)loginTab.classList.toggle("active",!isSignup);
+    if(signupTab)signupTab.classList.toggle("active",isSignup);
+    const msg=document.getElementById("authMessage");
+    if(msg)msg.textContent="";
+}
+
+function submitAuth(){
+    const nickname=document.getElementById("authNickname")?.value.trim()||"";
+    const password=document.getElementById("authPassword")?.value.trim()||"";
+    const msg=document.getElementById("authMessage");
+    if(!nickname||!password){if(msg)msg.textContent="닉네임과 비밀번호를 입력해주세요.";return;}
+    if(authMode==="signup"&&nickname.length<2){if(msg)msg.textContent="닉네임은 2글자 이상 입력해주세요.";return;}
+    if(authMode==="signup"&&password.length<4){if(msg)msg.textContent="비밀번호는 4자리 이상 입력해주세요.";return;}
+    if(msg)msg.textContent="처리 중...";
+    fetch(API_URL,{method:"POST",body:JSON.stringify({type:authMode,nickname:nickname,password:password})})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.result==="success"&&data.user){
+            setCurrentUser(data.user);
+            closeAuthModal();
+            alert(data.message||"처리되었습니다.");
+        }else{
+            if(msg)msg.textContent=data.message||"처리 중 오류가 발생했습니다.";
+        }
+    })
+    .catch(()=>{if(msg)msg.textContent="처리 중 오류가 발생했습니다.";});
+}
+
+function logoutMember(){
+    setCurrentUser(null);
+    alert("로그아웃되었습니다.");
+}
+
+function requireLogin(message){
+    const user=getCurrentUser();
+    if(user&&user.nickname)return true;
+    alert(message||"로그인 후 이용해주세요.");
+    openAuthModal("login");
+    return false;
+}
+
+function getLoginNickname(){
+    const user=getCurrentUser();
+    return user&&user.nickname?user.nickname:"";
+}
+
+function applyLoginWriterFields(){
+    const user=getCurrentUser();
+    const ids=["tubeWriter","boardWriter","galleryWriter","tubeCommentWriter","commentWriter","galleryCommentWriter"];
+    ids.forEach(id=>{
+        const el=document.getElementById(id);
+        if(!el)return;
+        if(user&&user.nickname){
+            el.value=user.nickname;
+            el.readOnly=true;
+            el.placeholder="로그인 닉네임";
+        }else{
+            el.readOnly=false;
+            if(!el.value)el.placeholder="작성자";
+        }
+    });
+}
+
+function afterRenderAuth(){
+    renderAuthBar();
+    applyLoginWriterFields();
+}
+
 
 let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
@@ -1712,6 +1886,8 @@ function backgroundRefreshCurrentRoute(){
 const hasCachedData=applyCachedData();
 if(hasCachedData){
     initMainHistory();
+    renderAuthBar();
+    applyLoginWriterFields();
     hideLoading();
     backgroundRefreshCurrentRoute();
 }else{
@@ -1872,7 +2048,9 @@ function closeImageModal(){
 }
 
 function openTubeForm(){
+    if(!requireLogin("AXE TUBE 글쓰기는 로그인 후 이용해주세요."))return;
     document.getElementById("tubeFormModal").classList.add("active");
+    applyLoginWriterFields();
 }
 
 function closeTubeForm(){
@@ -1894,7 +2072,8 @@ function clearTubeForm(){
 }
 
 function submitTubePost(){
-    const writer=document.getElementById("tubeWriter").value.trim();
+    if(!requireLogin("AXE TUBE 글쓰기는 로그인 후 이용해주세요."))return;
+    const writer=getLoginNickname();
     const title=document.getElementById("tubeTitle").value.trim();
     const url=document.getElementById("tubeUrl").value.trim();
     const thumbnail=document.getElementById("tubeThumbnail").value.trim();
@@ -2354,10 +2533,11 @@ function renderTubeCommentsHtml(tubeId){
 }
 
 function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
+    if(!requireLogin("댓글 작성은 로그인 후 이용해주세요."))return;
     const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"tubeCommentWriter");
     const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"tubeCommentPassword");
     const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"tubeCommentContent");
-    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const writer=getLoginNickname()||"익명";
     const password=passwordEl?passwordEl.value.trim():"";
     const content=contentEl?contentEl.value.trim():"";
 
@@ -2696,7 +2876,9 @@ function postBoardApi(payload){
 }
 
 function openBoardForm(){
+    if(!requireLogin("자유게시판 글쓰기는 로그인 후 이용해주세요."))return;
     document.getElementById("boardFormModal").classList.add("active");
+    applyLoginWriterFields();
 }
 
 function closeBoardForm(){
@@ -2716,7 +2898,8 @@ function clearBoardForm(){
 }
 
 function submitBoardPost(){
-    const writer=document.getElementById("boardWriter").value.trim();
+    if(!requireLogin("자유게시판 글쓰기는 로그인 후 이용해주세요."))return;
+    const writer=getLoginNickname();
     const title=document.getElementById("boardTitle").value.trim();
     const category=document.getElementById("boardCategory").value.trim()||"일반";
     const content=document.getElementById("boardContent").value.trim();
@@ -2891,10 +3074,11 @@ function renderBoardCommentsHtml(postId){
 }
 
 function addBoardComment(postId,parentCommentId="",inputPrefix=""){
+    if(!requireLogin("댓글 작성은 로그인 후 이용해주세요."))return;
     const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"commentWriter");
     const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"commentPassword");
     const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"commentContent");
-    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const writer=getLoginNickname()||"익명";
     const password=passwordEl?passwordEl.value.trim():"";
     const content=contentEl?contentEl.value.trim():"";
 
@@ -3381,7 +3565,9 @@ function renderGalleryList(){
 }
 
 function openGalleryForm(){
+    if(!requireLogin("갤러리 사진 올리기는 로그인 후 이용해주세요."))return;
     document.getElementById("galleryFormModal").classList.add("active");
+    applyLoginWriterFields();
 }
 function closeGalleryForm(){
     document.getElementById("galleryFormModal").classList.remove("active");
@@ -3429,7 +3615,8 @@ function readGalleryFiles(files){
 }
 
 function submitGalleryPost(){
-    const writer=document.getElementById("galleryWriter").value.trim();
+    if(!requireLogin("갤러리 사진 올리기는 로그인 후 이용해주세요."))return;
+    const writer=getLoginNickname();
     const title=document.getElementById("galleryTitle").value.trim();
     const category=document.getElementById("galleryCategory").value.trim()||"일반";
     const content=document.getElementById("galleryContent").value.trim();
@@ -3667,10 +3854,11 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
     </div>`;
 }
 function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){
+    if(!requireLogin("댓글 작성은 로그인 후 이용해주세요."))return;
     const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"galleryCommentWriter");
     const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"galleryCommentPassword");
     const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"galleryCommentContent");
-    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const writer=getLoginNickname()||"익명";
     const password=passwordEl?passwordEl.value.trim():"";
     const content=contentEl?contentEl.value.trim():"";
     if(!content||!password){alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");return;}
