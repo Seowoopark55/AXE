@@ -879,6 +879,25 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 /* 우측 노란 개수 말풍선 제거 */
 .count{display:none!important;}
+
+
+/* AXE TUBE 채널형 UI 개선 */
+.tube-channel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px;padding:22px 24px;border:1px solid rgba(255,181,46,.18);border-radius:20px;background:linear-gradient(135deg,rgba(255,181,46,.095),rgba(255,255,255,.025)),rgba(0,0,0,.28);box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.tube-channel-main{min-width:0}
+.tube-channel-kicker{margin-bottom:7px;color:#ffb52e;font-size:12px;font-weight:950;letter-spacing:1.2px}
+.tube-channel-title{font-size:31px;font-weight:950;letter-spacing:.2px;line-height:1.1;color:#fff}
+.tube-channel-desc{margin-top:8px;color:#a9a9a9;font-size:14px;line-height:1.55}
+.tube-channel-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tube-channel-stats span{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#cfcfcf;font-size:12px;font-weight:900}
+.tube-channel-action{flex:none;display:flex;align-items:center;justify-content:flex-end;padding-top:4px}
+.tube-list-shell{margin-top:14px;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(0,0,0,.2)}
+.tube-list-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:15px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.075)}
+.tube-list-title{font-size:19px;font-weight:950;color:#fff;line-height:1.2}
+.tube-list-desc{margin-top:5px;color:#888;font-size:12px;line-height:1.45}
+.tube-list-count{flex:none;min-height:28px;padding:7px 10px;border-radius:999px;background:rgba(255,181,46,.08);border:1px solid rgba(255,181,46,.22);color:#ffb52e;font-size:12px;font-weight:950;white-space:nowrap}
+.tube-list-shell .tube-grid{margin-top:0}
+@media(max-width:760px){.tube-channel-head{display:block;padding:17px 16px;border-radius:17px}.tube-channel-title{font-size:25px}.tube-channel-desc{font-size:13px}.tube-channel-action{padding-top:14px}.tube-channel-action .tube-submit-open{width:100%}.tube-list-shell{padding:14px;border-radius:17px}.tube-list-head{display:block}.tube-list-count{display:inline-flex;margin-top:10px}.tube-channel-stats span{font-size:11px;min-height:26px}}
+
 </style>
 </head>
 
@@ -2987,22 +3006,37 @@ function showTube(){
     enterMainSection("tube");
     setMainActive(2);
     const list=getSortedTubes();
+    const totalComments=list.reduce((sum,t,i)=>sum+getCommentsByTube(getTubeId(t,i)).length,0);
+    const latest=list.length?formatDate(list[0].date):"-";
 
     document.getElementById("content").innerHTML=`
-        <div class="section-head">
-            <div>
-                <div class="section-title">AXE TUBE</div>
-                <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
+        <div class="tube-channel-head">
+            <div class="tube-channel-main">
+                <div class="tube-channel-kicker">AXE MEDIA BOARD</div>
+                <div class="tube-channel-title">AXE TUBE</div>
+                <div class="tube-channel-desc">AXE 활동 영상과 게임 플레이 게시글을 한 곳에서 확인합니다.</div>
+                <div class="tube-channel-stats">
+                    <span>영상 ${list.length}개</span>
+                    <span>댓글 ${totalComments}개</span>
+                    <span>최근 등록 ${latest}</span>
+                </div>
             </div>
-            <div class="count">${list.length}개</div>
+            <div class="tube-channel-action">
+                <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
+            </div>
         </div>
 
-        <div class="tube-actions">
-            <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
-        </div>
-
-        <div class="tube-grid">
-            ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
+        <div class="tube-list-shell">
+            <div class="tube-list-head">
+                <div>
+                    <div class="tube-list-title">최근 영상</div>
+                    <div class="tube-list-desc">등록된 AXE TUBE 게시글 목록입니다.</div>
+                </div>
+                <div class="tube-list-count">${list.length}개 게시글</div>
+            </div>
+            <div class="tube-grid">
+                ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
+            </div>
         </div>`;
 }
 
