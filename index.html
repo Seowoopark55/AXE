@@ -1416,7 +1416,7 @@ function navigateMain(page,push=true){
         history.pushState({page:target},"","#"+target);
     }
 
-    renderMainPage(target);
+    refreshData({silent:true}).finally(()=>renderMainPage(target));
 }
 
 function normalizeSubTab(page,subTab){
@@ -1469,7 +1469,7 @@ function navigateSubTab(page,subTab,push=true){
     }
 
     currentHistoryPage=target;
-    renderSubTab(target,tab);
+    refreshData({silent:true}).finally(()=>renderSubTab(target,tab));
 }
 
 function pushListStateBeforeDetail(page){
@@ -1495,15 +1495,32 @@ function goBackToList(page){
     navigateMain(target);
 }
 
-function initMainHistory(){
-    const startPage="home";
-    currentHistoryPage=startPage;
-    history.replaceState({page:startPage},"",location.pathname+location.search);
-    renderMainPage(startPage);
+function isPageReload(){
+    const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
+    return nav&&nav.type==="reload";
 }
 
-window.addEventListener("popstate",function(event){
-    const state=event.state||{};
+function parseHashState(){
+    const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
+    if(!raw)return {page:"home"};
+
+    if(mainPageKeys.includes(raw))return {page:raw};
+
+    const parts=raw.split("-");
+    const page=normalizeMainPage(parts[0]);
+
+    if(parts.length>=3&&(parts[1]==="notice"||parts[1]==="board"||parts[1]==="tube")){
+        return {page:page,detailType:parts[1],id:parts.slice(2).join("-")};
+    }
+
+    if(parts.length>=2){
+        return {page:page,subTab:parts.slice(1).join("-")};
+    }
+
+    return {page:"home"};
+}
+
+function renderHistoryState(state){
     const page=state.page?state.page:(location.hash.replace("#","")||"home");
 
     if(state.detailType==="notice"&&state.id){
@@ -1531,6 +1548,25 @@ window.addEventListener("popstate",function(event){
     }
 
     renderMainPage(page);
+}
+
+function initMainHistory(){
+    const shouldRestore=isPageReload()&&location.hash;
+    const state=shouldRestore?parseHashState():{page:"home"};
+    currentHistoryPage=state.page||"home";
+
+    if(shouldRestore){
+        history.replaceState(state,"",location.href);
+    }else{
+        history.replaceState({page:"home"},"",location.pathname+location.search);
+    }
+
+    renderHistoryState(state);
+}
+
+window.addEventListener("popstate",function(event){
+    const state=event.state||parseHashState();
+    refreshData({silent:true}).finally(()=>renderHistoryState(state));
 });
 
 function resetInfoState(){
@@ -1578,9 +1614,7 @@ function enterMainSection(section){
     currentMainSection=section;
 }
 
-fetch(API_URL)
-.then(res=>res.json())
-.then(data=>{
+function applyServerData(data){
     crafts=data.crafts||[];
     materials=data.materials||[];
     notices=data.notices||[];
@@ -1596,11 +1630,29 @@ fetch(API_URL)
     skillRanks=data.skillRanks||data.skill_ranks||data.craftRanks||[];
     boards=data.boards||data.boardPosts||data.freeBoard||[];
     boardComments=data.boardComments||data.board_comments||data.comments||[];
+}
+
+function refreshData(options={}){
+    return fetch(API_URL,{cache:"no-store"})
+        .then(res=>res.json())
+        .then(data=>{
+            applyServerData(data);
+            return data;
+        })
+        .catch(err=>{
+            if(!options.silent){
+                document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
+            }
+            throw err;
+        });
+}
+
+refreshData({silent:false})
+.then(()=>{
     initMainHistory();
     hideLoading();
 })
 .catch(()=>{
-    document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
     hideLoading();
 });
 
@@ -3536,7 +3588,7 @@ function showQuest(){
 
 function setQuestJob(job){
     questJobFilter=job;
-    showQuest();
+    refreshData({silent:true}).finally(()=>showQuest());
 }
 
 function onQuestSearch(value){
@@ -3645,7 +3697,7 @@ function showProcess(){
 
 function setProcessJob(job){
     processJobFilter=job;
-    showProcess();
+    refreshData({silent:true}).finally(()=>showProcess());
 }
 
 function onProcessSearch(value){
@@ -3806,7 +3858,7 @@ function showSkillRanks(){
 
 function setSkillRankFilter(skill){
     skillRankFilter=skill;
-    showSkillRanks();
+    refreshData({silent:true}).finally(()=>showSkillRanks());
 }
 
 function onSkillRankSearch(value){
