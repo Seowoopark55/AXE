@@ -1054,6 +1054,35 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+
+/* 댓글 날짜 시간 표시 및 모바일 댓글 액션 최종 정돈 */
+.comment-author-line{display:flex;align-items:center;gap:7px;min-width:0;color:#8d8d8d;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.comment-date-dot{color:#555;flex:none}
+.comment-date-text{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#8d8d8d}
+.comment-item>.comment-actions{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.055)}
+
+@media(max-width:760px){
+    .comment-item{padding:11px 11px!important;border-radius:13px!important}
+    .comment-item.reply{margin-top:9px!important;margin-left:5px!important;padding:10px 10px 10px 11px!important;border-left:2px solid rgba(156,95,255,.42)!important;border-radius:12px!important}
+    .comment-meta{display:block!important;margin-bottom:6px!important}
+    .comment-author-line{display:flex!important;width:100%!important;gap:5px!important;font-size:11px!important;line-height:1.35!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    .comment-writer{font-size:12px!important;max-width:92px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;flex:none!important;color:#ffb52e!important}
+    .comment-date-dot{font-size:11px!important;color:#555!important;flex:none!important}
+    .comment-date-text{font-size:11px!important;color:#8a8a8a!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;min-width:0!important}
+    .comment-content{font-size:14px!important;line-height:1.58!important;margin:6px 0 8px!important}
+    .comment-item>.comment-actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:6px!important;padding-top:7px!important;border-top:1px solid rgba(255,255,255,.045)!important;overflow-x:auto!important;white-space:nowrap!important;scrollbar-width:none!important}
+    .comment-item>.comment-actions::-webkit-scrollbar{display:none!important}
+    .comment-reaction-group{display:inline-flex!important;align-items:center!important;gap:4px!important;width:auto!important;margin:0 2px 0 0!important;flex:none!important}
+    .comment-reaction-btn{height:25px!important;min-width:39px!important;padding:0 7px!important;border-radius:999px!important;font-size:10px!important;gap:3px!important;line-height:1!important;flex:none!important;background:rgba(255,255,255,.035)!important;border-color:rgba(255,255,255,.075)!important}
+    .comment-mini-btn{height:25px!important;min-width:auto!important;padding:0 6px!important;border-radius:999px!important;font-size:10px!important;line-height:1!important;flex:none!important;background:transparent!important;border-color:rgba(255,255,255,.065)!important;color:#999!important}
+    .comment-mini-btn.danger{color:#a0a0a0!important}
+    .comment-mini-btn:hover{background:rgba(255,181,46,.045)!important;color:#ffb52e!important;border-color:rgba(255,181,46,.24)!important}
+    .comment-mini-btn.danger:hover{background:rgba(255,80,80,.045)!important;color:#ff8585!important;border-color:rgba(255,80,80,.24)!important}
+    .comment-reaction-btn.like.active{color:#ffcf75!important;background:rgba(255,181,46,.12)!important;border-color:rgba(255,181,46,.38)!important}
+    .comment-reaction-btn.dislike.active{color:#ff9292!important;background:rgba(255,80,80,.16)!important;border-color:rgba(255,90,90,.42)!important}
+}
+
 </style>
 </head>
 
@@ -1418,6 +1447,7 @@ function catName(cat){return categoryMap[cat]||cat||"-"}
 function scrollToElement(id){const el=document.getElementById(id);if(!el)return;setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function setMainActive(index){document.querySelectorAll(".main-menu button").forEach((btn,i)=>btn.classList.toggle("active",i===index))}
 function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
+function formatDateTime(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`}
 function getNoticeId(n,i){return String(n.id||n.title||i)}
 function isImportant(v){return String(v).toUpperCase()==="TRUE"}
 
@@ -1938,18 +1968,18 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
-            <div class="comment-actions">
-                <span class="comment-reaction-group">
-                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
-                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
-                </span>
-                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
-                <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
-                <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
-            </div>
+            <div class="comment-author-line"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date-dot">·</span><span class="comment-date-text">${comment.updated_at?`수정 ${formatDateTime(comment.updated_at)}`:formatDateTime(comment.date)}</span></div>
         </div>
         <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
+        <div class="comment-actions">
+            <span class="comment-reaction-group">
+                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
+                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
+            </span>
+            ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+            <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
+            <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
+        </div>
         <div id="commentEdit_${scope}_${domSafeId(commentId)}"></div>
         ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
         ${replyHtml}
