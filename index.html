@@ -1257,7 +1257,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .detail-updated-text{font-size:9.5px!important;}
 }
 
-/* F5 새로고침 시에는 최초 접속 로딩 연출 숨김 */
+/* 같은 탭에서 F5 새로고침 시에는 최초 접속 로딩 연출 숨김 */
 html.reload-mode #loadingScreen{display:none!important}
 
 </style>
@@ -1268,7 +1268,9 @@ html.reload-mode #loadingScreen{display:none!important}
 (function(){
     try{
         const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
-        if(nav&&nav.type==="reload"){
+        const sameTabSession=sessionStorage.getItem("axe_net_session_alive")==="1";
+        const shouldRestoreInSameTab=sameTabSession&&!!location.hash;
+        if((nav&&nav.type==="reload")||shouldRestoreInSameTab){
             document.documentElement.classList.add("reload-mode");
         }
     }catch(e){}
@@ -1511,9 +1513,23 @@ function goBackToList(page){
     navigateMain(target);
 }
 
+function isSameTabRefresh(){
+    try{
+        return sessionStorage.getItem("axe_net_session_alive")==="1";
+    }catch(e){
+        return false;
+    }
+}
+
+function markSameTabSession(){
+    try{
+        sessionStorage.setItem("axe_net_session_alive","1");
+    }catch(e){}
+}
+
 function isPageReload(){
     const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
-    return nav&&nav.type==="reload";
+    return (nav&&nav.type==="reload")||isSameTabRefresh();
 }
 
 function parseHashState(){
@@ -1577,6 +1593,7 @@ function initMainHistory(){
         history.replaceState({page:"home"},"",location.pathname+location.search);
     }
 
+    markSameTabSession();
     renderHistoryState(state);
 }
 
