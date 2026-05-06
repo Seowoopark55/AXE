@@ -4301,14 +4301,46 @@ function selectOutlawGuide(id){
     scrollToElement("guideDetailBox");
 }
 
-/* 호환용 별칭 함수: 기존 버튼 호출명(dislikeTubeOnce) 오류 방지 */
-if (typeof dislikeTubeOnce !== "function") {
-    function dislikeTubeOnce(id){
-        if (typeof toggleTubeDislike === "function") {
-            toggleTubeDislike(id);
-        }
+/* 기존 onclick 호출명 호환 패치 */
+window.dislikeTubeOnce = function(id){
+    if (typeof window.toggleTubeDislike === "function") {
+        return window.toggleTubeDislike(id);
     }
-}
+    if (typeof toggleTubeDislike === "function") {
+        return toggleTubeDislike(id);
+    }
+    alert("비추천 함수가 아직 로드되지 않았습니다. 새로고침 후 다시 시도해주세요.");
+};
+
+window.likeTubeOnce = function(id){
+    if (typeof window.toggleTubeLike === "function") {
+        return window.toggleTubeLike(id);
+    }
+    if (typeof toggleTubeLike === "function") {
+        return toggleTubeLike(id);
+    }
+    alert("추천 함수가 아직 로드되지 않았습니다. 새로고침 후 다시 시도해주세요.");
+};
+
+window.dislikeBoardOnce = function(id){
+    if (typeof window.toggleBoardDislike === "function") {
+        return window.toggleBoardDislike(id);
+    }
+    if (typeof toggleBoardDislike === "function") {
+        return toggleBoardDislike(id);
+    }
+    alert("비추천 함수가 아직 로드되지 않았습니다. 새로고침 후 다시 시도해주세요.");
+};
+
+window.likeBoardOnce = function(id){
+    if (typeof window.toggleBoardLike === "function") {
+        return window.toggleBoardLike(id);
+    }
+    if (typeof toggleBoardLike === "function") {
+        return toggleBoardLike(id);
+    }
+    alert("추천 함수가 아직 로드되지 않았습니다. 새로고침 후 다시 시도해주세요.");
+};
 
 </script>
 </body>
