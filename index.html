@@ -893,6 +893,50 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-updated-label{margin-left:0}
 }
 
+
+
+/* 자유게시판 목록 균형 정돈 */
+.board-table-head,.board-table-row{
+    grid-template-columns:minmax(260px,1fr) 118px 158px 64px 76px!important;
+    gap:10px!important;
+}
+.board-table-head>div{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+}
+.board-table-head>div:first-child{
+    justify-content:flex-start;
+}
+.board-table-row{
+    min-height:56px;
+}
+.board-table-row:hover{
+    padding-left:16px!important;
+}
+.board-table-title{
+    display:flex;
+    align-items:center;
+    min-width:0;
+}
+.board-table-cell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.board-table-cell.date{
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.2px;
+}
+@media(max-width:760px){
+    .board-table-head,.board-table-row{grid-template-columns:1fr!important}
+    .board-table-cell{justify-content:flex-start}
+}
+
 </style>
 </head>
 
@@ -2376,7 +2420,7 @@ function renderBoardList(){
         return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
             <div class="board-table-title">${title}</div>
             <div class="board-table-cell">${safe(post.writer)}</div>
-            <div class="board-table-cell">${formatDate(post.date)}</div>
+            <div class="board-table-cell date">${formatDate(post.date)}</div>
             <div class="board-table-cell">${Number(post.views||0)}</div>
             <div class="board-table-cell">👍 ${Number(post.likes||0)}</div>
         </div>`;
