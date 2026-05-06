@@ -1257,18 +1257,22 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 /* 회원 로그인 UI */
-.auth-bar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:-6px 0 18px;min-height:38px}
-.auth-user{display:inline-flex;align-items:center;gap:8px;color:#ddd;font-size:13px;font-weight:900;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 12px}
-.auth-user strong{color:#ffb52e;font-weight:950}
+.auth-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:-6px 0 14px;min-height:36px}
+.auth-user{display:inline-flex;align-items:center;gap:6px;color:#ddd;font-size:13px;font-weight:950;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:8px 14px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.auth-user strong{color:#ffb52e;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .auth-btn{height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease}
 .auth-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
 .auth-btn.primary{background:#ffb52e;color:#111;border-color:#ffb52e}
 .auth-btn.primary:hover{color:#111;filter:brightness(1.06)}
-.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .auth-tab{height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#aaa;font-weight:950;cursor:pointer}
 .auth-tab.active{background:#ffb52e;color:#111;border-color:#ffb52e}
-.auth-message{min-height:18px;margin-top:10px;color:#ffcf75;font-size:12px;line-height:1.45}
+.auth-message{min-height:18px;margin-top:8px;color:#ffcf75;font-size:12px;line-height:1.45}
 .login-required-hint{margin-top:8px;color:#888;font-size:12px;line-height:1.45}
+.auth-form-row{margin-bottom:8px}
+.auth-form-row .form-label{margin:8px 0 5px}
+#authModal .form-submit{margin-top:10px}
+
 @media(max-width:768px){.auth-bar{justify-content:stretch;margin:-2px 0 12px}.auth-user{flex:1;justify-content:center;min-width:0}.auth-btn{flex:1}.auth-user span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
 </style>
@@ -1436,10 +1440,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             </div>
 
             <div class="form-label">닉네임</div>
-            <input class="form-input" id="authNickname" placeholder="닉네임을 입력하세요" autocomplete="username">
+            <input class="form-input" id="authNickname" placeholder="닉네임을 입력하세요" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 
             <div class="form-label">비밀번호</div>
-            <input class="form-input" id="authPassword" type="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAuth()">
+            <input class="form-input" id="authPassword" type="password" placeholder="비밀번호를 입력하세요" autocomplete="new-password" onkeydown="if(event.key==='Enter') submitAuth()">
 
             <button class="form-submit" id="authSubmitBtn" onclick="submitAuth()">로그인</button>
             <div class="auth-message" id="authMessage"></div>
@@ -1455,6 +1459,7 @@ const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버
 
 let authMode="login";
 const AUTH_STORAGE_KEY="axe_net_current_user";
+const AUTH_LAST_NICKNAME_KEY="axe_net_last_nickname";
 
 function getCurrentUser(){
     try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||"null");}catch(e){return null;}
@@ -1472,7 +1477,7 @@ function renderAuthBar(){
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
-        box.innerHTML=`<div class="auth-user"><span>로그인</span><strong>${safe(user.nickname)}</strong><span>${safe(user.role||"user")}</span></div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}"><strong>${safe(user.nickname)}</strong></div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
@@ -1482,11 +1487,17 @@ function openAuthModal(mode){
     switchAuthMode(mode||"login");
     const modal=document.getElementById("authModal");
     if(!modal)return;
-    document.getElementById("authNickname").value="";
-    document.getElementById("authPassword").value="";
+    const nicknameInput=document.getElementById("authNickname");
+    const passwordInput=document.getElementById("authPassword");
+    const savedNickname=localStorage.getItem(AUTH_LAST_NICKNAME_KEY)||"";
+    if(nicknameInput)nicknameInput.value=(authMode==="login"?savedNickname:"");
+    if(passwordInput)passwordInput.value="";
     document.getElementById("authMessage").textContent="";
     modal.classList.add("active");
-    setTimeout(()=>document.getElementById("authNickname")?.focus(),60);
+    setTimeout(()=>{
+        const target=(authMode==="login"&&savedNickname)?passwordInput:nicknameInput;
+        target?.focus();
+    },60);
 }
 
 function closeAuthModal(){
@@ -1525,6 +1536,7 @@ function submitAuth(){
     .then(res=>res.json())
     .then(data=>{
         if(data.result==="success"&&data.user){
+            localStorage.setItem(AUTH_LAST_NICKNAME_KEY,data.user.nickname||nickname);
             setCurrentUser(data.user);
             closeAuthModal();
             alert(data.message||"처리되었습니다.");
