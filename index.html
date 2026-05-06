@@ -1366,9 +1366,9 @@ html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
         <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('outlaw')">무법지대</button>
         <button onclick="navigateMain('board')">자유게시판</button>
+        <button onclick="navigateMain('gallery')">갤러리</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
-        <button onclick="navigateMain('gallery')">갤러리</button>
     </div>
     </div>
 
@@ -1472,7 +1472,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","tube","outlaw","board","info","utility","gallery"];
+const mainPageKeys=["home","notice","tube","outlaw","board","gallery","info","utility"];
 
 function normalizeMainPage(page){
     return mainPageKeys.includes(page)?page:"home";
@@ -2313,7 +2313,7 @@ function toggleCommentReplyForm(formId){
 
 function renderReplyForm(scope,ownerId,parentCommentId){
     const prefix=scope+"Reply_"+String(parentCommentId).replace(/[^a-zA-Z0-9_\-]/g,"_");
-    const addFn=scope==="board"?"addBoardComment":"addTubeComment";
+    const addFn=scope==="board"?"addBoardComment":(scope==="gallery"?"addGalleryComment":"addTubeComment");
     return `<div class="comment-reply-form" id="${prefix}Form">
         <input class="comment-input" id="${prefix}Writer" placeholder="작성자">
         <input class="comment-input" id="${prefix}Password" type="password" placeholder="삭제 비밀번호">
@@ -2322,13 +2322,19 @@ function renderReplyForm(scope,ownerId,parentCommentId){
     </div>`;
 }
 
+function getScopedCommentId(scope,comment,index){
+    if(scope==="board")return getCommentId(comment,index);
+    if(scope==="gallery")return getGalleryCommentId(comment,index);
+    return getTubeCommentId(comment,index);
+}
+
 function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
-    const commentId=scope==="board"?getCommentId(comment,index):getTubeCommentId(comment,index);
+    const commentId=getScopedCommentId(scope,comment,index);
     const liked=hasLikedComment(scope,commentId);
     const disliked=hasDislikedComment(scope,commentId);
-    const deleteFn=scope==="board"?"deleteBoardComment":"deleteTubeComment";
-    const likeFn=scope==="board"?"toggleBoardCommentLike":"toggleTubeCommentLike";
-    const dislikeFn=scope==="board"?"toggleBoardCommentDislike":"toggleTubeCommentDislike";
+    const deleteFn=scope==="board"?"deleteBoardComment":(scope==="gallery"?"deleteGalleryComment":"deleteTubeComment");
+    const likeFn=scope==="board"?"toggleBoardCommentLike":(scope==="gallery"?"toggleGalleryCommentLike":"toggleTubeCommentLike");
+    const dislikeFn=scope==="board"?"toggleBoardCommentDislike":(scope==="gallery"?"toggleGalleryCommentDislike":"toggleTubeCommentDislike");
     const formId=scope+"Reply_"+String(commentId).replace(/[^a-zA-Z0-9_\-]/g,"_")+"Form";
     const replies=getReplyComments(allComments,commentId);
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
@@ -2354,8 +2360,9 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
 
 function startEditComment(scope,commentId,ownerId){
     const isBoard=scope==="board";
-    const list=isBoard?boardComments:tubeComments;
-    const getId=isBoard?getCommentId:getTubeCommentId;
+    const isGallery=scope==="gallery";
+    const list=isBoard?boardComments:(isGallery?galleryComments:tubeComments);
+    const getId=isBoard?getCommentId:(isGallery?getGalleryCommentId:getTubeCommentId);
     const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
     if(!target){alert("댓글을 찾을 수 없습니다.");return;}
 
@@ -2385,6 +2392,7 @@ function cancelEditComment(scope,commentId){
 
 function submitEditComment(scope,commentId,ownerId){
     const isBoard=scope==="board";
+    const isGallery=scope==="gallery";
     const contentEl=document.getElementById(`commentEditContent_${scope}_${domSafeId(commentId)}`);
     const passwordEl=document.getElementById(`commentEditPassword_${scope}_${domSafeId(commentId)}`);
     const content=contentEl?contentEl.value.trim():"";
@@ -2393,22 +2401,24 @@ function submitEditComment(scope,commentId,ownerId){
     if(!content){alert("댓글 내용은 비울 수 없습니다.");return;}
     if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
 
-    const api=isBoard?postBoardApi:postTubeApi;
+    const api=isBoard?postBoardApi:(isGallery?postGalleryApi:postTubeApi);
     const payload=isBoard
         ? {type:"board_comment_update",comment_id:commentId,password:password,content:content}
-        : {type:"tube_comment_update",comment_id:commentId,password:password,content:content};
+        : (isGallery
+            ? {type:"gallery_comment_update",comment_id:commentId,password:password,content:content}
+            : {type:"tube_comment_update",comment_id:commentId,password:password,content:content});
 
     api(payload)
     .then(data=>{
         if(data.result==="success"){
-            const list=isBoard?boardComments:tubeComments;
-            const getId=isBoard?getCommentId:getTubeCommentId;
+            const list=isBoard?boardComments:(isGallery?galleryComments:tubeComments);
+            const getId=isBoard?getCommentId:(isGallery?getGalleryCommentId:getTubeCommentId);
             const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
             if(target){
                 target.content=content;
                 target.updated_at=data.updated_at||new Date().toISOString();
             }
-            if(isBoard){openBoardDetail(ownerId);}else{openTubeDetail(ownerId,false);}
+            if(isBoard){openBoardDetail(ownerId);}else if(isGallery){openGalleryDetail(ownerId,false);}else{openTubeDetail(ownerId,false);}
         }else{
             alert(data.message||"댓글 수정 중 오류가 발생했습니다.");
         }
@@ -3449,7 +3459,7 @@ function renderGalleryCard(g,index){
 }
 function showGallery(){
     enterMainSection("gallery");
-    setMainActive(7);
+    setMainActive(5);
     const list=getSortedGalleries();
     document.getElementById("content").innerHTML=`
         <div class="section-head">
@@ -3461,7 +3471,7 @@ function showGallery(){
 }
 function openGalleryDetail(id,addHistory=false,addView=false){
     if(addHistory)pushDetailState("gallery","gallery",id);
-    selectedGalleryId=id;currentHistoryPage="gallery";setMainActive(7);
+    selectedGalleryId=id;currentHistoryPage="gallery";setMainActive(5);
     const target=findGalleryById(id);if(!target){showGallery();return;}
     if(addView){postGalleryApi({type:"gallery_view",id:id}).catch(()=>{});target.views=Number(target.views||0)+1;}
     const comments=getCommentsByGallery(id);
@@ -3488,19 +3498,41 @@ function undislikeGallery(id){postGalleryApi({type:"gallery_undislike",id,client
 function renderGalleryCommentsHtml(galleryId){
     const comments=getCommentsByGallery(galleryId);
     if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
-    return comments.map((c,i)=>`<div class="comment-item"><div class="comment-meta"><div class="comment-author-line"><span class="comment-writer">${safe(c.writer||"익명")}</span><span class="comment-date-dot">·</span><span class="comment-date-text">${c.updated_at?`수정 ${formatDateTime(c.updated_at)}`:formatDateTime(c.date)}</span></div></div><div class="comment-content">${safe(c.content)}</div><div class="comment-actions"><button class="comment-mini-btn danger" onclick="deleteGalleryComment('${escapeText(getGalleryCommentId(c,i))}','${escapeText(galleryId)}')">삭제</button></div></div>`).join("");
+    const roots=getRootComments(comments);
+    return roots.map((comment,index)=>renderCommentItem("gallery",galleryId,comment,index,comments,false)).join("");
 }
-function addGalleryComment(galleryId){
-    const writer=document.getElementById("galleryCommentWriter").value.trim()||"익명";
-    const password=document.getElementById("galleryCommentPassword").value.trim();
-    const content=document.getElementById("galleryCommentContent").value.trim();
+function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){
+    const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"galleryCommentWriter");
+    const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"galleryCommentPassword");
+    const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"galleryCommentContent");
+    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const password=passwordEl?passwordEl.value.trim():"";
+    const content=contentEl?contentEl.value.trim():"";
     if(!content||!password){alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");return;}
-    postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,writer,content,password,parent_comment_id:""}).then(data=>{if(data.result==="success"){galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:"",writer,content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 등록 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
+    postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,writer,content,password,parent_comment_id:parentCommentId||""}).then(data=>{
+        if(data.result==="success"){
+            galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer,content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});
+            openGalleryDetail(galleryId,false);
+        }else alert(data.message||"댓글 등록 중 오류가 발생했습니다.");
+    }).catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
 }
 function deleteGalleryComment(commentId,galleryId){
-    const password=prompt("댓글 삭제 비밀번호를 입력하세요."); if(password===null)return; if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
-    postGalleryApi({type:"gallery_comment_delete",comment_id:commentId,password:password.trim()}).then(data=>{if(data.result==="success"){const deleted=(data.deleted_comment_ids||[commentId]).map(String);galleryComments=galleryComments.filter((c,i)=>!deleted.includes(getGalleryCommentId(c,i)));openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다."); if(password===null)return; if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    postGalleryApi({type:"gallery_comment_delete",comment_id:commentId,password:password.trim()}).then(data=>{
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            galleryComments=galleryComments.filter((c,i)=>!deleted.includes(getGalleryCommentId(c,i)));
+            deleted.forEach(id=>{unmarkCommentLiked("gallery",id);unmarkCommentDisliked("gallery",id);});
+            openGalleryDetail(galleryId,false);
+        }else alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
+    }).catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
 }
+function toggleGalleryCommentLike(commentId,galleryId){hasLikedComment("gallery",commentId)?unlikeGalleryComment(commentId,galleryId):likeGalleryComment(commentId,galleryId)}
+function likeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_like",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){const wasDisliked=hasDislikedComment("gallery",commentId);markCommentLiked("gallery",commentId);unmarkCommentDisliked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t){t.likes=Number(t.likes||0)+1;if(wasDisliked)t.dislikes=Math.max(0,Number(t.dislikes||0)-1);}openGalleryDetail(galleryId,false);}else if(data.result==="duplicate"){markCommentLiked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 추천 처리 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 추천 처리 중 오류가 발생했습니다."));}
+function unlikeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_unlike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){unmarkCommentLiked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t)t.likes=Math.max(0,Number(t.likes||0)-1);openGalleryDetail(galleryId,false);}else if(data.result==="not_found"){unmarkCommentLiked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 추천 취소 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));}
+function toggleGalleryCommentDislike(commentId,galleryId){hasDislikedComment("gallery",commentId)?undislikeGalleryComment(commentId,galleryId):dislikeGalleryComment(commentId,galleryId)}
+function dislikeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_dislike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){const wasLiked=hasLikedComment("gallery",commentId);markCommentDisliked("gallery",commentId);unmarkCommentLiked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t){t.dislikes=Number(t.dislikes||0)+1;if(wasLiked)t.likes=Math.max(0,Number(t.likes||0)-1);}openGalleryDetail(galleryId,false);}else if(data.result==="duplicate"){markCommentDisliked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 비추천 처리 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 비추천 처리 중 오류가 발생했습니다."));}
+function undislikeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_undislike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){unmarkCommentDisliked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t)t.dislikes=Math.max(0,Number(t.dislikes||0)-1);openGalleryDetail(galleryId,false);}else if(data.result==="not_found"){unmarkCommentDisliked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 비추천 취소 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 비추천 취소 중 오류가 발생했습니다."));}
 function startEditGalleryPost(id){
     const target=findGalleryById(id);if(!target){alert("갤러리 글을 찾을 수 없습니다.");return;}
     const box=document.getElementById("galleryDetailBox");if(!box)return;
@@ -3760,7 +3792,7 @@ function showTube(){
 
 function showInfo(){
     enterMainSection("info");
-    setMainActive(5);
+    setMainActive(6);
     showCraft();
 }
 
@@ -3776,12 +3808,12 @@ function utilityMenu(active){
 
 function showUtility(){
     enterMainSection("utility");
-    setMainActive(6);
+    setMainActive(7);
     showPlicaCalculator();
 }
 
 function showPlicaCalculator(){
-    setMainActive(6);
+    setMainActive(7);
 
     document.getElementById("content").innerHTML=`
     <div class="section-head">
@@ -3865,7 +3897,7 @@ function calcPlica(){
 
 
 function showQuest(){
-    setMainActive(5);
+    setMainActive(6);
     const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
@@ -3974,7 +4006,7 @@ function renderQuestTable(){
 
 
 function showProcess(){
-    setMainActive(5);
+    setMainActive(6);
     const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
 
@@ -4131,7 +4163,7 @@ function renderProcessCards(){
 
 
 function showSkillRanks(){
-    setMainActive(5);
+    setMainActive(6);
     const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
 
@@ -4357,7 +4389,7 @@ function renderModOption(v){
 }
 
 function showModBooks(){
-    setMainActive(5);
+    setMainActive(6);
     if(!modBookTypeFilter)modBookTypeFilter="접두";
     const categories=getModBookCategories();
     if(!modBookCategoryFilter||!categories.includes(modBookCategoryFilter))modBookCategoryFilter=categories[0]||"";
@@ -4533,7 +4565,7 @@ function selectModBook(key){
 }
 
 function showCraft(){
-    setMainActive(5);
+    setMainActive(6);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
     let html=`
