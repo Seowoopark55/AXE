@@ -1259,6 +1259,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 /* 같은 탭에서 F5 새로고침 시에는 최초 접속 로딩 연출 숨김 */
 html.reload-mode #loadingScreen{display:none!important}
+/* F5 복원 중 상단 메뉴 메인 선활성화 방지 */
+html.reload-mode .main-menu button.active{color:#cfcfcf;background:transparent}
+html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
+
 
 </style>
 </head>
@@ -1295,7 +1299,7 @@ html.reload-mode #loadingScreen{display:none!important}
 
     <div class="main-menu-shell">
     <div class="main-menu">
-        <button class="active" onclick="navigateMain('home')">메인</button>
+        <button onclick="navigateMain('home')">메인</button>
         <button onclick="navigateMain('notice')">공지사항</button>
         <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('outlaw')">무법지대</button>
