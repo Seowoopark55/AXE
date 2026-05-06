@@ -1132,6 +1132,122 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-edit-actions{gap:6px!important}
 }
 
+
+/* 모바일 댓글 레이아웃 v3: 작성자·날짜 / 내용 / 액션 순서 고정 */
+.comment-date{color:#8d8d8d;font-size:12px;font-weight:800;white-space:nowrap}
+.comment-meta-left .comment-date::before{content:"·";margin:0 6px;color:#555;font-weight:900}
+
+@media(max-width:760px){
+    .comment-item{
+        display:block!important;
+        padding:9px 10px!important;
+        border-radius:11px!important;
+    }
+    .comment-item.reply{
+        margin-top:8px!important;
+        margin-left:7px!important;
+        padding:8px 9px 8px 10px!important;
+        border-left:2px solid rgba(156,95,255,.48)!important;
+    }
+    .comment-meta{
+        display:flex!important;
+        justify-content:space-between!important;
+        align-items:flex-start!important;
+        gap:8px!important;
+        margin:0 0 5px!important;
+        padding:0!important;
+        border:0!important;
+    }
+    .comment-meta-left{
+        min-width:0!important;
+        display:flex!important;
+        align-items:center!important;
+        gap:0!important;
+        flex-wrap:nowrap!important;
+        line-height:1.25!important;
+    }
+    .comment-writer{
+        flex:0 1 auto!important;
+        max-width:42vw!important;
+        display:inline-block!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+        white-space:nowrap!important;
+        font-size:12.5px!important;
+        line-height:1.25!important;
+        margin:0!important;
+        color:#ffb52e!important;
+    }
+    .comment-date{
+        flex:0 0 auto!important;
+        font-size:11px!important;
+        color:#858585!important;
+        line-height:1.25!important;
+        letter-spacing:-.2px!important;
+    }
+    .comment-updated-label{
+        flex:0 0 auto!important;
+        margin:0!important;
+        padding:1px 5px!important;
+        border-radius:999px!important;
+        border:1px solid rgba(255,181,46,.22)!important;
+        background:rgba(255,181,46,.06)!important;
+        color:#ffcf75!important;
+        font-size:10px!important;
+        font-weight:950!important;
+        line-height:1.3!important;
+        white-space:nowrap!important;
+    }
+    .comment-content{
+        margin:5px 0 7px!important;
+        font-size:13px!important;
+        line-height:1.55!important;
+        color:#ddd!important;
+        word-break:break-word!important;
+    }
+    .comment-actions{
+        display:flex!important;
+        flex-wrap:wrap!important;
+        align-items:center!important;
+        justify-content:flex-start!important;
+        gap:5px!important;
+        width:100%!important;
+        margin-top:0!important;
+        padding-top:6px!important;
+        border-top:1px solid rgba(255,255,255,.045)!important;
+    }
+    .comment-reaction-group{
+        width:auto!important;
+        display:inline-flex!important;
+        gap:4px!important;
+        margin:0!important;
+    }
+    .comment-reaction-btn,
+    .comment-mini-btn{
+        height:27px!important;
+        min-width:auto!important;
+        padding:0 8px!important;
+        border-radius:8px!important;
+        font-size:11px!important;
+        line-height:1!important;
+        flex:0 0 auto!important;
+    }
+    .comment-reaction-btn{min-width:46px!important}
+    .comment-form-grid{
+        padding:9px!important;
+        gap:6px!important;
+        border-radius:11px!important;
+    }
+    .comment-input,.comment-textarea{
+        min-height:36px!important;
+        padding:8px 9px!important;
+        font-size:13px!important;
+        border-radius:9px!important;
+    }
+    .comment-textarea{min-height:58px!important;line-height:1.45!important}
+    .comment-submit{height:36px!important;font-size:13px!important;border-radius:9px!important}
+}
+
 </style>
 </head>
 
@@ -2146,18 +2262,19 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}${comment.updated_at?`<span class="comment-updated-label">수정됨</span>`:""}</div>
-            <div class="comment-actions">
-                <span class="comment-reaction-group">
-                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
-                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
-                </span>
-                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
-                <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
-                <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
-            </div>
+            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date">${formatDate(comment.date)}</span></div>
+            ${comment.updated_at?`<div class="comment-updated-label">수정됨</div>`:""}
         </div>
         <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
+        <div class="comment-actions">
+            <span class="comment-reaction-group">
+                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
+                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
+            </span>
+            ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+            <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
+            <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
+        </div>
         <div id="commentEdit_${scope}_${domSafeId(commentId)}"></div>
         ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
         ${replyHtml}
@@ -3528,17 +3645,18 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
     const replyHtml=replies.map((reply,replyIndex)=>renderGalleryCommentItem(galleryId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}${comment.updated_at?`<span class="comment-updated-label">수정됨</span>`:""}</div>
-            <div class="comment-actions">
-                <span class="comment-reaction-group">
-                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="toggleGalleryCommentLike('${escapeText(commentId)}','${escapeText(galleryId)}')">👍 <span>${Number(comment.likes||0)}</span></button>
-                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="toggleGalleryCommentDislike('${escapeText(commentId)}','${escapeText(galleryId)}')">👎 <span>${Number(comment.dislikes||0)}</span></button>
-                </span>
-                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
-                <button class="comment-mini-btn danger" onclick="deleteGalleryComment('${escapeText(commentId)}','${escapeText(galleryId)}')">삭제</button>
-            </div>
+            <div class="comment-meta-left"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date">${formatDate(comment.date)}</span></div>
+            ${comment.updated_at?`<div class="comment-updated-label">수정됨</div>`:""}
         </div>
         <div class="comment-content">${safe(comment.content)}</div>
+        <div class="comment-actions">
+            <span class="comment-reaction-group">
+                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="toggleGalleryCommentLike('${escapeText(commentId)}','${escapeText(galleryId)}')">👍 <span>${Number(comment.likes||0)}</span></button>
+                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="toggleGalleryCommentDislike('${escapeText(commentId)}','${escapeText(galleryId)}')">👎 <span>${Number(comment.dislikes||0)}</span></button>
+            </span>
+            ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+            <button class="comment-mini-btn danger" onclick="deleteGalleryComment('${escapeText(commentId)}','${escapeText(galleryId)}')">삭제</button>
+        </div>
         ${!isReply?`<div class="comment-reply-form" id="${formId}">
             <input class="comment-input" id="${formId}Writer" placeholder="작성자">
             <input class="comment-input" id="${formId}Password" type="password" placeholder="삭제 비밀번호">
