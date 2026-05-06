@@ -850,503 +850,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-item.reply{margin-top:16px!important;margin-left:8px!important;padding-left:13px!important;border-left:3px solid rgba(156,95,255,.55)}
 }
 
-
-
-/* 비추천 선택 상태 강조 */
-.reaction-btn.dislike.active{
-    border-color:rgba(255,80,80,.85)!important;
-    background:linear-gradient(135deg,rgba(255,80,80,.28),rgba(90,20,20,.38))!important;
-    color:#ff8a8a!important;
-    box-shadow:
-        0 0 0 1px rgba(255,80,80,.18) inset,
-        0 8px 22px rgba(255,80,80,.22)!important;
-}
-
-.reaction-btn.dislike.active:hover{
-    background:linear-gradient(135deg,rgba(255,80,80,.34),rgba(110,25,25,.45))!important;
-    border-color:rgba(255,110,110,.95)!important;
-    color:#ffb0b0!important;
-}
-
-.comment-reaction-btn.dislike.active{
-    color:#ff9a9a!important;
-    background:rgba(255,80,80,.22)!important;
-    border-color:rgba(255,90,90,.65)!important;
-    box-shadow:0 0 0 1px rgba(255,80,80,.12) inset!important;
-}
-
-
-
-/* 우측 노란 개수 말풍선 제거 */
-.count{display:none!important;}
-
-
-/* AXE TUBE 채널형 UI 개선 */
-.tube-channel-head{display:block;margin-bottom:18px;padding:22px 24px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(0,0,0,.22);box-shadow:0 14px 34px rgba(0,0,0,.18)}
-.tube-channel-main{min-width:0}
-.tube-channel-kicker{margin-bottom:7px;color:#ffb52e;font-size:12px;font-weight:950;letter-spacing:1.2px}
-.tube-channel-title{font-size:31px;font-weight:950;letter-spacing:.2px;line-height:1.1;color:#fff}
-.tube-channel-desc{margin-top:8px;color:#a9a9a9;font-size:14px;line-height:1.55}
-.tube-channel-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.tube-channel-stats span{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#cfcfcf;font-size:12px;font-weight:900}
-.tube-channel-action{flex:none;display:flex;align-items:center;justify-content:flex-end;padding-top:4px}
-.tube-list-shell{margin-top:14px;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(0,0,0,.2)}
-.tube-list-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:15px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.075)}
-.tube-list-title{font-size:19px;font-weight:950;color:#fff;line-height:1.2}
-.tube-list-desc{margin-top:5px;color:#888;font-size:12px;line-height:1.45}
-.tube-list-action{flex:none;display:flex;align-items:center;justify-content:flex-end}.tube-list-action .tube-submit-open{height:40px;min-width:74px}
-.tube-list-shell .tube-grid{margin-top:0}
-@media(max-width:760px){.tube-channel-head{padding:17px 16px;border-radius:17px}.tube-channel-title{font-size:25px}.tube-channel-desc{font-size:13px}.tube-list-shell{padding:14px;border-radius:17px}.tube-list-head{display:flex;align-items:center}.tube-list-action .tube-submit-open{width:auto;height:38px}}
-
-
-
-/* 모바일 댓글/대댓글 압축형 UI 개선 */
-@media(max-width:760px){
-    .comment-section{
-        margin-top:16px!important;
-        padding-top:14px!important;
-    }
-    .comment-title{
-        font-size:15px!important;
-        margin-bottom:10px!important;
-    }
-    .comment-list{
-        gap:9px!important;
-        margin-bottom:14px!important;
-    }
-    .comment-item{
-        padding:12px 12px!important;
-        border-radius:14px!important;
-        background:rgba(0,0,0,.24)!important;
-    }
-    .comment-item.reply{
-        margin-top:10px!important;
-        margin-left:6px!important;
-        padding:11px 11px 11px 12px!important;
-        border-left:2px solid rgba(156,95,255,.45)!important;
-        border-radius:13px!important;
-        background:rgba(156,95,255,.04)!important;
-        border-color:rgba(156,95,255,.18)!important;
-    }
-    .comment-meta{
-        display:flex!important;
-        align-items:center!important;
-        justify-content:space-between!important;
-        gap:8px!important;
-        margin-bottom:7px!important;
-        font-size:11px!important;
-        line-height:1.35!important;
-    }
-    .comment-meta>div:first-child{
-        margin-bottom:0!important;
-        min-width:0!important;
-        color:#8c8c8c!important;
-        white-space:nowrap!important;
-        overflow:hidden!important;
-        text-overflow:ellipsis!important;
-    }
-    .comment-writer{
-        display:inline!important;
-        margin-right:3px!important;
-        font-size:12px!important;
-        color:#ffb52e!important;
-    }
-    .comment-content{
-        font-size:14px!important;
-        line-height:1.62!important;
-        margin:7px 0 9px!important;
-        word-break:break-word!important;
-    }
-    .comment-actions{
-        display:flex!important;
-        flex-wrap:wrap!important;
-        align-items:center!important;
-        gap:5px!important;
-        padding-top:7px!important;
-        border-top:1px solid rgba(255,255,255,.045)!important;
-    }
-    .comment-reaction-group{
-        display:inline-flex!important;
-        width:auto!important;
-        gap:5px!important;
-        margin:0 4px 0 0!important;
-    }
-    .comment-reaction-btn{
-        height:28px!important;
-        min-width:45px!important;
-        padding:0 8px!important;
-        border-radius:999px!important;
-        font-size:11px!important;
-        line-height:1!important;
-        flex:0 0 auto!important;
-        background:rgba(255,255,255,.04)!important;
-    }
-    .comment-reaction-btn.like.active{
-        color:#ffcf75!important;
-        background:rgba(255,181,46,.12)!important;
-        border-color:rgba(255,181,46,.42)!important;
-    }
-    .comment-reaction-btn.dislike.active{
-        color:#ff8f8f!important;
-        background:rgba(255,80,80,.16)!important;
-        border-color:rgba(255,90,90,.46)!important;
-    }
-    .comment-mini-btn{
-        height:28px!important;
-        min-width:auto!important;
-        padding:0 7px!important;
-        border-radius:8px!important;
-        font-size:11px!important;
-        flex:0 0 auto!important;
-        color:#9b9b9b!important;
-        background:transparent!important;
-        border:1px solid rgba(255,255,255,.07)!important;
-    }
-    .comment-mini-btn:hover{
-        color:#ffb52e!important;
-        border-color:rgba(255,181,46,.32)!important;
-        background:rgba(255,181,46,.045)!important;
-    }
-    .comment-mini-btn.danger:hover{
-        color:#ff7777!important;
-        border-color:rgba(255,90,90,.38)!important;
-        background:rgba(255,80,80,.045)!important;
-    }
-    .comment-form-grid{
-        gap:7px!important;
-        padding:10px!important;
-        border-radius:13px!important;
-        background:rgba(0,0,0,.16)!important;
-        border:1px solid rgba(255,255,255,.06)!important;
-    }
-    .comment-reply-form.active{
-        gap:7px!important;
-        margin-top:9px!important;
-        padding:10px!important;
-        border-radius:12px!important;
-        background:rgba(156,95,255,.035)!important;
-        border:1px solid rgba(156,95,255,.16)!important;
-    }
-    .comment-input,.comment-textarea{
-        min-height:38px!important;
-        font-size:13px!important;
-        padding:9px 10px!important;
-        border-radius:10px!important;
-    }
-    .comment-textarea{
-        min-height:64px!important;
-        line-height:1.5!important;
-    }
-    .comment-submit{
-        height:38px!important;
-        font-size:13px!important;
-        border-radius:10px!important;
-    }
-    .comment-edit-form{
-        margin-top:9px!important;
-        padding:10px!important;
-        border-radius:12px!important;
-    }
-    .comment-edit-actions{
-        display:grid!important;
-        grid-template-columns:1fr 1fr!important;
-        gap:7px!important;
-    }
-}
-
-
-
-/* 댓글 날짜 시간 표시 및 모바일 댓글 액션 최종 정돈 */
-.comment-author-line{display:flex;align-items:center;gap:7px;min-width:0;color:#8d8d8d;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.comment-date-dot{color:#555;flex:none}
-.comment-date-text{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#8d8d8d}
-.comment-item>.comment-actions{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.055)}
-
-@media(max-width:760px){
-    .comment-item{padding:11px 11px!important;border-radius:13px!important}
-    .comment-item.reply{margin-top:9px!important;margin-left:5px!important;padding:10px 10px 10px 11px!important;border-left:2px solid rgba(156,95,255,.42)!important;border-radius:12px!important}
-    .comment-meta{display:block!important;margin-bottom:6px!important}
-    .comment-author-line{display:flex!important;width:100%!important;gap:5px!important;font-size:11px!important;line-height:1.35!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-    .comment-writer{font-size:12px!important;max-width:92px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;flex:none!important;color:#ffb52e!important}
-    .comment-date-dot{font-size:11px!important;color:#555!important;flex:none!important}
-    .comment-date-text{font-size:11px!important;color:#8a8a8a!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;min-width:0!important}
-    .comment-content{font-size:14px!important;line-height:1.58!important;margin:6px 0 8px!important}
-    .comment-item>.comment-actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:6px!important;padding-top:7px!important;border-top:1px solid rgba(255,255,255,.045)!important;overflow-x:auto!important;white-space:nowrap!important;scrollbar-width:none!important}
-    .comment-item>.comment-actions::-webkit-scrollbar{display:none!important}
-    .comment-reaction-group{display:inline-flex!important;align-items:center!important;gap:4px!important;width:auto!important;margin:0 2px 0 0!important;flex:none!important}
-    .comment-reaction-btn{height:25px!important;min-width:39px!important;padding:0 7px!important;border-radius:999px!important;font-size:10px!important;gap:3px!important;line-height:1!important;flex:none!important;background:rgba(255,255,255,.035)!important;border-color:rgba(255,255,255,.075)!important}
-    .comment-mini-btn{height:25px!important;min-width:auto!important;padding:0 6px!important;border-radius:999px!important;font-size:10px!important;line-height:1!important;flex:none!important;background:transparent!important;border-color:rgba(255,255,255,.065)!important;color:#999!important}
-    .comment-mini-btn.danger{color:#a0a0a0!important}
-    .comment-mini-btn:hover{background:rgba(255,181,46,.045)!important;color:#ffb52e!important;border-color:rgba(255,181,46,.24)!important}
-    .comment-mini-btn.danger:hover{background:rgba(255,80,80,.045)!important;color:#ff8585!important;border-color:rgba(255,80,80,.24)!important}
-    .comment-reaction-btn.like.active{color:#ffcf75!important;background:rgba(255,181,46,.12)!important;border-color:rgba(255,181,46,.38)!important}
-    .comment-reaction-btn.dislike.active{color:#ff9292!important;background:rgba(255,80,80,.16)!important;border-color:rgba(255,90,90,.42)!important}
-}
-
-
-/* 상세 상단 메타 정보 정돈: 날짜 단일 표시 + 수정됨 우측 분리 + 모바일 통계 한 줄 */
-.detail-meta-clean{
-    display:flex;
-    align-items:center;
-    flex-wrap:nowrap;
-    gap:0;
-    word-break:keep-all;
-}
-.detail-meta-author{
-    color:#ffb52e;
-    font-weight:950;
-    white-space:nowrap;
-}
-.detail-meta-time{
-    color:#d4d4d4;
-    font-weight:850;
-    white-space:nowrap;
-}
-.detail-meta-stats{
-    display:inline-flex;
-    align-items:center;
-    gap:14px;
-    margin-left:12px;
-    color:#aaa;
-    white-space:nowrap;
-}
-.detail-stat{
-    display:inline-flex;
-    align-items:center;
-    white-space:nowrap;
-}
-.detail-updated-text{
-    margin-left:auto;
-    padding-left:14px;
-    color:#777;
-    font-size:12px;
-    font-weight:850;
-    white-space:nowrap;
-}
-
-@media(max-width:760px){
-    .detail-meta-clean{
-        display:grid!important;
-        grid-template-columns:auto 1fr auto;
-        gap:5px 6px!important;
-        font-size:11px!important;
-        line-height:1.45!important;
-        padding-bottom:10px!important;
-    }
-    .detail-meta-clean .detail-meta-dot{
-        display:none!important;
-    }
-    .detail-meta-author{
-        max-width:82px;
-        overflow:hidden;
-        text-overflow:ellipsis;
-        white-space:nowrap;
-        font-size:12px;
-    }
-    .detail-meta-time{
-        min-width:0;
-        overflow:hidden;
-        text-overflow:ellipsis;
-        white-space:nowrap;
-        color:#cfcfcf;
-        font-size:11px;
-    }
-    .detail-updated-text{
-        margin-left:0!important;
-        padding-left:0!important;
-        color:#777;
-        font-size:10px;
-        font-weight:850;
-        justify-self:end;
-    }
-    .detail-meta-stats{
-        grid-column:1 / -1;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:space-between!important;
-        gap:0!important;
-        margin-left:0!important;
-        width:100%;
-        white-space:nowrap!important;
-        font-size:10px!important;
-        color:#9c9c9c;
-        overflow:visible!important;
-    }
-    .detail-stat{
-        min-width:0;
-        white-space:nowrap!important;
-    }
-}
-
-@media(max-width:380px){
-    .detail-meta-stats{
-        font-size:9px!important;
-    }
-    .detail-meta-author{max-width:72px;}
-    .detail-meta-time{font-size:10px;}
-}
-
-
-
-/* 모바일 상세 메타 최종 압축: 통계 간격 축소 + 수정됨 우측 상단 고정 */
-@media(max-width:760px){
-    .detail-meta-clean{
-        position:relative!important;
-        display:grid!important;
-        grid-template-columns:auto minmax(0,1fr) auto!important;
-        gap:4px 6px!important;
-        align-items:center!important;
-        padding-bottom:9px!important;
-    }
-    .detail-meta-author{
-        grid-column:1!important;
-        grid-row:1!important;
-        max-width:78px!important;
-        font-size:12px!important;
-    }
-    .detail-meta-time{
-        grid-column:2!important;
-        grid-row:1!important;
-        min-width:0!important;
-        font-size:11px!important;
-        overflow:hidden!important;
-        text-overflow:ellipsis!important;
-        white-space:nowrap!important;
-    }
-    .detail-updated-text{
-        grid-column:3!important;
-        grid-row:1!important;
-        justify-self:end!important;
-        align-self:center!important;
-        margin-left:0!important;
-        padding-left:0!important;
-        font-size:10px!important;
-        color:#777!important;
-        white-space:nowrap!important;
-    }
-    .detail-meta-stats{
-        grid-column:1 / -1!important;
-        grid-row:2!important;
-        display:flex!important;
-        justify-content:flex-start!important;
-        align-items:center!important;
-        gap:8px!important;
-        width:auto!important;
-        margin-left:0!important;
-        margin-top:1px!important;
-        font-size:10px!important;
-        line-height:1.3!important;
-        color:#9c9c9c!important;
-        white-space:nowrap!important;
-        overflow:hidden!important;
-    }
-    .detail-stat{
-        flex:0 0 auto!important;
-        min-width:auto!important;
-        white-space:nowrap!important;
-    }
-}
-
-@media(max-width:380px){
-    .detail-meta-stats{
-        gap:6px!important;
-        font-size:9.5px!important;
-    }
-    .detail-meta-author{max-width:68px!important;}
-    .detail-meta-time{font-size:10px!important;}
-    .detail-updated-text{font-size:9.5px!important;}
-}
-
-/* 같은 탭에서 F5 새로고침 시에는 최초 접속 로딩 연출 숨김 */
-html.reload-mode #loadingScreen{display:none!important}
-/* F5 복원 중 상단 메뉴 메인 선활성화 방지 */
-html.reload-mode .main-menu button.active{color:#cfcfcf;background:transparent}
-html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
-
-
-
-
-/* 갤러리 */
-.gallery-actions{display:flex;justify-content:flex-end;margin-bottom:14px}
-.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.gallery-card{overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:16px;cursor:pointer;transition:.18s ease}
-.gallery-card:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.055);transform:translateY(-2px)}
-.gallery-thumb{width:100%;aspect-ratio:4/3;background:#000;overflow:hidden}
-.gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.25s ease}
-.gallery-card:hover .gallery-thumb img{transform:scale(1.04)}
-.gallery-body{padding:13px}
-.gallery-title{font-size:15px;font-weight:950;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gallery-content-preview{margin-top:6px;color:#aaa;font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.gallery-meta-line{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;color:#888;font-size:12px}
-.gallery-stat-badge{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#aaa;font-size:12px;font-weight:900}
-.gallery-detail-image{width:100%;max-height:72vh;object-fit:contain;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:#000;margin:14px 0 16px;display:block;cursor:zoom-in}
-.gallery-file-preview{display:none;margin-top:10px;border:1px solid rgba(255,255,255,.09);border-radius:14px;overflow:hidden;background:#000}
-.gallery-file-preview.active{display:block}
-.gallery-file-preview{grid-template-columns:repeat(3,1fr);gap:8px;padding:8px}
-.gallery-file-preview.active{display:grid}
-.gallery-file-preview img{width:100%;height:120px;object-fit:cover;display:block;border-radius:10px;border:1px solid rgba(255,255,255,.08)}
-.gallery-detail-images{display:grid;grid-template-columns:1fr;gap:12px;margin:14px 0 16px}
-.gallery-detail-images.multiple{grid-template-columns:repeat(2,1fr)}
-.gallery-detail-images.multiple .gallery-detail-image{height:360px;max-height:52vh;object-fit:contain;margin:0}
-.gallery-upload-note{font-size:12px;color:#888;line-height:1.5;margin-top:7px}
-@media(max-width:920px){.gallery-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:760px){.gallery-grid{grid-template-columns:1fr;gap:10px}.gallery-actions{justify-content:stretch}.gallery-detail-image{border-radius:13px}.gallery-detail-images.multiple{grid-template-columns:1fr}.gallery-detail-images.multiple .gallery-detail-image{height:auto;max-height:72vh}.gallery-body{padding:12px}}
-
-
-/* 갤러리 메뉴 추가 후 모바일 메뉴 빈칸 제거 */
-@media(max-width:768px){.main-menu::after{display:none!important}.main-menu button:nth-child(8){border-right:0!important;border-bottom:0!important}}
-
 </style>
 </head>
 
 <body>
-
-
-<div class="form-modal" id="galleryFormModal" onclick="closeGalleryFormOutside(event)">
-    <div class="form-box">
-        <div class="form-head">
-            <div class="form-title">갤러리 글쓰기</div>
-            <button class="form-close" onclick="closeGalleryForm()">×</button>
-        </div>
-        <div class="form-body">
-            <div class="form-label">작성자</div>
-            <input class="form-input" id="galleryWriter" placeholder="작성자를 입력하세요">
-
-            <div class="form-label">제목</div>
-            <input class="form-input" id="galleryTitle" placeholder="사진 제목을 입력하세요">
-
-            <div class="form-label">사진 업로드</div>
-            <input class="form-input" id="galleryImageFile" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="previewGalleryImage(this)">
-            <div class="gallery-file-preview" id="galleryFilePreview"></div>
-            <div class="gallery-upload-note">jpg, png, webp 형식만 가능하며 사진은 최대 5장, 1장당 2MB 이하로 업로드됩니다.</div>
-
-            <div class="form-label">분류</div>
-            <input class="form-input" id="galleryCategory" value="일반" placeholder="일반">
-
-            <div class="form-label">내용</div>
-            <textarea class="form-textarea" id="galleryContent" placeholder="사진 설명이나 상황을 입력하세요"></textarea>
-
-            <div class="form-label">삭제 비밀번호</div>
-            <input class="form-input" id="galleryPassword" type="password" placeholder="수정/삭제할 때 사용할 비밀번호">
-
-            <button class="form-submit" onclick="submitGalleryPost()">등록하기</button>
-            <div class="form-help">사진은 Google Drive 갤러리 폴더에 저장되고 AXE NET 갤러리에 표시됩니다.</div>
-        </div>
-    </div>
-</div>
-
-<script>
-(function(){
-    try{
-        const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
-        const sameTabSession=sessionStorage.getItem("axe_net_session_alive")==="1";
-        const shouldRestoreInSameTab=sameTabSession&&!!location.hash;
-        if((nav&&nav.type==="reload")||shouldRestoreInSameTab){
-            document.documentElement.classList.add("reload-mode");
-        }
-    }catch(e){}
-})();
-</script>
 <div id="loadingScreen">
     <div class="loading-logo"><img src="./axe.png" alt="AXE 로고"></div>
     <div class="loading-title">AXE NET</div>
@@ -1366,12 +873,11 @@ html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
 
     <div class="main-menu-shell">
     <div class="main-menu">
-        <button onclick="navigateMain('home')">메인</button>
+        <button class="active" onclick="navigateMain('home')">메인</button>
         <button onclick="navigateMain('notice')">공지사항</button>
-        <button onclick="navigateMain('outlaw')">무법지대</button>
         <button onclick="navigateMain('tube')">AXE TUBE</button>
+        <button onclick="navigateMain('outlaw')">무법지대</button>
         <button onclick="navigateMain('board')">자유게시판</button>
-        <button onclick="navigateMain('gallery')">갤러리</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
     </div>
@@ -1460,13 +966,12 @@ html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzIwLlF4ko1-B1TsBV4rhEp2IMWs07ZT9JAENp5FZrFZxYC9RvwKXwWs2_pvROka9kBrw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyqFinvLRh9vm-e6LxxoOvz7zZGgA2KNW35eaJVn9EifkMnVy6xNOM1UesXNHuhrkxBUQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[];
+let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
-let noticeCategory="공지";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
 let operationCategory="ALL",selectedOperationId="";
@@ -1475,10 +980,9 @@ let processSearchKeyword="",processJobFilter="";
 let modBookTypeFilter="접두",modBookCategoryFilter="",modBookSearchKeyword="";
 let skillRankSearchKeyword="",skillRankFilter="";
 let selectedBoardId="";
-let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","tube","outlaw","board","gallery","info","utility"];
+const mainPageKeys=["home","notice","tube","outlaw","board","info","utility"];
 
 function normalizeMainPage(page){
     return mainPageKeys.includes(page)?page:"home";
@@ -1495,7 +999,6 @@ function renderMainPage(page){
     if(target==="info"){showInfo();return;}
     if(target==="utility"){showUtility();return;}
     if(target==="board"){showBoard();return;}
-    if(target==="gallery"){showGallery();return;}
 
     showHome();
 }
@@ -1508,7 +1011,6 @@ function navigateMain(page,push=true){
     }
 
     renderMainPage(target);
-    refreshDataInBackground();
 }
 
 function normalizeSubTab(page,subTab){
@@ -1562,7 +1064,6 @@ function navigateSubTab(page,subTab,push=true){
 
     currentHistoryPage=target;
     renderSubTab(target,tab);
-    refreshDataInBackground();
 }
 
 function pushListStateBeforeDetail(page){
@@ -1588,46 +1089,15 @@ function goBackToList(page){
     navigateMain(target);
 }
 
-function isSameTabRefresh(){
-    try{
-        return sessionStorage.getItem("axe_net_session_alive")==="1";
-    }catch(e){
-        return false;
-    }
+function initMainHistory(){
+    const startPage="home";
+    currentHistoryPage=startPage;
+    history.replaceState({page:startPage},"",location.pathname+location.search);
+    renderMainPage(startPage);
 }
 
-function markSameTabSession(){
-    try{
-        sessionStorage.setItem("axe_net_session_alive","1");
-    }catch(e){}
-}
-
-function isPageReload(){
-    const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
-    return (nav&&nav.type==="reload")||isSameTabRefresh();
-}
-
-function parseHashState(){
-    const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
-    if(!raw)return {page:"home"};
-
-    if(mainPageKeys.includes(raw))return {page:raw};
-
-    const parts=raw.split("-");
-    const page=normalizeMainPage(parts[0]);
-
-    if(parts.length>=3&&(parts[1]==="notice"||parts[1]==="board"||parts[1]==="tube"||parts[1]==="gallery")){
-        return {page:page,detailType:parts[1],id:parts.slice(2).join("-")};
-    }
-
-    if(parts.length>=2){
-        return {page:page,subTab:parts.slice(1).join("-")};
-    }
-
-    return {page:"home"};
-}
-
-function renderHistoryState(state){
+window.addEventListener("popstate",function(event){
+    const state=event.state||{};
     const page=state.page?state.page:(location.hash.replace("#","")||"home");
 
     if(state.detailType==="notice"&&state.id){
@@ -1648,12 +1118,6 @@ function renderHistoryState(state){
         return;
     }
 
-    if(state.detailType==="gallery"&&state.id){
-        renderMainPage("gallery");
-        openGalleryDetail(state.id,false,false);
-        return;
-    }
-
     if(state.subTab){
         renderMainPage(page);
         renderSubTab(page,state.subTab);
@@ -1661,27 +1125,6 @@ function renderHistoryState(state){
     }
 
     renderMainPage(page);
-}
-
-function initMainHistory(){
-    const shouldRestore=isPageReload()&&location.hash;
-    const state=shouldRestore?parseHashState():{page:"home"};
-    currentHistoryPage=state.page||"home";
-
-    if(shouldRestore){
-        history.replaceState(state,"",location.href);
-    }else{
-        history.replaceState({page:"home"},"",location.pathname+location.search);
-    }
-
-    markSameTabSession();
-    renderHistoryState(state);
-}
-
-window.addEventListener("popstate",function(event){
-    const state=event.state||parseHashState();
-    renderHistoryState(state);
-    refreshDataInBackground();
 });
 
 function resetInfoState(){
@@ -1700,7 +1143,6 @@ function resetInfoState(){
 }
 
 function resetNoticeState(){
-    noticeCategory="공지";
     operationCategory="ALL";
     selectedOperationId="";
 }
@@ -1718,10 +1160,6 @@ function resetBoardState(){
     selectedBoardId="";
 }
 
-function resetGalleryState(){
-    selectedGalleryId="";
-}
-
 function enterMainSection(section){
     if(currentMainSection===section)return;
 
@@ -1730,12 +1168,13 @@ function enterMainSection(section){
     if(section==="info")resetInfoState();
     if(section==="utility")resetUtilityState();
     if(section==="board")resetBoardState();
-    if(section==="gallery")resetGalleryState();
 
     currentMainSection=section;
 }
 
-function applyServerData(data){
+fetch(API_URL)
+.then(res=>res.json())
+.then(data=>{
     crafts=data.crafts||[];
     materials=data.materials||[];
     notices=data.notices||[];
@@ -1751,56 +1190,11 @@ function applyServerData(data){
     skillRanks=data.skillRanks||data.skill_ranks||data.craftRanks||[];
     boards=data.boards||data.boardPosts||data.freeBoard||[];
     boardComments=data.boardComments||data.board_comments||data.comments||[];
-    galleries=data.galleries||data.galleryPosts||[];
-    galleryComments=data.galleryComments||data.gallery_comments||[];
-}
-
-function refreshData(options={}){
-    return fetch(API_URL,{cache:"no-store"})
-        .then(res=>res.json())
-        .then(data=>{
-            applyServerData(data);
-            return data;
-        })
-        .catch(err=>{
-            if(!options.silent){
-                document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
-            }
-            throw err;
-        });
-}
-
-let backgroundRefreshRunning=false;
-
-function refreshDataInBackground(){
-    if(backgroundRefreshRunning)return;
-    backgroundRefreshRunning=true;
-
-    const state=history.state||parseHashState();
-
-    refreshData({silent:true})
-    .then(()=>{
-        const currentState=history.state||parseHashState();
-        const samePage=JSON.stringify(state)===JSON.stringify(currentState);
-        const activeInput=document.activeElement;
-        const isWriting=activeInput&&["INPUT","TEXTAREA"].includes(activeInput.tagName);
-
-        if(samePage&&!isWriting){
-            renderHistoryState(currentState);
-        }
-    })
-    .catch(()=>{})
-    .finally(()=>{
-        backgroundRefreshRunning=false;
-    });
-}
-
-refreshData({silent:false})
-.then(()=>{
     initMainHistory();
     hideLoading();
 })
 .catch(()=>{
+    document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
     hideLoading();
 });
 
@@ -1820,7 +1214,6 @@ function catName(cat){return categoryMap[cat]||cat||"-"}
 function scrollToElement(id){const el=document.getElementById(id);if(!el)return;setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function setMainActive(index){document.querySelectorAll(".main-menu button").forEach((btn,i)=>btn.classList.toggle("active",i===index))}
 function formatDate(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`}
-function formatDateTime(v){if(!v)return "-";const d=new Date(v);if(isNaN(d.getTime()))return v;return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`}
 function getNoticeId(n,i){return String(n.id||n.title||i)}
 function isImportant(v){return String(v).toUpperCase()==="TRUE"}
 
@@ -2320,7 +1713,7 @@ function toggleCommentReplyForm(formId){
 
 function renderReplyForm(scope,ownerId,parentCommentId){
     const prefix=scope+"Reply_"+String(parentCommentId).replace(/[^a-zA-Z0-9_\-]/g,"_");
-    const addFn=scope==="board"?"addBoardComment":(scope==="gallery"?"addGalleryComment":"addTubeComment");
+    const addFn=scope==="board"?"addBoardComment":"addTubeComment";
     return `<div class="comment-reply-form" id="${prefix}Form">
         <input class="comment-input" id="${prefix}Writer" placeholder="작성자">
         <input class="comment-input" id="${prefix}Password" type="password" placeholder="삭제 비밀번호">
@@ -2329,36 +1722,30 @@ function renderReplyForm(scope,ownerId,parentCommentId){
     </div>`;
 }
 
-function getScopedCommentId(scope,comment,index){
-    if(scope==="board")return getCommentId(comment,index);
-    if(scope==="gallery")return getGalleryCommentId(comment,index);
-    return getTubeCommentId(comment,index);
-}
-
 function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
-    const commentId=getScopedCommentId(scope,comment,index);
+    const commentId=scope==="board"?getCommentId(comment,index):getTubeCommentId(comment,index);
     const liked=hasLikedComment(scope,commentId);
     const disliked=hasDislikedComment(scope,commentId);
-    const deleteFn=scope==="board"?"deleteBoardComment":(scope==="gallery"?"deleteGalleryComment":"deleteTubeComment");
-    const likeFn=scope==="board"?"toggleBoardCommentLike":(scope==="gallery"?"toggleGalleryCommentLike":"toggleTubeCommentLike");
-    const dislikeFn=scope==="board"?"toggleBoardCommentDislike":(scope==="gallery"?"toggleGalleryCommentDislike":"toggleTubeCommentDislike");
+    const deleteFn=scope==="board"?"deleteBoardComment":"deleteTubeComment";
+    const likeFn=scope==="board"?"toggleBoardCommentLike":"toggleTubeCommentLike";
+    const dislikeFn=scope==="board"?"toggleBoardCommentDislike":"toggleTubeCommentDislike";
     const formId=scope+"Reply_"+String(commentId).replace(/[^a-zA-Z0-9_\-]/g,"_")+"Form";
     const replies=getReplyComments(allComments,commentId);
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div class="comment-author-line"><span class="comment-writer">${safe(comment.writer||"익명")}</span><span class="comment-date-dot">·</span><span class="comment-date-text">${comment.updated_at?`수정 ${formatDateTime(comment.updated_at)}`:formatDateTime(comment.date)}</span></div>
+            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
+            <div class="comment-actions">
+                <span class="comment-reaction-group">
+                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
+                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
+                </span>
+                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+                <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
+                <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
+            </div>
         </div>
         <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
-        <div class="comment-actions">
-            <span class="comment-reaction-group">
-                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
-                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
-            </span>
-            ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
-            <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
-            <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
-        </div>
         <div id="commentEdit_${scope}_${domSafeId(commentId)}"></div>
         ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
         ${replyHtml}
@@ -2367,9 +1754,8 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
 
 function startEditComment(scope,commentId,ownerId){
     const isBoard=scope==="board";
-    const isGallery=scope==="gallery";
-    const list=isBoard?boardComments:(isGallery?galleryComments:tubeComments);
-    const getId=isBoard?getCommentId:(isGallery?getGalleryCommentId:getTubeCommentId);
+    const list=isBoard?boardComments:tubeComments;
+    const getId=isBoard?getCommentId:getTubeCommentId;
     const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
     if(!target){alert("댓글을 찾을 수 없습니다.");return;}
 
@@ -2399,7 +1785,6 @@ function cancelEditComment(scope,commentId){
 
 function submitEditComment(scope,commentId,ownerId){
     const isBoard=scope==="board";
-    const isGallery=scope==="gallery";
     const contentEl=document.getElementById(`commentEditContent_${scope}_${domSafeId(commentId)}`);
     const passwordEl=document.getElementById(`commentEditPassword_${scope}_${domSafeId(commentId)}`);
     const content=contentEl?contentEl.value.trim():"";
@@ -2408,24 +1793,22 @@ function submitEditComment(scope,commentId,ownerId){
     if(!content){alert("댓글 내용은 비울 수 없습니다.");return;}
     if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
 
-    const api=isBoard?postBoardApi:(isGallery?postGalleryApi:postTubeApi);
+    const api=isBoard?postBoardApi:postTubeApi;
     const payload=isBoard
         ? {type:"board_comment_update",comment_id:commentId,password:password,content:content}
-        : (isGallery
-            ? {type:"gallery_comment_update",comment_id:commentId,password:password,content:content}
-            : {type:"tube_comment_update",comment_id:commentId,password:password,content:content});
+        : {type:"tube_comment_update",comment_id:commentId,password:password,content:content};
 
     api(payload)
     .then(data=>{
         if(data.result==="success"){
-            const list=isBoard?boardComments:(isGallery?galleryComments:tubeComments);
-            const getId=isBoard?getCommentId:(isGallery?getGalleryCommentId:getTubeCommentId);
+            const list=isBoard?boardComments:tubeComments;
+            const getId=isBoard?getCommentId:getTubeCommentId;
             const target=list.find((comment,index)=>getId(comment,index)===String(commentId));
             if(target){
                 target.content=content;
                 target.updated_at=data.updated_at||new Date().toISOString();
             }
-            if(isBoard){openBoardDetail(ownerId);}else if(isGallery){openGalleryDetail(ownerId,false);}else{openTubeDetail(ownerId,false);}
+            if(isBoard){openBoardDetail(ownerId);}else{openTubeDetail(ownerId,false);}
         }else{
             alert(data.message||"댓글 수정 중 오류가 발생했습니다.");
         }
@@ -2693,7 +2076,7 @@ function deleteTubePost(id){
 
 function openTubeDetail(id,addView=false,addHistory=false){
     if(addHistory)pushDetailState("tube","tube",id);
-    setMainActive(3);
+    setMainActive(2);
     currentHistoryPage="tube";
     const target=findTubeById(id);
     if(!target){showTube();return;}
@@ -2723,7 +2106,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer||"AXE")}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">${formatDateTime(target.updated_at||target.date)}</span><span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span>${target.updated_at?`<span class="detail-updated-text">수정됨</span>`:""}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -2945,7 +2328,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer)}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">${formatDateTime(target.updated_at||target.date)}</span><span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span>${target.updated_at?`<span class="detail-updated-text">수정됨</span>`:""}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
@@ -3359,243 +2742,10 @@ function selectBoardPost(id){
     openBoardDetail(id,true,true);
 }
 
-
-function getGalleryId(g,index){return String(g.id||g.title||index)}
-function getGalleryCommentId(comment,index){return String(comment.comment_id||comment.id||index)}
-function getSortedGalleries(){
-    return galleries.slice().sort((a,b)=>{
-        const ao=Number(a.order||0); const bo=Number(b.order||0);
-        if(ao||bo)return ao-bo;
-        const ad=new Date(a.date||0).getTime()||0;
-        const bd=new Date(b.date||0).getTime()||0;
-        return bd-ad;
-    });
-}
-function findGalleryById(id){
-    const list=getSortedGalleries();
-    for(let i=0;i<list.length;i++){if(getGalleryId(list[i],i)===String(id))return list[i];}
-    return null;
-}
-function getCommentsByGallery(galleryId){
-    return galleryComments.filter(c=>String(c.gallery_id)===String(galleryId)).sort((a,b)=>{
-        const ad=new Date(a.date||0).getTime()||0; const bd=new Date(b.date||0).getTime()||0;
-        return ad-bd;
-    });
-}
-function postGalleryApi(payload){return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json())}
-function getGalleryLikeClientId(){
-    const key="axe_gallery_like_client_id"; let id=localStorage.getItem(key);
-    if(!id){id="client_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);localStorage.setItem(key,id);}
-    return id;
-}
-function getLikedGalleries(){try{return JSON.parse(localStorage.getItem("axe_gallery_liked_posts")||"[]");}catch(e){return []}}
-function hasLikedGallery(id){return getLikedGalleries().includes(String(id))}
-function markGalleryLiked(id){const list=getLikedGalleries();const key=String(id);if(!list.includes(key)){list.push(key);localStorage.setItem("axe_gallery_liked_posts",JSON.stringify(list));}}
-function unmarkGalleryLiked(id){const key=String(id);const list=getLikedGalleries().filter(item=>String(item)!==key);localStorage.setItem("axe_gallery_liked_posts",JSON.stringify(list));}
-function getDislikedGalleries(){try{return JSON.parse(localStorage.getItem("axe_gallery_disliked_posts")||"[]");}catch(e){return []}}
-function hasDislikedGallery(id){return getDislikedGalleries().includes(String(id))}
-function markGalleryDisliked(id){const list=getDislikedGalleries();const key=String(id);if(!list.includes(key)){list.push(key);localStorage.setItem("axe_gallery_disliked_posts",JSON.stringify(list));}}
-function unmarkGalleryDisliked(id){const key=String(id);const list=getDislikedGalleries().filter(item=>String(item)!==key);localStorage.setItem("axe_gallery_disliked_posts",JSON.stringify(list));}
-
-function openGalleryForm(){document.getElementById("galleryFormModal").classList.add("active")}
-function closeGalleryForm(){document.getElementById("galleryFormModal").classList.remove("active")}
-function closeGalleryFormOutside(event){if(event.target.id==="galleryFormModal")closeGalleryForm()}
-function clearGalleryForm(){
-    document.getElementById("galleryWriter").value="";
-    document.getElementById("galleryTitle").value="";
-    document.getElementById("galleryImageFile").value="";
-    document.getElementById("galleryCategory").value="일반";
-    document.getElementById("galleryContent").value="";
-    document.getElementById("galleryPassword").value="";
-    const preview=document.getElementById("galleryFilePreview");
-    if(preview){preview.classList.remove("active");preview.innerHTML="";}
-}
-function previewGalleryImage(input){
-    const files=Array.from((input.files||[]));
-    const preview=document.getElementById("galleryFilePreview");
-    if(!preview)return;
-    preview.innerHTML="";
-    if(!files.length){preview.classList.remove("active");return;}
-    if(files.length>5){alert("사진은 최대 5장까지 업로드할 수 있습니다.");input.value="";preview.classList.remove("active");return;}
-    for(const file of files){
-        if(!["image/jpeg","image/png","image/webp"].includes(file.type)){alert("jpg, png, webp 파일만 업로드할 수 있습니다.");input.value="";preview.classList.remove("active");return;}
-        if(file.size>2*1024*1024){alert("사진은 1장당 2MB 이하만 업로드할 수 있습니다.");input.value="";preview.classList.remove("active");return;}
-    }
-    preview.classList.add("active");
-    files.forEach(file=>{
-        const img=document.createElement("img");
-        img.alt=file.name;
-        preview.appendChild(img);
-        const reader=new FileReader();
-        reader.onload=function(e){img.src=e.target.result;};
-        reader.readAsDataURL(file);
-    });
-}
-function readGalleryFileAsBase64(file){
-    return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});
-}
-async function submitGalleryPost(){
-    const writer=document.getElementById("galleryWriter").value.trim();
-    const title=document.getElementById("galleryTitle").value.trim();
-    const files=Array.from(document.getElementById("galleryImageFile").files||[]);
-    const category=document.getElementById("galleryCategory").value.trim()||"일반";
-    const content=document.getElementById("galleryContent").value.trim();
-    const password=document.getElementById("galleryPassword").value.trim();
-    if(!writer||!title||!files.length||!password){alert("작성자, 제목, 사진, 삭제 비밀번호는 필수입니다.");return;}
-    if(files.length>5){alert("사진은 최대 5장까지 업로드할 수 있습니다.");return;}
-    for(const file of files){
-        if(!["image/jpeg","image/png","image/webp"].includes(file.type)){alert("jpg, png, webp 파일만 업로드할 수 있습니다.");return;}
-        if(file.size>2*1024*1024){alert("사진은 1장당 2MB 이하만 업로드할 수 있습니다.");return;}
-    }
-    const btn=document.querySelector("#galleryFormModal .form-submit");
-    if(btn){btn.disabled=true;btn.textContent="업로드 중...";}
-    try{
-        const images=[];
-        for(const file of files){
-            images.push({
-                image_base64:await readGalleryFileAsBase64(file),
-                image_name:file.name,
-                mime_type:file.type
-            });
-        }
-        const data=await postGalleryApi({type:"gallery_post",writer,title,category,content,password,images});
-        if(data.result==="success"){
-            const newPost={id:data.id||String(Date.now()),date:data.date||new Date().toISOString(),writer,title,content,image_url:data.image_url||"",file_id:data.file_id||"",category,order:"",views:0,likes:0,dislikes:0,updated_at:""};
-            galleries.unshift(newPost);
-            alert("갤러리 글이 등록되었습니다.");
-            clearGalleryForm();closeGalleryForm();showGallery();setTimeout(()=>openGalleryDetail(getGalleryId(newPost,0),false),80);
-        }else{alert(data.message||"등록 중 오류가 발생했습니다.");}
-    }catch(e){alert("등록 중 오류가 발생했습니다.");}
-    finally{if(btn){btn.disabled=false;btn.textContent="등록하기";}}
-}
-
-function getGalleryImageList(g){
-    const raw=String((g&&g.image_url)||"").trim();
-    if(!raw)return [];
-    return raw.split(/\n|,/).map(v=>v.trim()).filter(Boolean);
-}
-function getGalleryFirstImage(g){
-    const list=getGalleryImageList(g);
-    return list[0]||"./axe.png";
-}
-function renderGalleryDetailImages(g){
-    const images=getGalleryImageList(g);
-    if(!images.length)return `<div class="ready">등록된 사진이 없습니다.</div>`;
-    const cls=images.length>1?"gallery-detail-images multiple":"gallery-detail-images";
-    return `<div class="${cls}">${images.map(src=>`<img class="gallery-detail-image" src="${safe(src)}" onclick="openImageModal('${escapeText(src)}')" onerror="this.src='./axe.png'">`).join("")}</div>`;
-}
-
-function renderGalleryCard(g,index){
-    const id=getGalleryId(g,index||0);
-    const comments=getCommentsByGallery(id).length;
-    const text=String(g.content||"").trim();
-    return `<div class="gallery-card" onclick="openGalleryDetail('${escapeText(id)}',true,true)">
-        <div class="gallery-thumb"><img src="${safe(getGalleryFirstImage(g))}" onerror="this.src='./axe.png'"></div>
-        <div class="gallery-body">
-            <div class="gallery-title">${safe(g.title)}</div>
-            <div class="item-date">${safe(g.writer||"익명")} · ${formatDate(g.date)}</div>
-            ${text?`<div class="gallery-content-preview">${safe(text)}</div>`:""}
-            <div class="gallery-meta-line"><span class="gallery-stat-badge">조회 ${Number(g.views||0)}</span><span class="gallery-stat-badge">👍 ${Number(g.likes||0)}</span><span class="gallery-stat-badge">💬 ${comments}</span></div>
-        </div>
-    </div>`;
-}
-function showGallery(){
-    enterMainSection("gallery");
-    setMainActive(5);
-    const list=getSortedGalleries();
-    document.getElementById("content").innerHTML=`
-        <div class="section-head">
-            <div><div class="section-title">갤러리</div><div class="section-desc">AXE 활동 사진과 스크린샷을 공유합니다.</div></div>
-            <div class="count">${list.length}개</div>
-        </div>
-        <div class="gallery-actions"><button class="tube-submit-open" onclick="openGalleryForm()">글쓰기</button></div>
-        <div class="gallery-grid">${list.length?list.map((g,i)=>renderGalleryCard(g,i)).join(""):`<div class="ready">등록된 사진이 없습니다.</div>`}</div>`;
-}
-function openGalleryDetail(id,addHistory=false,addView=false){
-    if(addHistory)pushDetailState("gallery","gallery",id);
-    selectedGalleryId=id;currentHistoryPage="gallery";setMainActive(5);
-    const target=findGalleryById(id);if(!target){showGallery();return;}
-    if(addView){postGalleryApi({type:"gallery_view",id:id}).catch(()=>{});target.views=Number(target.views||0)+1;}
-    const comments=getCommentsByGallery(id);
-    const detailContent=String(target.content||"").trim();
-    document.getElementById("content").innerHTML=`
-        <div class="section-head"><div><div class="section-title">갤러리</div><div class="section-desc">사진 상세 내용과 댓글을 확인합니다.</div></div><div class="count">GALLERY</div></div>
-        <div class="board-detail-card" id="galleryDetailBox" style="margin-top:14px;">
-            <div class="board-detail-title">${safe(target.title)}</div>
-            <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
-            <div class="detail-meta-panel"><div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer||"익명")}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">${formatDateTime(target.updated_at||target.date)}</span><span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span>${target.updated_at?`<span class="detail-updated-text">수정됨</span>`:""}</div></div>
-            ${renderGalleryDetailImages(target)}
-            ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
-            <div class="detail-like-area"><button class="reaction-btn like ${hasLikedGallery(id)?'active':''}" onclick="toggleGalleryLike('${escapeText(id)}')">👍 <span>${Number(target.likes||0)}</span></button><button class="reaction-btn dislike ${hasDislikedGallery(id)?'active':''}" onclick="toggleGalleryDislike('${escapeText(id)}')">👎 <span>${Number(target.dislikes||0)}</span></button></div>
-            <div class="detail-bottom-actions"><button class="back-btn" onclick="goBackToList('gallery')">목록으로</button><div class="detail-admin-actions"><button class="board-action-btn" onclick="startEditGalleryPost('${escapeText(id)}')">수정</button><button class="board-action-btn danger" onclick="deleteGalleryPost('${escapeText(id)}')">삭제</button></div></div>
-            <div class="comment-section"><div class="comment-title">댓글 ${comments.length}</div><div class="comment-list">${renderGalleryCommentsHtml(id)}</div><div class="comment-form-grid"><input class="comment-input" id="galleryCommentWriter" placeholder="작성자"><input class="comment-input" id="galleryCommentPassword" type="password" placeholder="삭제 비밀번호"><textarea class="comment-textarea" id="galleryCommentContent" placeholder="댓글을 입력하세요"></textarea><button class="comment-submit" onclick="addGalleryComment('${escapeText(id)}')">등록</button></div></div>
-        </div>`;
-}
-function toggleGalleryLike(id){hasLikedGallery(id)?unlikeGallery(id):likeGallery(id)}
-function likeGallery(id){postGalleryApi({type:"gallery_like",id,client_id:getGalleryLikeClientId()}).then(data=>{if(data.result==="success"){const wasDisliked=hasDislikedGallery(id);markGalleryLiked(id);unmarkGalleryDisliked(id);const t=findGalleryById(id);if(t){t.likes=Number(t.likes||0)+1;if(wasDisliked)t.dislikes=Math.max(0,Number(t.dislikes||0)-1);}openGalleryDetail(id,false);}else if(data.result==="duplicate"){markGalleryLiked(id);openGalleryDetail(id,false);}else alert(data.message||"추천 처리 중 오류가 발생했습니다.");}).catch(()=>alert("추천 처리 중 오류가 발생했습니다."));}
-function unlikeGallery(id){postGalleryApi({type:"gallery_unlike",id,client_id:getGalleryLikeClientId()}).then(data=>{if(data.result==="success"){unmarkGalleryLiked(id);const t=findGalleryById(id);if(t)t.likes=Math.max(0,Number(t.likes||0)-1);openGalleryDetail(id,false);}else if(data.result==="not_found"){unmarkGalleryLiked(id);openGalleryDetail(id,false);}else alert(data.message||"추천 취소 중 오류가 발생했습니다.");}).catch(()=>alert("추천 취소 중 오류가 발생했습니다."));}
-function toggleGalleryDislike(id){hasDislikedGallery(id)?undislikeGallery(id):dislikeGallery(id)}
-function dislikeGallery(id){postGalleryApi({type:"gallery_dislike",id,client_id:getGalleryLikeClientId()}).then(data=>{if(data.result==="success"){const wasLiked=hasLikedGallery(id);markGalleryDisliked(id);unmarkGalleryLiked(id);const t=findGalleryById(id);if(t){t.dislikes=Number(t.dislikes||0)+1;if(wasLiked)t.likes=Math.max(0,Number(t.likes||0)-1);}openGalleryDetail(id,false);}else if(data.result==="duplicate"){markGalleryDisliked(id);openGalleryDetail(id,false);}else alert(data.message||"비추천 처리 중 오류가 발생했습니다.");}).catch(()=>alert("비추천 처리 중 오류가 발생했습니다."));}
-function undislikeGallery(id){postGalleryApi({type:"gallery_undislike",id,client_id:getGalleryLikeClientId()}).then(data=>{if(data.result==="success"){unmarkGalleryDisliked(id);const t=findGalleryById(id);if(t)t.dislikes=Math.max(0,Number(t.dislikes||0)-1);openGalleryDetail(id,false);}else if(data.result==="not_found"){unmarkGalleryDisliked(id);openGalleryDetail(id,false);}else alert(data.message||"비추천 취소 중 오류가 발생했습니다.");}).catch(()=>alert("비추천 취소 중 오류가 발생했습니다."));}
-function renderGalleryCommentsHtml(galleryId){
-    const comments=getCommentsByGallery(galleryId);
-    if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
-    const roots=getRootComments(comments);
-    return roots.map((comment,index)=>renderCommentItem("gallery",galleryId,comment,index,comments,false)).join("");
-}
-function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){
-    const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"galleryCommentWriter");
-    const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"galleryCommentPassword");
-    const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"galleryCommentContent");
-    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
-    const password=passwordEl?passwordEl.value.trim():"";
-    const content=contentEl?contentEl.value.trim():"";
-    if(!content||!password){alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");return;}
-    postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,writer,content,password,parent_comment_id:parentCommentId||""}).then(data=>{
-        if(data.result==="success"){
-            galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer,content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});
-            openGalleryDetail(galleryId,false);
-        }else alert(data.message||"댓글 등록 중 오류가 발생했습니다.");
-    }).catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
-}
-function deleteGalleryComment(commentId,galleryId){
-    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다."); if(password===null)return; if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
-    postGalleryApi({type:"gallery_comment_delete",comment_id:commentId,password:password.trim()}).then(data=>{
-        if(data.result==="success"){
-            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
-            galleryComments=galleryComments.filter((c,i)=>!deleted.includes(getGalleryCommentId(c,i)));
-            deleted.forEach(id=>{unmarkCommentLiked("gallery",id);unmarkCommentDisliked("gallery",id);});
-            openGalleryDetail(galleryId,false);
-        }else alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
-    }).catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
-}
-function toggleGalleryCommentLike(commentId,galleryId){hasLikedComment("gallery",commentId)?unlikeGalleryComment(commentId,galleryId):likeGalleryComment(commentId,galleryId)}
-function likeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_like",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){const wasDisliked=hasDislikedComment("gallery",commentId);markCommentLiked("gallery",commentId);unmarkCommentDisliked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t){t.likes=Number(t.likes||0)+1;if(wasDisliked)t.dislikes=Math.max(0,Number(t.dislikes||0)-1);}openGalleryDetail(galleryId,false);}else if(data.result==="duplicate"){markCommentLiked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 추천 처리 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 추천 처리 중 오류가 발생했습니다."));}
-function unlikeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_unlike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){unmarkCommentLiked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t)t.likes=Math.max(0,Number(t.likes||0)-1);openGalleryDetail(galleryId,false);}else if(data.result==="not_found"){unmarkCommentLiked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 추천 취소 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));}
-function toggleGalleryCommentDislike(commentId,galleryId){hasDislikedComment("gallery",commentId)?undislikeGalleryComment(commentId,galleryId):dislikeGalleryComment(commentId,galleryId)}
-function dislikeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_dislike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){const wasLiked=hasLikedComment("gallery",commentId);markCommentDisliked("gallery",commentId);unmarkCommentLiked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t){t.dislikes=Number(t.dislikes||0)+1;if(wasLiked)t.likes=Math.max(0,Number(t.likes||0)-1);}openGalleryDetail(galleryId,false);}else if(data.result==="duplicate"){markCommentDisliked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 비추천 처리 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 비추천 처리 중 오류가 발생했습니다."));}
-function undislikeGalleryComment(commentId,galleryId){postGalleryApi({type:"gallery_comment_undislike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{if(data.result==="success"){unmarkCommentDisliked("gallery",commentId);const t=galleryComments.find((c,i)=>getGalleryCommentId(c,i)===String(commentId));if(t)t.dislikes=Math.max(0,Number(t.dislikes||0)-1);openGalleryDetail(galleryId,false);}else if(data.result==="not_found"){unmarkCommentDisliked("gallery",commentId);openGalleryDetail(galleryId,false);}else alert(data.message||"댓글 비추천 취소 중 오류가 발생했습니다.");}).catch(()=>alert("댓글 비추천 취소 중 오류가 발생했습니다."));}
-function startEditGalleryPost(id){
-    const target=findGalleryById(id);if(!target){alert("갤러리 글을 찾을 수 없습니다.");return;}
-    const box=document.getElementById("galleryDetailBox");if(!box)return;
-    box.innerHTML=`<div class="board-detail-title">갤러리 글 수정</div><div class="inline-edit-form"><div class="inline-edit-grid"><input class="form-input" id="galleryEditTitle" value="${escapeAttr(target.title||"")}" placeholder="제목"><input class="form-input" id="galleryEditCategory" value="${escapeAttr(target.category||"일반")}" placeholder="분류"></div><textarea class="form-textarea" id="galleryEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea><input class="form-input" id="galleryEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;"><div class="inline-edit-help">사진 자체는 수정하지 않고 제목/분류/내용만 수정됩니다.</div><div class="inline-edit-actions"><button class="board-action-btn" onclick="submitGalleryPostEdit('${escapeText(id)}')">저장</button><button class="board-action-btn danger" onclick="openGalleryDetail('${escapeText(id)}',false)">취소</button></div></div>`;
-    scrollToElement("galleryDetailBox");
-}
-function submitGalleryPostEdit(id){
-    const target=findGalleryById(id);if(!target){alert("갤러리 글을 찾을 수 없습니다.");return;}
-    const title=document.getElementById("galleryEditTitle").value.trim(); const category=document.getElementById("galleryEditCategory").value.trim()||"일반"; const content=document.getElementById("galleryEditContent").value.trim(); const password=document.getElementById("galleryEditPassword").value.trim();
-    if(!title){alert("제목은 비울 수 없습니다.");return;} if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
-    postGalleryApi({type:"gallery_update",id,password,title,category,content}).then(data=>{if(data.result==="success"){target.title=title;target.category=category;target.content=content;target.updated_at=data.updated_at||new Date().toISOString();openGalleryDetail(id,false);}else alert(data.message||"갤러리 글 수정 중 오류가 발생했습니다.");}).catch(()=>alert("갤러리 글 수정 중 오류가 발생했습니다."));
-}
-function deleteGalleryPost(id){
-    const password=prompt("갤러리 글 삭제 비밀번호를 입력하세요. 삭제하면 댓글과 Drive 사진도 함께 정리됩니다."); if(password===null)return; if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
-    postGalleryApi({type:"gallery_delete",id,password:password.trim()}).then(data=>{if(data.result==="success"){galleries=galleries.filter((g,i)=>getGalleryId(g,i)!==String(id));galleryComments=galleryComments.filter(c=>String(c.gallery_id)!==String(id));showGallery();}else alert(data.message||"갤러리 글 삭제 중 오류가 발생했습니다.");}).catch(()=>alert("갤러리 글 삭제 중 오류가 발생했습니다."));
-}
-
 function showHome(){
     enterMainSection("home");
     setMainActive(0);
-    const recentNotices=notices.slice(-3).reverse();
+    const recentNotices=notices.slice(-4).reverse();
     const recentTubes=getSortedTubes().slice(0,6);
     const recentBoards=getSortedBoards().slice(0,4);
 
@@ -3603,14 +2753,14 @@ function showHome(){
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">AXE NET의 최신 공지와 업데이트를 확인하세요.</div>
+                <div class="section-desc">최근 일반공지와 AXE TUBE 업데이트를 확인하세요.</div>
             </div>
             <div class="count">AXE NET</div>
         </div>
 
         <div class="home-grid">
             <div class="home-card">
-                <div class="home-card-title">최근 공지사항</div>
+                <div class="home-card-title">최근 일반공지</div>
                 ${
                     recentNotices.length
                     ? recentNotices.map((n,i)=>`
@@ -3651,39 +2801,26 @@ function showNotice(){
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">공지사항</div>
-                <div class="section-desc">AXE NET의 운영 정보와 최신 소식을 확인합니다.</div>
+                <div class="section-title">운영 안내</div>
+                <div class="section-desc">일반공지와 운영기준을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
         </div>
         <div class="sub-filter">
-            <button class="active" onclick="setNoticeCategory('공지')">공지</button>
-            <button onclick="setNoticeCategory('AXE소식')">AXE소식</button>
-            <button onclick="setNoticeCategory('패치노트')">패치노트</button>
+            <button class="active" onclick="navigateSubTab('notice','noticeList')">일반공지</button>
             <button onclick="navigateSubTab('notice','operations')">운영기준</button>
         </div>
         <div id="noticeContent"></div>`;
     showNoticeList();
 }
 
-function normalizeNoticeCategory(v){
-    const text=String(v||"").trim();
-    return text||"공지";
-}
-
-function setNoticeCategory(cat){
-    noticeCategory=cat;
-    selectedOperationId="";
-    showNoticeList();
-}
-
 function showNoticeList(){
-    const list=notices.slice().reverse().filter(n=>normalizeNoticeCategory(n.category)===noticeCategory);
+    const list=notices.slice().reverse();
     const buttons=document.querySelectorAll(".sub-filter button");
-    buttons.forEach(btn=>btn.classList.remove("active"));
-    const noticeTabs=["공지","AXE소식","패치노트"];
-    const tabIndex=noticeTabs.indexOf(noticeCategory);
-    if(tabIndex>=0&&buttons[tabIndex])buttons[tabIndex].classList.add("active");
+    if(buttons.length>=2){
+        buttons[0].classList.add("active");
+        buttons[1].classList.remove("active");
+    }
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="item-list">
@@ -3698,10 +2835,10 @@ function showNoticeList(){
                     <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
                         <div class="notice-row-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
                         <div class="notice-row-date">${formatDate(n.date)}</div>
-                        <div class="notice-row-type">${safe(normalizeNoticeCategory(n.category))}</div>
+                        <div class="notice-row-type">일반공지</div>
                     </div>
                 `).join("")
-                : `<div class="ready">등록된 ${safe(noticeCategory)} 항목이 없습니다.</div>`
+                : `<div class="ready">등록된 일반공지가 없습니다.</div>`
             }
         </div>
     `;
@@ -3729,7 +2866,7 @@ function openNoticeDetail(id,addHistory=false){
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">공지사항</div>
+                <div class="section-title">일반공지</div>
                 <div class="section-desc">공지 상세 내용을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
@@ -3740,7 +2877,7 @@ function openNoticeDetail(id,addHistory=false){
         <div class="detail" style="margin-top:14px;">
             <div class="detail-title">${safe(target.title)}</div>
             <div class="notice-detail-meta">
-                <span class="badge gold">${safe(normalizeNoticeCategory(target.category))}</span>
+                <span class="badge gold">일반공지</span>
                 <span class="badge">작성일 ${formatDate(target.date)}</span>
                 ${isImportant(target.important)?'<span class="badge">중요</span>':''}
             </div>
@@ -3760,8 +2897,10 @@ function getValidOperations(){
 function showOperationList(){
     selectedOperationId="";
     const buttons=document.querySelectorAll(".sub-filter button");
-    buttons.forEach(btn=>btn.classList.remove("active"));
-    if(buttons.length>=4)buttons[3].classList.add("active");
+    if(buttons.length>=2){
+        buttons[0].classList.remove("active");
+        buttons[1].classList.add("active");
+    }
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="db-layout">
@@ -3817,35 +2956,30 @@ function selectOperation(id){
 
 function showTube(){
     enterMainSection("tube");
-    setMainActive(3);
+    setMainActive(2);
     const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
-        <div class="tube-channel-head">
-            <div class="tube-channel-main">
-                <div class="tube-channel-kicker">AXE MEDIA BOARD</div>
-                <div class="tube-channel-title">AXE TUBE</div>
-                <div class="tube-channel-desc">AXE 활동 영상과 게임 플레이 게시글을 한 곳에서 확인합니다.</div>
+        <div class="section-head">
+            <div>
+                <div class="section-title">AXE TUBE</div>
+                <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
             </div>
+            <div class="count">${list.length}개</div>
         </div>
 
-        <div class="tube-list-shell">
-            <div class="tube-list-head">
-                <div>
-                    <div class="tube-list-title">최근 영상</div>
-                    <div class="tube-list-desc">등록된 AXE TUBE 게시글 목록입니다.</div>
-                </div>
-                <div class="tube-list-action"><button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button></div>
-            </div>
-            <div class="tube-grid">
-                ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
-            </div>
+        <div class="tube-actions">
+            <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
+        </div>
+
+        <div class="tube-grid">
+            ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
         </div>`;
 }
 
 function showInfo(){
     enterMainSection("info");
-    setMainActive(6);
+    setMainActive(5);
     showCraft();
 }
 
@@ -3861,12 +2995,12 @@ function utilityMenu(active){
 
 function showUtility(){
     enterMainSection("utility");
-    setMainActive(7);
+    setMainActive(6);
     showPlicaCalculator();
 }
 
 function showPlicaCalculator(){
-    setMainActive(7);
+    setMainActive(6);
 
     document.getElementById("content").innerHTML=`
     <div class="section-head">
@@ -3950,7 +3084,7 @@ function calcPlica(){
 
 
 function showQuest(){
-    setMainActive(6);
+    setMainActive(5);
     const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
@@ -3990,7 +3124,7 @@ function showQuest(){
 
 function setQuestJob(job){
     questJobFilter=job;
-    refreshData({silent:true}).finally(()=>showQuest());
+    showQuest();
 }
 
 function onQuestSearch(value){
@@ -4059,7 +3193,7 @@ function renderQuestTable(){
 
 
 function showProcess(){
-    setMainActive(6);
+    setMainActive(5);
     const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
 
@@ -4099,7 +3233,7 @@ function showProcess(){
 
 function setProcessJob(job){
     processJobFilter=job;
-    refreshData({silent:true}).finally(()=>showProcess());
+    showProcess();
 }
 
 function onProcessSearch(value){
@@ -4216,7 +3350,7 @@ function renderProcessCards(){
 
 
 function showSkillRanks(){
-    setMainActive(6);
+    setMainActive(5);
     const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
 
@@ -4260,7 +3394,7 @@ function showSkillRanks(){
 
 function setSkillRankFilter(skill){
     skillRankFilter=skill;
-    refreshData({silent:true}).finally(()=>showSkillRanks());
+    showSkillRanks();
 }
 
 function onSkillRankSearch(value){
@@ -4442,7 +3576,7 @@ function renderModOption(v){
 }
 
 function showModBooks(){
-    setMainActive(6);
+    setMainActive(5);
     if(!modBookTypeFilter)modBookTypeFilter="접두";
     const categories=getModBookCategories();
     if(!modBookCategoryFilter||!categories.includes(modBookCategoryFilter))modBookCategoryFilter=categories[0]||"";
@@ -4618,7 +3752,7 @@ function selectModBook(key){
 }
 
 function showCraft(){
-    setMainActive(6);
+    setMainActive(5);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
     let html=`
@@ -4911,7 +4045,7 @@ function renderDetail(id){
 
 function showOutlaw(){
     enterMainSection("outlaw");
-    setMainActive(2);
+    setMainActive(3);
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
