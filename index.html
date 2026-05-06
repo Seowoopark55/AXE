@@ -816,6 +816,40 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .board-like-btn{height:40px;min-width:102px;font-size:13px}
 }
 
+
+
+/* 반응 버튼/상세 하단 정돈: 추천·비추천 공통 UI */
+.detail-like-area{display:flex;justify-content:center;align-items:center;gap:10px;margin:24px 0 18px;padding-top:4px}
+.detail-bottom-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 8px}
+.detail-bottom-actions .back-btn{width:auto;min-width:92px}
+.detail-admin-actions{display:flex;justify-content:flex-end;gap:8px;margin:0}
+.board-like-btn,.reaction-btn{height:42px;min-width:86px;padding:0 17px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.045);color:#d6d6d6;font-size:14px;font-weight:950;cursor:pointer;transition:.18s ease;box-shadow:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.board-like-btn:hover,.reaction-btn:hover{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.075);transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.22)}
+.board-like-btn.liked,.reaction-btn.like.active{border-color:rgba(255,181,46,.68);background:rgba(255,181,46,.14);color:#ffcf75;box-shadow:inset 0 0 0 1px rgba(255,181,46,.08)}
+.reaction-btn.dislike.active{border-color:rgba(145,145,145,.58);background:rgba(255,255,255,.13);color:#e0e0e0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.reaction-btn.like.active:hover{background:rgba(255,181,46,.19);box-shadow:0 8px 20px rgba(255,181,46,.1)}
+.reaction-btn.dislike.active:hover{background:rgba(255,255,255,.17);box-shadow:0 8px 20px rgba(255,255,255,.06)}
+.comment-reaction-group{display:inline-flex;align-items:center;gap:6px;margin-right:2px}
+.comment-reaction-btn{height:28px;min-width:54px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#aaa;cursor:pointer;font-size:12px;font-weight:900;transition:.16s ease;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.comment-reaction-btn:hover{color:#fff;border-color:rgba(255,255,255,.24);background:rgba(255,255,255,.075)}
+.comment-reaction-btn.like.active{color:#ffcf75;background:rgba(255,181,46,.13);border-color:rgba(255,181,46,.48)}
+.comment-reaction-btn.dislike.active{color:#e0e0e0;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.26)}
+.comment-item:not(.reply)>.comment-item.reply{margin-top:16px}
+.comment-item.reply{margin-top:14px;margin-left:30px;border-left:3px solid rgba(156,95,255,.42);background:rgba(156,95,255,.045);border-color:rgba(156,95,255,.22)}
+.comment-item.reply + .comment-item.reply{margin-top:10px}
+
+@media(max-width:760px){
+    .detail-like-area{gap:8px;margin:20px 0 15px}
+    .detail-bottom-actions{display:grid;grid-template-columns:1fr;gap:8px}
+    .detail-bottom-actions .back-btn{width:100%}
+    .detail-admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    .detail-admin-actions button{width:100%;height:36px;font-size:12px;border-radius:10px}
+    .reaction-btn,.board-like-btn{height:40px;min-width:76px;font-size:13px;padding:0 14px}
+    .comment-reaction-group{display:flex;gap:7px;width:100%;margin:0 0 3px}
+    .comment-reaction-btn{height:34px!important;min-width:64px!important;padding:0 11px!important;border-radius:11px!important;font-size:12px!important;flex:0 0 auto}
+    .comment-item.reply{margin-top:16px!important;margin-left:8px!important;padding-left:13px!important;border-left:3px solid rgba(156,95,255,.55)}
+}
+
 </style>
 </head>
 
@@ -932,7 +966,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyqFinvLRh9vm-e6LxxoOvz7zZGgA2KNW35eaJVn9EifkMnVy6xNOM1UesXNHuhrkxBUQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxPfk36xqmdBA_K13Kns5I4-Hs-HwOVouyvKcHlyZ4Fwx2-Y7K4K6DtLGbD8MpilzoSag/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1374,6 +1408,7 @@ function submitTubePost(){
                 order:"",
                 views:0,
                 likes:0,
+                dislikes:0,
                 updated_at:""
             };
             tubes.unshift(newTube);
@@ -1503,7 +1538,12 @@ function likeTube(id){
         if(data.result==="success"){
             markTubeLiked(id);
             const target=findTubeById(id);
-            if(target)target.likes=Number(target.likes||0)+1;
+            if(target){
+                const wasDisliked=hasDislikedTube(id);
+                target.likes=Number(target.likes||0)+1;
+                if(wasDisliked)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            }
+            unmarkTubeDisliked(id);
             openTubeDetail(id,false);
         }else if(data.result==="duplicate"){
             markTubeLiked(id);
@@ -1536,6 +1576,45 @@ function unlikeTube(id){
         }
     })
     .catch(()=>alert("추천 취소 중 오류가 발생했습니다."));
+}
+
+
+function toggleTubeDislike(id){
+    if(hasDislikedTube(id)){undislikeTube(id);return;}
+    dislikeTube(id);
+}
+function dislikeTube(id){
+    postTubeApi({type:"tube_dislike",id:id,client_id:getTubeLikeClientId()})
+    .then(data=>{
+        if(data.result==="success"){
+            const wasLiked=hasLikedTube(id);
+            markTubeDisliked(id);
+            unmarkTubeLiked(id);
+            const target=findTubeById(id);
+            if(target){
+                target.dislikes=Number(target.dislikes||0)+1;
+                if(wasLiked)target.likes=Math.max(0,Number(target.likes||0)-1);
+            }
+            openTubeDetail(id,false);
+        }else if(data.result==="duplicate"){
+            markTubeDisliked(id);
+            openTubeDetail(id,false);
+        }else{alert(data.message||"비추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("비추천 처리 중 오류가 발생했습니다."));
+}
+function undislikeTube(id){
+    postTubeApi({type:"tube_undislike",id:id,client_id:getTubeLikeClientId()})
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkTubeDisliked(id);
+            const target=findTubeById(id);
+            if(target)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            openTubeDetail(id,false);
+        }else if(data.result==="not_found"){
+            unmarkTubeDisliked(id);
+            openTubeDetail(id,false);
+        }else{alert(data.message||"비추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("비추천 취소 중 오류가 발생했습니다."));
 }
 
 
@@ -1576,6 +1655,48 @@ function unmarkCommentLiked(scope,commentId){
     localStorage.setItem("axe_"+scope+"_liked_comments",JSON.stringify(list));
 }
 
+
+function getDislikedComments(scope){
+    try{
+        return JSON.parse(localStorage.getItem("axe_"+scope+"_disliked_comments")||"[]");
+    }catch(e){
+        return [];
+    }
+}
+
+function hasDislikedComment(scope,commentId){
+    return getDislikedComments(scope).includes(String(commentId));
+}
+
+function markCommentDisliked(scope,commentId){
+    const list=getDislikedComments(scope);
+    const key=String(commentId);
+    if(!list.includes(key)){
+        list.push(key);
+        localStorage.setItem("axe_"+scope+"_disliked_comments",JSON.stringify(list));
+    }
+}
+
+function unmarkCommentDisliked(scope,commentId){
+    const key=String(commentId);
+    const list=getDislikedComments(scope).filter(item=>String(item)!==key);
+    localStorage.setItem("axe_"+scope+"_disliked_comments",JSON.stringify(list));
+}
+
+function getDislikedTubes(){
+    try{return JSON.parse(localStorage.getItem("axe_tube_disliked_posts")||"[]");}catch(e){return [];}    
+}
+function hasDislikedTube(id){return getDislikedTubes().includes(String(id));}
+function markTubeDisliked(id){const list=getDislikedTubes();const key=String(id);if(!list.includes(key)){list.push(key);localStorage.setItem("axe_tube_disliked_posts",JSON.stringify(list));}}
+function unmarkTubeDisliked(id){const key=String(id);const list=getDislikedTubes().filter(item=>String(item)!==key);localStorage.setItem("axe_tube_disliked_posts",JSON.stringify(list));}
+
+function getDislikedBoardPosts(){
+    try{return JSON.parse(localStorage.getItem("axe_board_disliked_posts")||"[]");}catch(e){return [];}    
+}
+function hasDislikedBoardPost(id){return getDislikedBoardPosts().includes(String(id));}
+function markBoardPostDisliked(id){const list=getDislikedBoardPosts();const key=String(id);if(!list.includes(key)){list.push(key);localStorage.setItem("axe_board_disliked_posts",JSON.stringify(list));}}
+function unmarkBoardPostDisliked(id){const key=String(id);const list=getDislikedBoardPosts().filter(item=>String(item)!==key);localStorage.setItem("axe_board_disliked_posts",JSON.stringify(list));}
+
 function getRootComments(comments){
     return comments.filter(c=>!String(c.parent_comment_id||"").trim());
 }
@@ -1604,16 +1725,21 @@ function renderReplyForm(scope,ownerId,parentCommentId){
 function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
     const commentId=scope==="board"?getCommentId(comment,index):getTubeCommentId(comment,index);
     const liked=hasLikedComment(scope,commentId);
+    const disliked=hasDislikedComment(scope,commentId);
     const deleteFn=scope==="board"?"deleteBoardComment":"deleteTubeComment";
     const likeFn=scope==="board"?"toggleBoardCommentLike":"toggleTubeCommentLike";
+    const dislikeFn=scope==="board"?"toggleBoardCommentDislike":"toggleTubeCommentDislike";
     const formId=scope+"Reply_"+String(commentId).replace(/[^a-zA-Z0-9_\-]/g,"_")+"Form";
     const replies=getReplyComments(allComments,commentId);
     const replyHtml=replies.map((reply,replyIndex)=>renderCommentItem(scope,ownerId,reply,replyIndex,allComments,true)).join("");
     return `<div class="comment-item ${isReply?"reply":""}">
         <div class="comment-meta">
-            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${formatDate(comment.date)}${comment.updated_at?` · 수정 ${formatDate(comment.updated_at)}`:""}</div>
+            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
             <div class="comment-actions">
-                <button class="comment-mini-btn ${liked?"liked":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">👍 ${liked?"취소":"추천"} ${Number(comment.likes||0)}</button>
+                <span class="comment-reaction-group">
+                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
+                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
+                </span>
                 ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
                 <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
                 <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
@@ -1729,6 +1855,7 @@ function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
                 content:content,
                 date:data.date||new Date().toISOString(),
                 likes:0,
+                dislikes:0,
                 updated_at:""
             });
             openTubeDetail(tubeId,false);
@@ -1749,7 +1876,7 @@ function deleteTubeComment(commentId,tubeId){
         if(data.result==="success"){
             const deleted=(data.deleted_comment_ids||[commentId]).map(String);
             tubeComments=tubeComments.filter((comment,index)=>!deleted.includes(getTubeCommentId(comment,index)));
-            deleted.forEach(id=>unmarkCommentLiked("tube",id));
+            deleted.forEach(id=>{unmarkCommentLiked("tube",id);unmarkCommentDisliked("tube",id);});
             openTubeDetail(tubeId,false);
         }else{
             alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
@@ -1776,7 +1903,12 @@ function likeTubeComment(commentId,tubeId){
         if(data.result==="success"){
             markCommentLiked("tube",commentId);
             const target=tubeComments.find((comment,index)=>getTubeCommentId(comment,index)===String(commentId));
-            if(target)target.likes=Number(target.likes||0)+1;
+            if(target){
+                const wasDisliked=hasDislikedComment("tube",commentId);
+                target.likes=Number(target.likes||0)+1;
+                if(wasDisliked)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            }
+            unmarkCommentDisliked("tube",commentId);
             openTubeDetail(tubeId,false);
         }else if(data.result==="duplicate"){
             markCommentLiked("tube",commentId);
@@ -1809,6 +1941,45 @@ function unlikeTubeComment(commentId,tubeId){
         }
     })
     .catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));
+}
+
+
+function toggleTubeCommentDislike(commentId,tubeId){
+    if(hasDislikedComment("tube",commentId)){undislikeTubeComment(commentId,tubeId);return;}
+    dislikeTubeComment(commentId,tubeId);
+}
+function dislikeTubeComment(commentId,tubeId){
+    postTubeApi({type:"tube_comment_dislike",comment_id:commentId,client_id:getCommentLikeClientId("tube")})
+    .then(data=>{
+        if(data.result==="success"){
+            const wasLiked=hasLikedComment("tube",commentId);
+            markCommentDisliked("tube",commentId);
+            unmarkCommentLiked("tube",commentId);
+            const target=tubeComments.find((comment,index)=>getTubeCommentId(comment,index)===String(commentId));
+            if(target){
+                target.dislikes=Number(target.dislikes||0)+1;
+                if(wasLiked)target.likes=Math.max(0,Number(target.likes||0)-1);
+            }
+            openTubeDetail(tubeId,false);
+        }else if(data.result==="duplicate"){
+            markCommentDisliked("tube",commentId);
+            openTubeDetail(tubeId,false);
+        }else{alert(data.message||"댓글 비추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 비추천 처리 중 오류가 발생했습니다."));
+}
+function undislikeTubeComment(commentId,tubeId){
+    postTubeApi({type:"tube_comment_undislike",comment_id:commentId,client_id:getCommentLikeClientId("tube")})
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkCommentDisliked("tube",commentId);
+            const target=tubeComments.find((comment,index)=>getTubeCommentId(comment,index)===String(commentId));
+            if(target)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            openTubeDetail(tubeId,false);
+        }else if(data.result==="not_found"){
+            unmarkCommentDisliked("tube",commentId);
+            openTubeDetail(tubeId,false);
+        }else{alert(data.message||"댓글 비추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 비추천 취소 중 오류가 발생했습니다."));
 }
 
 
@@ -1931,22 +2102,24 @@ function openTubeDetail(id,addView=false,addHistory=false){
             <div class="count">TUBE</div>
         </div>
 
-        <button class="back-btn" onclick="goBackToList('tube')">목록으로</button>
-
         <div class="board-detail-card" id="tubeDetailBox" style="margin-top:14px;">
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
             <div class="detail-like-area">
-                <button class="board-like-btn ${hasLikedTube(id)?'liked':''}" onclick="toggleTubeLike('${escapeText(id)}')" title="추천">👍 ${Number(target.likes||0)}</button>
+                <button class="reaction-btn like ${hasLikedTube(id)?'active':''}" onclick="toggleTubeLike('${escapeText(id)}')" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
+                <button class="reaction-btn dislike ${hasDislikedTube(id)?'active':''}" onclick="toggleTubeDislike('${escapeText(id)}')" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
             </div>
-            <div class="detail-admin-actions">
-                <button class="board-action-btn" onclick="startEditTubePost('${escapeText(id)}')">수정</button>
-                <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">삭제</button>
+            <div class="detail-bottom-actions">
+                <button class="back-btn" onclick="goBackToList('tube')">목록으로</button>
+                <div class="detail-admin-actions">
+                    <button class="board-action-btn" onclick="startEditTubePost('${escapeText(id)}')">수정</button>
+                    <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">삭제</button>
+                </div>
             </div>
             <div class="comment-section">
                 <div class="comment-title">댓글 ${comments.length}</div>
@@ -2046,6 +2219,7 @@ function submitBoardPost(){
                 order:"",
                 views:0,
                 likes:0,
+                dislikes:0,
                 updated_at:""
             };
             boards.unshift(newPost);
@@ -2150,21 +2324,23 @@ function openBoardDetail(id,addHistory=false,addView=false){
             <div class="count">BOARD</div>
         </div>
 
-        <button class="back-btn" onclick="goBackToList('board')">목록으로</button>
-
         <div class="board-detail-card" id="boardDetailBox" style="margin-top:14px;">
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
-                <button class="board-like-btn ${hasLikedBoardPost(id)?'liked':''}" onclick="toggleBoardLike('${escapeText(id)}')" title="추천">👍 ${Number(target.likes||0)}</button>
+                <button class="reaction-btn like ${hasLikedBoardPost(id)?'active':''}" onclick="toggleBoardLike('${escapeText(id)}')" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
+                <button class="reaction-btn dislike ${hasDislikedBoardPost(id)?'active':''}" onclick="toggleBoardDislike('${escapeText(id)}')" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
             </div>
-            <div class="detail-admin-actions">
-                <button class="board-action-btn" onclick="startEditBoardPost('${escapeText(id)}')">수정</button>
-                <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">삭제</button>
+            <div class="detail-bottom-actions">
+                <button class="back-btn" onclick="goBackToList('board')">목록으로</button>
+                <div class="detail-admin-actions">
+                    <button class="board-action-btn" onclick="startEditBoardPost('${escapeText(id)}')">수정</button>
+                    <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">삭제</button>
+                </div>
             </div>
             <div class="comment-section">
                 <div class="comment-title">댓글 ${comments.length}</div>
@@ -2218,6 +2394,7 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){
                 content:content,
                 date:data.date||new Date().toISOString(),
                 likes:0,
+                dislikes:0,
                 updated_at:""
             });
             openBoardDetail(postId);
@@ -2238,7 +2415,7 @@ function deleteBoardComment(commentId,postId){
         if(data.result==="success"){
             const deleted=(data.deleted_comment_ids||[commentId]).map(String);
             boardComments=boardComments.filter((comment,index)=>!deleted.includes(getCommentId(comment,index)));
-            deleted.forEach(id=>unmarkCommentLiked("board",id));
+            deleted.forEach(id=>{unmarkCommentLiked("board",id);unmarkCommentDisliked("board",id);});
             openBoardDetail(postId);
         }else{
             alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");
@@ -2265,7 +2442,12 @@ function likeBoardComment(commentId,postId){
         if(data.result==="success"){
             markCommentLiked("board",commentId);
             const target=boardComments.find((comment,index)=>getCommentId(comment,index)===String(commentId));
-            if(target)target.likes=Number(target.likes||0)+1;
+            if(target){
+                const wasDisliked=hasDislikedComment("board",commentId);
+                target.likes=Number(target.likes||0)+1;
+                if(wasDisliked)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            }
+            unmarkCommentDisliked("board",commentId);
             openBoardDetail(postId);
         }else if(data.result==="duplicate"){
             markCommentLiked("board",commentId);
@@ -2299,6 +2481,45 @@ function unlikeBoardComment(commentId,postId){
     })
     .catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));
 }
+
+function toggleBoardCommentDislike(commentId,postId){
+    if(hasDislikedComment("board",commentId)){undislikeBoardComment(commentId,postId);return;}
+    dislikeBoardComment(commentId,postId);
+}
+function dislikeBoardComment(commentId,postId){
+    postBoardApi({type:"board_comment_dislike",comment_id:commentId,client_id:getCommentLikeClientId("board")})
+    .then(data=>{
+        if(data.result==="success"){
+            const wasLiked=hasLikedComment("board",commentId);
+            markCommentDisliked("board",commentId);
+            unmarkCommentLiked("board",commentId);
+            const target=boardComments.find((comment,index)=>getCommentId(comment,index)===String(commentId));
+            if(target){
+                target.dislikes=Number(target.dislikes||0)+1;
+                if(wasLiked)target.likes=Math.max(0,Number(target.likes||0)-1);
+            }
+            openBoardDetail(postId);
+        }else if(data.result==="duplicate"){
+            markCommentDisliked("board",commentId);
+            openBoardDetail(postId);
+        }else{alert(data.message||"댓글 비추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 비추천 처리 중 오류가 발생했습니다."));
+}
+function undislikeBoardComment(commentId,postId){
+    postBoardApi({type:"board_comment_undislike",comment_id:commentId,client_id:getCommentLikeClientId("board")})
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkCommentDisliked("board",commentId);
+            const target=boardComments.find((comment,index)=>getCommentId(comment,index)===String(commentId));
+            if(target)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            openBoardDetail(postId);
+        }else if(data.result==="not_found"){
+            unmarkCommentDisliked("board",commentId);
+            openBoardDetail(postId);
+        }else{alert(data.message||"댓글 비추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 비추천 취소 중 오류가 발생했습니다."));
+}
+
 
 function getBoardLikeClientId(){
     const key="axe_board_like_client_id";
@@ -2355,7 +2576,12 @@ function likeBoardPost(id){
         if(data.result==="success"){
             markBoardPostLiked(id);
             const target=findBoardPostById(id);
-            if(target)target.likes=Number(target.likes||0)+1;
+            if(target){
+                const wasDisliked=hasDislikedBoardPost(id);
+                target.likes=Number(target.likes||0)+1;
+                if(wasDisliked)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            }
+            unmarkBoardPostDisliked(id);
             openBoardDetail(id);
         }else if(data.result==="duplicate"){
             markBoardPostLiked(id);
@@ -2388,6 +2614,45 @@ function unlikeBoardPost(id){
         }
     })
     .catch(()=>alert("추천 취소 중 오류가 발생했습니다."));
+}
+
+
+function toggleBoardDislike(id){
+    if(hasDislikedBoardPost(id)){undislikeBoardPost(id);return;}
+    dislikeBoardPost(id);
+}
+function dislikeBoardPost(id){
+    postBoardApi({type:"board_dislike",id:id,client_id:getBoardLikeClientId()})
+    .then(data=>{
+        if(data.result==="success"){
+            const wasLiked=hasLikedBoardPost(id);
+            markBoardPostDisliked(id);
+            unmarkBoardPostLiked(id);
+            const target=findBoardPostById(id);
+            if(target){
+                target.dislikes=Number(target.dislikes||0)+1;
+                if(wasLiked)target.likes=Math.max(0,Number(target.likes||0)-1);
+            }
+            openBoardDetail(id);
+        }else if(data.result==="duplicate"){
+            markBoardPostDisliked(id);
+            openBoardDetail(id);
+        }else{alert(data.message||"비추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("비추천 처리 중 오류가 발생했습니다."));
+}
+function undislikeBoardPost(id){
+    postBoardApi({type:"board_undislike",id:id,client_id:getBoardLikeClientId()})
+    .then(data=>{
+        if(data.result==="success"){
+            unmarkBoardPostDisliked(id);
+            const target=findBoardPostById(id);
+            if(target)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            openBoardDetail(id);
+        }else if(data.result==="not_found"){
+            unmarkBoardPostDisliked(id);
+            openBoardDetail(id);
+        }else{alert(data.message||"비추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("비추천 취소 중 오류가 발생했습니다."));
 }
 
 
