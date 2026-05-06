@@ -1083,6 +1083,118 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-reaction-btn.dislike.active{color:#ff9292!important;background:rgba(255,80,80,.16)!important;border-color:rgba(255,90,90,.42)!important}
 }
 
+
+/* 상세 상단 메타 정보 정돈: 날짜 시간 표시 + 수정됨 분리 + 모바일 배열 안정화 */
+.detail-meta-clean{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:0;
+    word-break:keep-all;
+}
+.detail-meta-author{
+    color:#ffb52e;
+    font-weight:950;
+    white-space:nowrap;
+}
+.detail-meta-time{
+    color:#d4d4d4;
+    font-weight:850;
+    white-space:nowrap;
+}
+.detail-updated-chip{
+    display:inline-flex;
+    align-items:center;
+    height:22px;
+    margin-left:8px;
+    padding:0 8px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.045);
+    color:#aaa;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
+}
+.detail-meta-stats{
+    display:inline-flex;
+    align-items:center;
+    gap:14px;
+    margin-left:8px;
+    color:#aaa;
+    white-space:nowrap;
+}
+.detail-stat{
+    display:inline-flex;
+    align-items:center;
+    white-space:nowrap;
+}
+
+@media(max-width:760px){
+    .detail-meta-clean{
+        display:grid!important;
+        grid-template-columns:auto 1fr;
+        gap:6px 6px!important;
+        font-size:11px!important;
+        line-height:1.45!important;
+        padding-bottom:10px!important;
+    }
+    .detail-meta-clean .detail-meta-dot{
+        display:none!important;
+    }
+    .detail-meta-author{
+        max-width:96px;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        font-size:12px;
+    }
+    .detail-meta-time{
+        min-width:0;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        color:#cfcfcf;
+        font-size:11px;
+    }
+    .detail-updated-chip{
+        grid-column:1 / -1;
+        width:max-content;
+        max-width:100%;
+        height:20px;
+        margin-left:0;
+        padding:0 7px;
+        font-size:10px;
+        color:#9f9f9f;
+        background:rgba(255,255,255,.035);
+        border-color:rgba(255,255,255,.08);
+    }
+    .detail-meta-stats{
+        grid-column:1 / -1;
+        display:grid!important;
+        grid-template-columns:repeat(4,max-content);
+        justify-content:start;
+        gap:7px!important;
+        margin-left:0!important;
+        width:100%;
+        white-space:nowrap!important;
+        font-size:11px!important;
+        color:#9c9c9c;
+        overflow:hidden;
+    }
+    .detail-stat{
+        min-width:0;
+        white-space:nowrap!important;
+    }
+}
+
+@media(max-width:380px){
+    .detail-meta-stats{
+        grid-template-columns:repeat(2,max-content);
+        gap:5px 10px!important;
+    }
+}
+
 </style>
 </head>
 
@@ -2340,7 +2452,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer||"AXE")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer||"AXE")}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">작성 ${formatDateTime(target.date)}</span>${target.updated_at?`<span class="detail-updated-chip">수정됨 ${formatDateTime(target.updated_at)}</span>`:""}<span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span></div>
             </div>
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
@@ -2562,7 +2674,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
             <div class="board-detail-title">${safe(target.title)}</div>
             <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
             <div class="detail-meta-panel">
-                <div class="detail-meta-main"><strong>${safe(target.writer)}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+                <div class="detail-meta-main detail-meta-clean"><span class="detail-meta-author">${safe(target.writer)}</span><span class="detail-meta-dot">|</span><span class="detail-meta-time">작성 ${formatDateTime(target.date)}</span>${target.updated_at?`<span class="detail-updated-chip">수정됨 ${formatDateTime(target.updated_at)}</span>`:""}<span class="detail-meta-stats"><span class="detail-stat">조회 ${Number(target.views||0)}</span><span class="detail-stat">추천 ${Number(target.likes||0)}</span><span class="detail-stat">비추천 ${Number(target.dislikes||0)}</span><span class="detail-stat">댓글 ${comments.length}</span></span></div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
