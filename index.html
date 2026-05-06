@@ -440,6 +440,14 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .board-detail-card{border:1px solid rgba(255,255,255,.08);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(0,0,0,.24);padding:22px;min-height:280px}
 .board-detail-title{font-size:28px;font-weight:950;color:#fff;line-height:1.25;margin-bottom:10px}
 .board-detail-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.detail-meta-panel{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin:8px 0 18px;padding:14px 15px;border:1px solid rgba(255,255,255,.075);border-radius:15px;background:rgba(0,0,0,.22)}
+.detail-meta-left{min-width:0;display:flex;flex-direction:column;gap:8px}
+.detail-category-line{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.detail-meta-main{color:#bdbdbd;font-size:13px;font-weight:850;line-height:1.45;word-break:keep-all}
+.detail-meta-sub{color:#7f7f7f;font-size:12px;font-weight:850;line-height:1.4}
+.detail-meta-dot{display:inline-block;margin:0 7px;color:#4d4d4d}
+.detail-meta-updated{color:#ffcf75}
+.detail-meta-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;flex-shrink:0}
 .board-detail-content{white-space:pre-line;line-height:1.72;font-size:15px;color:#ddd;background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px}
 .board-empty{min-height:250px;display:flex;align-items:center;justify-content:center;color:#888;border:1px dashed rgba(255,255,255,.13);border-radius:16px;background:rgba(255,255,255,.025)}
 .home-board-wide{margin-top:18px}
@@ -766,6 +774,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 @media(max-width:360px){
     .main-menu button{font-size:11px!important;padding:0 3px!important}
+}
+
+
+@media(max-width:760px){
+    .detail-meta-panel{display:block;padding:13px 13px;margin-bottom:16px}
+    .detail-meta-left{gap:7px}
+    .detail-meta-main{font-size:12px;line-height:1.55}
+    .detail-meta-sub{font-size:12px}
+    .detail-meta-actions{justify-content:stretch;margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+    .detail-meta-actions button{width:100%;height:34px;padding:0 8px;font-size:12px;border-radius:10px}
 }
 
 </style>
@@ -1887,21 +1905,19 @@ function openTubeDetail(id,addView=false,addHistory=false){
 
         <div class="board-detail-card" id="tubeDetailBox" style="margin-top:14px;">
             <div class="board-detail-title">${safe(target.title)}</div>
-            <div class="board-detail-meta">
-                <span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span>
-                <span class="board-badge">작성자 ${safe(target.writer||"AXE")}</span>
-                <span class="board-badge">${formatDate(target.date)}</span>
-                <span class="board-badge">조회 ${Number(target.views||0)}</span>
-                <span class="board-badge">👍 추천 ${Number(target.likes||0)}</span>
-                <span class="board-badge">댓글 ${comments.length}</span>
-                ${target.updated_at?`<span class="board-badge">수정 ${formatDate(target.updated_at)}</span>`:""}
+            <div class="detail-meta-panel">
+                <div class="detail-meta-left">
+                    <div class="detail-category-line"><span class="board-badge gold">${safe(target.category||"AXE TUBE")}</span></div>
+                    <div class="detail-meta-main">작성자 ${safe(target.writer||"AXE")}<span class="detail-meta-dot">·</span>등록 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-dot">·</span><span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:""}</div>
+                    <div class="detail-meta-sub">조회 ${Number(target.views||0)}<span class="detail-meta-dot">·</span>댓글 ${comments.length}</div>
+                </div>
+                <div class="detail-meta-actions">
+                    <button class="board-like-btn ${hasLikedTube(id)?'liked':''}" onclick="toggleTubeLike('${escapeText(id)}')">${hasLikedTube(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
+                    <button class="board-action-btn" onclick="startEditTubePost('${escapeText(id)}')">수정</button>
+                    <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">삭제</button>
+                </div>
             </div>
             ${videoHtml}
-            <div class="board-detail-actions">
-                <button class="board-like-btn ${hasLikedTube(id)?'liked':''}" onclick="toggleTubeLike('${escapeText(id)}')">${hasLikedTube(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
-                <button class="board-action-btn" onclick="startEditTubePost('${escapeText(id)}')">게시글 수정</button>
-                <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">게시글 삭제</button>
-            </div>
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
             <div class="comment-section">
                 <div class="comment-title">댓글 ${comments.length}</div>
@@ -2109,19 +2125,17 @@ function openBoardDetail(id,addHistory=false,addView=false){
 
         <div class="board-detail-card" id="boardDetailBox" style="margin-top:14px;">
             <div class="board-detail-title">${safe(target.title)}</div>
-            <div class="board-detail-meta">
-                <span class="board-badge gold">${safe(target.category||"일반")}</span>
-                <span class="board-badge">작성자 ${safe(target.writer)}</span>
-                <span class="board-badge">${formatDate(target.date)}</span>
-                <span class="board-badge">조회 ${Number(target.views||0)}</span>
-                <span class="board-badge">👍 추천 ${Number(target.likes||0)}</span>
-                <span class="board-badge">댓글 ${comments.length}</span>
-                ${target.updated_at?`<span class="board-badge">수정 ${formatDate(target.updated_at)}</span>`:""}
-            </div>
-            <div class="board-detail-actions">
-                <button class="board-like-btn ${hasLikedBoardPost(id)?'liked':''}" onclick="toggleBoardLike('${escapeText(id)}')">${hasLikedBoardPost(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
-                <button class="board-action-btn" onclick="startEditBoardPost('${escapeText(id)}')">게시글 수정</button>
-                <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">게시글 삭제</button>
+            <div class="detail-meta-panel">
+                <div class="detail-meta-left">
+                    <div class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></div>
+                    <div class="detail-meta-main">작성자 ${safe(target.writer)}<span class="detail-meta-dot">·</span>등록 ${formatDate(target.date)}${target.updated_at?`<span class="detail-meta-dot">·</span><span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:""}</div>
+                    <div class="detail-meta-sub">조회 ${Number(target.views||0)}<span class="detail-meta-dot">·</span>댓글 ${comments.length}</div>
+                </div>
+                <div class="detail-meta-actions">
+                    <button class="board-like-btn ${hasLikedBoardPost(id)?'liked':''}" onclick="toggleBoardLike('${escapeText(id)}')">${hasLikedBoardPost(id)?'👍 추천 취소':'👍 추천'} ${Number(target.likes||0)}</button>
+                    <button class="board-action-btn" onclick="startEditBoardPost('${escapeText(id)}')">수정</button>
+                    <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">삭제</button>
+                </div>
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="comment-section">
