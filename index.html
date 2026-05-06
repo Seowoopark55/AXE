@@ -1116,6 +1116,7 @@ let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
 const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","utility"];
+const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
 function normalizeMainPage(page){
     return mainPageKeys.includes(page)?page:"home";
@@ -1144,7 +1145,8 @@ function navigateMain(page,push=true){
         history.pushState({page:target},"","#"+target);
     }
 
-    refreshData().finally(()=>renderMainPage(target));
+    renderMainPage(target);
+    backgroundRefreshCurrentRoute();
 }
 
 function normalizeSubTab(page,subTab){
@@ -1197,7 +1199,8 @@ function navigateSubTab(page,subTab,push=true){
     }
 
     currentHistoryPage=target;
-    refreshData().finally(()=>renderSubTab(target,tab));
+    renderSubTab(target,tab);
+    backgroundRefreshCurrentRoute();
 }
 
 function pushListStateBeforeDetail(page){
@@ -1371,19 +1374,57 @@ function hydrateData(data){
 function refreshData(){
     return fetch(API_URL,{cache:"no-store"})
         .then(res=>res.json())
-        .then(data=>{hydrateData(data);return data;})
+        .then(data=>{
+            hydrateData(data);
+            try{sessionStorage.setItem(DATA_CACHE_KEY,JSON.stringify(data));}catch(e){}
+            return data;
+        })
         .catch(()=>{});
 }
 
-refreshData()
-.then(()=>{
+function applyCachedData(){
+    try{
+        const raw=sessionStorage.getItem(DATA_CACHE_KEY);
+        if(!raw)return false;
+        const data=JSON.parse(raw);
+        hydrateData(data);
+        return true;
+    }catch(e){
+        return false;
+    }
+}
+
+function getCurrentRouteSnapshot(){
+    const state=history.state||parseRouteFromHash();
+    return JSON.stringify(state||{});
+}
+
+function backgroundRefreshCurrentRoute(){
+    const before=getCurrentRouteSnapshot();
+    refreshData().then(()=>{
+        const after=getCurrentRouteSnapshot();
+        if(before===after){
+            renderRouteState(history.state||parseRouteFromHash());
+        }
+    });
+}
+
+const hasCachedData=applyCachedData();
+if(hasCachedData){
     initMainHistory();
     hideLoading();
-})
-.catch(()=>{
-    document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
-    hideLoading();
-});
+    backgroundRefreshCurrentRoute();
+}else{
+    refreshData()
+    .then(()=>{
+        initMainHistory();
+        hideLoading();
+    })
+    .catch(()=>{
+        document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
+        hideLoading();
+    });
+}
 
 function hideLoading(){
     const loading=document.getElementById("loadingScreen");
