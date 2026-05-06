@@ -877,6 +877,29 @@ function navigateMain(page,push=true){
     renderMainPage(target);
 }
 
+function pushListStateBeforeDetail(page){
+    const target=normalizeMainPage(page);
+    if(currentHistoryPage!==target){
+        history.pushState({page:target},"","#"+target);
+        currentHistoryPage=target;
+    }
+}
+
+function pushDetailState(page,detailType,id){
+    const target=normalizeMainPage(page);
+    pushListStateBeforeDetail(target);
+    history.pushState({page:target,detailType:detailType,id:String(id)},"",`#${target}-${detailType}-${encodeURIComponent(String(id))}`);
+}
+
+function goBackToList(page){
+    const target=normalizeMainPage(page);
+    if(history.state&&history.state.detailType){
+        history.back();
+        return;
+    }
+    navigateMain(target);
+}
+
 function initMainHistory(){
     const startPage="home";
     currentHistoryPage=startPage;
@@ -885,7 +908,27 @@ function initMainHistory(){
 }
 
 window.addEventListener("popstate",function(event){
-    const page=event.state&&event.state.page?event.state.page:(location.hash.replace("#","")||"home");
+    const state=event.state||{};
+    const page=state.page?state.page:(location.hash.replace("#","")||"home");
+
+    if(state.detailType==="notice"&&state.id){
+        renderMainPage("notice");
+        openNoticeDetail(state.id,false);
+        return;
+    }
+
+    if(state.detailType==="board"&&state.id){
+        renderMainPage("board");
+        openBoardDetail(state.id,false,false);
+        return;
+    }
+
+    if(state.detailType==="tube"&&state.id){
+        renderMainPage("tube");
+        openTubeDetail(state.id,false,false);
+        return;
+    }
+
     renderMainPage(page);
 });
 
@@ -1217,7 +1260,7 @@ function getCommentsByTube(tubeId){
 function renderTubeCard(t,index){
     const id=getTubeId(t,index||0);
     const comments=getCommentsByTube(id).length;
-    return `<div class="tube-card" onclick="openTubeDetail('${escapeText(id)}')">
+    return `<div class="tube-card" onclick="openTubeDetail('${escapeText(id)}',true,true)">
         <div class="tube-thumb"><img src="${getTubeThumb(t)}" onerror="this.src='./axe.png'"></div>
         <div class="tube-body">
             <div class="item-title">${safe(t.title)}</div>
@@ -1699,8 +1742,10 @@ function deleteTubePost(id){
     .catch(()=>alert("영상 게시글 삭제 중 오류가 발생했습니다."));
 }
 
-function openTubeDetail(id,addView=true){
+function openTubeDetail(id,addView=false,addHistory=false){
+    if(addHistory)pushDetailState("tube","tube",id);
     setMainActive(2);
+    currentHistoryPage="tube";
     const target=findTubeById(id);
     if(!target){showTube();return;}
 
@@ -1725,7 +1770,7 @@ function openTubeDetail(id,addView=true){
             <div class="count">TUBE</div>
         </div>
 
-        <button class="back-btn" onclick="showTube()">목록으로</button>
+        <button class="back-btn" onclick="goBackToList('tube')">목록으로</button>
 
         <div class="board-detail-card" id="tubeDetailBox" style="margin-top:14px;">
             <div class="board-detail-title">${safe(target.title)}</div>
@@ -1906,7 +1951,7 @@ function renderBoardList(){
         const id=getBoardId(post,index);
         const commentCount=getCommentsByPost(id).length;
         const title=safe(post.title)+(commentCount?` <span class="board-comment-count-badge">💬 ${commentCount}</span>`:"");
-        return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}')">
+        return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
             <div class="board-table-title">${title}</div>
             <div class="board-table-cell">${safe(post.writer)}</div>
             <div class="board-table-cell">${formatDate(post.date)}</div>
@@ -1924,13 +1969,17 @@ function findBoardPostById(id){
     return null;
 }
 
-function openBoardDetail(id){
+function openBoardDetail(id,addHistory=false,addView=false){
+    if(addHistory)pushDetailState("board","board",id);
     selectedBoardId=id;
+    currentHistoryPage="board";
     const target=findBoardPostById(id);
     if(!target){showBoard();return;}
 
-    postBoardApi({type:"board_view",id:id}).catch(()=>{});
-    target.views=Number(target.views||0)+1;
+    if(addView){
+        postBoardApi({type:"board_view",id:id}).catch(()=>{});
+        target.views=Number(target.views||0)+1;
+    }
 
     const comments=getCommentsByPost(id);
 
@@ -1943,7 +1992,7 @@ function openBoardDetail(id){
             <div class="count">BOARD</div>
         </div>
 
-        <button class="back-btn" onclick="showBoard()">목록으로</button>
+        <button class="back-btn" onclick="goBackToList('board')">목록으로</button>
 
         <div class="board-detail-card" id="boardDetailBox" style="margin-top:14px;">
             <div class="board-detail-title">${safe(target.title)}</div>
@@ -2211,7 +2260,7 @@ function startEditBoardPost(id){
             <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
             <div class="inline-edit-actions">
                 <button class="board-action-btn" onclick="submitBoardPostEdit('${escapeText(id)}')">저장</button>
-                <button class="board-action-btn danger" onclick="openBoardDetail('${escapeText(id)}')">취소</button>
+                <button class="board-action-btn danger" onclick="openBoardDetail('${escapeText(id)}',false,false)">취소</button>
             </div>
         </div>`;
     scrollToElement("boardDetailBox");
@@ -2270,7 +2319,7 @@ function deleteBoardPost(id){
 }
 
 function selectBoardPost(id){
-    openBoardDetail(id);
+    openBoardDetail(id,true,true);
 }
 
 function showHome(){
@@ -2295,7 +2344,7 @@ function showHome(){
                 ${
                     recentNotices.length
                     ? recentNotices.map((n,i)=>`
-                        <div class="notice-item" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}')">
+                        <div class="notice-item" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
                             <div class="item-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
                             <div class="item-date">${formatDate(n.date)}</div>
                             <div class="item-content">${safe(n.content)}</div>
@@ -2363,7 +2412,7 @@ function showNoticeList(){
             ${
                 list.length
                 ? list.map((n,i)=>`
-                    <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}')">
+                    <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
                         <div class="notice-row-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
                         <div class="notice-row-date">${formatDate(n.date)}</div>
                         <div class="notice-row-type">일반공지</div>
@@ -2375,8 +2424,10 @@ function showNoticeList(){
     `;
 }
 
-function openNoticeDetail(id){
+function openNoticeDetail(id,addHistory=false){
+    if(addHistory)pushDetailState("notice","notice",id);
     setMainActive(1);
+    currentHistoryPage="notice";
     const original=notices.slice().reverse();
     let target=null;
 
@@ -2401,7 +2452,7 @@ function openNoticeDetail(id){
             <div class="count">NOTICE</div>
         </div>
 
-        <button class="back-btn" onclick="showNotice()">목록으로</button>
+        <button class="back-btn" onclick="goBackToList('notice')">목록으로</button>
 
         <div class="detail" style="margin-top:14px;">
             <div class="detail-title">${safe(target.title)}</div>
