@@ -721,6 +721,44 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+
+/* 모바일 상단 메뉴 2줄 그리드: 가로 스크롤 제거, PC 영향 없음 */
+@media(max-width:768px){
+    .main-menu-shell{margin-bottom:12px}
+    .main-menu{
+        display:grid!important;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        overflow:visible!important;
+        white-space:normal!important;
+        gap:0;
+        border-radius:12px;
+        scrollbar-width:none;
+    }
+    .main-menu::-webkit-scrollbar{display:none!important}
+    .main-menu-shell::after{display:none!important}
+    .main-menu button{
+        min-width:0!important;
+        width:100%;
+        flex:initial!important;
+        height:40px;
+        padding:0 5px!important;
+        font-size:12px!important;
+        line-height:1.15;
+        border-right:1px solid rgba(255,255,255,.06);
+        border-bottom:1px solid rgba(255,255,255,.06);
+        white-space:nowrap;
+    }
+    .main-menu button:nth-child(4),
+    .main-menu button:last-child{border-right:0}
+    .main-menu button:nth-child(n+5){border-bottom:0}
+    .main-menu button::before{left:14px;right:14px;height:2px}
+}
+
+@media(max-width:360px){
+    .main-menu button{font-size:11px!important;padding:0 3px!important}
+}
+
 </style>
 </head>
 
