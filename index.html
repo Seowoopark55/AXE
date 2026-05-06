@@ -1374,7 +1374,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             <textarea class="form-textarea" id="tubeContent" placeholder="상세 내용이나 상황을 입력하세요"></textarea>
 
             <div class="form-label">삭제 비밀번호</div>
-            <input class="form-input" id="tubePassword" type="password" placeholder="삭제할 때 사용할 비밀번호">
+            <input class="form-input" id="tubePassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="삭제할 때 사용할 비밀번호">
 
             <button class="form-submit" onclick="submitTubePost()">등록하기</button>
             <div class="form-help">등록한 영상은 AXE TUBE에 바로 표시됩니다.</div>
@@ -1402,7 +1402,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             <textarea class="form-textarea" id="boardContent" placeholder="내용을 입력하세요"></textarea>
 
             <div class="form-label">삭제 비밀번호</div>
-            <input class="form-input" id="boardPassword" type="password" placeholder="게시글 삭제 시 사용할 비밀번호">
+            <input class="form-input" id="boardPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="게시글 삭제 시 사용할 비밀번호">
 
             <button class="form-submit" onclick="submitBoardPost()">등록하기</button>
             <div class="form-help">등록한 글은 자유게시판에 바로 표시됩니다. 삭제 시 작성 때 입력한 비밀번호가 필요합니다.</div>
@@ -1435,7 +1435,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             <div class="gallery-preview-list" id="galleryPreviewList"></div>
 
             <div class="form-label">삭제 비밀번호</div>
-            <input class="form-input" id="galleryPassword" type="password" placeholder="수정/삭제할 때 사용할 비밀번호">
+            <input class="form-input" id="galleryPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="수정/삭제할 때 사용할 비밀번호">
 
             <button class="form-submit" onclick="submitGalleryPost()">등록하기</button>
             <div class="form-help">등록한 사진은 갤러리에 바로 표시됩니다. 사진은 최대 5장까지 업로드됩니다.</div>
@@ -2492,7 +2492,7 @@ function renderReplyForm(scope,ownerId,parentCommentId){
     const addFn=scope==="board"?"addBoardComment":"addTubeComment";
     return `<div class="comment-reply-form" id="${prefix}Form">
         <input class="comment-input" id="${prefix}Writer" placeholder="작성자">
-        <input class="comment-input" id="${prefix}Password" type="password" placeholder="삭제 비밀번호">
+        <input class="comment-input" id="${prefix}Password" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="삭제 비밀번호">
         <textarea class="comment-textarea" id="${prefix}Content" placeholder="답글을 입력하세요"></textarea>
         <button class="comment-submit" onclick="${addFn}('${escapeText(ownerId)}','${escapeText(parentCommentId)}','${prefix}')">등록</button>
     </div>`;
@@ -2544,7 +2544,7 @@ function startEditComment(scope,commentId,ownerId){
     box.innerHTML=`
         <div class="comment-edit-form">
             <textarea class="comment-textarea" id="commentEditContent_${scope}_${domSafeId(commentId)}" placeholder="댓글 내용을 수정하세요">${escapeTextarea(target.content||"")}</textarea>
-            <input class="comment-input" id="commentEditPassword_${scope}_${domSafeId(commentId)}" type="password" placeholder="수정 비밀번호">
+            <input class="comment-input" id="commentEditPassword_${scope}_${domSafeId(commentId)}" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="수정 비밀번호">
             <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
             <div class="comment-edit-actions">
                 <button class="board-action-btn" onclick="submitEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">저장</button>
@@ -2786,7 +2786,7 @@ function startEditTubePost(id){
             <input class="form-input" id="tubeEditUrl" value="${escapeAttr(target.url||"")}" placeholder="유튜브 링크" style="margin-bottom:10px;">
             <input class="form-input" id="tubeEditThumbnail" value="${escapeAttr(target.thumbnail||"")}" placeholder="썸네일 주소 선택사항. 비우면 유튜브 썸네일 사용" style="margin-bottom:10px;">
             <textarea class="form-textarea" id="tubeEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea>
-            <input class="form-input" id="tubeEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;">
+            <input class="form-input" id="tubeEditPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="수정 비밀번호" style="margin-top:10px;">
             <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
             <div class="inline-edit-actions">
                 <button class="board-action-btn" onclick="submitTubePostEdit('${escapeText(id)}')">저장</button>
@@ -2907,7 +2907,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
                 <div class="comment-list" id="tubeCommentListBox">${renderTubeCommentsHtml(id)}</div>
                 <div class="comment-form-grid">
                     <input class="comment-input" id="tubeCommentWriter" placeholder="작성자">
-                    <input class="comment-input" id="tubeCommentPassword" type="password" placeholder="삭제 비밀번호">
+                    <input class="comment-input" id="tubeCommentPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="삭제 비밀번호">
                     <textarea class="comment-textarea" id="tubeCommentContent" placeholder="댓글을 입력하세요"></textarea>
                     <button class="comment-submit" onclick="addTubeComment('${escapeText(id)}')">등록</button>
                 </div>
@@ -3132,7 +3132,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
                 <div class="comment-list" id="commentListBox">${renderBoardCommentsHtml(id)}</div>
                 <div class="comment-form-grid">
                     <input class="comment-input" id="commentWriter" placeholder="작성자">
-                    <input class="comment-input" id="commentPassword" type="password" placeholder="삭제 비밀번호">
+                    <input class="comment-input" id="commentPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="삭제 비밀번호">
                     <textarea class="comment-textarea" id="commentContent" placeholder="댓글을 입력하세요"></textarea>
                     <button class="comment-submit" onclick="addBoardComment('${escapeText(id)}')">등록</button>
                 </div>
@@ -3465,7 +3465,7 @@ function startEditBoardPost(id){
                 <input class="form-input" id="boardEditCategory" value="${escapeAttr(target.category||"일반")}" placeholder="분류">
             </div>
             <textarea class="form-textarea" id="boardEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea>
-            <input class="form-input" id="boardEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;">
+            <input class="form-input" id="boardEditPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="수정 비밀번호" style="margin-top:10px;">
             <div class="inline-edit-help">작성할 때 입력한 삭제 비밀번호와 같아야 수정됩니다.</div>
             <div class="inline-edit-actions">
                 <button class="board-action-btn" onclick="submitBoardPostEdit('${escapeText(id)}')">저장</button>
@@ -3782,7 +3782,7 @@ function openGalleryDetail(id,addHistory=false,addView=false){
                 <div class="comment-list">${renderGalleryCommentsHtml(id)}</div>
                 <div class="comment-form-grid">
                     <input class="comment-input" id="galleryCommentWriter" placeholder="작성자">
-                    <input class="comment-input" id="galleryCommentPassword" type="password" placeholder="삭제 비밀번호">
+                    <input class="comment-input" id="galleryCommentPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="삭제 비밀번호">
                     <textarea class="comment-textarea" id="galleryCommentContent" placeholder="댓글을 입력하세요"></textarea>
                     <button class="comment-submit" onclick="addGalleryComment('${escapeText(id)}')">등록</button>
                 </div>
@@ -3858,7 +3858,7 @@ function startEditGalleryPost(id){
                 <input class="form-input" id="galleryEditCategory" value="${escapeAttr(target.category||"일반")}" placeholder="분류">
             </div>
             <textarea class="form-textarea" id="galleryEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea>
-            <input class="form-input" id="galleryEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;">
+            <input class="form-input" id="galleryEditPassword" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="수정 비밀번호" style="margin-top:10px;">
             <div class="inline-edit-help">사진 교체는 지원하지 않습니다. 사진을 바꾸려면 삭제 후 다시 등록하세요.</div>
             <div class="inline-edit-actions">
                 <button class="board-action-btn" onclick="submitGalleryPostEdit('${escapeText(id)}')">저장</button>
@@ -3926,7 +3926,7 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
         </div>
         ${!isReply?`<div class="comment-reply-form" id="${formId}">
             <input class="comment-input" id="${formId}Writer" placeholder="작성자">
-            <input class="comment-input" id="${formId}Password" type="password" placeholder="삭제 비밀번호">
+            <input class="comment-input" id="${formId}Password" type="text" inputmode="numeric" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="삭제 비밀번호">
             <textarea class="comment-textarea" id="${formId}Content" placeholder="답글을 입력하세요"></textarea>
             <button class="comment-submit" onclick="addGalleryComment('${escapeText(galleryId)}','${escapeText(commentId)}','${formId}')">등록</button>
         </div>`:""}
