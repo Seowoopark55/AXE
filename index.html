@@ -1363,8 +1363,8 @@ html.reload-mode .main-menu button.active::before{transform:scaleX(0)}
     <div class="main-menu">
         <button onclick="navigateMain('home')">메인</button>
         <button onclick="navigateMain('notice')">공지사항</button>
-        <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('outlaw')">무법지대</button>
+        <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('board')">자유게시판</button>
         <button onclick="navigateMain('gallery')">갤러리</button>
         <button onclick="navigateMain('info')">정보</button>
@@ -2688,7 +2688,7 @@ function deleteTubePost(id){
 
 function openTubeDetail(id,addView=false,addHistory=false){
     if(addHistory)pushDetailState("tube","tube",id);
-    setMainActive(2);
+    setMainActive(3);
     currentHistoryPage="tube";
     const target=findTubeById(id);
     if(!target){showTube();return;}
@@ -3777,7 +3777,7 @@ function selectOperation(id){
 
 function showTube(){
     enterMainSection("tube");
-    setMainActive(2);
+    setMainActive(3);
     const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
@@ -4871,7 +4871,7 @@ function renderDetail(id){
 
 function showOutlaw(){
     enterMainSection("outlaw");
-    setMainActive(3);
+    setMainActive(2);
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
