@@ -383,7 +383,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .modbook-row{padding:14px 15px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:.16s ease}
 .modbook-row:hover{background:rgba(255,181,46,.045);transform:translateX(4px)}
 .modbook-row.active{background:rgba(255,181,46,.1);border-left:3px solid #ffb52e}
-.modbook-row-name{font-size:16px;font-weight:950;color:#fff;margin-bottom:6px}
+.modbook-row-name{font-size:16px;font-weight:950;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.modbook-name-tier{min-height:22px;padding:0 8px;font-size:11px;line-height:20px}
 .modbook-row-meta{display:flex;gap:6px;flex-wrap:wrap;color:#888;font-size:12px}
 .modbook-badge{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#bbb;font-size:12px;font-weight:900}
 .modbook-badge.prefix{color:#87adff;background:rgba(39,100,255,.12);border-color:rgba(92,143,255,.32)}
@@ -2995,13 +2996,15 @@ function renderModBookList(){
         const key=getModBookKey(m,i);
         const typeCls=isPrefixType(m.type)?"prefix":"suffix";
         return `<div class="modbook-row" onclick="selectModBook('${escapeText(key)}')">
-            <div class="modbook-row-name">${safe(parseModName(m.name).text)}</div>
+            <div class="modbook-row-name">
+                <span>${safe(parseModName(m.name).text)}</span>
+                ${hasTier1Mark(m)?`<span class="modbook-badge tier1 modbook-name-tier">1티어</span>`:""}
+            </div>
             <div class="modbook-row-meta">
                 <span class="modbook-badge ${typeCls}">${safe(normalizeModType(m.type))}</span>
                 <span class="modbook-badge">${safe(m.category)}</span>
                 <span class="modbook-badge">${safe(formatModSuccessRate(m.success_rate))}</span>
                 ${hasRecentPrice(m)?`<span class="modbook-badge price">${safe(formatModPrice(m.recent_price))}</span>`:""}
-                ${hasTier1Mark(m)?`<span class="modbook-badge tier1">1티어</span>`:""}
             </div>
         </div>`;
     }).join("");
