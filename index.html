@@ -31,7 +31,8 @@ body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),tran
 h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .sub{margin-top:10px;color:#c4c4c4;font-size:15px;line-height:1.6}
 
-.main-menu{display:flex;align-items:center;gap:0;margin:0 0 18px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(5,5,5,.88);overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.22)}
+.main-menu-shell{position:relative;margin:0 0 18px}
+.main-menu{display:flex;align-items:center;gap:0;margin:0;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(5,5,5,.88);overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.22)}
 .main-menu button{position:relative;min-width:112px;height:46px;background:transparent;color:#cfcfcf;border:0;border-right:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:15px;font-weight:900;letter-spacing:.1px;transition:.22s ease}
 .main-menu button:last-child{border-right:0}
 .main-menu button::before{content:"";position:absolute;left:18px;right:18px;bottom:0;height:3px;background:#ffb52e;transform:scaleX(0);transform-origin:center;transition:.22s ease}
@@ -503,9 +504,14 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     h1{font-size:27px;line-height:1.05}
     .sub{font-size:12px;line-height:1.35;margin-top:6px}
 
-    .main-menu{display:flex;overflow-x:auto;white-space:nowrap;border-radius:12px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .main-menu::-webkit-scrollbar{display:none}
+    .main-menu-shell{position:relative;margin-bottom:12px}
+    .main-menu{display:flex;overflow-x:auto;white-space:nowrap;border-radius:12px;margin-bottom:0;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(255,181,46,.55) rgba(255,255,255,.08)}
+    .main-menu::-webkit-scrollbar{height:4px}
+    .main-menu::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:999px}
+    .main-menu::-webkit-scrollbar-thumb{background:rgba(255,181,46,.55);border-radius:999px}
     .main-menu button{min-width:auto;flex:0 0 auto;height:42px;padding:0 15px;font-size:13px;border-right:1px solid rgba(255,255,255,.06)}
+    .main-menu-shell::after{content:"";position:absolute;right:0;top:0;bottom:4px;width:46px;border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(5,5,5,0),rgba(5,5,5,.86));pointer-events:none;z-index:4}
+    .main-menu-shell::before{content:"›";position:absolute;right:10px;top:50%;transform:translateY(-55%);z-index:5;color:#ffb52e;font-size:24px;font-weight:950;line-height:1;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,.8)}
 
     .panel{padding:14px;border-radius:18px}
     .section-head{display:block;margin-bottom:14px}
@@ -737,6 +743,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         </div>
     </div>
 
+    <div class="main-menu-shell">
     <div class="main-menu">
         <button class="active" onclick="navigateMain('home')">메인</button>
         <button onclick="navigateMain('notice')">공지사항</button>
@@ -745,6 +752,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('board')">자유게시판</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
+    </div>
     </div>
 
     <div class="panel" id="content"></div>
@@ -877,6 +885,59 @@ function navigateMain(page,push=true){
     renderMainPage(target);
 }
 
+function normalizeSubTab(page,subTab){
+    const defaults={notice:"noticeList",outlaw:"briefing",info:"craft",utility:"plica"};
+    const allowed={
+        notice:["noticeList","operations"],
+        outlaw:["briefing","guide"],
+        info:["craft","quest","process","modbook","skillrank"],
+        utility:["plica"]
+    };
+    const target=normalizeMainPage(page);
+    const list=allowed[target]||[];
+    return list.includes(subTab)?subTab:(defaults[target]||"");
+}
+
+function renderSubTab(page,subTab){
+    const target=normalizeMainPage(page);
+    const tab=normalizeSubTab(target,subTab);
+
+    if(target==="notice"){
+        if(tab==="operations"){showOperationList();return;}
+        showNoticeList();return;
+    }
+
+    if(target==="outlaw"){
+        if(tab==="guide"){showOutlawGuides();return;}
+        showBriefingMaps();return;
+    }
+
+    if(target==="info"){
+        if(tab==="quest"){showQuest();return;}
+        if(tab==="process"){showProcess();return;}
+        if(tab==="modbook"){showModBooks();return;}
+        if(tab==="skillrank"){showSkillRanks();return;}
+        showCraft();return;
+    }
+
+    if(target==="utility"){
+        showPlicaCalculator();return;
+    }
+}
+
+function navigateSubTab(page,subTab,push=true){
+    const target=normalizeMainPage(page);
+    const tab=normalizeSubTab(target,subTab);
+    const current=history.state||{};
+
+    if(push&&(current.page!==target||current.subTab!==tab)){
+        history.pushState({page:target,subTab:tab},"",`#${target}-${tab}`);
+    }
+
+    currentHistoryPage=target;
+    renderSubTab(target,tab);
+}
+
 function pushListStateBeforeDetail(page){
     const target=normalizeMainPage(page);
     if(currentHistoryPage!==target){
@@ -926,6 +987,12 @@ window.addEventListener("popstate",function(event){
     if(state.detailType==="tube"&&state.id){
         renderMainPage("tube");
         openTubeDetail(state.id,false,false);
+        return;
+    }
+
+    if(state.subTab){
+        renderMainPage(page);
+        renderSubTab(page,state.subTab);
         return;
     }
 
@@ -2387,8 +2454,8 @@ function showNotice(){
             <div class="count">NOTICE</div>
         </div>
         <div class="sub-filter">
-            <button class="active" onclick="showNoticeList()">일반공지</button>
-            <button onclick="showOperationList()">운영기준</button>
+            <button class="active" onclick="navigateSubTab('notice','noticeList')">일반공지</button>
+            <button onclick="navigateSubTab('notice','operations')">운영기준</button>
         </div>
         <div id="noticeContent"></div>`;
     showNoticeList();
@@ -2564,12 +2631,12 @@ function showInfo(){
 }
 
 function infoMenu(active){
-    const menus=[["제작","showCraft()"],["퀘스트","showQuest()"],["가공/재련","showProcess()"],["개조서","showModBooks()"],["스킬랭크","showSkillRanks()"]];
+    const menus=[["제작","navigateSubTab('info','craft')"],["퀘스트","navigateSubTab('info','quest')"],["가공/재련","navigateSubTab('info','process')"],["개조서","navigateSubTab('info','modbook')"],["스킬랭크","navigateSubTab('info','skillrank')"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
 function utilityMenu(active){
-    const menus=[["플리카 계산기","showPlicaCalculator()"]];
+    const menus=[["플리카 계산기","navigateSubTab('utility','plica')"]];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
@@ -3636,8 +3703,8 @@ function showOutlaw(){
             <div class="count">${briefingMaps.length}개 지역</div>
         </div>
         <div class="sub-filter outlaw-tabs" id="outlawTabs">
-            <button id="outlawTabMap" class="active" onclick="showBriefingMaps()">브리핑맵</button>
-            <button id="outlawTabGuide" onclick="showOutlawGuides()">무법지대 공략</button>
+            <button id="outlawTabMap" class="active" onclick="navigateSubTab('outlaw','briefing')">브리핑맵</button>
+            <button id="outlawTabGuide" onclick="navigateSubTab('outlaw','guide')">무법지대 공략</button>
         </div>
         <div id="outlawContent"></div>`;
     showBriefingMaps();
