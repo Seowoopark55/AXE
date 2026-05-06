@@ -850,6 +850,25 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .comment-item.reply{margin-top:16px!important;margin-left:8px!important;padding-left:13px!important;border-left:3px solid rgba(156,95,255,.55)}
 }
 
+
+/* 갤러리 복구 UI */
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.gallery-card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:16px;overflow:hidden;cursor:pointer;transition:.18s ease}
+.gallery-card:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.055);transform:translateY(-2px)}
+.gallery-thumb{width:100%;aspect-ratio:4/3;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.25s ease}
+.gallery-card:hover .gallery-thumb img{transform:scale(1.04)}
+.gallery-body{padding:13px}
+.gallery-title{font-size:15px;font-weight:950;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gallery-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;color:#888;font-size:12px}
+.gallery-detail-images{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0 16px}
+.gallery-detail-images img{width:100%;max-height:520px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:#000;cursor:zoom-in;display:block}
+.gallery-file-input{width:100%;border:1px dashed rgba(255,181,46,.35);background:#151515;color:#ddd;border-radius:12px;padding:12px;cursor:pointer}
+.gallery-preview-list{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.gallery-preview-list img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#000}
+@media(max-width:920px){.gallery-grid{grid-template-columns:repeat(2,1fr)}.gallery-detail-images{grid-template-columns:1fr}}
+@media(max-width:768px){.gallery-grid{grid-template-columns:1fr}.gallery-preview-list{grid-template-columns:repeat(3,1fr)}.main-menu::after{display:none!important;content:none!important}}
+
 </style>
 </head>
 
@@ -878,6 +897,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('outlaw')">무법지대</button>
         <button onclick="navigateMain('board')">자유게시판</button>
+        <button onclick="navigateMain('gallery')">갤러리</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
     </div>
@@ -965,12 +985,45 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     </div>
 </div>
 
+
+<div class="form-modal" id="galleryFormModal" onclick="closeGalleryFormOutside(event)">
+    <div class="form-box">
+        <div class="form-head">
+            <div class="form-title">갤러리 글쓰기</div>
+            <button class="form-close" onclick="closeGalleryForm()">×</button>
+        </div>
+        <div class="form-body">
+            <div class="form-label">작성자</div>
+            <input class="form-input" id="galleryWriter" placeholder="작성자를 입력하세요">
+
+            <div class="form-label">제목</div>
+            <input class="form-input" id="galleryTitle" placeholder="제목을 입력하세요">
+
+            <div class="form-label">분류</div>
+            <input class="form-input" id="galleryCategory" value="일반" placeholder="일반">
+
+            <div class="form-label">내용</div>
+            <textarea class="form-textarea" id="galleryContent" placeholder="내용을 입력하세요"></textarea>
+
+            <div class="form-label">사진 업로드 <span style="color:#777;font-weight:700;">최대 5장</span></div>
+            <input class="gallery-file-input" id="galleryImages" type="file" accept="image/*" multiple onchange="previewGalleryFiles()">
+            <div class="gallery-preview-list" id="galleryPreviewList"></div>
+
+            <div class="form-label">삭제 비밀번호</div>
+            <input class="form-input" id="galleryPassword" type="password" placeholder="수정/삭제할 때 사용할 비밀번호">
+
+            <button class="form-submit" onclick="submitGalleryPost()">등록하기</button>
+            <div class="form-help">등록한 사진은 갤러리에 바로 표시됩니다. 사진은 최대 5장까지 업로드됩니다.</div>
+        </div>
+    </div>
+</div>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwl_e_JbXpqxSNp_q9-vtJGdSQqL2Z2TiQ8GjO8Ulrve3Pqta--A6yTvE0KTB3pUU1jSA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
-let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[];
+let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
@@ -980,9 +1033,10 @@ let processSearchKeyword="",processJobFilter="";
 let modBookTypeFilter="접두",modBookCategoryFilter="",modBookSearchKeyword="";
 let skillRankSearchKeyword="",skillRankFilter="";
 let selectedBoardId="";
+let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","tube","outlaw","board","info","utility"];
+const mainPageKeys=["home","notice","tube","outlaw","board","gallery","info","utility"];
 
 function normalizeMainPage(page){
     return mainPageKeys.includes(page)?page:"home";
@@ -999,6 +1053,7 @@ function renderMainPage(page){
     if(target==="info"){showInfo();return;}
     if(target==="utility"){showUtility();return;}
     if(target==="board"){showBoard();return;}
+    if(target==="gallery"){showGallery();return;}
 
     showHome();
 }
@@ -1118,6 +1173,12 @@ window.addEventListener("popstate",function(event){
         return;
     }
 
+    if(state.detailType==="gallery"&&state.id){
+        renderMainPage("gallery");
+        openGalleryDetail(state.id,false,false);
+        return;
+    }
+
     if(state.subTab){
         renderMainPage(page);
         renderSubTab(page,state.subTab);
@@ -1160,6 +1221,10 @@ function resetBoardState(){
     selectedBoardId="";
 }
 
+function resetGalleryState(){
+    selectedGalleryId="";
+}
+
 function enterMainSection(section){
     if(currentMainSection===section)return;
 
@@ -1168,6 +1233,7 @@ function enterMainSection(section){
     if(section==="info")resetInfoState();
     if(section==="utility")resetUtilityState();
     if(section==="board")resetBoardState();
+    if(section==="gallery")resetGalleryState();
 
     currentMainSection=section;
 }
@@ -1190,6 +1256,8 @@ fetch(API_URL)
     skillRanks=data.skillRanks||data.skill_ranks||data.craftRanks||[];
     boards=data.boards||data.boardPosts||data.freeBoard||[];
     boardComments=data.boardComments||data.board_comments||data.comments||[];
+    galleries=data.galleries||data.galleryPosts||[];
+    galleryComments=data.galleryComments||data.gallery_comments||[];
     initMainHistory();
     hideLoading();
 })
@@ -2742,6 +2810,484 @@ function selectBoardPost(id){
     openBoardDetail(id,true,true);
 }
 
+
+function getGalleryId(post,index){
+    return String(post.id||post.title||index);
+}
+
+function getSortedGalleries(){
+    return galleries.slice().sort((a,b)=>{
+        const ao=Number(a.order||0);
+        const bo=Number(b.order||0);
+        if(ao||bo)return ao-bo;
+        const ad=new Date(a.date||0).getTime()||0;
+        const bd=new Date(b.date||0).getTime()||0;
+        return bd-ad;
+    });
+}
+
+function getGalleryImages(post){
+    const raw=String(post.image_url||post.image||post.images||"").trim();
+    if(!raw)return [];
+    return raw.split(/\n|,/).map(v=>v.trim()).filter(Boolean);
+}
+
+function getCommentsByGallery(galleryId){
+    return galleryComments.filter(c=>String(c.gallery_id)===String(galleryId)).sort((a,b)=>{
+        const ad=new Date(a.date||0).getTime()||0;
+        const bd=new Date(b.date||0).getTime()||0;
+        return ad-bd;
+    });
+}
+
+function postGalleryApi(payload){
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json());
+}
+
+function getGalleryClientId(){
+    const key="axe_gallery_like_client_id";
+    let id=localStorage.getItem(key);
+    if(!id){
+        id="client_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);
+        localStorage.setItem(key,id);
+    }
+    return id;
+}
+
+function getGalleryStore(name){
+    try{return JSON.parse(localStorage.getItem(name)||"[]");}catch(e){return [];}    
+}
+function setGalleryStore(name,list){localStorage.setItem(name,JSON.stringify(list));}
+function hasGalleryLiked(id){return getGalleryStore("axe_gallery_liked_posts").includes(String(id));}
+function hasGalleryDisliked(id){return getGalleryStore("axe_gallery_disliked_posts").includes(String(id));}
+function markGalleryLiked(id){const key=String(id);const list=getGalleryStore("axe_gallery_liked_posts");if(!list.includes(key)){list.push(key);setGalleryStore("axe_gallery_liked_posts",list);}}
+function unmarkGalleryLiked(id){const key=String(id);setGalleryStore("axe_gallery_liked_posts",getGalleryStore("axe_gallery_liked_posts").filter(v=>String(v)!==key));}
+function markGalleryDisliked(id){const key=String(id);const list=getGalleryStore("axe_gallery_disliked_posts");if(!list.includes(key)){list.push(key);setGalleryStore("axe_gallery_disliked_posts",list);}}
+function unmarkGalleryDisliked(id){const key=String(id);setGalleryStore("axe_gallery_disliked_posts",getGalleryStore("axe_gallery_disliked_posts").filter(v=>String(v)!==key));}
+
+function findGalleryById(id){
+    const list=getSortedGalleries();
+    for(let i=0;i<list.length;i++){
+        if(getGalleryId(list[i],i)===String(id))return list[i];
+    }
+    return null;
+}
+
+function showGallery(){
+    enterMainSection("gallery");
+    setMainActive(5);
+    selectedGalleryId="";
+    const list=getSortedGalleries();
+    document.getElementById("content").innerHTML=`
+        <div class="section-head">
+            <div>
+                <div class="section-title">갤러리</div>
+                <div class="section-desc">AXE 활동 사진과 이미지를 공유하는 공간입니다.</div>
+            </div>
+            <div class="count">${list.length}개</div>
+        </div>
+        <div class="board-actions">
+            <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
+        </div>
+        <div id="galleryListBox"></div>`;
+    renderGalleryList();
+}
+
+function renderGalleryList(){
+    const box=document.getElementById("galleryListBox");
+    if(!box)return;
+    const list=getSortedGalleries();
+    if(!list.length){
+        box.innerHTML=`<div class="ready">등록된 갤러리 게시물이 없습니다.</div>`;
+        return;
+    }
+    box.innerHTML=`<div class="gallery-grid">${list.map((post,index)=>{
+        const id=getGalleryId(post,index);
+        const images=getGalleryImages(post);
+        const comments=getCommentsByGallery(id).length;
+        const thumb=images[0]||"./axe.png";
+        return `<div class="gallery-card" onclick="openGalleryDetail('${escapeText(id)}',true,true)">
+            <div class="gallery-thumb"><img src="${thumb}" onerror="this.src='./axe.png'"></div>
+            <div class="gallery-body">
+                <div class="gallery-title">${safe(post.title)}</div>
+                <div class="item-date">${safe(post.writer||"익명")} · ${formatDate(post.date)}</div>
+                <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
+                <div class="gallery-meta">
+                    <span class="tube-stat-badge">조회 ${Number(post.views||0)}</span>
+                    <span class="tube-stat-badge like">👍 ${Number(post.likes||0)}</span>
+                    <span class="tube-stat-badge comment">💬 ${comments}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join("")}</div>`;
+}
+
+function openGalleryForm(){
+    document.getElementById("galleryFormModal").classList.add("active");
+}
+function closeGalleryForm(){
+    document.getElementById("galleryFormModal").classList.remove("active");
+}
+function closeGalleryFormOutside(event){
+    if(event.target.id==="galleryFormModal")closeGalleryForm();
+}
+function clearGalleryForm(){
+    document.getElementById("galleryWriter").value="";
+    document.getElementById("galleryTitle").value="";
+    document.getElementById("galleryCategory").value="일반";
+    document.getElementById("galleryContent").value="";
+    document.getElementById("galleryImages").value="";
+    document.getElementById("galleryPassword").value="";
+    document.getElementById("galleryPreviewList").innerHTML="";
+}
+
+function previewGalleryFiles(){
+    const input=document.getElementById("galleryImages");
+    const box=document.getElementById("galleryPreviewList");
+    if(!input||!box)return;
+    const files=Array.from(input.files||[]).slice(0,5);
+    box.innerHTML="";
+    files.forEach(file=>{
+        const reader=new FileReader();
+        reader.onload=function(e){
+            const img=document.createElement("img");
+            img.src=e.target.result;
+            box.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+    if((input.files||[]).length>5)alert("사진은 최대 5장까지 업로드됩니다. 앞의 5장만 사용됩니다.");
+}
+
+function readGalleryFiles(files){
+    return Promise.all(files.map(file=>new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=function(e){
+            resolve({image_base64:e.target.result,image_name:file.name,mime_type:file.type||"image/jpeg"});
+        };
+        reader.onerror=reject;
+        reader.readAsDataURL(file);
+    })));
+}
+
+function submitGalleryPost(){
+    const writer=document.getElementById("galleryWriter").value.trim();
+    const title=document.getElementById("galleryTitle").value.trim();
+    const category=document.getElementById("galleryCategory").value.trim()||"일반";
+    const content=document.getElementById("galleryContent").value.trim();
+    const password=document.getElementById("galleryPassword").value.trim();
+    const files=Array.from(document.getElementById("galleryImages").files||[]).slice(0,5);
+
+    if(!writer||!title||!password){alert("작성자, 제목, 삭제 비밀번호는 필수입니다.");return;}
+    if(!files.length){alert("업로드할 사진을 선택해주세요.");return;}
+
+    readGalleryFiles(files).then(images=>{
+        return postGalleryApi({type:"gallery_post",writer:writer,title:title,category:category,content:content,password:password,images:images});
+    }).then(data=>{
+        if(data.result==="success"){
+            const newPost={
+                id:data.id||String(Date.now()),
+                date:data.date||new Date().toISOString(),
+                writer:writer,
+                title:title,
+                content:content,
+                image_url:data.image_url||"",
+                file_id:data.file_id||"",
+                category:category,
+                order:"",
+                views:0,
+                likes:0,
+                dislikes:0,
+                updated_at:""
+            };
+            galleries.unshift(newPost);
+            alert("갤러리 게시물이 등록되었습니다.");
+            clearGalleryForm();
+            closeGalleryForm();
+            showGallery();
+            setTimeout(()=>openGalleryDetail(getGalleryId(newPost,0),false,false),80);
+        }else{
+            alert(data.message||"갤러리 등록 중 오류가 발생했습니다.");
+        }
+    }).catch(()=>alert("갤러리 등록 중 오류가 발생했습니다. Apps Script Drive 권한도 확인해주세요."));
+}
+
+function openGalleryDetail(id,addHistory=false,addView=false){
+    if(addHistory)pushDetailState("gallery","gallery",id);
+    selectedGalleryId=id;
+    currentHistoryPage="gallery";
+    setMainActive(5);
+    const target=findGalleryById(id);
+    if(!target){showGallery();return;}
+    if(addView){
+        postGalleryApi({type:"gallery_view",id:id}).catch(()=>{});
+        target.views=Number(target.views||0)+1;
+    }
+    const images=getGalleryImages(target);
+    const comments=getCommentsByGallery(id);
+    document.getElementById("content").innerHTML=`
+        <div class="section-head">
+            <div>
+                <div class="section-title">갤러리</div>
+                <div class="section-desc">사진 상세 내용과 댓글을 확인합니다.</div>
+            </div>
+            <div class="count">GALLERY</div>
+        </div>
+        <div class="board-detail-card" id="galleryDetailBox" style="margin-top:14px;">
+            <div class="board-detail-title">${safe(target.title)}</div>
+            <span class="detail-category-line"><span class="board-badge gold">${safe(target.category||"일반")}</span></span>
+            <div class="detail-meta-panel">
+                <div class="detail-meta-main"><strong>${safe(target.writer||"익명")}</strong><span class="detail-meta-dot">|</span>${target.updated_at?`<span class="detail-meta-updated">수정됨 ${formatDate(target.updated_at)}</span>`:`작성일 ${formatDate(target.date)}`}<span class="detail-meta-dot">|</span>조회 ${Number(target.views||0)}<span class="detail-meta-dot">|</span>추천 ${Number(target.likes||0)}<span class="detail-meta-dot">|</span>비추천 ${Number(target.dislikes||0)}<span class="detail-meta-dot">|</span>댓글 ${comments.length}</div>
+            </div>
+            ${images.length?`<div class="gallery-detail-images">${images.map(src=>`<img src="${src}" onclick="openImageModal('${escapeText(src)}')" onerror="this.src='./axe.png'">`).join("")}</div>`:`<div class="ready">표시할 이미지가 없습니다.</div>`}
+            ${String(target.content||"").trim()?`<div class="board-detail-content">${safe(target.content)}</div>`:""}
+            <div class="detail-like-area">
+                <button class="reaction-btn like ${hasGalleryLiked(id)?'active':''}" onclick="toggleGalleryLike('${escapeText(id)}')" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
+                <button class="reaction-btn dislike ${hasGalleryDisliked(id)?'active':''}" onclick="toggleGalleryDislike('${escapeText(id)}')" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
+            </div>
+            <div class="detail-bottom-actions">
+                <button class="back-btn" onclick="goBackToList('gallery')">목록으로</button>
+                <div class="detail-admin-actions">
+                    <button class="board-action-btn" onclick="startEditGalleryPost('${escapeText(id)}')">수정</button>
+                    <button class="board-action-btn danger" onclick="deleteGalleryPost('${escapeText(id)}')">삭제</button>
+                </div>
+            </div>
+            <div class="comment-section">
+                <div class="comment-title">댓글 ${comments.length}</div>
+                <div class="comment-list">${renderGalleryCommentsHtml(id)}</div>
+                <div class="comment-form-grid">
+                    <input class="comment-input" id="galleryCommentWriter" placeholder="작성자">
+                    <input class="comment-input" id="galleryCommentPassword" type="password" placeholder="삭제 비밀번호">
+                    <textarea class="comment-textarea" id="galleryCommentContent" placeholder="댓글을 입력하세요"></textarea>
+                    <button class="comment-submit" onclick="addGalleryComment('${escapeText(id)}')">등록</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+function toggleGalleryLike(id){
+    if(hasGalleryLiked(id)){unlikeGallery(id);return;}
+    likeGallery(id);
+}
+function likeGallery(id){
+    postGalleryApi({type:"gallery_like",id:id,client_id:getGalleryClientId()}).then(data=>{
+        if(data.result==="success"){
+            const wasDisliked=hasGalleryDisliked(id);
+            markGalleryLiked(id);unmarkGalleryDisliked(id);
+            const target=findGalleryById(id);
+            if(target){target.likes=Number(target.likes||0)+1;if(wasDisliked)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);}
+            openGalleryDetail(id,false,false);
+        }else if(data.result==="duplicate"){
+            markGalleryLiked(id);openGalleryDetail(id,false,false);
+        }else{alert(data.message||"추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("추천 처리 중 오류가 발생했습니다."));
+}
+function unlikeGallery(id){
+    postGalleryApi({type:"gallery_unlike",id:id,client_id:getGalleryClientId()}).then(data=>{
+        if(data.result==="success"||data.result==="not_found"){
+            unmarkGalleryLiked(id);
+            const target=findGalleryById(id);
+            if(target&&data.result==="success")target.likes=Math.max(0,Number(target.likes||0)-1);
+            openGalleryDetail(id,false,false);
+        }else{alert(data.message||"추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("추천 취소 중 오류가 발생했습니다."));
+}
+function toggleGalleryDislike(id){
+    if(hasGalleryDisliked(id)){undislikeGallery(id);return;}
+    dislikeGallery(id);
+}
+function dislikeGallery(id){
+    postGalleryApi({type:"gallery_dislike",id:id,client_id:getGalleryClientId()}).then(data=>{
+        if(data.result==="success"){
+            const wasLiked=hasGalleryLiked(id);
+            markGalleryDisliked(id);unmarkGalleryLiked(id);
+            const target=findGalleryById(id);
+            if(target){target.dislikes=Number(target.dislikes||0)+1;if(wasLiked)target.likes=Math.max(0,Number(target.likes||0)-1);}
+            openGalleryDetail(id,false,false);
+        }else if(data.result==="duplicate"){
+            markGalleryDisliked(id);openGalleryDetail(id,false,false);
+        }else{alert(data.message||"비추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("비추천 처리 중 오류가 발생했습니다."));
+}
+function undislikeGallery(id){
+    postGalleryApi({type:"gallery_undislike",id:id,client_id:getGalleryClientId()}).then(data=>{
+        if(data.result==="success"||data.result==="not_found"){
+            unmarkGalleryDisliked(id);
+            const target=findGalleryById(id);
+            if(target&&data.result==="success")target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            openGalleryDetail(id,false,false);
+        }else{alert(data.message||"비추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("비추천 취소 중 오류가 발생했습니다."));
+}
+
+function startEditGalleryPost(id){
+    const target=findGalleryById(id);
+    if(!target){alert("갤러리 게시물을 찾을 수 없습니다.");return;}
+    const box=document.getElementById("galleryDetailBox");
+    if(!box)return;
+    box.innerHTML=`
+        <div class="board-detail-title">갤러리 게시물 수정</div>
+        <div class="inline-edit-form">
+            <div class="inline-edit-grid">
+                <input class="form-input" id="galleryEditTitle" value="${escapeAttr(target.title||"")}" placeholder="제목">
+                <input class="form-input" id="galleryEditCategory" value="${escapeAttr(target.category||"일반")}" placeholder="분류">
+            </div>
+            <textarea class="form-textarea" id="galleryEditContent" placeholder="내용을 입력하세요">${escapeTextarea(target.content||"")}</textarea>
+            <input class="form-input" id="galleryEditPassword" type="password" placeholder="수정 비밀번호" style="margin-top:10px;">
+            <div class="inline-edit-help">사진 교체는 지원하지 않습니다. 사진을 바꾸려면 삭제 후 다시 등록하세요.</div>
+            <div class="inline-edit-actions">
+                <button class="board-action-btn" onclick="submitGalleryPostEdit('${escapeText(id)}')">저장</button>
+                <button class="board-action-btn danger" onclick="openGalleryDetail('${escapeText(id)}',false,false)">취소</button>
+            </div>
+        </div>`;
+    scrollToElement("galleryDetailBox");
+}
+function submitGalleryPostEdit(id){
+    const target=findGalleryById(id);
+    if(!target){alert("갤러리 게시물을 찾을 수 없습니다.");return;}
+    const title=document.getElementById("galleryEditTitle").value.trim();
+    const category=document.getElementById("galleryEditCategory").value.trim()||"일반";
+    const content=document.getElementById("galleryEditContent").value.trim();
+    const password=document.getElementById("galleryEditPassword").value.trim();
+    if(!title){alert("제목은 비울 수 없습니다.");return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");return;}
+    postGalleryApi({type:"gallery_update",id:id,password:password,title:title,category:category,content:content}).then(data=>{
+        if(data.result==="success"){
+            target.title=title;target.category=category;target.content=content;target.updated_at=data.updated_at||new Date().toISOString();
+            openGalleryDetail(id,false,false);
+        }else{alert(data.message||"갤러리 수정 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("갤러리 수정 중 오류가 발생했습니다."));
+}
+function deleteGalleryPost(id){
+    const password=prompt("갤러리 게시물 삭제 비밀번호를 입력하세요. 삭제하면 댓글과 업로드 사진도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    postGalleryApi({type:"gallery_delete",id:id,password:password.trim()}).then(data=>{
+        if(data.result==="success"){
+            galleries=galleries.filter((post,index)=>getGalleryId(post,index)!==String(id));
+            galleryComments=galleryComments.filter(comment=>String(comment.gallery_id)!==String(id));
+            showGallery();
+        }else{alert(data.message||"갤러리 삭제 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("갤러리 삭제 중 오류가 발생했습니다."));
+}
+
+function getGalleryCommentId(comment,index){return String(comment.comment_id||comment.id||index);}
+function renderGalleryCommentsHtml(galleryId){
+    const comments=getCommentsByGallery(galleryId);
+    if(!comments.length)return `<div class="ready">등록된 댓글이 없습니다.</div>`;
+    const roots=getRootComments(comments);
+    return roots.map((comment,index)=>renderGalleryCommentItem(galleryId,comment,index,comments,false)).join("");
+}
+function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
+    const commentId=getGalleryCommentId(comment,index);
+    const replies=getReplyComments(allComments,commentId);
+    const liked=hasLikedComment("gallery",commentId);
+    const disliked=hasDislikedComment("gallery",commentId);
+    const formId="galleryReply_"+domSafeId(commentId)+"Form";
+    const replyHtml=replies.map((reply,replyIndex)=>renderGalleryCommentItem(galleryId,reply,replyIndex,allComments,true)).join("");
+    return `<div class="comment-item ${isReply?"reply":""}">
+        <div class="comment-meta">
+            <div><span class="comment-writer">${safe(comment.writer||"익명")}</span> · ${comment.updated_at?`수정 ${formatDate(comment.updated_at)}`:formatDate(comment.date)}</div>
+            <div class="comment-actions">
+                <span class="comment-reaction-group">
+                    <button class="comment-reaction-btn like ${liked?"active":""}" onclick="toggleGalleryCommentLike('${escapeText(commentId)}','${escapeText(galleryId)}')">👍 <span>${Number(comment.likes||0)}</span></button>
+                    <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="toggleGalleryCommentDislike('${escapeText(commentId)}','${escapeText(galleryId)}')">👎 <span>${Number(comment.dislikes||0)}</span></button>
+                </span>
+                ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
+                <button class="comment-mini-btn danger" onclick="deleteGalleryComment('${escapeText(commentId)}','${escapeText(galleryId)}')">삭제</button>
+            </div>
+        </div>
+        <div class="comment-content">${safe(comment.content)}</div>
+        ${!isReply?`<div class="comment-reply-form" id="${formId}">
+            <input class="comment-input" id="${formId}Writer" placeholder="작성자">
+            <input class="comment-input" id="${formId}Password" type="password" placeholder="삭제 비밀번호">
+            <textarea class="comment-textarea" id="${formId}Content" placeholder="답글을 입력하세요"></textarea>
+            <button class="comment-submit" onclick="addGalleryComment('${escapeText(galleryId)}','${escapeText(commentId)}','${formId}')">등록</button>
+        </div>`:""}
+        ${replyHtml}
+    </div>`;
+}
+function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){
+    const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":"galleryCommentWriter");
+    const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":"galleryCommentPassword");
+    const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":"galleryCommentContent");
+    const writer=writerEl?writerEl.value.trim()||"익명":"익명";
+    const password=passwordEl?passwordEl.value.trim():"";
+    const content=contentEl?contentEl.value.trim():"";
+    if(!content||!password){alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");return;}
+    postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,content:content,password:password}).then(data=>{
+        if(data.result==="success"){
+            galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,content:content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});
+            openGalleryDetail(galleryId,false,false);
+        }else{alert(data.message||"댓글 등록 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
+}
+function deleteGalleryComment(commentId,galleryId){
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    postGalleryApi({type:"gallery_comment_delete",comment_id:commentId,password:password.trim()}).then(data=>{
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            galleryComments=galleryComments.filter((comment,index)=>!deleted.includes(getGalleryCommentId(comment,index)));
+            deleted.forEach(id=>{unmarkCommentLiked("gallery",id);unmarkCommentDisliked("gallery",id);});
+            openGalleryDetail(galleryId,false,false);
+        }else{alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 삭제 중 오류가 발생했습니다."));
+}
+function toggleGalleryCommentLike(commentId,galleryId){
+    if(hasLikedComment("gallery",commentId)){galleryCommentUnlike(commentId,galleryId);return;}
+    galleryCommentLike(commentId,galleryId);
+}
+function galleryCommentLike(commentId,galleryId){
+    postGalleryApi({type:"gallery_comment_like",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{
+        if(data.result==="success"){
+            const wasDisliked=hasDislikedComment("gallery",commentId);
+            markCommentLiked("gallery",commentId);unmarkCommentDisliked("gallery",commentId);
+            const target=galleryComments.find((comment,index)=>getGalleryCommentId(comment,index)===String(commentId));
+            if(target){target.likes=Number(target.likes||0)+1;if(wasDisliked)target.dislikes=Math.max(0,Number(target.dislikes||0)-1);}
+            openGalleryDetail(galleryId,false,false);
+        }else if(data.result==="duplicate"){markCommentLiked("gallery",commentId);openGalleryDetail(galleryId,false,false);}
+        else{alert(data.message||"댓글 추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 추천 처리 중 오류가 발생했습니다."));
+}
+function galleryCommentUnlike(commentId,galleryId){
+    postGalleryApi({type:"gallery_comment_unlike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{
+        if(data.result==="success"||data.result==="not_found"){
+            unmarkCommentLiked("gallery",commentId);
+            const target=galleryComments.find((comment,index)=>getGalleryCommentId(comment,index)===String(commentId));
+            if(target&&data.result==="success")target.likes=Math.max(0,Number(target.likes||0)-1);
+            openGalleryDetail(galleryId,false,false);
+        }else{alert(data.message||"댓글 추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 추천 취소 중 오류가 발생했습니다."));
+}
+function toggleGalleryCommentDislike(commentId,galleryId){
+    if(hasDislikedComment("gallery",commentId)){galleryCommentUndislike(commentId,galleryId);return;}
+    galleryCommentDislike(commentId,galleryId);
+}
+function galleryCommentDislike(commentId,galleryId){
+    postGalleryApi({type:"gallery_comment_dislike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{
+        if(data.result==="success"){
+            const wasLiked=hasLikedComment("gallery",commentId);
+            markCommentDisliked("gallery",commentId);unmarkCommentLiked("gallery",commentId);
+            const target=galleryComments.find((comment,index)=>getGalleryCommentId(comment,index)===String(commentId));
+            if(target){target.dislikes=Number(target.dislikes||0)+1;if(wasLiked)target.likes=Math.max(0,Number(target.likes||0)-1);}
+            openGalleryDetail(galleryId,false,false);
+        }else if(data.result==="duplicate"){markCommentDisliked("gallery",commentId);openGalleryDetail(galleryId,false,false);}
+        else{alert(data.message||"댓글 비추천 처리 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 비추천 처리 중 오류가 발생했습니다."));
+}
+function galleryCommentUndislike(commentId,galleryId){
+    postGalleryApi({type:"gallery_comment_undislike",comment_id:commentId,client_id:getCommentLikeClientId("gallery")}).then(data=>{
+        if(data.result==="success"||data.result==="not_found"){
+            unmarkCommentDisliked("gallery",commentId);
+            const target=galleryComments.find((comment,index)=>getGalleryCommentId(comment,index)===String(commentId));
+            if(target&&data.result==="success")target.dislikes=Math.max(0,Number(target.dislikes||0)-1);
+            openGalleryDetail(galleryId,false,false);
+        }else{alert(data.message||"댓글 비추천 취소 중 오류가 발생했습니다.");}
+    }).catch(()=>alert("댓글 비추천 취소 중 오류가 발생했습니다."));
+}
+
 function showHome(){
     enterMainSection("home");
     setMainActive(0);
@@ -2979,7 +3525,7 @@ function showTube(){
 
 function showInfo(){
     enterMainSection("info");
-    setMainActive(5);
+    setMainActive(6);
     showCraft();
 }
 
@@ -2995,12 +3541,12 @@ function utilityMenu(active){
 
 function showUtility(){
     enterMainSection("utility");
-    setMainActive(6);
+    setMainActive(7);
     showPlicaCalculator();
 }
 
 function showPlicaCalculator(){
-    setMainActive(6);
+    setMainActive(7);
 
     document.getElementById("content").innerHTML=`
     <div class="section-head">
@@ -3084,7 +3630,7 @@ function calcPlica(){
 
 
 function showQuest(){
-    setMainActive(5);
+    setMainActive(6);
     const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
@@ -3193,7 +3739,7 @@ function renderQuestTable(){
 
 
 function showProcess(){
-    setMainActive(5);
+    setMainActive(6);
     const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
 
@@ -3350,7 +3896,7 @@ function renderProcessCards(){
 
 
 function showSkillRanks(){
-    setMainActive(5);
+    setMainActive(6);
     const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
 
@@ -3576,7 +4122,7 @@ function renderModOption(v){
 }
 
 function showModBooks(){
-    setMainActive(5);
+    setMainActive(6);
     if(!modBookTypeFilter)modBookTypeFilter="접두";
     const categories=getModBookCategories();
     if(!modBookCategoryFilter||!categories.includes(modBookCategoryFilter))modBookCategoryFilter=categories[0]||"";
@@ -3752,7 +4298,7 @@ function selectModBook(key){
 }
 
 function showCraft(){
-    setMainActive(5);
+    setMainActive(6);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
     let html=`
