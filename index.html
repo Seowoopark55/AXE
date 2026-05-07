@@ -19,6 +19,91 @@ try{
     }
 }catch(e){}
 
+function adminDeleteBoardPost(id){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 자유게시판 글을 삭제할까요? 댓글과 추천 기록도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_board",id:id})
+    .then(data=>{
+        if(data.result==="success"){
+            boards=boards.filter((post,index)=>getBoardId(post,index)!==String(id));
+            boardComments=boardComments.filter(comment=>String(comment.post_id)!==String(id));
+            alert("관리자 권한으로 게시글을 삭제했습니다.");
+            showBoard();
+        }else{
+            alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function adminDeleteTubePost(id){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 AXE TUBE 글을 삭제할까요? 댓글과 추천 기록도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_tube",id:id})
+    .then(data=>{
+        if(data.result==="success"){
+            tubes=tubes.filter((tube,index)=>getTubeId(tube,index)!==String(id));
+            tubeComments=tubeComments.filter(comment=>String(comment.tube_id)!==String(id));
+            alert("관리자 권한으로 AXE TUBE 글을 삭제했습니다.");
+            showTube();
+        }else{
+            alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function adminDeleteGalleryPost(id){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 갤러리 글을 삭제할까요? 댓글, 추천 기록, 업로드 사진도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_gallery",id:id})
+    .then(data=>{
+        if(data.result==="success"){
+            galleries=galleries.filter((post,index)=>getGalleryId(post,index)!==String(id));
+            galleryComments=galleryComments.filter(comment=>String(comment.gallery_id)!==String(id));
+            alert("관리자 권한으로 갤러리 글을 삭제했습니다.");
+            showGallery();
+        }else{
+            alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function adminDeleteComment(scope,commentId,ownerId){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    const scopeName=scope==="board"?"자유게시판":scope==="tube"?"AXE TUBE":scope==="gallery"?"갤러리":"댓글";
+    if(!confirm("관리자 권한으로 이 "+scopeName+" 댓글을 삭제할까요? 대댓글도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_comment",scope:scope,comment_id:commentId})
+    .then(data=>{
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            if(scope==="board"){
+                boardComments=boardComments.filter((comment,index)=>!deleted.includes(getCommentId(comment,index)));
+                alert("관리자 권한으로 댓글을 삭제했습니다.");
+                openBoardDetail(ownerId,false,false);
+                return;
+            }
+            if(scope==="tube"){
+                tubeComments=tubeComments.filter((comment,index)=>!deleted.includes(getTubeCommentId(comment,index)));
+                alert("관리자 권한으로 댓글을 삭제했습니다.");
+                openTubeDetail(ownerId,false,false);
+                return;
+            }
+            if(scope==="gallery"){
+                galleryComments=galleryComments.filter((comment,index)=>!deleted.includes(getGalleryCommentId(comment,index)));
+                alert("관리자 권한으로 댓글을 삭제했습니다.");
+                openGalleryDetail(ownerId,false,false);
+                return;
+            }
+        }else{
+            alert(data.message||"관리자 댓글 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+
 </script>
 <style>
 html.soft-reload #loadingScreen{display:none!important}
@@ -2594,6 +2679,7 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
             ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
             <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
             <button class="comment-mini-btn danger" onclick="${deleteFn}('${escapeText(commentId)}','${escapeText(ownerId)}')">삭제</button>
+            ${isCurrentAdmin()?`<button class="comment-mini-btn danger" onclick="adminDeleteComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">관리자 삭제</button>`:""}
         </div>
         <div id="commentEdit_${scope}_${domSafeId(commentId)}"></div>
         ${!isReply?renderReplyForm(scope,ownerId,commentId):""}
@@ -2972,6 +3058,7 @@ function openTubeDetail(id,addView=false,addHistory=false){
                 <div class="detail-admin-actions">
                     <button class="board-action-btn" onclick="startEditTubePost('${escapeText(id)}')">수정</button>
                     <button class="board-action-btn danger" onclick="deleteTubePost('${escapeText(id)}')">삭제</button>
+                    ${isCurrentAdmin()?`<button class="board-action-btn danger" onclick="adminDeleteTubePost('${escapeText(id)}')">관리자 삭제</button>`:""}
                 </div>
             </div>
             <div class="comment-section">
@@ -3197,6 +3284,7 @@ function openBoardDetail(id,addHistory=false,addView=false){
                 <div class="detail-admin-actions">
                     <button class="board-action-btn" onclick="startEditBoardPost('${escapeText(id)}')">수정</button>
                     <button class="board-action-btn danger" onclick="deleteBoardPost('${escapeText(id)}')">삭제</button>
+                    ${isCurrentAdmin()?`<button class="board-action-btn danger" onclick="adminDeleteBoardPost('${escapeText(id)}')">관리자 삭제</button>`:""}
                 </div>
             </div>
             <div class="comment-section">
@@ -3847,6 +3935,7 @@ function openGalleryDetail(id,addHistory=false,addView=false){
                 <div class="detail-admin-actions">
                     <button class="board-action-btn" onclick="startEditGalleryPost('${escapeText(id)}')">수정</button>
                     <button class="board-action-btn danger" onclick="deleteGalleryPost('${escapeText(id)}')">삭제</button>
+                    ${isCurrentAdmin()?`<button class="board-action-btn danger" onclick="adminDeleteGalleryPost('${escapeText(id)}')">관리자 삭제</button>`:""}
                 </div>
             </div>
             <div class="comment-section">
@@ -5905,6 +5994,91 @@ function resetAdminMemberPassword(memberId,safeId){
             if(input)input.value="";
         }else{
             alert(data.message||"비밀번호 초기화 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+
+function adminDeleteBoardPost(id){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 자유게시판 글을 삭제할까요? 댓글과 추천 기록도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_board",id:id})
+    .then(data=>{
+        if(data.result==="success"){
+            boards=boards.filter((post,index)=>getBoardId(post,index)!==String(id));
+            boardComments=boardComments.filter(comment=>String(comment.post_id)!==String(id));
+            alert("관리자 권한으로 게시글을 삭제했습니다.");
+            showBoard();
+        }else{
+            alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function adminDeleteTubePost(id){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 AXE TUBE 글을 삭제할까요? 댓글과 추천 기록도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_tube",id:id})
+    .then(data=>{
+        if(data.result==="success"){
+            tubes=tubes.filter((tube,index)=>getTubeId(tube,index)!==String(id));
+            tubeComments=tubeComments.filter(comment=>String(comment.tube_id)!==String(id));
+            alert("관리자 권한으로 AXE TUBE 글을 삭제했습니다.");
+            showTube();
+        }else{
+            alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function adminDeleteGalleryPost(id){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 갤러리 글을 삭제할까요? 댓글, 추천 기록, 업로드 사진도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_gallery",id:id})
+    .then(data=>{
+        if(data.result==="success"){
+            galleries=galleries.filter((post,index)=>getGalleryId(post,index)!==String(id));
+            galleryComments=galleryComments.filter(comment=>String(comment.gallery_id)!==String(id));
+            alert("관리자 권한으로 갤러리 글을 삭제했습니다.");
+            showGallery();
+        }else{
+            alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function adminDeleteComment(scope,commentId,ownerId){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    const scopeName=scope==="board"?"자유게시판":scope==="tube"?"AXE TUBE":scope==="gallery"?"갤러리":"댓글";
+    if(!confirm("관리자 권한으로 이 "+scopeName+" 댓글을 삭제할까요? 대댓글도 함께 삭제됩니다."))return;
+    adminApi({type:"admin_delete_comment",scope:scope,comment_id:commentId})
+    .then(data=>{
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            if(scope==="board"){
+                boardComments=boardComments.filter((comment,index)=>!deleted.includes(getCommentId(comment,index)));
+                alert("관리자 권한으로 댓글을 삭제했습니다.");
+                openBoardDetail(ownerId,false,false);
+                return;
+            }
+            if(scope==="tube"){
+                tubeComments=tubeComments.filter((comment,index)=>!deleted.includes(getTubeCommentId(comment,index)));
+                alert("관리자 권한으로 댓글을 삭제했습니다.");
+                openTubeDetail(ownerId,false,false);
+                return;
+            }
+            if(scope==="gallery"){
+                galleryComments=galleryComments.filter((comment,index)=>!deleted.includes(getGalleryCommentId(comment,index)));
+                alert("관리자 권한으로 댓글을 삭제했습니다.");
+                openGalleryDetail(ownerId,false,false);
+                return;
+            }
+        }else{
+            alert(data.message||"관리자 댓글 삭제 중 오류가 발생했습니다.");
         }
     })
     .catch(()=>{});
