@@ -1583,6 +1583,143 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .notification-dot{width:7px;height:7px;border-radius:999px;background:#ffb52e;display:inline-block;margin-right:6px;vertical-align:1px;box-shadow:0 0 10px rgba(255,181,46,.4)}
 @media(max-width:768px){.auth-notify-btn{flex:0 0 auto;height:36px;padding:0 11px}.notification-toolbar{align-items:stretch}.notification-toolbar .admin-mini-btn{width:auto}.notification-list{max-height:62vh}.notification-row{padding:11px 12px}.notification-message{font-size:13px}}
 
+
+
+/* 상단 로그인 영역 B안: 배너 우측 상단 인라인형 */
+.wrap{position:relative}
+.auth-bar{
+    position:absolute!important;
+    top:48px!important;
+    right:34px!important;
+    z-index:30!important;
+    display:flex!important;
+    justify-content:flex-end!important;
+    align-items:center!important;
+    gap:0!important;
+    margin:0!important;
+    min-height:0!important;
+}
+.auth-inline-shell{
+    display:inline-flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    max-width:min(620px,calc(100vw - 90px));
+    padding:7px 10px;
+    border-radius:999px;
+    background:rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.055);
+    backdrop-filter:blur(6px);
+    box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+.auth-inline-profile,
+.auth-inline-point,
+.auth-inline-notify{
+    height:28px!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    color:#d8d8d8!important;
+    font-size:13px!important;
+    font-weight:950!important;
+    cursor:pointer!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    white-space:nowrap!important;
+    transition:.16s ease!important;
+}
+.auth-inline-profile:hover,
+.auth-inline-point:hover,
+.auth-inline-notify:hover{
+    color:#ffb52e!important;
+    transform:translateY(-1px)!important;
+}
+.auth-inline-profile strong{
+    color:#ffb52e;
+    font-weight:950;
+    max-width:132px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.auth-inline-point{
+    color:#ffcf75!important;
+    font-variant-numeric:tabular-nums;
+}
+.auth-inline-sep{
+    color:rgba(255,255,255,.18);
+    font-size:12px;
+    font-weight:700;
+    user-select:none;
+}
+.auth-inline-notify .auth-notify-count{
+    margin-left:2px;
+    min-width:18px;
+    height:18px;
+    padding:0 5px;
+    border-radius:999px;
+    background:rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.12);
+    color:#aaa;
+    font-size:11px;
+    font-weight:950;
+    line-height:18px;
+}
+.auth-inline-notify .auth-notify-count.active{
+    background:#ff4d4d;
+    border-color:#ff4d4d;
+    color:#fff;
+}
+.auth-inline-logout{
+    height:30px!important;
+    padding:0 10px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(255,255,255,.11)!important;
+    background:rgba(255,255,255,.045)!important;
+    color:#d0d0d0!important;
+    font-size:12px!important;
+    font-weight:950!important;
+    flex:0 0 auto!important;
+}
+.auth-inline-logout:hover{
+    color:#ffb52e!important;
+    border-color:rgba(255,181,46,.42)!important;
+    background:rgba(255,181,46,.065)!important;
+    transform:translateY(-1px)!important;
+}
+.auth-bar>.auth-btn:not(.auth-inline-logout){
+    height:34px;
+    padding:0 13px;
+}
+@media(max-width:900px){
+    .auth-bar{
+        position:static!important;
+        margin:-2px 0 12px!important;
+        justify-content:stretch!important;
+    }
+    .auth-inline-shell{
+        width:100%;
+        max-width:none;
+        justify-content:center;
+        gap:8px;
+        padding:7px 9px;
+        background:rgba(255,255,255,.035);
+        border-color:rgba(255,255,255,.07);
+    }
+    .auth-inline-profile strong{max-width:92px}
+    .auth-inline-profile,.auth-inline-point,.auth-inline-notify{font-size:12px!important}
+    .auth-inline-logout{height:28px!important;padding:0 9px!important;font-size:11px!important}
+}
+@media(max-width:420px){
+    .auth-inline-shell{gap:6px;padding:6px 7px}
+    .auth-inline-profile strong{max-width:70px}
+    .auth-inline-sep{font-size:10px}
+    .auth-inline-profile,.auth-inline-point,.auth-inline-notify{font-size:11px!important}
+    .auth-inline-notify .auth-notify-count{min-width:16px;height:16px;line-height:16px;font-size:10px;padding:0 4px}
+}
+
 </style>
 </head>
 
@@ -1864,7 +2001,15 @@ function renderAuthBar(){
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
-        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong>${renderUserPointMini(user)}</div><button class="auth-notify-btn" onclick="openNotificationModal()">🔔 알림 <span class="auth-notify-count ${notificationUnreadCount>0?"active":""}" id="authNotifyCount">${notificationUnreadCount}</span></button><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+        box.innerHTML=`<div class="auth-inline-shell">
+            <button class="auth-inline-profile" title="${escapeAttr(user.nickname)}" onclick="openMemberProfile('${escapeText(user.nickname)}')">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong></button>
+            <span class="auth-inline-sep">|</span>
+            <button class="auth-inline-point" title="포인트 내역 보기" onclick="openPointHistoryModal()">P ${Number(user.points||0)}</button>
+            <span class="auth-inline-sep">|</span>
+            <button class="auth-notify-btn auth-inline-notify" onclick="openNotificationModal()">알림 <span class="auth-notify-count ${notificationUnreadCount>0?"active":""}" id="authNotifyCount">${notificationUnreadCount}</span></button>
+            <span class="auth-inline-sep">|</span>
+            <button class="auth-btn auth-inline-logout" onclick="logoutMember()">로그아웃</button>
+        </div>`;
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
