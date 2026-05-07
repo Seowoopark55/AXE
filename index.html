@@ -6052,8 +6052,8 @@ function showAdmin(){
                     <textarea class="form-textarea" id="adminNoticeContent" placeholder="공지 내용을 입력하세요"></textarea>
                 </div>
                 <div class="admin-notice-actions">
-                    <button class="admin-mini-btn" onclick="resetAdminNoticeForm()">입력 초기화</button>
-                    <button class="admin-mini-btn" onclick="submitAdminNotice()">공지 저장</button>
+                    <button class="admin-mini-btn" id="adminNoticeCancelBtn" onclick="resetAdminNoticeForm()" style="display:none;">작성 취소</button>
+                    <button class="admin-mini-btn" id="adminNoticeSubmitBtn" onclick="submitAdminNotice()">공지 등록</button>
                 </div>
                 <div id="adminNoticeBox" style="margin-top:14px;"><div class="ready">공지 정보를 불러오는 중입니다.</div></div>
             </div>
@@ -6091,7 +6091,6 @@ function renderAdminNotices(){
     box.innerHTML=`
         <div class="admin-toolbar">
             <div class="admin-summary">총 ${list.length}개 공지</div>
-            <button class="admin-mini-btn" onclick="resetAdminNoticeForm()">새 공지 작성</button>
         </div>
         <div class="admin-table-wrap">
             <table class="admin-table admin-notice-table">
@@ -6132,6 +6131,14 @@ function renderAdminNoticeRow(notice,index){
         </tr>`;
 }
 
+function updateAdminNoticeFormMode(){
+    const id=document.getElementById("adminNoticeId")?.value.trim()||"";
+    const submitBtn=document.getElementById("adminNoticeSubmitBtn");
+    const cancelBtn=document.getElementById("adminNoticeCancelBtn");
+    if(submitBtn)submitBtn.textContent=id?"수정 저장":"공지 등록";
+    if(cancelBtn)cancelBtn.style.display=id?"inline-flex":"none";
+}
+
 function resetAdminNoticeForm(){
     const id=document.getElementById("adminNoticeId");
     const title=document.getElementById("adminNoticeTitle");
@@ -6142,6 +6149,7 @@ function resetAdminNoticeForm(){
     if(title)title.value="";
     if(content)content.value="";
     if(important)important.checked=false;
+    updateAdminNoticeFormMode();
 }
 
 function findNoticeByAdminId(id){
@@ -6160,6 +6168,7 @@ function editAdminNotice(id){
     document.getElementById("adminNoticeTitle").value=notice.title||"";
     document.getElementById("adminNoticeContent").value=notice.content||"";
     document.getElementById("adminNoticeImportant").checked=isImportant(notice.important);
+    updateAdminNoticeFormMode();
 
     scrollToElement("adminNoticeTitle");
 }
