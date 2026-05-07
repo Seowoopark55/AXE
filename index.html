@@ -1549,6 +1549,7 @@ function setCurrentUser(user){
     else localStorage.removeItem(AUTH_STORAGE_KEY);
     renderAuthBar();
     applyLoginWriterFields();
+    updateAdminMenu();
 }
 
 function renderAuthBar(){
@@ -1560,6 +1561,7 @@ function renderAuthBar(){
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
+    updateAdminMenu();
 }
 
 
@@ -1641,6 +1643,7 @@ function submitAuth(){
 function logoutMember(){
     setCurrentUser(null);
     applyLoginWriterFields();
+    updateAdminMenu();
     alert("로그아웃되었습니다.");
 }
 
@@ -1705,6 +1708,7 @@ function afterRenderAuth(){
     renderAuthBar();
     applyLoginWriterFields();
     setupAuthObserver();
+    updateAdminMenu();
 }
 
 
