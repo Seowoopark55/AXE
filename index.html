@@ -1585,32 +1585,30 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 
-/* 상단 로그인 영역 B안: 배너 우측 상단 인라인형 */
+/* 상단 로그인 영역 B안: 배너 위 우측 인라인형 */
 .wrap{position:relative}
 .auth-bar{
-    position:absolute!important;
-    top:48px!important;
-    right:34px!important;
+    position:relative!important;
     z-index:30!important;
     display:flex!important;
     justify-content:flex-end!important;
     align-items:center!important;
-    gap:0!important;
-    margin:0!important;
-    min-height:0!important;
+    gap:8px!important;
+    margin:0 2px 10px!important;
+    min-height:32px!important;
 }
 .auth-inline-shell{
     display:inline-flex;
     align-items:center;
     justify-content:flex-end;
     gap:10px;
-    max-width:min(620px,calc(100vw - 90px));
-    padding:7px 10px;
-    border-radius:999px;
-    background:rgba(0,0,0,.18);
-    border:1px solid rgba(255,255,255,.055);
-    backdrop-filter:blur(6px);
-    box-shadow:0 8px 24px rgba(0,0,0,.18);
+    max-width:100%;
+    padding:0;
+    border-radius:0;
+    background:transparent;
+    border:0;
+    backdrop-filter:none;
+    box-shadow:none;
 }
 .auth-inline-profile,
 .auth-inline-point,
@@ -1639,7 +1637,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .auth-inline-profile strong{
     color:#ffb52e;
     font-weight:950;
-    max-width:132px;
+    max-width:150px;
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
@@ -1649,7 +1647,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     font-variant-numeric:tabular-nums;
 }
 .auth-inline-sep{
-    color:rgba(255,255,255,.18);
+    color:rgba(255,255,255,.22);
     font-size:12px;
     font-weight:700;
     user-select:none;
@@ -1695,9 +1693,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 @media(max-width:900px){
     .auth-bar{
-        position:static!important;
         margin:-2px 0 12px!important;
-        justify-content:stretch!important;
+        justify-content:center!important;
     }
     .auth-inline-shell{
         width:100%;
@@ -1705,8 +1702,9 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         justify-content:center;
         gap:8px;
         padding:7px 9px;
+        border-radius:999px;
         background:rgba(255,255,255,.035);
-        border-color:rgba(255,255,255,.07);
+        border:1px solid rgba(255,255,255,.07);
     }
     .auth-inline-profile strong{max-width:92px}
     .auth-inline-profile,.auth-inline-point,.auth-inline-notify{font-size:12px!important}
@@ -1731,6 +1729,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <div class="wrap">
+    <div class="auth-bar" id="authBar"></div>
+
     <div class="hero" onclick="navigateMain('home')">
         <div class="hero-shine"></div>
         <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
@@ -1756,8 +1756,6 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
     </div>
     </div>
-
-    <div class="auth-bar" id="authBar"></div>
 
     <div class="panel" id="content"></div>
 </div>
