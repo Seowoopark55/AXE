@@ -1471,7 +1471,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .auth-form-row .form-label{margin:8px 0 5px}
 #authModal .form-submit{margin-top:10px}
 
-@media(max-width:768px){.auth-bar{justify-content:stretch;margin:-2px 0 12px}.auth-user{flex:1;justify-content:center;min-width:0}.auth-btn{flex:1}.auth-user span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media(max-width:768px){.auth-bar{justify-content:stretch;margin:-2px 0 12px;flex-wrap:wrap}.auth-user{flex:1;justify-content:center;min-width:0}.auth-btn{flex:1}.auth-user span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
 
 /* 포인트 / 랭킹 UI */
@@ -1567,8 +1567,9 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 /* 알림함 */
 .auth-notify-btn{height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease;position:relative;white-space:nowrap}
 .auth-notify-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
-.auth-notify-count{display:none;min-width:18px;height:18px;padding:0 5px;margin-left:5px;border-radius:999px;background:#ff4d4d;color:#fff;font-size:11px;font-weight:950;line-height:18px;text-align:center;vertical-align:middle}
-.auth-notify-count.active{display:inline-block}
+.auth-notify-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:0 0 auto}
+.auth-notify-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:1px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);color:#aaa;font-size:11px;font-weight:950;line-height:18px;text-align:center;vertical-align:middle}
+.auth-notify-count.active{background:#ff4d4d;border-color:#ff4d4d;color:#fff}
 .notification-box{width:min(620px,100%)}
 .notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .notification-summary{color:#aaa;font-size:13px;font-weight:850;line-height:1.45}
@@ -1863,7 +1864,7 @@ function renderAuthBar(){
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
-        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong>${renderUserPointMini(user)}</div><button class="auth-notify-btn" onclick="openNotificationModal()">알림 <span class="auth-notify-count ${notificationUnreadCount>0?"active":""}" id="authNotifyCount">${notificationUnreadCount}</span></button><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong>${renderUserPointMini(user)}</div><button class="auth-notify-btn" onclick="openNotificationModal()">🔔 알림 <span class="auth-notify-count ${notificationUnreadCount>0?"active":""}" id="authNotifyCount">${notificationUnreadCount}</span></button><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
