@@ -1397,13 +1397,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .admin-summary{color:#aaa;font-size:13px;line-height:1.5}
 .admin-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(0,0,0,.22)}
-.admin-table{width:100%;border-collapse:collapse;min-width:860px}
+.admin-table{width:100%;border-collapse:collapse;min-width:1180px}
 .admin-table th,.admin-table td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;text-align:left;vertical-align:middle}
 .admin-table th{color:#888;font-size:12px;font-weight:950;background:rgba(255,255,255,.025)}
 .admin-table td{color:#ddd}
 .admin-table tr:last-child td{border-bottom:0}
 .admin-select,.admin-small-input{height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 9px;outline:none}
 .admin-small-input{width:110px}
+.admin-point-adjust-box{display:grid;grid-template-columns:86px minmax(160px,1fr) 58px;gap:6px;align-items:center}
+.admin-point-input{width:86px}
+.admin-reason-input{width:100%;min-width:160px}
 .admin-action-line{display:flex;flex-wrap:wrap;gap:6px}
 .admin-mini-btn{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer}
 .admin-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45)}
@@ -1652,7 +1655,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbygZ5AKLWe9yEnvyqpfBzbfy0CdBtLB8krkFiUZb6Tj9BG4_mNi8ibF6eddeXZmjK3K6g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwMeuCGrxvZUx9gJmvJFoCroVGyEf6Fl27Rwatt-YOJ8es4-5Dj_U9FrTe7neGkXIJWIQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -6239,6 +6242,7 @@ function renderAdminMembers(){
                         <th>상태</th>
                         <th>뱃지</th>
                         <th>포인트</th>
+                        <th>포인트 조정</th>
                         <th>가입일</th>
                         <th>최근 로그인</th>
                         <th>관리</th>
@@ -6284,6 +6288,13 @@ function renderAdminMemberRow(member){
                 </select>
             </td>
             <td class="admin-point-cell">P ${Number(member.points||0)}</td>
+            <td>
+                <div class="admin-point-adjust-box">
+                    <input class="admin-small-input admin-point-input" id="adminPoint_${safeId}" type="number" step="1" placeholder="+50 / -10">
+                    <input class="admin-small-input admin-reason-input" id="adminReason_${safeId}" type="text" placeholder="사유 입력">
+                    <button class="admin-mini-btn" onclick="adjustAdminMemberPoints('${escapeText(member.id)}','${safeId}')">적용</button>
+                </div>
+            </td>
             <td>${formatDate(member.created_at)}</td>
             <td>${formatDate(member.last_login)}</td>
             <td>
@@ -6318,6 +6329,55 @@ function saveAdminMember(memberId,safeId){
     })
     .catch(()=>{});
 }
+
+
+function adjustAdminMemberPoints(memberId,safeId){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+
+    const pointInput=document.getElementById("adminPoint_"+safeId);
+    const reasonInput=document.getElementById("adminReason_"+safeId);
+    const pointText=pointInput?String(pointInput.value||"").trim():"";
+    const reason=reasonInput?String(reasonInput.value||"").trim():"";
+    const point=Number(pointText);
+
+    if(!pointText||!Number.isFinite(point)||point===0){
+        alert("조정할 포인트를 입력하세요. 예: 50 또는 -10");
+        return;
+    }
+    if(Math.floor(point)!==point){
+        alert("포인트는 정수로 입력하세요.");
+        return;
+    }
+    if(!reason){
+        alert("포인트 조정 사유를 입력하세요.");
+        return;
+    }
+
+    const actionText=point>0?`+${point}P 지급`:`${point}P 차감`;
+    if(!confirm(`해당 회원에게 ${actionText} 처리할까요?\n사유: ${reason}`))return;
+
+    adminApi({
+        type:"admin_point_adjust",
+        member_id:memberId,
+        point:point,
+        reason:reason
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            alert(data.message||"포인트가 조정되었습니다.");
+            if(pointInput)pointInput.value="";
+            if(reasonInput)reasonInput.value="";
+            return Promise.all([refreshData(), loadAdminMembers()]);
+        }else{
+            alert(data.message||"포인트 조정 중 오류가 발생했습니다.");
+        }
+    })
+    .then(()=>{
+        if(currentHistoryPage==="ranking")showRanking();
+    })
+    .catch(()=>{});
+}
+
 
 function resetAdminMemberPassword(memberId,safeId){
     const input=document.getElementById("adminPw_"+safeId);
