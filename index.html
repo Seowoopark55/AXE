@@ -1444,6 +1444,34 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 @media(max-width:768px){.auth-bar{justify-content:stretch;margin:-2px 0 12px}.auth-user{flex:1;justify-content:center;min-width:0}.auth-btn{flex:1}.auth-user span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
+
+/* 포인트 / 랭킹 UI */
+.auth-user{max-width:none}
+.auth-point-wrap{display:inline-flex;align-items:center;gap:6px;margin-left:6px;padding-left:8px;border-left:1px solid rgba(255,255,255,.11)}
+.auth-point-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:22px;padding:0 8px;border-radius:999px;background:rgba(255,181,46,.12);border:1px solid rgba(255,181,46,.36);color:#ffcf75;font-size:12px;font-weight:950;font-variant-numeric:tabular-nums}
+.auth-progress{width:72px;height:7px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.auth-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#ff8c00,#ffb52e,#ffcf75)}
+.ranking-grid{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:start}
+.ranking-list{display:grid;gap:10px}
+.ranking-row{display:grid;grid-template-columns:54px 1fr 94px;gap:12px;align-items:center;padding:14px 15px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.24);transition:.16s ease}
+.ranking-row:hover{border-color:rgba(255,181,46,.34);background:rgba(255,181,46,.045);transform:translateY(-1px)}
+.ranking-rank{height:38px;min-width:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:13px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);color:#ddd;font-size:15px;font-weight:950}
+.ranking-row.top1 .ranking-rank{background:linear-gradient(135deg,#ffcf61,#ffb52e);color:#111;border-color:rgba(255,181,46,.9)}
+.ranking-name{font-size:15px;font-weight:950;color:#fff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ranking-meta{margin-top:5px;color:#888;font-size:12px}
+.ranking-points{text-align:right;color:#ffcf75;font-size:16px;font-weight:950;font-variant-numeric:tabular-nums}
+.point-card{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,181,46,.08),rgba(255,255,255,.018)),rgba(0,0,0,.24);border-radius:18px;padding:17px}
+.point-card-title{font-size:16px;font-weight:950;color:#ffb52e;margin-bottom:10px}
+.point-current{font-size:30px;font-weight:950;color:#fff;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.point-progress-large{height:13px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.08);margin:10px 0}
+.point-progress-large-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#ff8c00,#ffb52e,#ffcf75)}
+.point-help{color:#aaa;font-size:13px;line-height:1.55}
+.point-rule-list{display:grid;gap:7px;margin-top:12px;color:#aaa;font-size:13px;line-height:1.45}
+.point-rule-list div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.point-rule-list strong{color:#ffcf75}
+.admin-point-cell{color:#ffcf75;font-weight:950;font-variant-numeric:tabular-nums}
+@media(max-width:920px){.ranking-grid{grid-template-columns:1fr}.auth-progress{display:none}.ranking-row{grid-template-columns:44px 1fr 78px;padding:12px}.ranking-points{font-size:14px}}
+
 </style>
 </head>
 
@@ -1473,6 +1501,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('board')">자유게시판</button>
         <button onclick="navigateMain('gallery')">갤러리</button>
+        <button onclick="navigateMain('ranking')">랭킹</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
         <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
@@ -1623,7 +1652,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwJOefeQVqgrzDmzIXY2pJ7gIlBeG3dn8mqnZlIPJMgzqH7Ucvyq2SQzQmToRcybOyO1A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxSAVDd5Dyv_KzjkJZQFTl5o7QX68lplEvkNQtSVNgcakXmhN6dfhsRN-lS352E-DXonw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1655,11 +1684,42 @@ function renderAuthBar(){
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
-        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong></div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong>${renderUserPointMini(user)}</div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
     updateAdminMenu();
+}
+
+function getPointInfo(points){
+    const p=Math.max(0,Number(points||0));
+    if(p<300)return {current:p,next:300,label:"브론즈",nextLabel:"실버",rate:Math.min(100,Math.round((p/300)*100))};
+    if(p<1000)return {current:p,next:1000,label:"실버",nextLabel:"골드",rate:Math.min(100,Math.round(((p-300)/700)*100))};
+    return {current:p,next:p,label:"골드",nextLabel:"최고 등급",rate:100};
+}
+
+function badgeByPointsForUser(user,points){
+    const role=String(user?.role||"").toLowerCase();
+    const badge=String(user?.badge||"").toLowerCase();
+    if(role==="admin"||badge==="admin")return "admin";
+    const p=Number(points||0);
+    if(p>=1000)return "gold";
+    if(p>=300)return "silver";
+    return "bronze";
+}
+
+function renderUserPointMini(user){
+    const info=getPointInfo(user?.points||0);
+    return `<span class="auth-point-wrap"><span class="auth-point-pill">P ${Number(user?.points||0)}</span><span class="auth-progress" title="${info.nextLabel}까지 ${info.rate}%"><span class="auth-progress-fill" style="width:${info.rate}%"></span></span></span>`;
+}
+
+function addLocalUserPoints(amount){
+    const user=getCurrentUser();
+    if(!user||!user.nickname)return;
+    const nextPoints=Math.max(0,Number(user.points||0)+Number(amount||0));
+    user.points=nextPoints;
+    user.badge=badgeByPointsForUser(user,nextPoints);
+    setCurrentUser(user);
 }
 
 
@@ -1810,7 +1870,7 @@ function afterRenderAuth(){
 }
 
 
-let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[];
+let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[],rankings=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
 let mapSearchKeyword="",selectedMapId="";
 let selectedGuideId="";
@@ -1823,7 +1883,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","utility","admin"];
+const mainPageKeys=["home","notice","outlaw","tube","board","gallery","ranking","info","utility","admin"];
 const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
 function normalizeMainPage(page){
@@ -1843,6 +1903,7 @@ function renderMainPage(page){
     if(target==="utility"){showUtility();return;}
     if(target==="board"){showBoard();return;}
     if(target==="gallery"){showGallery();return;}
+    if(target==="ranking"){showRanking();return;}
     if(target==="admin"){showAdmin();return;}
 
     showHome();
@@ -2079,6 +2140,7 @@ function hydrateData(data){
     boardComments=data.boardComments||data.board_comments||data.comments||[];
     galleries=data.galleries||data.galleryPosts||[];
     galleryComments=data.galleryComments||data.gallery_comments||[];
+    rankings=data.rankings||[];
 }
 
 function refreshData(){
@@ -2358,6 +2420,7 @@ function submitTubePost(){
                 updated_at:""
             };
             tubes.unshift(newTube);
+            addLocalUserPoints(10);
             alert("AXE TUBE 글이 등록되었습니다.");
             clearTubeForm();
             closeTubeForm();
@@ -2810,6 +2873,7 @@ function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){
                 dislikes:0,
                 updated_at:""
             });
+            addLocalUserPoints(3);
             openTubeDetail(tubeId,false);
         }else{
             alert(data.message||"댓글 등록 중 오류가 발생했습니다.");
@@ -3166,6 +3230,7 @@ function submitBoardPost(){
     })
     .then(data=>{
         if(data.result==="success"){
+            addLocalUserPoints(10);
             alert("게시글이 등록되었습니다.");
             const newPost={
                 id:data.id||String(Date.now()),
@@ -3359,6 +3424,7 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){
                 dislikes:0,
                 updated_at:""
             });
+            addLocalUserPoints(3);
             openBoardDetail(postId);
         }else{
             alert("댓글 등록 중 오류가 발생했습니다.");
@@ -3899,6 +3965,7 @@ function submitGalleryPost(){
                 updated_at:""
             };
             galleries.unshift(newPost);
+            addLocalUserPoints(10);
             alert("갤러리 게시물이 등록되었습니다.");
             clearGalleryForm();
             closeGalleryForm();
@@ -4120,6 +4187,7 @@ function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){
     postGalleryApi({type:"gallery_comment_add",gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,writer_badge:writerBadge,content:content,password:password}).then(data=>{
         if(data.result==="success"){
             galleryComments.push({comment_id:data.comment_id||String(Date.now()),gallery_id:galleryId,parent_comment_id:parentCommentId||"",writer:writer,writer_badge:writerBadge,content:content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""});
+            addLocalUserPoints(3);
             openGalleryDetail(galleryId,false,false);
         }else{alert(data.message||"댓글 등록 중 오류가 발생했습니다.");}
     }).catch(()=>alert("댓글 등록 중 오류가 발생했습니다."));
@@ -4431,7 +4499,7 @@ function showTube(){
 
 function showInfo(){
     enterMainSection("info");
-    setMainActive(6);
+    setMainActive(7);
     showCraft();
 }
 
@@ -4447,12 +4515,12 @@ function utilityMenu(active){
 
 function showUtility(){
     enterMainSection("utility");
-    setMainActive(7);
+    setMainActive(8);
     showPlicaCalculator();
 }
 
 function showPlicaCalculator(){
-    setMainActive(7);
+    setMainActive(8);
 
     document.getElementById("content").innerHTML=`
     <div class="section-head">
@@ -4536,7 +4604,7 @@ function calcPlica(){
 
 
 function showQuest(){
-    setMainActive(6);
+    setMainActive(7);
     const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
@@ -4645,7 +4713,7 @@ function renderQuestTable(){
 
 
 function showProcess(){
-    setMainActive(6);
+    setMainActive(7);
     const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
 
@@ -4802,7 +4870,7 @@ function renderProcessCards(){
 
 
 function showSkillRanks(){
-    setMainActive(6);
+    setMainActive(7);
     const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
 
@@ -5028,7 +5096,7 @@ function renderModOption(v){
 }
 
 function showModBooks(){
-    setMainActive(6);
+    setMainActive(7);
     if(!modBookTypeFilter)modBookTypeFilter="접두";
     const categories=getModBookCategories();
     if(!modBookCategoryFilter||!categories.includes(modBookCategoryFilter))modBookCategoryFilter=categories[0]||"";
@@ -5204,7 +5272,7 @@ function selectModBook(key){
 }
 
 function showCraft(){
-    setMainActive(6);
+    setMainActive(7);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
     let html=`
@@ -5795,6 +5863,63 @@ window.likeBoardOnce = function(id){
 };
 
 
+
+function getRankingList(){
+    const list=(rankings&&rankings.length?rankings:[]).slice();
+    return list.sort((a,b)=>Number(b.points||0)-Number(a.points||0));
+}
+
+function showRanking(){
+    enterMainSection("ranking");
+    setMainActive(6);
+    const user=getCurrentUser();
+    const list=getRankingList();
+    const myRank=user?list.findIndex(m=>String(m.nickname)===String(user.nickname))+1:0;
+    const info=getPointInfo(user?.points||0);
+    document.getElementById("content").innerHTML=`
+        <div class="section-head">
+            <div>
+                <div class="section-title">포인트 랭킹</div>
+                <div class="section-desc">회원 활동 포인트 기준 순위입니다. 글 작성은 10P, 댓글 작성은 3P, 공지 작성은 20P로 계산됩니다.</div>
+            </div>
+        </div>
+        <div class="ranking-grid">
+            <div class="ranking-list">
+                ${list.length?list.map((member,index)=>renderRankingRow(member,index)).join(""):`<div class="ready">랭킹 데이터가 없습니다.</div>`}
+            </div>
+            <div class="point-card">
+                <div class="point-card-title">내 포인트 진행도</div>
+                ${user?`
+                    <div class="point-current">P ${Number(user.points||0)}</div>
+                    <div class="point-help">현재 등급: <strong style="color:#ffcf75;">${safe(info.label)}</strong>${myRank?` · 현재 순위: <strong style="color:#ffcf75;">${myRank}위</strong>`:""}</div>
+                    <div class="point-progress-large"><div class="point-progress-large-fill" style="width:${info.rate}%"></div></div>
+                    <div class="point-help">${info.nextLabel==="최고 등급"?"현재 최고 포인트 등급입니다.":`${info.nextLabel}까지 진행률 ${info.rate}%`}</div>
+                `:`<div class="ready">로그인하면 내 포인트 진행도를 볼 수 있습니다.</div>`}
+                <div class="point-rule-list">
+                    <div><span>게시글 작성</span><strong>+10P</strong></div>
+                    <div><span>갤러리 작성</span><strong>+10P</strong></div>
+                    <div><span>AXE TUBE 작성</span><strong>+10P</strong></div>
+                    <div><span>댓글 작성</span><strong>+3P</strong></div>
+                    <div><span>공지 작성</span><strong>+20P</strong></div>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderRankingRow(member,index){
+    const rank=member.rank||index+1;
+    const badge=normalizeBadge(member.badge||member.role||"bronze");
+    return `
+        <div class="ranking-row ${rank===1?"top1":""}">
+            <div class="ranking-rank">${rank}</div>
+            <div>
+                <div class="ranking-name">${renderWriterName(member.nickname||"익명",badge)}</div>
+                <div class="ranking-meta">${safe(badge)} · ${String(member.role||"user")}</div>
+            </div>
+            <div class="ranking-points">P ${Number(member.points||0)}</div>
+        </div>`;
+}
+
 function getAdminPassword(){
     let password=sessionStorage.getItem("axe_net_admin_password")||"";
     if(password)return password;
@@ -5836,7 +5961,7 @@ let adminMembers=[];
 
 function showAdmin(){
     enterMainSection("admin");
-    setMainActive(8);
+    setMainActive(9);
     const user=getCurrentUser();
     if(!user||!isCurrentAdmin()){
         document.getElementById("content").innerHTML=`
@@ -6094,6 +6219,7 @@ function renderAdminMembers(){
                         <th>권한</th>
                         <th>상태</th>
                         <th>뱃지</th>
+                        <th>포인트</th>
                         <th>가입일</th>
                         <th>최근 로그인</th>
                         <th>관리</th>
@@ -6138,6 +6264,7 @@ function renderAdminMemberRow(member){
                     <option value="legend" ${badge==="legend"?"selected":""}>legend</option>
                 </select>
             </td>
+            <td class="admin-point-cell">P ${Number(member.points||0)}</td>
             <td>${formatDate(member.created_at)}</td>
             <td>${formatDate(member.last_login)}</td>
             <td>
