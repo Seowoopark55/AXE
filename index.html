@@ -1397,12 +1397,12 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .admin-summary{color:#aaa;font-size:13px;line-height:1.5}
 .admin-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22)}
-.admin-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1320px;table-layout:fixed}
+.admin-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1240px;table-layout:fixed}
 .admin-table th,.admin-table td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;text-align:left;vertical-align:middle}
 .admin-table th{color:#888;font-size:12px;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}
 .admin-table td{color:#ddd}
 .admin-table tr:last-child td{border-bottom:0}
-.admin-table th:nth-child(1),.admin-table td:nth-child(1){width:190px}
+.admin-table th:nth-child(1),.admin-table td:nth-child(1){width:150px}
 .admin-table th:nth-child(2),.admin-table td:nth-child(2){width:100px}
 .admin-table th:nth-child(3),.admin-table td:nth-child(3){width:104px}
 .admin-table th:nth-child(4),.admin-table td:nth-child(4){width:108px}
@@ -1411,8 +1411,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-table th:nth-child(7),.admin-table td:nth-child(7){width:108px}
 .admin-table th:nth-child(8),.admin-table td:nth-child(8){width:116px}
 .admin-table th:nth-child(9),.admin-table td:nth-child(9){width:150px}
-.admin-member-name{display:flex;align-items:center;gap:4px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.admin-member-id{color:#777;font-size:11px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-member-name{display:flex;align-items:center;gap:4px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:34px}
+.admin-member-id{display:none}
 .admin-select,.admin-small-input{height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 9px;outline:none}
 .admin-select{width:100%;max-width:86px}
 .admin-small-input{width:110px}
@@ -6281,7 +6281,7 @@ function renderAdminMemberRow(member){
 
     return `
         <tr>
-            <td><div class="admin-member-name">${renderWriterName(member.nickname||"익명",badge)}</div><div class="admin-member-id">${safe(member.id)}</div></td>
+            <td><div class="admin-member-name">${renderWriterName(member.nickname||"익명",badge)}</div></td>
             <td>
                 <select class="admin-select" id="adminRole_${safeId}">
                     <option value="user" ${role==="user"?"selected":""}>user</option>
