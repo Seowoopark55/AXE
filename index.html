@@ -1257,97 +1257,75 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 /* AXE 도끼 뱃지 - PNG 이미지 버전 */
-/* AXE 도끼 뱃지 - PNG 이미지 버전 */
 .axe-badge{
-    display:inline-block;
-    width:12px;
-    height:12px;
-    margin-right:4px;
-    vertical-align:-1px;
-    background-position:center;
-    background-repeat:no-repeat;
-    background-size:contain;
-    flex:0 0 auto;
+    display:inline-block!important;
+    width:12px!important;
+    height:12px!important;
+    min-width:12px!important;
+    min-height:12px!important;
+    margin-right:4px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    vertical-align:-1px!important;
+    background-position:center!important;
+    background-repeat:no-repeat!important;
+    background-size:contain!important;
+    box-shadow:none!important;
+    color:transparent!important;
+    font-size:0!important;
+    line-height:1!important;
+    flex:0 0 auto!important;
 }
-
-.axe-badge::before{
-    content:"";
+.axe-badge::before{content:""!important;display:none!important}
+.axe-badge.admin{background-image:url("/admin.png")!important}
+.axe-badge.bronze{background-image:url("/bronze.png")!important}
+.axe-badge.silver{background-image:url("/silver.png")!important}
+.axe-badge.gold{background-image:url("/gold.png")!important}
+.axe-badge.black{background-image:url("/silver.png")!important;filter:brightness(.55) contrast(1.25)}
+.axe-badge.legend{background-image:url("/admin.png")!important;filter:hue-rotate(265deg) saturate(1.35) brightness(1.15)}
+.axe-badge.unknown{background-image:url("/bronze.png")!important;opacity:.75}
+.writer-with-badge{display:inline-flex;align-items:center;gap:0;min-width:0;vertical-align:middle}
+.writer-with-badge .writer-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth-user .axe-badge,
+.comment-meta-left .axe-badge,
+.writer-with-badge .axe-badge,
+.board-table-title .axe-badge,
+.home-board-meta .axe-badge,
+.item-date .axe-badge{
+    width:12px!important;
+    height:12px!important;
+    min-width:12px!important;
+    min-height:12px!important;
+    margin-right:4px!important;
+    background-size:contain!important;
+    background-position:center!important;
+    background-repeat:no-repeat!important;
 }
+.comment-meta-left .writer-with-badge{margin-right:4px}
+.board-table-title .writer-with-badge,.home-board-meta .writer-with-badge,.item-date .writer-with-badge{display:inline-flex}
 
-.axe-badge.admin{
-    background-image:url("/admin.png");
-}
 
-.axe-badge.bronze{
-    background-image:url("./bronze.png");
-}
 
-.axe-badge.silver{
-    background-image:url("./silver.png");
-}
-
-.axe-badge.gold{
-    background-image:url("./gold.png");
-}
-
-.axe-badge.black{
-    background-image:url("./silver.png");
-    filter:brightness(.55) contrast(1.25);
-}
-
-.axe-badge.legend{
-    background-image:url("./admin.png");
-    filter:hue-rotate(265deg) saturate(1.35) brightness(1.15);
-}
-
-.axe-badge.unknown{
-    background-image:url("./bronze.png");
-    opacity:.75;
-}
-
-.writer-with-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:0;
-    min-width:0;
-    vertical-align:middle;
-}
-
-.writer-with-badge .writer-name{
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.auth-user .axe-badge{
-    width:12px;
-    height:12px;
-    margin-right:4px;
-}
-
-.comment-meta-left .writer-with-badge{
-    margin-right:4px;
-}
-
-.board-table-title .writer-with-badge,
-.home-board-meta .writer-with-badge,
-.item-date .writer-with-badge{
-    display:inline-flex;
-}
-
-@media(max-width:768px){
-    .axe-badge{
-        width:12px;
-        height:12px;
-        margin-right:4px;
-    }
-
-    .auth-user .axe-badge{
-        width:12px;
-        height:12px;
-    }
-}
+/* 관리자 페이지 */
+.admin-panel{display:grid;gap:14px}
+.admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.admin-summary{color:#aaa;font-size:13px;line-height:1.5}
+.admin-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(0,0,0,.22)}
+.admin-table{width:100%;border-collapse:collapse;min-width:860px}
+.admin-table th,.admin-table td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;text-align:left;vertical-align:middle}
+.admin-table th{color:#888;font-size:12px;font-weight:950;background:rgba(255,255,255,.025)}
+.admin-table td{color:#ddd}
+.admin-table tr:last-child td{border-bottom:0}
+.admin-select,.admin-small-input{height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 9px;outline:none}
+.admin-small-input{width:110px}
+.admin-action-line{display:flex;flex-wrap:wrap;gap:6px}
+.admin-mini-btn{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer}
+.admin-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45)}
+.admin-mini-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
+.admin-status-active{color:#6ee7a8;font-weight:950}
+.admin-status-inactive{color:#ff7a7a;font-weight:950}
+@media(max-width:768px){.admin-toolbar{display:block}.admin-toolbar .tube-submit-open{width:100%;margin-top:10px}.admin-table th,.admin-table td{padding:9px 8px;font-size:12px}}
 
 /* 회원 로그인 UI */
 .auth-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 14px;min-height:38px;position:relative;z-index:5}
@@ -1399,6 +1377,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('gallery')">갤러리</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
+        <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
     </div>
     </div>
 
@@ -1546,7 +1525,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzQ3R_IzOF1dJxn6fcSXQQL036wHEs7iGYxizYqMlQl6MAsSbBAuSsJIgNm7j8svRjUsg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxSAVDd5Dyv_KzjkJZQFTl5o7QX68lplEvkNQtSVNgcakXmhN6dfhsRN-lS352E-DXonw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1581,6 +1560,18 @@ function renderAuthBar(){
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
+}
+
+
+function isCurrentAdmin(){
+    const user=getCurrentUser();
+    if(!user)return false;
+    return String(user.role||"").toLowerCase()==="admin" || String(user.badge||"").toLowerCase()==="admin";
+}
+
+function updateAdminMenu(){
+    const btn=document.getElementById("adminMenuButton");
+    if(btn)btn.style.display=isCurrentAdmin()?"":"none";
 }
 
 function openAuthModal(mode){
@@ -1730,7 +1721,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","utility"];
+const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","utility","admin"];
 const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
 function normalizeMainPage(page){
@@ -1750,6 +1741,7 @@ function renderMainPage(page){
     if(target==="utility"){showUtility();return;}
     if(target==="board"){showBoard();return;}
     if(target==="gallery"){showGallery();return;}
+    if(target==="admin"){showAdmin();return;}
 
     showHome();
 }
@@ -5689,6 +5681,231 @@ window.likeBoardOnce = function(id){
     }
     alert("추천 함수가 아직 로드되지 않았습니다. 새로고침 후 다시 시도해주세요.");
 };
+
+
+function getAdminPassword(){
+    let password=sessionStorage.getItem("axe_net_admin_password")||"";
+    if(password)return password;
+    password=prompt("관리자 비밀번호를 입력하세요.");
+    if(password===null)return "";
+    password=String(password).trim();
+    if(password)sessionStorage.setItem("axe_net_admin_password",password);
+    return password;
+}
+
+function clearAdminPassword(){
+    sessionStorage.removeItem("axe_net_admin_password");
+}
+
+function adminApi(payload){
+    const user=getCurrentUser();
+    if(!user||!user.nickname){
+        alert("관리자 기능은 로그인 후 이용 가능합니다.");
+        openAuthModal("login");
+        return Promise.reject(new Error("login required"));
+    }
+    const password=getAdminPassword();
+    if(!password)return Promise.reject(new Error("password required"));
+    return fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify(Object.assign({},payload,{
+            admin_nickname:user.nickname,
+            admin_password:password
+        }))
+    }).then(res=>res.json()).then(data=>{
+        if(data&&data.result==="fail"&&String(data.message||"").includes("비밀번호")){
+            clearAdminPassword();
+        }
+        return data;
+    });
+}
+
+let adminMembers=[];
+
+function showAdmin(){
+    enterMainSection("admin");
+    setMainActive(8);
+    const user=getCurrentUser();
+    if(!user||!isCurrentAdmin()){
+        document.getElementById("content").innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">관리자</div>
+                    <div class="section-desc">관리자 권한이 필요한 메뉴입니다.</div>
+                </div>
+            </div>
+            <div class="ready">관리자 계정으로 로그인해야 접근할 수 있습니다.</div>`;
+        return;
+    }
+
+    document.getElementById("content").innerHTML=`
+        <div class="section-head with-action">
+            <div>
+                <div class="section-title">관리자</div>
+                <div class="section-desc">회원 권한, 상태, 뱃지, 비밀번호 초기화를 관리합니다.</div>
+            </div>
+            <div class="section-action">
+                <button class="tube-submit-open" onclick="loadAdminMembers()">회원 새로고침</button>
+            </div>
+        </div>
+        <div class="admin-panel">
+            <div class="admin-summary">
+                관리자 인증은 현재 로그인한 닉네임과 비밀번호로 확인합니다. 권한 변경 후 대상 사용자는 로그아웃 후 재로그인해야 반영됩니다.
+            </div>
+            <div id="adminMemberBox"><div class="ready">회원 정보를 불러오는 중입니다.</div></div>
+        </div>`;
+    loadAdminMembers();
+}
+
+function loadAdminMembers(){
+    const box=document.getElementById("adminMemberBox");
+    if(box)box.innerHTML=`<div class="ready">회원 정보를 불러오는 중입니다.</div>`;
+    adminApi({type:"admin_member_list"})
+    .then(data=>{
+        if(data.result==="success"){
+            adminMembers=data.members||[];
+            renderAdminMembers();
+        }else{
+            if(box)box.innerHTML=`<div class="ready">${safe(data.message||"회원 정보를 불러오지 못했습니다.")}</div>`;
+        }
+    })
+    .catch(err=>{
+        if(String(err.message||"").includes("password"))return;
+        if(box)box.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.</div>`;
+    });
+}
+
+function renderAdminMembers(){
+    const box=document.getElementById("adminMemberBox");
+    if(!box)return;
+
+    if(!adminMembers.length){
+        box.innerHTML=`<div class="ready">등록된 회원이 없습니다.</div>`;
+        return;
+    }
+
+    box.innerHTML=`
+        <div class="admin-toolbar">
+            <div class="admin-summary">총 ${adminMembers.length}명</div>
+            <button class="admin-mini-btn" onclick="clearAdminPassword();alert('관리자 인증 비밀번호 캐시를 초기화했습니다.')">관리자 인증 초기화</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>닉네임</th>
+                        <th>권한</th>
+                        <th>상태</th>
+                        <th>뱃지</th>
+                        <th>가입일</th>
+                        <th>최근 로그인</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${adminMembers.map(member=>renderAdminMemberRow(member)).join("")}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+function renderAdminMemberRow(member){
+    const id=escapeAttr(member.id||"");
+    const safeId=domSafeId(member.id||member.nickname);
+    const role=String(member.role||"user").toLowerCase();
+    const status=String(member.status||"active").toLowerCase();
+    const badge=normalizeBadge(member.badge||"bronze");
+
+    return `
+        <tr>
+            <td>${renderWriterName(member.nickname||"익명",badge)}<div style="color:#777;font-size:11px;margin-top:4px;">${safe(member.id)}</div></td>
+            <td>
+                <select class="admin-select" id="adminRole_${safeId}">
+                    <option value="user" ${role==="user"?"selected":""}>user</option>
+                    <option value="admin" ${role==="admin"?"selected":""}>admin</option>
+                </select>
+            </td>
+            <td>
+                <select class="admin-select" id="adminStatus_${safeId}">
+                    <option value="active" ${status==="active"?"selected":""}>active</option>
+                    <option value="inactive" ${status==="inactive"?"selected":""}>inactive</option>
+                </select>
+                <div class="${status==="active"?"admin-status-active":"admin-status-inactive"}" style="font-size:11px;margin-top:5px;">${status}</div>
+            </td>
+            <td>
+                <select class="admin-select" id="adminBadge_${safeId}">
+                    <option value="bronze" ${badge==="bronze"?"selected":""}>bronze</option>
+                    <option value="silver" ${badge==="silver"?"selected":""}>silver</option>
+                    <option value="gold" ${badge==="gold"?"selected":""}>gold</option>
+                    <option value="admin" ${badge==="admin"?"selected":""}>admin</option>
+                    <option value="black" ${badge==="black"?"selected":""}>black</option>
+                    <option value="legend" ${badge==="legend"?"selected":""}>legend</option>
+                </select>
+            </td>
+            <td>${formatDate(member.created_at)}</td>
+            <td>${formatDate(member.last_login)}</td>
+            <td>
+                <div class="admin-action-line">
+                    <button class="admin-mini-btn" onclick="saveAdminMember('${escapeText(member.id)}','${safeId}')">저장</button>
+                    <input class="admin-small-input" id="adminPw_${safeId}" type="text" placeholder="새 비밀번호">
+                    <button class="admin-mini-btn" onclick="resetAdminMemberPassword('${escapeText(member.id)}','${safeId}')">초기화</button>
+                </div>
+            </td>
+        </tr>`;
+}
+
+function saveAdminMember(memberId,safeId){
+    const role=document.getElementById("adminRole_"+safeId)?.value||"user";
+    const status=document.getElementById("adminStatus_"+safeId)?.value||"active";
+    const badge=document.getElementById("adminBadge_"+safeId)?.value||"bronze";
+
+    adminApi({
+        type:"admin_member_update",
+        member_id:memberId,
+        role:role,
+        status:status,
+        badge:badge
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            alert("회원 정보가 저장되었습니다.");
+            loadAdminMembers();
+        }else{
+            alert(data.message||"회원 정보 저장 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
+function resetAdminMemberPassword(memberId,safeId){
+    const input=document.getElementById("adminPw_"+safeId);
+    const newPassword=input?input.value.trim():"";
+    if(!newPassword){
+        alert("새 비밀번호를 입력하세요.");
+        return;
+    }
+    if(newPassword.length<4){
+        alert("새 비밀번호는 4자리 이상이어야 합니다.");
+        return;
+    }
+    if(!confirm("해당 회원의 비밀번호를 초기화할까요?"))return;
+
+    adminApi({
+        type:"admin_member_reset_password",
+        member_id:memberId,
+        new_password:newPassword
+    })
+    .then(data=>{
+        if(data.result==="success"){
+            alert("비밀번호가 초기화되었습니다.");
+            if(input)input.value="";
+        }else{
+            alert(data.message||"비밀번호 초기화 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(()=>{});
+}
+
 
 </script>
 </body>
