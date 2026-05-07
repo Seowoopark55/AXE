@@ -1393,44 +1393,53 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 /* 관리자 페이지 */
-.admin-panel{display:grid;gap:14px}
-.admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.admin-panel{display:grid;gap:12px;min-width:0}
+.admin-panel .home-card{min-width:0;overflow:hidden}
+.admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
 .admin-summary{color:#aaa;font-size:13px;line-height:1.5}
-.admin-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22)}
-.admin-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1240px;table-layout:fixed}
-.admin-table th,.admin-table td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;text-align:left;vertical-align:middle}
-.admin-table th{color:#888;font-size:12px;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}
+.admin-table-wrap{width:100%;max-width:100%;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(0,0,0,.22)}
+.admin-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1110px;table-layout:fixed}
+.admin-table th,.admin-table td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12.5px;text-align:left;vertical-align:middle}
+.admin-table th{color:#888;font-size:11.5px;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}
 .admin-table td{color:#ddd}
 .admin-table tr:last-child td{border-bottom:0}
-.admin-table th:nth-child(1),.admin-table td:nth-child(1){width:150px}
-.admin-table th:nth-child(2),.admin-table td:nth-child(2){width:100px}
-.admin-table th:nth-child(3),.admin-table td:nth-child(3){width:104px}
-.admin-table th:nth-child(4),.admin-table td:nth-child(4){width:108px}
-.admin-table th:nth-child(5),.admin-table td:nth-child(5){width:84px;text-align:center}
-.admin-table th:nth-child(6),.admin-table td:nth-child(6){width:360px}
-.admin-table th:nth-child(7),.admin-table td:nth-child(7){width:108px}
-.admin-table th:nth-child(8),.admin-table td:nth-child(8){width:116px}
-.admin-table th:nth-child(9),.admin-table td:nth-child(9){width:150px}
-.admin-member-name{display:flex;align-items:center;gap:4px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:34px}
+.admin-table th:nth-child(1),.admin-table td:nth-child(1){width:124px}
+.admin-table th:nth-child(2),.admin-table td:nth-child(2){width:88px}
+.admin-table th:nth-child(3),.admin-table td:nth-child(3){width:92px}
+.admin-table th:nth-child(4),.admin-table td:nth-child(4){width:94px}
+.admin-table th:nth-child(5),.admin-table td:nth-child(5){width:72px;text-align:center}
+.admin-table th:nth-child(6),.admin-table td:nth-child(6){width:315px}
+.admin-table th:nth-child(7),.admin-table td:nth-child(7){width:112px}
+.admin-table th:nth-child(8),.admin-table td:nth-child(8){width:112px}
+.admin-table th:nth-child(9),.admin-table td:nth-child(9){width:121px}
+.admin-member-name{display:flex;align-items:center;gap:4px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:32px}
 .admin-member-id{display:none}
-.admin-select,.admin-small-input{height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 9px;outline:none}
-.admin-select{width:100%;max-width:86px}
-.admin-small-input{width:110px}
+.admin-select,.admin-small-input{height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 8px;outline:none;font-size:12px}
+.admin-select{width:100%;max-width:78px}
+.admin-small-input{width:104px}
 .admin-point-cell{font-weight:950;text-align:center}
-.admin-point-pill{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:54px;height:32px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,181,46,.3);background:rgba(255,181,46,.08);color:#ffcf75;white-space:nowrap}
-.admin-point-adjust-box{display:grid;grid-template-columns:86px minmax(170px,1fr) 62px;gap:8px;align-items:center}
-.admin-point-input{width:86px;text-align:center;font-weight:900}
-.admin-reason-input{width:100%;min-width:170px}
-.admin-action-line{display:grid;grid-template-columns:58px 1fr;gap:7px;align-items:center}
+.admin-point-pill{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:48px;height:29px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,181,46,.3);background:rgba(255,181,46,.08);color:#ffcf75;white-space:nowrap}
+.admin-point-adjust-box{display:grid;grid-template-columns:76px minmax(150px,1fr) 56px;gap:7px;align-items:center}
+.admin-point-input{width:76px;text-align:center;font-weight:900}
+.admin-reason-input{width:100%;min-width:150px}
+.admin-action-line{display:grid;grid-template-columns:54px 1fr;gap:6px;align-items:center}
 .admin-action-line .admin-small-input{grid-column:1 / -1;width:100%}
 .admin-action-line .admin-mini-btn:last-child{grid-column:1 / -1}
-.admin-mini-btn{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;white-space:nowrap;transition:.16s ease}
+.admin-mini-btn{height:31px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:11.5px;font-weight:950;cursor:pointer;white-space:nowrap;transition:.16s ease}
 .admin-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
 .admin-point-apply{background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32);color:#ffcf75}
 .admin-mini-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
 .admin-status-active{color:#6ee7a8;font-weight:950}
 .admin-status-inactive{color:#ff7a7a;font-weight:950}
-@media(max-width:768px){.admin-toolbar{display:block}.admin-toolbar .tube-submit-open{width:100%;margin-top:10px}.admin-table{min-width:1180px}.admin-table th,.admin-table td{padding:9px 8px;font-size:12px}.admin-table th:nth-child(6),.admin-table td:nth-child(6){width:320px}}
+.admin-notice-table{min-width:0!important;table-layout:fixed}
+.admin-notice-table th,.admin-notice-table td{padding:11px 10px}
+.admin-notice-table th:nth-child(1),.admin-notice-table td:nth-child(1){width:auto}
+.admin-notice-table th:nth-child(2),.admin-notice-table td:nth-child(2){width:170px}
+.admin-notice-table th:nth-child(3),.admin-notice-table td:nth-child(3){width:80px;text-align:center}
+.admin-notice-table th:nth-child(4),.admin-notice-table td:nth-child(4){width:132px}
+.admin-notice-table .admin-action-line{display:flex;gap:7px;justify-content:flex-start;align-items:center}
+.admin-notice-table .admin-mini-btn{width:auto;min-width:52px}
+@media(max-width:768px){.admin-toolbar{display:block}.admin-toolbar .tube-submit-open{width:100%;margin-top:10px}.admin-table{min-width:1080px}.admin-table th,.admin-table td{padding:8px 7px;font-size:12px}.admin-table th:nth-child(6),.admin-table td:nth-child(6){width:300px}.admin-notice-table{min-width:620px!important}}
 
 
 .admin-notice-form{display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:12px}
@@ -6085,7 +6094,7 @@ function renderAdminNotices(){
             <button class="admin-mini-btn" onclick="resetAdminNoticeForm()">새 공지 작성</button>
         </div>
         <div class="admin-table-wrap">
-            <table class="admin-table">
+            <table class="admin-table admin-notice-table">
                 <thead>
                     <tr>
                         <th>제목</th>
