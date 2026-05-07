@@ -1501,6 +1501,38 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-point-cell{color:#ffcf75;font-weight:950;font-variant-numeric:tabular-nums}
 @media(max-width:920px){.ranking-grid{grid-template-columns:1fr}.auth-progress{display:none}.ranking-row{grid-template-columns:44px 1fr 78px;padding:12px}.ranking-points{font-size:14px}}
 
+
+/* 마이페이지 / 포인트 내역 / 출석체크 */
+.auth-user{max-width:320px}
+.auth-point-wrap{cursor:pointer;transition:.16s ease}
+.auth-point-wrap:hover .auth-point-pill{border-color:rgba(255,181,46,.72);background:rgba(255,181,46,.18)}
+.point-history-box{width:min(680px,100%)}
+.point-history-summary{padding:13px 14px;border:1px solid rgba(255,181,46,.22);background:rgba(255,181,46,.06);border-radius:14px;color:#ddd;font-size:14px;line-height:1.55;margin-bottom:12px}
+.point-log-list{display:grid;gap:8px;max-height:420px;overflow:auto;padding-right:2px}
+.point-log-row{display:grid;grid-template-columns:110px 1fr 72px;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);border-radius:13px}
+.point-log-date{color:#888;font-size:12px;font-weight:850;line-height:1.35}
+.point-log-reason{color:#ddd;font-size:13px;font-weight:850;line-height:1.4;min-width:0}
+.point-log-type{margin-top:4px;color:#777;font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.point-log-amount{text-align:right;font-size:15px;font-weight:950;font-variant-numeric:tabular-nums}
+.point-log-amount.plus{color:#6ee7a8}.point-log-amount.minus{color:#ff7a7a}
+.my-grid{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start}
+.my-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:18px;padding:16px}
+.my-card-title{font-size:17px;font-weight:950;color:#ffb52e;margin-bottom:12px}
+.my-profile-line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);color:#aaa;font-size:13px}
+.my-profile-line:last-child{border-bottom:0}.my-profile-line strong{color:#fff;font-size:14px}
+.attendance-box{display:grid;gap:10px;margin-top:12px}
+.attendance-btn{height:44px;border-radius:13px;border:1px solid rgba(255,181,46,.45);background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);color:#111;font-weight:950;cursor:pointer;transition:.18s ease}
+.attendance-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.attendance-msg{min-height:20px;color:#ffcf75;font-size:13px;line-height:1.45}
+.my-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.my-stat{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.03);text-align:center}
+.my-stat-value{font-size:22px;font-weight:950;color:#fff}.my-stat-label{margin-top:4px;color:#888;font-size:12px;font-weight:850}
+.my-section{margin-top:14px}.my-section-title{font-size:15px;font-weight:950;color:#ffb52e;margin-bottom:8px}
+.my-activity-list{display:grid;gap:8px}.my-activity-row{padding:11px 12px;border:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.2);border-radius:12px;cursor:pointer;transition:.16s ease}.my-activity-row:hover{border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045);transform:translateY(-1px)}
+.my-activity-title{font-size:13px;font-weight:950;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.my-activity-meta{margin-top:4px;color:#888;font-size:12px}
+@media(max-width:920px){.my-grid{grid-template-columns:1fr}.point-log-row{grid-template-columns:1fr 58px}.point-log-date{grid-column:1/-1}.my-stat-grid{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:520px){.my-stat-grid{grid-template-columns:1fr}.point-log-row{grid-template-columns:1fr}.point-log-amount{text-align:left}}
+
 </style>
 </head>
 
@@ -1533,6 +1565,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('ranking')">랭킹</button>
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('utility')">편의기능</button>
+        <button onclick="navigateMain('my')">마이페이지</button>
         <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
     </div>
     </div>
@@ -1655,6 +1688,20 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 
+
+<div class="form-modal" id="pointHistoryModal" onclick="closePointHistoryOutside(event)">
+    <div class="form-box point-history-box">
+        <div class="form-head">
+            <div class="form-title">내 포인트 내역</div>
+            <button class="form-close" onclick="closePointHistoryModal()">×</button>
+        </div>
+        <div class="form-body">
+            <div id="pointHistorySummary" class="point-history-summary">포인트 정보를 불러오는 중...</div>
+            <div id="pointHistoryList" class="point-log-list"></div>
+        </div>
+    </div>
+</div>
+
 <div class="form-modal" id="authModal" onclick="closeAuthOutside(event)">
     <div class="form-box">
         <div class="form-head">
@@ -1681,7 +1728,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwMeuCGrxvZUx9gJmvJFoCroVGyEf6Fl27Rwatt-YOJ8es4-5Dj_U9FrTe7neGkXIJWIQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwwKGb2STX_0-Yu9K8rgxZkX5XMqxwwpUycNQ8a7PTuW5a0hFE3hFXEEmNEu_5gI5tYmg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1758,7 +1805,7 @@ function badgeByPointsForUser(user,points){
 
 function renderUserPointMini(user){
     const info=getPointInfo(user?.points||0);
-    return `<span class="auth-point-wrap"><span class="auth-point-pill">P ${Number(user?.points||0)}</span><span class="auth-progress" title="${info.nextLabel}까지 ${info.rate}%"><span class="auth-progress-fill" style="width:${info.rate}%"></span></span></span>`;
+    return `<span class="auth-point-wrap" title="포인트 내역 보기" onclick="event.stopPropagation();openPointHistoryModal();"><span class="auth-point-pill">P ${Number(user?.points||0)}</span><span class="auth-progress" title="${info.nextLabel}까지 ${info.rate}%"><span class="auth-progress-fill" style="width:${info.rate}%"></span></span></span>`;
 }
 
 function addLocalUserPoints(amount){
@@ -1931,7 +1978,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","outlaw","tube","board","gallery","ranking","info","utility","admin"];
+const mainPageKeys=["home","notice","outlaw","tube","board","gallery","ranking","info","utility","my","admin"];
 const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
 function normalizeMainPage(page){
@@ -1949,6 +1996,7 @@ function renderMainPage(page){
     if(target==="outlaw"){showOutlaw();return;}
     if(target==="info"){showInfo();return;}
     if(target==="utility"){showUtility();return;}
+    if(target==="my"){showMyPage();return;}
     if(target==="board"){showBoard();return;}
     if(target==="gallery"){showGallery();return;}
     if(target==="ranking"){showRanking();return;}
@@ -5928,7 +5976,7 @@ function showRanking(){
         <div class="section-head">
             <div>
                 <div class="section-title">포인트 랭킹</div>
-                <div class="section-desc">회원 활동 포인트 기준 순위입니다. 글 작성은 10P, 댓글 작성은 3P로 계산됩니다.</div>
+                <div class="section-desc">회원 활동 포인트 기준 순위입니다. 글 작성, 댓글 작성, 출석체크, 추천 받은 활동이 반영됩니다.</div>
             </div>
         </div>
         <div class="ranking-grid">
@@ -5948,6 +5996,9 @@ function showRanking(){
                     <div><span>갤러리 작성</span><strong>+10P</strong></div>
                     <div><span>AXE TUBE 작성</span><strong>+10P</strong></div>
                     <div><span>댓글 작성</span><strong>+3P</strong></div>
+                    <div><span>출석체크</span><strong>+5P</strong></div>
+                    <div><span>글 추천 받음</span><strong>+2P</strong></div>
+                    <div><span>댓글 추천 받음</span><strong>+1P</strong></div>
                 </div>
             </div>
         </div>`;
@@ -5966,6 +6017,182 @@ function renderRankingRow(member,index){
             <div class="ranking-points">P ${Number(member.points||0)}</div>
         </div>`;
 }
+
+
+function postUserApi(payload){
+    const user=getCurrentUser();
+    if(!user||!user.nickname){
+        alert("로그인 후 이용해주세요.");
+        openAuthModal("login");
+        return Promise.reject(new Error("login required"));
+    }
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(Object.assign({},payload,{nickname:user.nickname}))})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data&&data.user)setCurrentUser(Object.assign({},user,data.user));
+        else refreshCurrentUserProfileAfterApi(data);
+        return data;
+    });
+}
+
+function formatPointSign(value){
+    const n=Number(value||0);
+    return (n>0?"+":"")+n+"P";
+}
+
+function renderPointLogRow(log){
+    const amount=Number(log.point||0);
+    const cls=amount>=0?"plus":"minus";
+    return `<div class="point-log-row">
+        <div class="point-log-date">${formatDate(log.date)}</div>
+        <div class="point-log-reason">
+            <div>${safe(log.reason||log.type||"포인트 변동")}</div>
+            <div class="point-log-type">${safe(log.type||"")}${log.target_id?` · ${safe(log.target_id)}`:""}</div>
+        </div>
+        <div class="point-log-amount ${cls}">${formatPointSign(amount)}</div>
+    </div>`;
+}
+
+function loadPointHistory(targetId,summaryId){
+    const user=getCurrentUser();
+    if(!user||!user.nickname)return Promise.resolve(null);
+    const listEl=document.getElementById(targetId);
+    const summaryEl=summaryId?document.getElementById(summaryId):null;
+    if(listEl)listEl.innerHTML=`<div class="ready">포인트 내역을 불러오는 중...</div>`;
+    return postUserApi({type:"point_history",limit:50})
+    .then(data=>{
+        if(data.result==="success"){
+            const fresh=data.user||getCurrentUser();
+            const info=getPointInfo(fresh.points||0);
+            if(summaryEl){
+                summaryEl.innerHTML=`현재 포인트 <strong style="color:#ffcf75;">P ${Number(fresh.points||0)}</strong> · 현재 등급 <strong style="color:#ffcf75;">${safe(info.label)}</strong> · ${info.nextLabel==="최고 등급"?"최고 등급":"다음 등급까지 진행률 "+info.rate+"%"}`;
+            }
+            if(listEl){
+                const logs=data.logs||[];
+                listEl.innerHTML=logs.length?logs.map(renderPointLogRow).join(""):`<div class="ready">포인트 내역이 없습니다.</div>`;
+            }
+        }else{
+            if(listEl)listEl.innerHTML=`<div class="ready">${safe(data.message||"포인트 내역을 불러오지 못했습니다.")}</div>`;
+        }
+        return data;
+    })
+    .catch(()=>{if(listEl)listEl.innerHTML=`<div class="ready">포인트 내역을 불러오지 못했습니다.</div>`;});
+}
+
+function openPointHistoryModal(){
+    if(!requireLogin("포인트 내역은 로그인 후 이용해주세요."))return;
+    const modal=document.getElementById("pointHistoryModal");
+    if(modal)modal.classList.add("active");
+    loadPointHistory("pointHistoryList","pointHistorySummary");
+}
+
+function closePointHistoryModal(){
+    const modal=document.getElementById("pointHistoryModal");
+    if(modal)modal.classList.remove("active");
+}
+
+function closePointHistoryOutside(event){
+    if(event.target.id==="pointHistoryModal")closePointHistoryModal();
+}
+
+function checkAttendance(){
+    if(!requireLogin("출석체크는 로그인 후 이용해주세요."))return;
+    const msg=document.getElementById("attendanceMessage");
+    if(msg)msg.textContent="처리 중...";
+    postUserApi({type:"attendance_check"})
+    .then(data=>{
+        if(data.result==="success"){
+            if(msg)msg.textContent=`출석 완료: ${data.streak}일차, +${data.point}P 지급`;
+            refreshData().then(()=>showMyPage());
+            return;
+        }
+        if(data.result==="duplicate"){
+            if(msg)msg.textContent=`오늘은 이미 출석했습니다. 현재 연속 ${data.streak||1}일차`;
+            return;
+        }
+        if(msg)msg.textContent=data.message||"출석체크 중 오류가 발생했습니다.";
+    })
+    .catch(()=>{if(msg)msg.textContent="출석체크 중 오류가 발생했습니다.";});
+}
+
+function getMyCounts(nickname){
+    const name=String(nickname||"");
+    return {
+        board:boards.filter(x=>String(x.writer||"")===name).length,
+        tube:tubes.filter(x=>String(x.writer||"")===name).length,
+        gallery:galleries.filter(x=>String(x.writer||"")===name).length,
+        comments:[...boardComments,...tubeComments,...galleryComments].filter(x=>String(x.writer||"")===name).length
+    };
+}
+
+function renderMyActivityRows(items,emptyText){
+    return items.length?items.slice(0,8).map(item=>`<div class="my-activity-row" onclick="${item.action}">
+        <div class="my-activity-title">${safe(item.title)}</div>
+        <div class="my-activity-meta">${safe(item.meta)}</div>
+    </div>`).join(""):`<div class="ready">${emptyText}</div>`;
+}
+
+function showMyPage(){
+    enterMainSection("my");
+    setMainActive(9);
+    const user=getCurrentUser();
+    if(!user||!user.nickname){
+        document.getElementById("content").innerHTML=`<div class="section-head"><div><div class="section-title">마이페이지</div><div class="section-desc">로그인 후 내 활동과 포인트 내역을 확인할 수 있습니다.</div></div></div><div class="ready">로그인이 필요합니다.</div>`;
+        openAuthModal("login");
+        return;
+    }
+    const counts=getMyCounts(user.nickname);
+    const info=getPointInfo(user.points||0);
+    const myBoards=boards.filter(x=>String(x.writer||"")===String(user.nickname)).sort((a,b)=>(new Date(b.date||0)-new Date(a.date||0))).map((x,i)=>({title:x.title||"제목 없음",meta:`자유게시판 · ${formatDate(x.date)} · 추천 ${Number(x.likes||0)}`,action:`openBoardDetail('${escapeText(getBoardId(x,i))}',true,false)`}));
+    const myTubes=tubes.filter(x=>String(x.writer||"")===String(user.nickname)).sort((a,b)=>(new Date(b.date||0)-new Date(a.date||0))).map((x,i)=>({title:x.title||"제목 없음",meta:`AXE TUBE · ${formatDate(x.date)} · 추천 ${Number(x.likes||0)}`,action:`openTubeDetail('${escapeText(getTubeId(x,i))}',true,false)`}));
+    const myGalleries=galleries.filter(x=>String(x.writer||"")===String(user.nickname)).sort((a,b)=>(new Date(b.date||0)-new Date(a.date||0))).map((x,i)=>({title:x.title||"제목 없음",meta:`갤러리 · ${formatDate(x.date)} · 추천 ${Number(x.likes||0)}`,action:`openGalleryDetail('${escapeText(getGalleryId(x,i))}',true,false)`}));
+    document.getElementById("content").innerHTML=`
+        <div class="section-head">
+            <div>
+                <div class="section-title">마이페이지</div>
+                <div class="section-desc">내 포인트, 출석체크, 작성 활동을 한 곳에서 확인합니다.</div>
+            </div>
+        </div>
+        <div class="my-grid">
+            <div class="my-card">
+                <div class="my-card-title">내 정보</div>
+                <div class="my-profile-line"><span>닉네임</span><strong>${renderWriterName(user.nickname,user.badge||user.role)}</strong></div>
+                <div class="my-profile-line"><span>현재 포인트</span><strong>P ${Number(user.points||0)}</strong></div>
+                <div class="my-profile-line"><span>현재 등급</span><strong>${safe(info.label)}</strong></div>
+                <div class="point-progress-large"><div class="point-progress-large-fill" style="width:${info.rate}%"></div></div>
+                <div class="point-help">${info.nextLabel==="최고 등급"?"현재 최고 포인트 등급입니다.":`${info.nextLabel}까지 진행률 ${info.rate}%`}</div>
+                <div class="attendance-box">
+                    <button class="attendance-btn" onclick="checkAttendance()">오늘 출석체크 +5P</button>
+                    <div class="attendance-msg" id="attendanceMessage">7일 연속 출석은 +20P, 30일 연속 출석은 +100P 보너스가 붙습니다.</div>
+                </div>
+            </div>
+            <div>
+                <div class="my-stat-grid">
+                    <div class="my-stat"><div class="my-stat-value">${counts.board}</div><div class="my-stat-label">게시글</div></div>
+                    <div class="my-stat"><div class="my-stat-value">${counts.tube+counts.gallery}</div><div class="my-stat-label">콘텐츠</div></div>
+                    <div class="my-stat"><div class="my-stat-value">${counts.comments}</div><div class="my-stat-label">댓글</div></div>
+                </div>
+                <div class="my-card">
+                    <div class="my-card-title">최근 포인트 내역</div>
+                    <div id="myPointLogList" class="point-log-list"><div class="ready">포인트 내역을 불러오는 중...</div></div>
+                </div>
+                <div class="my-section">
+                    <div class="my-section-title">내가 쓴 자유게시판 글</div>
+                    <div class="my-activity-list">${renderMyActivityRows(myBoards,"작성한 자유게시판 글이 없습니다.")}</div>
+                </div>
+                <div class="my-section">
+                    <div class="my-section-title">내가 올린 AXE TUBE</div>
+                    <div class="my-activity-list">${renderMyActivityRows(myTubes,"작성한 AXE TUBE 글이 없습니다.")}</div>
+                </div>
+                <div class="my-section">
+                    <div class="my-section-title">내가 올린 갤러리</div>
+                    <div class="my-activity-list">${renderMyActivityRows(myGalleries,"작성한 갤러리 글이 없습니다.")}</div>
+                </div>
+            </div>
+        </div>`;
+    loadPointHistory("myPointLogList",null);
+}
+
 
 function getAdminPassword(){
     let password=sessionStorage.getItem("axe_net_admin_password")||"";
@@ -6009,7 +6236,7 @@ let adminMembers=[];
 
 function showAdmin(){
     enterMainSection("admin");
-    setMainActive(9);
+    setMainActive(10);
     const user=getCurrentUser();
     if(!user||!isCurrentAdmin()){
         document.getElementById("content").innerHTML=`
