@@ -1533,6 +1533,35 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 @media(max-width:920px){.my-grid{grid-template-columns:1fr}.point-log-row{grid-template-columns:1fr 58px}.point-log-date{grid-column:1/-1}.my-stat-grid{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:520px){.my-stat-grid{grid-template-columns:1fr}.point-log-row{grid-template-columns:1fr}.point-log-amount{text-align:left}}
 
+
+/* 회원 정보 카드 */
+.writer-with-badge.profile-clickable{cursor:pointer;border-radius:999px;padding:1px 3px;transition:.16s ease}
+.writer-with-badge.profile-clickable:hover{background:rgba(255,181,46,.1);box-shadow:0 0 0 1px rgba(255,181,46,.18)}
+.member-profile-box{width:min(760px,100%)}
+.member-profile-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;padding:14px 15px;border:1px solid rgba(255,181,46,.2);background:linear-gradient(135deg,rgba(255,181,46,.08),rgba(255,255,255,.025));border-radius:16px}
+.member-profile-name{min-width:0;font-size:22px;font-weight:950;color:#fff;display:flex;align-items:center;gap:7px}
+.member-profile-name .writer-with-badge{font-size:22px}
+.member-profile-rank{flex:none;min-width:78px;text-align:center;border-radius:14px;border:1px solid rgba(255,181,46,.28);background:rgba(255,181,46,.08);padding:9px 11px;color:#ffcf75;font-weight:950}
+.member-profile-rank span{display:block;margin-top:2px;color:#999;font-size:11px;font-weight:850}
+.member-profile-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:13px}
+.member-profile-stat{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);text-align:center}
+.member-profile-stat strong{display:block;color:#fff;font-size:19px;font-weight:950;font-variant-numeric:tabular-nums}
+.member-profile-stat span{display:block;margin-top:4px;color:#888;font-size:12px;font-weight:850}
+.member-profile-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.member-profile-meta div{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);font-size:13px;color:#aaa}
+.member-profile-meta strong{color:#ddd;font-weight:950;text-align:right}
+.member-profile-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.member-profile-tabs button{height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease}
+.member-profile-tabs button:hover,.member-profile-tabs button.active{color:#111;background:#ffb52e;border-color:#ffb52e}
+.member-profile-section{display:none}
+.member-profile-section.active{display:block}
+.member-profile-list{display:grid;gap:8px;max-height:330px;overflow:auto;padding-right:2px}
+.member-profile-row{padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.2);cursor:pointer;transition:.16s ease}
+.member-profile-row:hover{border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045);transform:translateY(-1px)}
+.member-profile-row-title{font-size:13px;font-weight:950;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.member-profile-row-meta{margin-top:4px;color:#888;font-size:12px;line-height:1.4}
+@media(max-width:760px){.member-profile-head{display:block}.member-profile-rank{margin-top:10px}.member-profile-stats{grid-template-columns:1fr 1fr}.member-profile-meta{grid-template-columns:1fr}.member-profile-name{font-size:19px}.member-profile-list{max-height:300px}}
+
 </style>
 </head>
 
@@ -1702,6 +1731,20 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     </div>
 </div>
 
+
+
+<div class="form-modal" id="memberProfileModal" onclick="closeMemberProfileOutside(event)">
+    <div class="form-box member-profile-box">
+        <div class="form-head">
+            <div class="form-title">회원 정보</div>
+            <button class="form-close" onclick="closeMemberProfileModal()">×</button>
+        </div>
+        <div class="form-body" id="memberProfileBody">
+            <div class="ready">회원 정보를 불러오는 중...</div>
+        </div>
+    </div>
+</div>
+
 <div class="form-modal" id="authModal" onclick="closeAuthOutside(event)">
     <div class="form-box">
         <div class="form-head">
@@ -1728,7 +1771,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwwKGb2STX_0-Yu9K8rgxZkX5XMqxwwpUycNQ8a7PTuW5a0hFE3hFXEEmNEu_5gI5tYmg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyR3gCJrcXZtj3bEZ-cRztYrHKlqC7vCCjqPQSM5-ZRKaemSddRS0LvCtxAp-mJAKnV0A/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1930,7 +1973,9 @@ function renderAxeBadge(value){
 }
 
 function renderWriterName(name,badge){
-    return `<span class="writer-with-badge">${renderAxeBadge(badge)}<span class="writer-name">${safe(name||"익명")}</span></span>`;
+    const displayName=String(name||"익명");
+    if(!displayName||displayName==="-")return `<span class="writer-with-badge">${renderAxeBadge(badge)}<span class="writer-name">${safe(displayName||"익명")}</span></span>`;
+    return `<span class="writer-with-badge profile-clickable" title="회원 정보 보기" onclick="openMemberProfile('${escapeText(displayName)}',event)">${renderAxeBadge(badge)}<span class="writer-name">${safe(displayName)}</span></span>`;
 }
 
 function applyLoginWriterFields(){
@@ -5963,6 +6008,160 @@ window.likeBoardOnce = function(id){
 function getRankingList(){
     const list=(rankings&&rankings.length?rankings:[]).slice();
     return list.sort((a,b)=>Number(b.points||0)-Number(a.points||0));
+}
+
+
+function closeMemberProfileModal(){
+    const modal=document.getElementById("memberProfileModal");
+    if(modal)modal.classList.remove("active");
+}
+
+function closeMemberProfileOutside(event){
+    if(event.target.id==="memberProfileModal")closeMemberProfileModal();
+}
+
+function setMemberProfileTab(tab){
+    document.querySelectorAll(".member-profile-tabs button").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tab));
+    document.querySelectorAll(".member-profile-section").forEach(section=>section.classList.toggle("active",section.dataset.section===tab));
+}
+
+function getPublicMemberRank(nickname){
+    const name=String(nickname||"").trim();
+    const item=(rankings||[]).find(x=>String(x.nickname||"").trim()===name);
+    return item?Number(item.rank||0):"";
+}
+
+function getPublicMemberCounts(nickname){
+    const name=String(nickname||"").trim();
+    return {
+        board:boards.filter(x=>String(x.writer||"").trim()===name).length,
+        tube:tubes.filter(x=>String(x.writer||"").trim()===name).length,
+        gallery:galleries.filter(x=>String(x.writer||"").trim()===name).length,
+        comments:[...boardComments,...tubeComments,...galleryComments].filter(x=>String(x.writer||"").trim()===name).length
+    };
+}
+
+function closeMemberProfileAndRun(action){
+    closeMemberProfileModal();
+    setTimeout(()=>{try{new Function(action)();}catch(e){}},50);
+}
+
+function renderMemberProfileRows(items,emptyText){
+    if(!items.length)return `<div class="ready">${safe(emptyText)}</div>`;
+    return items.slice(0,30).map(item=>`<div class="member-profile-row" onclick="closeMemberProfileAndRun('${escapeText(item.action)}')">
+        <div class="member-profile-row-title">${safe(item.title)}</div>
+        <div class="member-profile-row-meta">${safe(item.meta)}</div>
+    </div>`).join("");
+}
+
+function getMemberProfileActivities(nickname){
+    const name=String(nickname||"").trim();
+    const boardItems=boards.filter(x=>String(x.writer||"").trim()===name).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).map((x,i)=>({
+        title:x.title||"제목 없음",
+        meta:`자유게시판 · ${formatDate(x.date)} · 추천 ${Number(x.likes||0)} · 댓글 ${getCommentsByPost(getBoardId(x,i)).length}`,
+        action:`openBoardDetail('${escapeText(getBoardId(x,i))}',true,false)`,
+        time:new Date(x.date||0).getTime()||0
+    }));
+    const tubeItems=tubes.filter(x=>String(x.writer||"").trim()===name).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).map((x,i)=>({
+        title:x.title||"제목 없음",
+        meta:`AXE TUBE · ${formatDate(x.date)} · 추천 ${Number(x.likes||0)} · 댓글 ${getCommentsByTube(getTubeId(x,i)).length}`,
+        action:`openTubeDetail('${escapeText(getTubeId(x,i))}',true,false)`,
+        time:new Date(x.date||0).getTime()||0
+    }));
+    const galleryItems=galleries.filter(x=>String(x.writer||"").trim()===name).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).map((x,i)=>({
+        title:x.title||"제목 없음",
+        meta:`갤러리 · ${formatDate(x.date)} · 추천 ${Number(x.likes||0)} · 댓글 ${getCommentsByGallery(getGalleryId(x,i)).length}`,
+        action:`openGalleryDetail('${escapeText(getGalleryId(x,i))}',true,false)`,
+        time:new Date(x.date||0).getTime()||0
+    }));
+
+    const boardCommentItems=boardComments.filter(x=>String(x.writer||"").trim()===name).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).map((x,i)=>{
+        const owner=boards.find((post,idx)=>getBoardId(post,idx)===String(x.post_id));
+        return {
+            title:String(x.content||"댓글").trim().slice(0,70)||"댓글",
+            meta:`자유게시판 댓글 · ${owner&&owner.title?owner.title:"원글"} · ${formatDate(x.date)}`,
+            action:`openBoardDetail('${escapeText(String(x.post_id||""))}',true,false)`,
+            time:new Date(x.date||0).getTime()||0
+        };
+    });
+    const tubeCommentItems=tubeComments.filter(x=>String(x.writer||"").trim()===name).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).map((x,i)=>{
+        const owner=tubes.find((post,idx)=>getTubeId(post,idx)===String(x.tube_id));
+        return {
+            title:String(x.content||"댓글").trim().slice(0,70)||"댓글",
+            meta:`AXE TUBE 댓글 · ${owner&&owner.title?owner.title:"원글"} · ${formatDate(x.date)}`,
+            action:`openTubeDetail('${escapeText(String(x.tube_id||""))}',true,false)`,
+            time:new Date(x.date||0).getTime()||0
+        };
+    });
+    const galleryCommentItems=galleryComments.filter(x=>String(x.writer||"").trim()===name).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).map((x,i)=>{
+        const owner=galleries.find((post,idx)=>getGalleryId(post,idx)===String(x.gallery_id));
+        return {
+            title:String(x.content||"댓글").trim().slice(0,70)||"댓글",
+            meta:`갤러리 댓글 · ${owner&&owner.title?owner.title:"원글"} · ${formatDate(x.date)}`,
+            action:`openGalleryDetail('${escapeText(String(x.gallery_id||""))}',true,false)`,
+            time:new Date(x.date||0).getTime()||0
+        };
+    });
+    return {
+        posts:[...boardItems,...tubeItems,...galleryItems].sort((a,b)=>(b.time||0)-(a.time||0)),
+        comments:[...boardCommentItems,...tubeCommentItems,...galleryCommentItems].sort((a,b)=>(b.time||0)-(a.time||0))
+    };
+}
+
+function renderMemberProfile(user){
+    const nickname=user.nickname||"익명";
+    const badge=normalizeBadge(user.badge||user.role||"bronze");
+    const counts=getPublicMemberCounts(nickname);
+    const rank=user.rank||getPublicMemberRank(nickname);
+    const activities=getMemberProfileActivities(nickname);
+    const role=String(user.role||"user").toLowerCase();
+    const isAdmin=role==="admin"||badge==="admin";
+    return `
+        <div class="member-profile-head">
+            <div class="member-profile-name">${renderWriterName(nickname,badge)}</div>
+            <div class="member-profile-rank">${isAdmin?"ADMIN":(rank?rank+"위":"-위")}<span>${isAdmin?"관리자":"랭킹"}</span></div>
+        </div>
+        <div class="member-profile-stats">
+            <div class="member-profile-stat"><strong>P ${Number(user.points||0)}</strong><span>포인트</span></div>
+            <div class="member-profile-stat"><strong>${counts.board+counts.tube+counts.gallery}</strong><span>작성글</span></div>
+            <div class="member-profile-stat"><strong>${counts.comments}</strong><span>작성댓글</span></div>
+            <div class="member-profile-stat"><strong>${safe(badge)}</strong><span>등급</span></div>
+        </div>
+        <div class="member-profile-meta">
+            <div><span>가입일</span><strong>${formatDate(user.created_at)}</strong></div>
+            <div><span>최근 로그인</span><strong>${formatDate(user.last_login)}</strong></div>
+        </div>
+        <div class="member-profile-tabs">
+            <button class="active" data-tab="posts" onclick="setMemberProfileTab('posts')">작성글 ${counts.board+counts.tube+counts.gallery}</button>
+            <button data-tab="comments" onclick="setMemberProfileTab('comments')">작성댓글 ${counts.comments}</button>
+        </div>
+        <div class="member-profile-section active" data-section="posts">
+            <div class="member-profile-list">${renderMemberProfileRows(activities.posts,"작성한 글이 없습니다.")}</div>
+        </div>
+        <div class="member-profile-section" data-section="comments">
+            <div class="member-profile-list">${renderMemberProfileRows(activities.comments,"작성한 댓글이 없습니다.")}</div>
+        </div>`;
+}
+
+function openMemberProfile(nickname,event){
+    if(event){event.preventDefault();event.stopPropagation();}
+    const name=String(nickname||"").trim();
+    if(!name||name==="-")return;
+    const modal=document.getElementById("memberProfileModal");
+    const body=document.getElementById("memberProfileBody");
+    if(!modal||!body)return;
+    modal.classList.add("active");
+    body.innerHTML=`<div class="ready">회원 정보를 불러오는 중...</div>`;
+    fetch(API_URL,{method:"POST",body:JSON.stringify({type:"member_profile",nickname:name})})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.result==="success"&&data.user){
+            body.innerHTML=renderMemberProfile(data.user);
+        }else{
+            body.innerHTML=`<div class="ready">${safe(data.message||"회원 정보를 불러오지 못했습니다.")}</div>`;
+        }
+    })
+    .catch(()=>{body.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.</div>`;});
 }
 
 function showRanking(){
