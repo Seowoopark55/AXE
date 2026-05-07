@@ -1396,24 +1396,41 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-panel{display:grid;gap:14px}
 .admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .admin-summary{color:#aaa;font-size:13px;line-height:1.5}
-.admin-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(0,0,0,.22)}
-.admin-table{width:100%;border-collapse:collapse;min-width:1180px}
-.admin-table th,.admin-table td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;text-align:left;vertical-align:middle}
-.admin-table th{color:#888;font-size:12px;font-weight:950;background:rgba(255,255,255,.025)}
+.admin-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22)}
+.admin-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1320px;table-layout:fixed}
+.admin-table th,.admin-table td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;text-align:left;vertical-align:middle}
+.admin-table th{color:#888;font-size:12px;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}
 .admin-table td{color:#ddd}
 .admin-table tr:last-child td{border-bottom:0}
+.admin-table th:nth-child(1),.admin-table td:nth-child(1){width:190px}
+.admin-table th:nth-child(2),.admin-table td:nth-child(2){width:100px}
+.admin-table th:nth-child(3),.admin-table td:nth-child(3){width:104px}
+.admin-table th:nth-child(4),.admin-table td:nth-child(4){width:108px}
+.admin-table th:nth-child(5),.admin-table td:nth-child(5){width:84px;text-align:center}
+.admin-table th:nth-child(6),.admin-table td:nth-child(6){width:360px}
+.admin-table th:nth-child(7),.admin-table td:nth-child(7){width:108px}
+.admin-table th:nth-child(8),.admin-table td:nth-child(8){width:116px}
+.admin-table th:nth-child(9),.admin-table td:nth-child(9){width:150px}
+.admin-member-name{display:flex;align-items:center;gap:4px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-member-id{color:#777;font-size:11px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .admin-select,.admin-small-input{height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 9px;outline:none}
+.admin-select{width:100%;max-width:86px}
 .admin-small-input{width:110px}
-.admin-point-adjust-box{display:grid;grid-template-columns:86px minmax(160px,1fr) 58px;gap:6px;align-items:center}
-.admin-point-input{width:86px}
-.admin-reason-input{width:100%;min-width:160px}
-.admin-action-line{display:flex;flex-wrap:wrap;gap:6px}
-.admin-mini-btn{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer}
-.admin-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45)}
+.admin-point-cell{font-weight:950;text-align:center}
+.admin-point-pill{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:54px;height:32px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,181,46,.3);background:rgba(255,181,46,.08);color:#ffcf75;white-space:nowrap}
+.admin-point-adjust-box{display:grid;grid-template-columns:86px minmax(170px,1fr) 62px;gap:8px;align-items:center}
+.admin-point-input{width:86px;text-align:center;font-weight:900}
+.admin-reason-input{width:100%;min-width:170px}
+.admin-action-line{display:grid;grid-template-columns:58px 1fr;gap:7px;align-items:center}
+.admin-action-line .admin-small-input{grid-column:1 / -1;width:100%}
+.admin-action-line .admin-mini-btn:last-child{grid-column:1 / -1}
+.admin-mini-btn{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;white-space:nowrap;transition:.16s ease}
+.admin-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.admin-point-apply{background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32);color:#ffcf75}
 .admin-mini-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
 .admin-status-active{color:#6ee7a8;font-weight:950}
 .admin-status-inactive{color:#ff7a7a;font-weight:950}
-@media(max-width:768px){.admin-toolbar{display:block}.admin-toolbar .tube-submit-open{width:100%;margin-top:10px}.admin-table th,.admin-table td{padding:9px 8px;font-size:12px}}
+@media(max-width:768px){.admin-toolbar{display:block}.admin-toolbar .tube-submit-open{width:100%;margin-top:10px}.admin-table{min-width:1180px}.admin-table th,.admin-table td{padding:9px 8px;font-size:12px}.admin-table th:nth-child(6),.admin-table td:nth-child(6){width:320px}}
 
 
 .admin-notice-form{display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:12px}
@@ -6264,7 +6281,7 @@ function renderAdminMemberRow(member){
 
     return `
         <tr>
-            <td>${renderWriterName(member.nickname||"익명",badge)}<div style="color:#777;font-size:11px;margin-top:4px;">${safe(member.id)}</div></td>
+            <td><div class="admin-member-name">${renderWriterName(member.nickname||"익명",badge)}</div><div class="admin-member-id">${safe(member.id)}</div></td>
             <td>
                 <select class="admin-select" id="adminRole_${safeId}">
                     <option value="user" ${role==="user"?"selected":""}>user</option>
@@ -6287,12 +6304,12 @@ function renderAdminMemberRow(member){
                     <option value="legend" ${badge==="legend"?"selected":""}>legend</option>
                 </select>
             </td>
-            <td class="admin-point-cell">P ${Number(member.points||0)}</td>
+            <td class="admin-point-cell"><span class="admin-point-pill">P ${Number(member.points||0)}</span></td>
             <td>
                 <div class="admin-point-adjust-box">
                     <input class="admin-small-input admin-point-input" id="adminPoint_${safeId}" type="number" step="1" placeholder="+50 / -10">
                     <input class="admin-small-input admin-reason-input" id="adminReason_${safeId}" type="text" placeholder="사유 입력">
-                    <button class="admin-mini-btn" onclick="adjustAdminMemberPoints('${escapeText(member.id)}','${safeId}')">적용</button>
+                    <button class="admin-mini-btn admin-point-apply" onclick="adjustAdminMemberPoints('${escapeText(member.id)}','${safeId}')">적용</button>
                 </div>
             </td>
             <td>${formatDate(member.created_at)}</td>
