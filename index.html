@@ -1562,6 +1562,26 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .member-profile-row-meta{margin-top:4px;color:#888;font-size:12px;line-height:1.4}
 @media(max-width:760px){.member-profile-head{display:block}.member-profile-rank{margin-top:10px}.member-profile-stats{grid-template-columns:1fr 1fr}.member-profile-meta{grid-template-columns:1fr}.member-profile-name{font-size:19px}.member-profile-list{max-height:300px}}
 
+
+
+/* 알림함 */
+.auth-notify-btn{height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease;position:relative;white-space:nowrap}
+.auth-notify-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.auth-notify-count{display:none;min-width:18px;height:18px;padding:0 5px;margin-left:5px;border-radius:999px;background:#ff4d4d;color:#fff;font-size:11px;font-weight:950;line-height:18px;text-align:center;vertical-align:middle}
+.auth-notify-count.active{display:inline-block}
+.notification-box{width:min(620px,100%)}
+.notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.notification-summary{color:#aaa;font-size:13px;font-weight:850;line-height:1.45}
+.notification-list{display:grid;gap:8px;max-height:520px;overflow:auto;padding-right:2px}
+.notification-row{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:14px;padding:12px 13px;cursor:pointer;transition:.16s ease}
+.notification-row:hover{border-color:rgba(255,181,46,.38);background:rgba(255,181,46,.055);transform:translateY(-1px)}
+.notification-row.unread{border-color:rgba(255,181,46,.34);background:rgba(255,181,46,.075)}
+.notification-message{font-size:14px;font-weight:950;color:#eee;line-height:1.4;margin-bottom:6px}
+.notification-meta{display:flex;flex-wrap:wrap;gap:7px;color:#888;font-size:12px;font-weight:850;line-height:1.35}
+.notification-type{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#bbb;font-size:11px;font-weight:950}
+.notification-dot{width:7px;height:7px;border-radius:999px;background:#ffb52e;display:inline-block;margin-right:6px;vertical-align:1px;box-shadow:0 0 10px rgba(255,181,46,.4)}
+@media(max-width:768px){.auth-notify-btn{flex:0 0 auto;height:36px;padding:0 11px}.notification-toolbar{align-items:stretch}.notification-toolbar .admin-mini-btn{width:auto}.notification-list{max-height:62vh}.notification-row{padding:11px 12px}.notification-message{font-size:13px}}
+
 </style>
 </head>
 
@@ -1745,6 +1765,22 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     </div>
 </div>
 
+<div class="form-modal" id="notificationModal" onclick="closeNotificationOutside(event)">
+    <div class="form-box notification-box">
+        <div class="form-head">
+            <div class="form-title">알림</div>
+            <button class="form-close" onclick="closeNotificationModal()">×</button>
+        </div>
+        <div class="form-body">
+            <div class="notification-toolbar">
+                <div id="notificationSummary" class="notification-summary">알림을 불러오는 중...</div>
+                <button class="admin-mini-btn" onclick="markAllNotificationsRead()">전체 읽음</button>
+            </div>
+            <div id="notificationList" class="notification-list"></div>
+        </div>
+    </div>
+</div>
+
 <div class="form-modal" id="authModal" onclick="closeAuthOutside(event)">
     <div class="form-box">
         <div class="form-head">
@@ -1771,13 +1807,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyR3gCJrcXZtj3bEZ-cRztYrHKlqC7vCCjqPQSM5-ZRKaemSddRS0LvCtxAp-mJAKnV0A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbydPri_VLiZ1yybIp3E9z8atjEZH8eteWDMy-Kjl_8KtR0nHMfLLRKLsKIXA0WYX72jrw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
 let authMode="login";
 const AUTH_STORAGE_KEY="axe_net_current_user";
 const AUTH_LAST_NICKNAME_KEY="axe_net_last_nickname";
+let notificationUnreadCount=0;
+let notificationCache=[];
+let notificationLoading=false;
 
 function getCurrentUser(){
     try{
@@ -1796,6 +1835,8 @@ function setCurrentUser(user){
     renderAuthBar();
     applyLoginWriterFields();
     updateAdminMenu();
+    if(user&&user.nickname)setTimeout(()=>refreshNotificationBadge(),0);
+    else{notificationUnreadCount=0;notificationCache=[];}
 }
 
 function refreshCurrentUserProfile(){
@@ -1822,7 +1863,7 @@ function renderAuthBar(){
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
-        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong>${renderUserPointMini(user)}</div><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
+        box.innerHTML=`<div class="auth-user" title="${escapeAttr(user.nickname)}">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong>${renderUserPointMini(user)}</div><button class="auth-notify-btn" onclick="openNotificationModal()">알림 <span class="auth-notify-count ${notificationUnreadCount>0?"active":""}" id="authNotifyCount">${notificationUnreadCount}</span></button><button class="auth-btn" onclick="logoutMember()">로그아웃</button>`;
     }else{
         box.innerHTML=`<button class="auth-btn" onclick="openAuthModal('login')">로그인</button><button class="auth-btn primary" onclick="openAuthModal('signup')">회원가입</button>`;
     }
@@ -2007,6 +2048,7 @@ function afterRenderAuth(){
     applyLoginWriterFields();
     setupAuthObserver();
     updateAdminMenu();
+    refreshNotificationBadge();
 }
 
 
@@ -2340,6 +2382,11 @@ if(hasCachedData){
         hideLoading();
     });
 }
+
+setInterval(function(){
+    const user=getCurrentUser();
+    if(user&&user.nickname)refreshNotificationBadge();
+},60000);
 
 function hideLoading(){
     const loading=document.getElementById("loadingScreen");
@@ -6217,6 +6264,128 @@ function renderRankingRow(member,index){
         </div>`;
 }
 
+
+
+function notificationTypeLabel(type){
+    const t=String(type||"");
+    if(t.includes("reply"))return "답글";
+    if(t.includes("comment"))return "댓글";
+    return "알림";
+}
+
+function refreshNotificationBadge(){
+    const user=getCurrentUser();
+    if(!user||!user.nickname){notificationUnreadCount=0;notificationCache=[];return Promise.resolve(null);}
+    if(notificationLoading)return Promise.resolve(null);
+    notificationLoading=true;
+    return fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_list",nickname:user.nickname,limit:30})})
+    .then(res=>res.json())
+    .then(data=>{
+        notificationLoading=false;
+        if(data&&data.result==="success"){
+            notificationUnreadCount=Number(data.unread_count||0);
+            notificationCache=data.notifications||[];
+            const countEl=document.getElementById("authNotifyCount");
+            if(countEl){
+                countEl.textContent=notificationUnreadCount;
+                countEl.classList.toggle("active",notificationUnreadCount>0);
+            }
+        }
+        return data;
+    })
+    .catch(()=>{notificationLoading=false;return null;});
+}
+
+function openNotificationModal(){
+    if(!requireLogin("알림은 로그인 후 이용해주세요."))return;
+    const modal=document.getElementById("notificationModal");
+    if(modal)modal.classList.add("active");
+    loadNotifications();
+}
+
+function closeNotificationModal(){
+    const modal=document.getElementById("notificationModal");
+    if(modal)modal.classList.remove("active");
+}
+
+function closeNotificationOutside(event){
+    if(event.target.id==="notificationModal")closeNotificationModal();
+}
+
+function loadNotifications(){
+    const user=getCurrentUser();
+    const listEl=document.getElementById("notificationList");
+    const summaryEl=document.getElementById("notificationSummary");
+    if(!user||!user.nickname)return;
+    if(listEl)listEl.innerHTML=`<div class="ready">알림을 불러오는 중...</div>`;
+    return fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_list",nickname:user.nickname,limit:60})})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.result==="success"){
+            notificationUnreadCount=Number(data.unread_count||0);
+            notificationCache=data.notifications||[];
+            if(summaryEl)summaryEl.innerHTML=`읽지 않은 알림 <strong style="color:#ffcf75;">${notificationUnreadCount}</strong>개`;
+            if(listEl)listEl.innerHTML=notificationCache.length?notificationCache.map(renderNotificationRow).join(""):`<div class="ready">알림이 없습니다.</div>`;
+            renderAuthBar();
+        }else{
+            if(listEl)listEl.innerHTML=`<div class="ready">${safe(data.message||"알림을 불러오지 못했습니다.")}</div>`;
+        }
+        return data;
+    })
+    .catch(()=>{if(listEl)listEl.innerHTML=`<div class="ready">알림을 불러오지 못했습니다.</div>`;});
+}
+
+function renderNotificationRow(item){
+    const unread=!item.is_read&&String(item.is_read).toLowerCase()!=="true";
+    const id=escapeAttr(item.id||"");
+    const targetType=escapeAttr(item.target_type||"");
+    const targetId=escapeAttr(item.target_id||"");
+    const typeLabel=notificationTypeLabel(item.type);
+    return `<div class="notification-row ${unread?"unread":""}" onclick="openNotificationTarget('${id}','${targetType}','${targetId}')">
+        <div class="notification-message">${unread?`<span class="notification-dot"></span>`:""}${safe(item.message||"새 알림이 있습니다.")}</div>
+        <div class="notification-meta">
+            <span class="notification-type">${safe(typeLabel)}</span>
+            <span>보낸 사람: ${safe(item.sender||"-")}</span>
+            <span>${formatDate(item.date)}</span>
+        </div>
+    </div>`;
+}
+
+function markNotificationRead(notificationId,all=false){
+    const user=getCurrentUser();
+    if(!user||!user.nickname)return Promise.resolve(null);
+    return fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_read",nickname:user.nickname,notification_id:notificationId||"",all:!!all})})
+    .then(res=>res.json())
+    .then(data=>{
+        refreshNotificationBadge();
+        return data;
+    })
+    .catch(()=>null);
+}
+
+function markAllNotificationsRead(){
+    markNotificationRead("",true).then(()=>loadNotifications());
+}
+
+function openNotificationTarget(notificationId,targetType,targetId){
+    markNotificationRead(notificationId,false).then(()=>{
+        closeNotificationModal();
+        if(targetType==="board"){
+            navigateMain("board",true);
+            setTimeout(()=>openBoardDetail(targetId,true,false),80);
+            return;
+        }
+        if(targetType==="tube"){
+            navigateMain("tube",true);
+            setTimeout(()=>openTubeDetail(targetId,true,false),80);
+            return;
+        }
+        if(targetType==="gallery"){
+            navigateMain("gallery",true);
+            setTimeout(()=>openGalleryDetail(targetId,true,false),80);
+        }
+    });
+}
 
 function postUserApi(payload){
     const user=getCurrentUser();
