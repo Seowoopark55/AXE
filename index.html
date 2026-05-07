@@ -1727,6 +1727,13 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .auth-inline-notify .auth-notify-count{min-width:16px;height:16px;line-height:16px;font-size:10px;padding:0 4px}
 }
 
+
+/* 모바일 브라우저 비밀번호 노출 경고 완화: 실제 input type=password 대신 마스킹 처리 */
+.masked-password-input{
+    -webkit-text-security:disc;
+    text-security:disc;
+}
+
 </style>
 </head>
 
@@ -1943,7 +1950,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
             <input class="form-input" id="authNickname" placeholder="닉네임을 입력하세요" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 
             <div class="form-label">비밀번호</div>
-            <input class="form-input" id="authPassword" type="password" placeholder="비밀번호를 입력하세요" autocomplete="new-password" onkeydown="if(event.key==='Enter') submitAuth()">
+            <input class="form-input masked-password-input" id="authSecretInput" name="axe_auth_key" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="비밀번호를 입력하세요" onkeydown="if(event.key==='Enter') submitAuth()">
 
             <button class="form-submit" id="authSubmitBtn" onclick="submitAuth()">로그인</button>
             <div class="auth-message" id="authMessage"></div>
@@ -2072,7 +2079,7 @@ function openAuthModal(mode){
     const modal=document.getElementById("authModal");
     if(!modal)return;
     const nicknameInput=document.getElementById("authNickname");
-    const passwordInput=document.getElementById("authPassword");
+    const passwordInput=document.getElementById("authSecretInput");
     const savedNickname=localStorage.getItem(AUTH_LAST_NICKNAME_KEY)||"";
     if(nicknameInput)nicknameInput.value=(authMode==="login"?savedNickname:"");
     if(passwordInput)passwordInput.value="";
@@ -2110,7 +2117,7 @@ function switchAuthMode(mode){
 
 function submitAuth(){
     const nickname=document.getElementById("authNickname")?.value.trim()||"";
-    const password=document.getElementById("authPassword")?.value.trim()||"";
+    const password=document.getElementById("authSecretInput")?.value.trim()||"";
     const msg=document.getElementById("authMessage");
     if(!nickname||!password){if(msg)msg.textContent="닉네임과 비밀번호를 입력해주세요.";return;}
     if(authMode==="signup"&&nickname.length<2){if(msg)msg.textContent="닉네임은 2글자 이상 입력해주세요.";return;}
