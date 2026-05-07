@@ -1652,7 +1652,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw5oyl3j2Ai4lSoHnP3S6gyq_FxwwDmpT9ZbIyM0ZWNHqQBzbExnl9wvPYRAGAeIDIvtA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbygZ5AKLWe9yEnvyqpfBzbfy0CdBtLB8krkFiUZb6Tj9BG4_mNi8ibF6eddeXZmjK3K6g/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -1677,6 +1677,25 @@ function setCurrentUser(user){
     renderAuthBar();
     applyLoginWriterFields();
     updateAdminMenu();
+}
+
+function refreshCurrentUserProfile(){
+    const current=getCurrentUser();
+    if(!current||!current.nickname)return Promise.resolve(null);
+    return fetch(API_URL,{method:"POST",body:JSON.stringify({type:"member_profile",nickname:current.nickname})})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data&&data.result==="success"&&data.user){
+            setCurrentUser(Object.assign({},current,data.user));
+        }
+        return data;
+    })
+    .catch(()=>null);
+}
+
+function refreshCurrentUserProfileAfterApi(data){
+    if(data&&data.result==="success")refreshCurrentUserProfile();
+    return data;
 }
 
 function renderAuthBar(){
@@ -2489,7 +2508,7 @@ function findTubeById(id){
 }
 
 function postTubeApi(payload){
-    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json());
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json()).then(refreshCurrentUserProfileAfterApi);
 }
 
 function getTubeLikeClientId(){
@@ -3180,7 +3199,7 @@ function getCommentsByPost(postId){
 }
 
 function postBoardApi(payload){
-    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json());
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json()).then(refreshCurrentUserProfileAfterApi);
 }
 
 function openBoardForm(){
@@ -3801,7 +3820,7 @@ function getCommentsByGallery(galleryId){
 }
 
 function postGalleryApi(payload){
-    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json());
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(payload)}).then(res=>res.json()).then(refreshCurrentUserProfileAfterApi);
 }
 
 function getGalleryClientId(){
@@ -5952,6 +5971,7 @@ function adminApi(payload){
         if(data&&data.result==="fail"&&String(data.message||"").includes("비밀번호")){
             clearAdminPassword();
         }
+        refreshCurrentUserProfileAfterApi(data);
         return data;
     });
 }
