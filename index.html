@@ -1758,8 +1758,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('tube')">AXE TUBE</button>
         <button onclick="navigateMain('board')">자유게시판</button>
         <button onclick="navigateMain('gallery')">갤러리</button>
-        <button onclick="navigateMain('ranking')">랭킹</button>
         <button onclick="navigateMain('info')">정보</button>
+        <button onclick="navigateMain('ranking')">랭킹</button>
         <button onclick="navigateMain('utility')">편의기능</button>
         <button onclick="navigateMain('my')">마이페이지</button>
         <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
@@ -2219,7 +2219,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
-const mainPageKeys=["home","notice","outlaw","tube","board","gallery","ranking","info","utility","my","admin"];
+const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","ranking","utility","my","admin"];
 const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
 function normalizeMainPage(page){
@@ -4888,7 +4888,7 @@ function showTube(){
 
 function showInfo(){
     enterMainSection("info");
-    setMainActive(7);
+    setMainActive(6);
     showCraft();
 }
 
@@ -4993,7 +4993,7 @@ function calcPlica(){
 
 
 function showQuest(){
-    setMainActive(7);
+    setMainActive(6);
     const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
@@ -5102,7 +5102,7 @@ function renderQuestTable(){
 
 
 function showProcess(){
-    setMainActive(7);
+    setMainActive(6);
     const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
 
@@ -5259,7 +5259,7 @@ function renderProcessCards(){
 
 
 function showSkillRanks(){
-    setMainActive(7);
+    setMainActive(6);
     const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
 
@@ -5485,7 +5485,7 @@ function renderModOption(v){
 }
 
 function showModBooks(){
-    setMainActive(7);
+    setMainActive(6);
     if(!modBookTypeFilter)modBookTypeFilter="접두";
     const categories=getModBookCategories();
     if(!modBookCategoryFilter||!categories.includes(modBookCategoryFilter))modBookCategoryFilter=categories[0]||"";
@@ -5661,7 +5661,7 @@ function selectModBook(key){
 }
 
 function showCraft(){
-    setMainActive(7);
+    setMainActive(6);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
     let html=`
@@ -6414,7 +6414,7 @@ function openMemberProfile(nickname,event){
 
 function showRanking(){
     enterMainSection("ranking");
-    setMainActive(6);
+    setMainActive(7);
     const user=getCurrentUser();
     const list=getRankingList();
     const myRank=user?list.findIndex(m=>String(m.nickname)===String(user.nickname))+1:0;
