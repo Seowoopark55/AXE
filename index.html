@@ -1829,6 +1829,84 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+
+/* V10.3 갤러리 카드 전체 균형 정돈: PC 중심, 모바일 기존 유지 */
+@media(min-width:769px){
+    .gallery-grid{
+        gap:16px!important;
+        align-items:stretch!important;
+    }
+    .gallery-card{
+        display:flex!important;
+        flex-direction:column!important;
+        height:100%!important;
+        border-radius:18px!important;
+        background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018)),rgba(8,8,8,.94)!important;
+        box-shadow:0 12px 28px rgba(0,0,0,.22)!important;
+    }
+    .gallery-card:hover{
+        box-shadow:0 18px 38px rgba(0,0,0,.32)!important;
+    }
+    .gallery-thumb{
+        aspect-ratio:16/10!important;
+        border-bottom:1px solid rgba(255,255,255,.07)!important;
+    }
+    .gallery-card .gallery-body{
+        display:flex!important;
+        flex-direction:column!important;
+        flex:1 1 auto!important;
+        min-height:156px!important;
+        padding:14px 15px 14px!important;
+    }
+    .gallery-title{
+        min-height:21px!important;
+        margin-bottom:6px!important;
+        font-size:16px!important;
+        line-height:1.32!important;
+        letter-spacing:-.2px!important;
+    }
+    .gallery-card .item-date{
+        margin-top:0!important;
+        min-height:18px!important;
+        font-size:12px!important;
+        line-height:1.45!important;
+        color:#969696!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+    }
+    .gallery-card .item-content{
+        margin-top:8px!important;
+        min-height:36px!important;
+        max-height:36px!important;
+        overflow:hidden!important;
+        display:-webkit-box!important;
+        -webkit-line-clamp:2!important;
+        -webkit-box-orient:vertical!important;
+        color:#b8b8b8!important;
+        font-size:13px!important;
+        line-height:1.42!important;
+        word-break:break-word!important;
+    }
+    .gallery-meta.compact{
+        margin-top:auto!important;
+    }
+    .gallery-meta.compact .gallery-stat{
+        height:30px!important;
+        border-radius:10px!important;
+    }
+}
+
+@media(max-width:768px){
+    .gallery-card .item-content{
+        display:-webkit-box!important;
+        -webkit-line-clamp:2!important;
+        -webkit-box-orient:vertical!important;
+        overflow:hidden!important;
+    }
+}
+
 </style>
 </head>
 
