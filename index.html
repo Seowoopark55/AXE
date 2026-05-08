@@ -2781,6 +2781,303 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V12: 편의기능 절도도우미 */
+.utility-sub-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:9px;
+    margin:0 0 16px;
+}
+.utility-sub-tabs button{
+    min-height:40px;
+    padding:0 15px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.09);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.018)),#111;
+    color:#aaa;
+    font-size:13px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.18s ease;
+}
+.utility-sub-tabs button:hover,
+.utility-sub-tabs button.active{
+    color:#111;
+    background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);
+    border-color:rgba(255,181,46,.85);
+    transform:translateY(-1px);
+}
+.theft-helper-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1.55fr) 360px;
+    gap:16px;
+    align-items:start;
+}
+.theft-panel-card{
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.014)),rgba(0,0,0,.24);
+    padding:16px;
+    min-width:0;
+}
+.theft-card-title{
+    color:#ffb52e;
+    font-size:17px;
+    font-weight:950;
+    margin-bottom:11px;
+}
+.theft-player-box{
+    aspect-ratio:16/9;
+    width:100%;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.1);
+    background:#000;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#888;
+    font-size:13px;
+    font-weight:850;
+    position:relative;
+}
+.theft-player-box iframe{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+    background:#000;
+}
+.theft-player-empty{
+    text-align:center;
+    line-height:1.55;
+    padding:18px;
+}
+.theft-url-row{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:8px;
+    margin-top:12px;
+}
+.theft-url-row input{
+    height:40px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.1);
+    background:#151515;
+    color:#fff;
+    padding:0 12px;
+    outline:none;
+    font-size:13px;
+}
+.theft-url-row input:focus{
+    border-color:rgba(255,181,46,.62);
+}
+.theft-mini-btn{
+    height:40px;
+    padding:0 12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(20,20,20,.92);
+    color:#bbb;
+    font-size:12px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.16s ease;
+    white-space:nowrap;
+}
+.theft-mini-btn:hover{
+    color:#ffb52e;
+    border-color:rgba(255,181,46,.45);
+    transform:translateY(-1px);
+}
+.theft-mini-btn.primary{
+    background:#ffb52e;
+    border-color:#ffb52e;
+    color:#111;
+}
+.theft-mini-btn.primary:hover{
+    color:#111;
+    filter:brightness(1.06);
+}
+.theft-help{
+    color:#888;
+    font-size:12px;
+    line-height:1.5;
+    margin-top:9px;
+}
+.theft-stopwatch-time{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:94px;
+    margin:8px 0 13px;
+    border-radius:18px;
+    border:1px solid rgba(255,181,46,.22);
+    background:radial-gradient(circle at top,rgba(255,181,46,.11),transparent 58%),rgba(0,0,0,.32);
+    color:#fff;
+    font-size:42px;
+    font-weight:950;
+    letter-spacing:.5px;
+    font-variant-numeric:tabular-nums;
+}
+.theft-stopwatch-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-bottom:12px;
+}
+.theft-lap-list{
+    display:grid;
+    gap:7px;
+    max-height:170px;
+    overflow:auto;
+    padding-right:2px;
+}
+.theft-lap-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:8px 10px;
+    border-radius:11px;
+    border:1px solid rgba(255,255,255,.07);
+    background:rgba(255,255,255,.025);
+    color:#ddd;
+    font-size:12px;
+    font-weight:850;
+}
+.theft-lap-row span:last-child{
+    color:#ffcf75;
+    font-weight:950;
+    font-variant-numeric:tabular-nums;
+}
+.theft-memo{
+    width:100%;
+    min-height:138px;
+    margin-top:8px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.1);
+    background:#151515;
+    color:#fff;
+    padding:12px;
+    outline:none;
+    resize:vertical;
+    font-size:13px;
+    line-height:1.55;
+    font-family:Arial,sans-serif;
+}
+.theft-memo:focus{
+    border-color:rgba(255,181,46,.62);
+}
+.theft-quick-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin-top:10px;
+}
+.theft-status-line{
+    min-height:18px;
+    color:#ffcf75;
+    font-size:12px;
+    font-weight:850;
+    line-height:1.45;
+    margin-top:8px;
+}
+@media(max-width:920px){
+    .theft-helper-layout{
+        grid-template-columns:1fr;
+    }
+}
+@media(max-width:768px){
+    .utility-sub-tabs{
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        scrollbar-width:none;
+        gap:7px;
+    }
+    .utility-sub-tabs::-webkit-scrollbar{display:none}
+    .utility-sub-tabs button{
+        flex:0 0 auto;
+        min-height:38px;
+        padding:0 13px;
+        font-size:12px;
+        border-radius:11px;
+    }
+    .theft-panel-card{
+        padding:13px;
+        border-radius:15px;
+    }
+    .theft-url-row{
+        grid-template-columns:1fr;
+    }
+    .theft-url-row .theft-mini-btn{
+        width:100%;
+    }
+    .theft-stopwatch-time{
+        min-height:80px;
+        font-size:34px;
+        border-radius:15px;
+    }
+    .theft-stopwatch-actions{
+        grid-template-columns:1fr 1fr;
+    }
+    .theft-stopwatch-actions .theft-mini-btn:first-child{
+        grid-column:1 / -1;
+    }
+    .theft-quick-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+
+<style>
+/* AXE NET V12.1: 편의기능 절도도우미 메뉴 연결 보강 */
+.utility-v12-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:9px;
+    margin:0 0 16px;
+}
+.utility-v12-tabs button{
+    min-height:40px;
+    padding:0 15px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.09);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.018)),#111;
+    color:#aaa;
+    font-size:13px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.18s ease;
+}
+.utility-v12-tabs button:hover,
+.utility-v12-tabs button.active{
+    color:#111;
+    background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);
+    border-color:rgba(255,181,46,.85);
+    transform:translateY(-1px);
+}
+@media(max-width:768px){
+    .utility-v12-tabs{
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        scrollbar-width:none;
+        gap:7px;
+    }
+    .utility-v12-tabs::-webkit-scrollbar{display:none}
+    .utility-v12-tabs button{
+        flex:0 0 auto;
+        min-height:38px;
+        padding:0 13px;
+        font-size:12px;
+        border-radius:11px;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -10661,7 +10958,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V11.7: 모바일 상단 돋보기 검색 통일 -->
+<!-- AXE NET V12.1: 절도도우미 메뉴 연결 보강 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -11880,6 +12177,342 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     window.addEventListener("load",function(){
         setTimeout(attachTopMobileSearchEnterClose,150);
     });
+})();
+</script>
+
+
+<script>
+/* AXE NET V12: 절도도우미 */
+(function(){
+    let theftStopwatchRunning=false;
+    let theftStopwatchStart=0;
+    let theftStopwatchElapsed=0;
+    let theftStopwatchTimer=null;
+    let theftLapRecords=[];
+
+    function theftPad(num,size){
+        return String(num).padStart(size,"0");
+    }
+
+    function formatTheftTime(ms){
+        ms=Math.max(0,Number(ms||0));
+        const totalCs=Math.floor(ms/10);
+        const cs=totalCs%100;
+        const totalSec=Math.floor(totalCs/100);
+        const sec=totalSec%60;
+        const min=Math.floor(totalSec/60)%60;
+        const hour=Math.floor(totalSec/3600);
+        return hour>0
+            ? `${theftPad(hour,2)}:${theftPad(min,2)}:${theftPad(sec,2)}.${theftPad(cs,2)}`
+            : `${theftPad(min,2)}:${theftPad(sec,2)}.${theftPad(cs,2)}`;
+    }
+
+    function saveTheftHelperState(){
+        try{
+            localStorage.setItem("axe_theft_helper_state",JSON.stringify({
+                url:document.getElementById("theftStreamUrl")?document.getElementById("theftStreamUrl").value:"",
+                memo:document.getElementById("theftMemo")?document.getElementById("theftMemo").value:"",
+                laps:theftLapRecords,
+                elapsed:theftStopwatchElapsed
+            }));
+        }catch(e){}
+    }
+
+    function loadTheftHelperState(){
+        try{
+            const raw=localStorage.getItem("axe_theft_helper_state");
+            if(!raw)return {};
+            const parsed=JSON.parse(raw);
+            if(Array.isArray(parsed.laps))theftLapRecords=parsed.laps;
+            if(Number(parsed.elapsed)>0)theftStopwatchElapsed=Number(parsed.elapsed);
+            return parsed||{};
+        }catch(e){return {};}
+    }
+
+    function extractSoopEmbedUrl(url){
+        const raw=String(url||"").trim();
+        if(!raw)return "";
+        if(raw.indexOf("<iframe")!==-1){
+            const m=raw.match(/src=["']([^"']+)["']/i);
+            return m?m[1]:"";
+        }
+        if(raw.includes("play.sooplive.co.kr") || raw.includes("vod.sooplive.co.kr")){
+            return raw;
+        }
+        return "";
+    }
+
+    function openTheftStreamNewWindow(){
+        const input=document.getElementById("theftStreamUrl");
+        const url=input?String(input.value||"").trim():"";
+        if(!url){
+            alert("SOOP 방송 주소를 입력하세요.");
+            return;
+        }
+        window.open(url,"_blank","noopener,noreferrer");
+    }
+
+    function applyTheftStream(){
+        const input=document.getElementById("theftStreamUrl");
+        const box=document.getElementById("theftPlayerBox");
+        const status=document.getElementById("theftStatusLine");
+        if(!input || !box)return;
+        const url=String(input.value||"").trim();
+        const embed=extractSoopEmbedUrl(url);
+        if(embed){
+            box.innerHTML=`<iframe src="${escapeText(embed)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+            if(status)status.textContent="플레이어 삽입을 시도했습니다. 화면이 뜨지 않으면 새 창 열기를 사용하세요.";
+        }else if(url){
+            box.innerHTML=`<div class="theft-player-empty">SOOP 외부 삽입 주소를 확인하지 못했습니다.<br>아래 ‘새 창 열기’ 버튼을 사용하세요.</div>`;
+            if(status)status.textContent="SOOP에서 외부 iframe 삽입을 막는 경우 사이트 안 재생이 불가할 수 있습니다.";
+        }else{
+            box.innerHTML=`<div class="theft-player-empty">SOOP 방송 주소를 입력하고 적용을 누르세요.<br>삽입이 막히면 새 창으로 열 수 있습니다.</div>`;
+            if(status)status.textContent="";
+        }
+        saveTheftHelperState();
+    }
+
+    function updateTheftStopwatch(){
+        const el=document.getElementById("theftStopwatchTime");
+        if(!el)return;
+        const current=theftStopwatchRunning ? theftStopwatchElapsed+(Date.now()-theftStopwatchStart) : theftStopwatchElapsed;
+        el.textContent=formatTheftTime(current);
+    }
+
+    function startTheftStopwatch(){
+        if(theftStopwatchRunning)return;
+        theftStopwatchRunning=true;
+        theftStopwatchStart=Date.now();
+        theftStopwatchTimer=setInterval(updateTheftStopwatch,37);
+        updateTheftStopwatch();
+    }
+
+    function pauseTheftStopwatch(){
+        if(!theftStopwatchRunning)return;
+        theftStopwatchElapsed+=Date.now()-theftStopwatchStart;
+        theftStopwatchRunning=false;
+        clearInterval(theftStopwatchTimer);
+        theftStopwatchTimer=null;
+        updateTheftStopwatch();
+        saveTheftHelperState();
+    }
+
+    function resetTheftStopwatch(){
+        if(!confirm("스톱워치와 랩 기록을 초기화할까요?"))return;
+        theftStopwatchRunning=false;
+        clearInterval(theftStopwatchTimer);
+        theftStopwatchTimer=null;
+        theftStopwatchElapsed=0;
+        theftLapRecords=[];
+        updateTheftStopwatch();
+        renderTheftLaps();
+        saveTheftHelperState();
+    }
+
+    function addTheftLap(label){
+        const current=theftStopwatchRunning ? theftStopwatchElapsed+(Date.now()-theftStopwatchStart) : theftStopwatchElapsed;
+        theftLapRecords.unshift({
+            label:label||("기록 "+(theftLapRecords.length+1)),
+            time:formatTheftTime(current),
+            at:new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})
+        });
+        theftLapRecords=theftLapRecords.slice(0,20);
+        renderTheftLaps();
+        saveTheftHelperState();
+    }
+
+    function renderTheftLaps(){
+        const box=document.getElementById("theftLapList");
+        if(!box)return;
+        if(!theftLapRecords.length){
+            box.innerHTML=`<div class="theft-help">아직 기록이 없습니다. 시작 후 랩 기록을 눌러보세요.</div>`;
+            return;
+        }
+        box.innerHTML=theftLapRecords.map((lap,index)=>`
+            <div class="theft-lap-row">
+                <span>${escapeHtml(lap.label||("기록 "+(index+1)))} · ${escapeHtml(lap.at||"")}</span>
+                <span>${escapeHtml(lap.time||"00:00.00")}</span>
+            </div>
+        `).join("");
+    }
+
+    function appendTheftMemo(text){
+        const memo=document.getElementById("theftMemo");
+        if(!memo)return;
+        const stamp=new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+        memo.value=(memo.value?memo.value+"\n":"")+`[${stamp}] ${text}`;
+        saveTheftHelperState();
+    }
+
+    window.showUtility=function(){
+        enterMainSection("utility");
+        setMainActive(8);
+        document.getElementById("content").innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">편의기능</div>
+                    <div class="section-desc">게임 플레이를 보조하는 간단한 도구 모음입니다.</div>
+                </div>
+            </div>
+            <div class="utility-sub-tabs">
+                <button class="active" onclick="showTheftHelper()">절도도우미</button>
+                <button onclick="showPlicaCalculator()">플리카 계산기</button>
+            </div>
+            <div id="utilityContent"></div>`;
+        showTheftHelper();
+    };
+
+    window.showTheftHelper=function(){
+        const saved=loadTheftHelperState();
+        const url=escapeText(saved.url||"");
+        const memo=escapeText(saved.memo||"");
+        const box=document.getElementById("utilityContent")||document.getElementById("content");
+        if(!box)return;
+        box.innerHTML=`
+            <div class="theft-helper-layout">
+                <div class="theft-panel-card">
+                    <div class="theft-card-title">SOOP 방송 플레이어</div>
+                    <div class="theft-player-box" id="theftPlayerBox">
+                        <div class="theft-player-empty">SOOP 방송 주소를 입력하고 적용을 누르세요.<br>삽입이 막히면 새 창으로 열 수 있습니다.</div>
+                    </div>
+                    <div class="theft-url-row">
+                        <input id="theftStreamUrl" value="${url}" placeholder="SOOP 방송 주소 또는 iframe src를 입력하세요">
+                        <button class="theft-mini-btn primary" onclick="applyTheftStream()">적용</button>
+                        <button class="theft-mini-btn" onclick="openTheftStreamNewWindow()">새 창 열기</button>
+                    </div>
+                    <div class="theft-help">
+                        SOOP에서 외부 삽입을 막아둔 방송은 AXE NET 안에서 바로 재생되지 않을 수 있습니다. 이 경우 새 창 열기를 사용하세요.
+                    </div>
+                    <div class="theft-status-line" id="theftStatusLine"></div>
+                </div>
+
+                <div class="theft-panel-card">
+                    <div class="theft-card-title">절도 스톱워치</div>
+                    <div class="theft-stopwatch-time" id="theftStopwatchTime">00:00.00</div>
+                    <div class="theft-stopwatch-actions">
+                        <button class="theft-mini-btn primary" onclick="startTheftStopwatch()">시작</button>
+                        <button class="theft-mini-btn" onclick="pauseTheftStopwatch()">정지</button>
+                        <button class="theft-mini-btn" onclick="resetTheftStopwatch()">리셋</button>
+                    </div>
+                    <div class="theft-quick-grid">
+                        <button class="theft-mini-btn" onclick="addTheftLap('절도 시작')">절도 시작 기록</button>
+                        <button class="theft-mini-btn" onclick="addTheftLap('도주 시작')">도주 시작 기록</button>
+                        <button class="theft-mini-btn" onclick="appendTheftMemo('경찰 위치 확인')">경찰 위치 메모</button>
+                        <button class="theft-mini-btn" onclick="appendTheftMemo('도주 루트 확인')">도주 루트 메모</button>
+                    </div>
+                    <div class="theft-card-title" style="margin-top:15px;">랩 기록</div>
+                    <div class="theft-lap-list" id="theftLapList"></div>
+                    <div class="theft-card-title" style="margin-top:15px;">메모</div>
+                    <textarea class="theft-memo" id="theftMemo" placeholder="경찰 위치, 도주 루트, 시작 시간 등을 기록하세요.">${memo}</textarea>
+                    <div class="theft-help">메모와 최근 랩 기록은 이 브라우저에 자동 저장됩니다.</div>
+                </div>
+            </div>`;
+        document.getElementById("theftStreamUrl").addEventListener("change",saveTheftHelperState);
+        document.getElementById("theftMemo").addEventListener("input",saveTheftHelperState);
+        updateTheftStopwatch();
+        renderTheftLaps();
+        if(saved.url)applyTheftStream();
+    };
+
+    window.applyTheftStream=applyTheftStream;
+    window.openTheftStreamNewWindow=openTheftStreamNewWindow;
+    window.startTheftStopwatch=startTheftStopwatch;
+    window.pauseTheftStopwatch=pauseTheftStopwatch;
+    window.resetTheftStopwatch=resetTheftStopwatch;
+    window.addTheftLap=addTheftLap;
+    window.appendTheftMemo=appendTheftMemo;
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.1: 절도도우미 카테고리 연결 보강 */
+(function(){
+    function setUtilityV12Tab(tab){
+        document.querySelectorAll(".utility-v12-tabs button").forEach(function(btn){
+            btn.classList.toggle("active",btn.dataset.utilityTab===tab);
+        });
+    }
+
+    function renderUtilityShellV12(defaultTab){
+        enterMainSection("utility");
+        setMainActive(8);
+        document.getElementById("content").innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">편의기능</div>
+                    <div class="section-desc">게임 플레이를 보조하는 간단한 도구 모음입니다.</div>
+                </div>
+            </div>
+            <div class="utility-v12-tabs">
+                <button data-utility-tab="theft" onclick="showTheftHelperV12()">절도도우미</button>
+                <button data-utility-tab="plica" onclick="showPlicaCalculatorV12()">플리카 계산기</button>
+            </div>
+            <div id="utilityContent"></div>`;
+        if(defaultTab==="plica")showPlicaCalculatorV12();
+        else showTheftHelperV12();
+    }
+
+    window.showUtility=function(){
+        renderUtilityShellV12("theft");
+    };
+
+    window.showTheftHelperV12=function(){
+        setUtilityV12Tab("theft");
+        if(typeof window.showTheftHelper==="function"){
+            window.showTheftHelper();
+            setUtilityV12Tab("theft");
+            return;
+        }
+        const box=document.getElementById("utilityContent")||document.getElementById("content");
+        if(box){
+            box.innerHTML=`<div class="ready">절도도우미 모듈을 불러오지 못했습니다. V12.1 파일을 다시 적용해 주세요.</div>`;
+        }
+    };
+
+    window.showPlicaCalculatorV12=function(){
+        setUtilityV12Tab("plica");
+        const box=document.getElementById("utilityContent")||document.getElementById("content");
+        if(!box)return;
+
+        if(typeof window.renderPlicaCalculator==="function"){
+            box.innerHTML=window.renderPlicaCalculator();
+            if(typeof window.initPlicaCalculator==="function")window.initPlicaCalculator();
+            return;
+        }
+
+        if(typeof window.showPlicaCalculator==="function"){
+            const originalContent=document.getElementById("content");
+            const utilityContent=document.getElementById("utilityContent");
+            if(originalContent && utilityContent){
+                const oldSet=originalContent.innerHTML;
+                window.showPlicaCalculator();
+                const rendered=originalContent.innerHTML;
+                renderUtilityShellV12("plica");
+                const newBox=document.getElementById("utilityContent");
+                if(newBox)newBox.innerHTML=rendered;
+                setUtilityV12Tab("plica");
+                return;
+            }
+        }
+
+        box.innerHTML=`
+            <div class="ready">
+                플리카 계산기는 기존 편의기능 코드에 연결되어 있습니다.<br>
+                절도도우미 우선 적용 상태입니다.
+            </div>`;
+    };
+
+    const originalNavigateMain=window.navigateMain;
+    if(typeof originalNavigateMain==="function"){
+        window.navigateMain=function(section){
+            if(section==="utility"){
+                showUtility();
+                return;
+            }
+            return originalNavigateMain.apply(this,arguments);
+        };
+    }
 })();
 </script>
 
