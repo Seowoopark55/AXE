@@ -2526,13 +2526,25 @@ function getCurrentRouteSnapshot(){
     return JSON.stringify(state||{});
 }
 
+function shouldSkipBackgroundRouteRerender(route){
+    const page=normalizeMainPage((route&&route.page)||"home");
+    return page==="admin"||page==="my";
+}
+
 function backgroundRefreshCurrentRoute(){
-    const before=getCurrentRouteSnapshot();
+    const routeBefore=history.state||parseRouteFromHash();
+    const before=JSON.stringify(routeBefore||{});
     refreshData().then(()=>{
-        const after=getCurrentRouteSnapshot();
-        if(before===after){
-            renderRouteState(history.state||parseRouteFromHash());
+        const routeAfter=history.state||parseRouteFromHash();
+        const after=JSON.stringify(routeAfter||{});
+        if(before!==after)return;
+
+        if(shouldSkipBackgroundRouteRerender(routeAfter)){
+            setTimeout(afterRenderAuth,0);
+            return;
         }
+
+        renderRouteState(routeAfter);
     });
 }
 
