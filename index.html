@@ -8890,6 +8890,137 @@ function resetAdminMemberPassword(memberId,safeId,btn){
     });
 }
 
+
+/* AXE NET V7 - 회원 정보 카드 로딩 안정화 */
+(function(){
+    window.axeMemberProfileCache=window.axeMemberProfileCache||{};
+    window.axeMemberProfileInflight=window.axeMemberProfileInflight||{};
+    window.axeMemberProfileRequestSeq=0;
+
+    function axeFindLocalMemberProfile(name){
+        const target=String(name||"").trim();
+        if(!target)return null;
+        const current=(typeof getCurrentUser==="function")?getCurrentUser():null;
+        if(current&&String(current.nickname||"").trim()===target){
+            return Object.assign({},current);
+        }
+        const rankItem=(Array.isArray(rankings)?rankings:[]).find(function(item){
+            return String(item.nickname||"").trim()===target;
+        });
+        if(rankItem)return Object.assign({},rankItem);
+        const adminItem=(Array.isArray(window.adminMembers)?window.adminMembers:[]).find(function(item){
+            return String(item.nickname||"").trim()===target;
+        });
+        if(adminItem)return Object.assign({},adminItem);
+        return {nickname:target,badge:"bronze",role:"user",points:0,created_at:"",last_login:""};
+    }
+
+    function axeRenderMemberProfileLoading(name){
+        const local=axeFindLocalMemberProfile(name)||{nickname:name,badge:"bronze",role:"user",points:0};
+        const nickname=local.nickname||name||"익명";
+        const badge=(typeof normalizeBadge==="function")?normalizeBadge(local.badge||local.role||"bronze"):(local.badge||"bronze");
+        const counts=(typeof getPublicMemberCounts==="function")?getPublicMemberCounts(nickname):{board:0,tube:0,gallery:0,comments:0};
+        const rank=local.rank||((typeof getPublicMemberRank==="function")?getPublicMemberRank(nickname):"");
+        const role=String(local.role||"user").toLowerCase();
+        const isAdmin=role==="admin"||badge==="admin";
+        const writer=(typeof renderWriterName==="function")?renderWriterName(nickname,badge):String(nickname);
+        const safeText=(typeof safe==="function")?safe:String;
+        const fmt=(typeof formatDate==="function")?formatDate:function(v){return v||"-";};
+        return `
+            <div class="member-profile-head">
+                <div class="member-profile-name">${writer}</div>
+                <div class="member-profile-rank">${isAdmin?"ADMIN":(rank?rank+"위":"-위")}<span>${isAdmin?"관리자":"랭킹"}</span></div>
+            </div>
+            <div class="member-profile-stats">
+                <div class="member-profile-stat"><strong>P ${Number(local.points||0)}</strong><span>포인트</span></div>
+                <div class="member-profile-stat"><strong>${Number(counts.board||0)+Number(counts.tube||0)+Number(counts.gallery||0)}</strong><span>작성글</span></div>
+                <div class="member-profile-stat"><strong>${Number(counts.comments||0)}</strong><span>작성댓글</span></div>
+                <div class="member-profile-stat"><strong>${safeText(badge)}</strong><span>등급</span></div>
+            </div>
+            <div class="member-profile-meta">
+                <div><span>가입일</span><strong>${fmt(local.created_at)||"-"}</strong></div>
+                <div><span>최근 로그인</span><strong>${fmt(local.last_login)||"-"}</strong></div>
+            </div>
+            <div class="point-history-summary">회원 정보를 불러오는 중입니다. 잠시 후 작성글과 작성댓글 목록이 표시됩니다.</div>
+            <div class="member-profile-tabs">
+                <button class="active" data-tab="posts" onclick="setMemberProfileTab('posts')">작성글</button>
+                <button data-tab="comments" onclick="setMemberProfileTab('comments')">작성댓글</button>
+            </div>
+            <div class="member-profile-section active" data-section="posts">
+                <div class="member-profile-list"><div class="ready">작성글을 정리하는 중...</div></div>
+            </div>
+            <div class="member-profile-section" data-section="comments">
+                <div class="member-profile-list"><div class="ready">작성댓글을 정리하는 중...</div></div>
+            </div>`;
+    }
+
+    function axeFetchMemberProfile(name){
+        const target=String(name||"").trim();
+        if(!target)return Promise.reject(new Error("empty nickname"));
+        if(window.axeMemberProfileInflight[target])return window.axeMemberProfileInflight[target];
+        const promise=fetch(API_URL,{method:"POST",body:JSON.stringify({type:"member_profile",nickname:target})})
+            .then(function(res){return res.json();})
+            .then(function(data){
+                if(data&&data.result==="success"&&data.user){
+                    window.axeMemberProfileCache[target]={time:Date.now(),user:data.user};
+                }
+                return data;
+            })
+            .finally(function(){delete window.axeMemberProfileInflight[target];});
+        window.axeMemberProfileInflight[target]=promise;
+        return promise;
+    }
+
+    window.openMemberProfile=function(nickname,event){
+        if(event){event.preventDefault();event.stopPropagation();}
+        const name=String(nickname||"").trim();
+        if(!name||name==="-")return;
+        const modal=document.getElementById("memberProfileModal");
+        const body=document.getElementById("memberProfileBody");
+        if(!modal||!body)return;
+
+        const requestId=++window.axeMemberProfileRequestSeq;
+        modal.dataset.nickname=name;
+        modal.classList.add("active");
+
+        const cached=window.axeMemberProfileCache[name];
+        if(cached&&cached.user&&Date.now()-Number(cached.time||0)<60000){
+            body.innerHTML=renderMemberProfile(cached.user);
+        }else{
+            body.innerHTML=axeRenderMemberProfileLoading(name);
+        }
+
+        axeFetchMemberProfile(name)
+        .then(function(data){
+            if(requestId!==window.axeMemberProfileRequestSeq)return;
+            if(!modal.classList.contains("active"))return;
+            if(String(modal.dataset.nickname||"")!==name)return;
+            if(data.result==="success"&&data.user){
+                body.innerHTML=renderMemberProfile(data.user);
+            }else{
+                body.innerHTML=`<div class="ready">${safe(data.message||"회원 정보를 불러오지 못했습니다.")}</div>`;
+            }
+        })
+        .catch(function(){
+            if(requestId!==window.axeMemberProfileRequestSeq)return;
+            if(String(modal.dataset.nickname||"")!==name)return;
+            body.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.</div>`;
+        });
+    };
+
+    const originalClose=window.closeMemberProfileModal;
+    window.closeMemberProfileModal=function(){
+        window.axeMemberProfileRequestSeq++;
+        const modal=document.getElementById("memberProfileModal");
+        if(modal){
+            modal.classList.remove("active");
+            modal.dataset.nickname="";
+        }else if(typeof originalClose==="function"){
+            originalClose();
+        }
+    };
+})();
+
 </script>
 </body>
 </html>
