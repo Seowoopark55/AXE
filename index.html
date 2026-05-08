@@ -9212,5 +9212,96 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 })();
 </script>
 
+
+<!-- AXE NET V10: 모바일 최종 정돈 / 터치 영역 안정화 패치 -->
+<style id="axe-v10-mobile-final-polish-style">
+@media(max-width:760px){
+    body{min-width:0!important}
+    .wrap{padding-bottom:calc(34px + env(safe-area-inset-bottom,0px))!important}
+
+    /* 상단 로그인/메뉴: 작은 화면에서 눌림 영역 확보 */
+    .auth-bar{min-height:40px!important}
+    .auth-inline-shell{min-height:38px!important;line-height:1!important}
+    .auth-inline-profile,.auth-inline-point,.auth-inline-notify,.auth-inline-logout{min-height:32px!important}
+    .main-menu button{min-height:42px!important}
+
+    /* 공통 버튼: 모바일 터치 목표 크기 보정 */
+    .tube-submit-open,.back-btn,.board-action-btn,.reaction-btn,.board-like-btn,
+    .comment-mini-btn,.comment-reaction-btn,.admin-mini-btn,.form-submit,.comment-submit,
+    .attendance-btn,.auth-btn,.auth-tab{min-height:38px!important}
+
+    /* 입력창: 모바일 자동 확대/레이아웃 흔들림 완화 */
+    input,textarea,select,.form-input,.form-textarea,.comment-input,.comment-textarea,
+    .admin-select,.admin-small-input,.plica-input{font-size:16px!important}
+
+    /* 게시판/튜브/갤러리 카드 간격 최종 정돈 */
+    .panel{overflow:hidden}
+    .board-table-row,.notice-row,.gallery-card,.tube-card,.home-board-item,.ranking-row,
+    .member-profile-row,.my-activity-row,.notification-row{will-change:transform}
+    .board-table-row:active,.notice-row:active,.gallery-card:active,.tube-card:active,
+    .home-board-item:active,.ranking-row:active,.member-profile-row:active,.my-activity-row:active,
+    .notification-row:active{transform:scale(.992)!important}
+
+    .board-detail-card,.detail,.modbook-detail-card,.my-card,.home-card{box-shadow:none!important}
+    .board-detail-content,.notice-detail-content,.operation-content,.comment-content{word-break:break-word;overflow-wrap:anywhere}
+
+    /* 댓글/대댓글: 액션 버튼 줄바꿈 안정화 */
+    .comment-actions{align-items:center!important}
+    .comment-reaction-group{flex-wrap:nowrap!important}
+    .comment-mini-btn,.comment-reaction-btn{white-space:nowrap!important}
+
+    /* 갤러리: 모바일에서도 썸네일을 너무 길게 늘리지 않음 */
+    .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+    .gallery-body{padding:10px!important}
+    .gallery-title{font-size:13px!important}
+    .gallery-meta{font-size:11px!important;gap:5px!important}
+    .gallery-detail-images{grid-template-columns:1fr!important}
+
+    /* 관리자/마이페이지: 가로 스크롤이 필요한 영역은 내부에서만 스크롤 */
+    .admin-table-wrap,.board-list-scroll,.list-scroll,.modbook-list-scroll,
+    .member-profile-list,.notification-list,.point-log-list{overscroll-behavior:contain}
+    .admin-table-wrap{-webkit-overflow-scrolling:touch}
+
+    /* 모달 하단 버튼이 모바일 홈바에 붙지 않게 보정 */
+    .form-body{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+    .image-close{top:calc(8px + env(safe-area-inset-top,0px))!important}
+}
+
+@media(max-width:420px){
+    .gallery-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+    .gallery-thumb{aspect-ratio:1/1!important}
+    .auth-inline-profile strong{max-width:64px!important}
+    .auth-inline-point{max-width:72px!important;overflow:hidden;text-overflow:ellipsis}
+    .section-title{font-size:20px!important}
+    .board-detail-title,.detail-title,.modbook-detail-name{font-size:19px!important}
+}
+
+@media(max-width:340px){
+    .gallery-grid{grid-template-columns:1fr!important}
+    .auth-inline-sep{display:none!important}
+    .auth-inline-shell{gap:5px!important}
+    .main-menu button{font-size:10.5px!important}
+}
+</style>
+<script id="axe-v10-mobile-final-polish-script">
+(function(){
+    if(window.__axeV10MobileFinalPolishApplied)return;
+    window.__axeV10MobileFinalPolishApplied=true;
+
+    function setMobileViewportClass(){
+        const isMobile=window.matchMedia&&window.matchMedia("(max-width: 760px)").matches;
+        document.documentElement.classList.toggle("axe-mobile-view",!!isMobile);
+    }
+
+    setMobileViewportClass();
+    window.addEventListener("resize",function(){
+        clearTimeout(window.__axeV10ResizeTimer);
+        window.__axeV10ResizeTimer=setTimeout(setMobileViewportClass,120);
+    },{passive:true});
+
+    document.addEventListener("touchstart",function(){}, {passive:true});
+})();
+</script>
+
 </body>
 </html>
