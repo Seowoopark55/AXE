@@ -3098,8 +3098,8 @@ function renderCommentItem(scope,ownerId,comment,index,allComments,isReply){
         <div class="comment-content" id="commentContent_${scope}_${domSafeId(commentId)}">${safe(comment.content)}</div>
         <div class="comment-actions">
             <span class="comment-reaction-group">
-                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
-                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}')" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
+                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="${likeFn}('${escapeText(commentId)}','${escapeText(ownerId)}',this)" title="추천">👍 <span>${Number(comment.likes||0)}</span></button>
+                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="${dislikeFn}('${escapeText(commentId)}','${escapeText(ownerId)}',this)" title="비추천">👎 <span>${Number(comment.dislikes||0)}</span></button>
             </span>
             ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
             <button class="comment-mini-btn" onclick="startEditComment('${scope}','${escapeText(commentId)}','${escapeText(ownerId)}')">수정</button>
@@ -3476,8 +3476,8 @@ function openTubeDetail(id,addView=false,addHistory=false){
             ${videoHtml}
             ${detailContent?`<div class="board-detail-content">${safe(detailContent)}</div>`:""}
             <div class="detail-like-area">
-                <button class="reaction-btn like ${hasLikedTube(id)?'active':''}" onclick="toggleTubeLike('${escapeText(id)}')" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
-                <button class="reaction-btn dislike ${hasDislikedTube(id)?'active':''}" onclick="toggleTubeDislike('${escapeText(id)}')" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
+                <button class="reaction-btn like ${hasLikedTube(id)?'active':''}" onclick="toggleTubeLike('${escapeText(id)}',this)" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
+                <button class="reaction-btn dislike ${hasDislikedTube(id)?'active':''}" onclick="toggleTubeDislike('${escapeText(id)}',this)" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
             </div>
             <div class="detail-bottom-actions">
                 <button class="back-btn" onclick="goBackToList('tube')">목록으로</button>
@@ -3703,8 +3703,8 @@ function openBoardDetail(id,addHistory=false,addView=false){
             </div>
             <div class="board-detail-content">${safe(target.content)}</div>
             <div class="detail-like-area">
-                <button class="reaction-btn like ${hasLikedBoardPost(id)?'active':''}" onclick="toggleBoardLike('${escapeText(id)}')" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
-                <button class="reaction-btn dislike ${hasDislikedBoardPost(id)?'active':''}" onclick="toggleBoardDislike('${escapeText(id)}')" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
+                <button class="reaction-btn like ${hasLikedBoardPost(id)?'active':''}" onclick="toggleBoardLike('${escapeText(id)}',this)" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
+                <button class="reaction-btn dislike ${hasDislikedBoardPost(id)?'active':''}" onclick="toggleBoardDislike('${escapeText(id)}',this)" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
             </div>
             <div class="detail-bottom-actions">
                 <button class="back-btn" onclick="goBackToList('board')">목록으로</button>
@@ -4403,8 +4403,8 @@ function openGalleryDetail(id,addHistory=false,addView=false){
             ${images.length?`<div class="gallery-detail-images">${images.map(src=>`<img src="${src}" onclick="openImageModal('${escapeText(src)}')" onerror="this.src='./axe.png'">`).join("")}</div>`:`<div class="ready">표시할 이미지가 없습니다.</div>`}
             ${String(target.content||"").trim()?`<div class="board-detail-content">${safe(target.content)}</div>`:""}
             <div class="detail-like-area">
-                <button class="reaction-btn like ${hasGalleryLiked(id)?'active':''}" onclick="toggleGalleryLike('${escapeText(id)}')" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
-                <button class="reaction-btn dislike ${hasGalleryDisliked(id)?'active':''}" onclick="toggleGalleryDislike('${escapeText(id)}')" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
+                <button class="reaction-btn like ${hasGalleryLiked(id)?'active':''}" onclick="toggleGalleryLike('${escapeText(id)}',this)" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
+                <button class="reaction-btn dislike ${hasGalleryDisliked(id)?'active':''}" onclick="toggleGalleryDislike('${escapeText(id)}',this)" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
             </div>
             <div class="detail-bottom-actions">
                 <button class="back-btn" onclick="goBackToList('gallery')">목록으로</button>
@@ -4555,8 +4555,8 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
         <div class="comment-content">${safe(comment.content)}</div>
         <div class="comment-actions">
             <span class="comment-reaction-group">
-                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="toggleGalleryCommentLike('${escapeText(commentId)}','${escapeText(galleryId)}')">👍 <span>${Number(comment.likes||0)}</span></button>
-                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="toggleGalleryCommentDislike('${escapeText(commentId)}','${escapeText(galleryId)}')">👎 <span>${Number(comment.dislikes||0)}</span></button>
+                <button class="comment-reaction-btn like ${liked?"active":""}" onclick="toggleGalleryCommentLike('${escapeText(commentId)}','${escapeText(galleryId)}',this)">👍 <span>${Number(comment.likes||0)}</span></button>
+                <button class="comment-reaction-btn dislike ${disliked?"active":""}" onclick="toggleGalleryCommentDislike('${escapeText(commentId)}','${escapeText(galleryId)}',this)">👎 <span>${Number(comment.dislikes||0)}</span></button>
             </span>
             ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
             <button class="comment-mini-btn danger" onclick="deleteGalleryComment('${escapeText(commentId)}','${escapeText(galleryId)}')">삭제</button>
@@ -7571,6 +7571,184 @@ document.addEventListener("click",function(event){
     btn.style.opacity=".72";
     setTimeout(()=>{btn.style.pointerEvents="";btn.style.opacity="";},900);
 },true);
+
+
+/* 추천/비추천 즉시 반응 보정 v2: 전체 재렌더링 없이 현재 버튼 숫자를 먼저 갱신 */
+function fastGetEventButton(btn){
+    if(btn&&btn.closest)return btn.closest(".reaction-btn,.comment-reaction-btn");
+    const ev=window.event;
+    if(ev&&ev.target&&ev.target.closest)return ev.target.closest(".reaction-btn,.comment-reaction-btn");
+    return null;
+}
+function fastButtonPair(btn){
+    if(!btn)return {like:null,dislike:null};
+    const wrap=btn.closest(".detail-like-area,.comment-reaction-group")||btn.parentElement;
+    return {
+        like:wrap?wrap.querySelector(".like"):null,
+        dislike:wrap?wrap.querySelector(".dislike"):null
+    };
+}
+function fastSetButtonNumber(btn,value){
+    if(!btn)return;
+    const span=btn.querySelector("span");
+    if(span)span.textContent=String(Math.max(0,Number(value||0)));
+}
+function fastGetButtonNumber(btn){
+    if(!btn)return 0;
+    const span=btn.querySelector("span");
+    return Number(span?span.textContent:0)||0;
+}
+function fastSetReactionButtons(btn,likes,dislikes,liked,disliked){
+    const pair=fastButtonPair(btn);
+    fastSetButtonNumber(pair.like,likes);
+    fastSetButtonNumber(pair.dislike,dislikes);
+    if(pair.like)pair.like.classList.toggle("active",!!liked);
+    if(pair.dislike)pair.dislike.classList.toggle("active",!!disliked);
+}
+function fastPostReactionV2(kind,id,action,btn){
+    const key="post-v2:"+kind+":"+id;
+    if(!fastReactionBegin(key))return;
+    btn=fastGetEventButton(btn);
+    const target=fastGetPost(kind,id);
+    const snapshot=fastSnapshot(target)||{likes:fastGetButtonNumber(fastButtonPair(btn).like),dislikes:fastGetButtonNumber(fastButtonPair(btn).dislike)};
+    const beforeLiked=fastIsLiked(kind,id);
+    const beforeDisliked=fastIsDisliked(kind,id);
+    let likes=Number(snapshot.likes||0);
+    let dislikes=Number(snapshot.dislikes||0);
+    let nextLiked=beforeLiked;
+    let nextDisliked=beforeDisliked;
+
+    if(action==="like"){
+        nextLiked=true; nextDisliked=false;
+        if(!beforeLiked)likes++;
+        if(beforeDisliked)dislikes=Math.max(0,dislikes-1);
+        fastMarkLiked(kind,id); fastUnmarkDisliked(kind,id);
+    }else if(action==="unlike"){
+        nextLiked=false;
+        if(beforeLiked)likes=Math.max(0,likes-1);
+        fastUnmarkLiked(kind,id);
+    }else if(action==="dislike"){
+        nextDisliked=true; nextLiked=false;
+        if(!beforeDisliked)dislikes++;
+        if(beforeLiked)likes=Math.max(0,likes-1);
+        fastMarkDisliked(kind,id); fastUnmarkLiked(kind,id);
+    }else if(action==="undislike"){
+        nextDisliked=false;
+        if(beforeDisliked)dislikes=Math.max(0,dislikes-1);
+        fastUnmarkDisliked(kind,id);
+    }
+
+    if(target){target.likes=likes;target.dislikes=dislikes;}
+    fastSetReactionButtons(btn,likes,dislikes,nextLiked,nextDisliked);
+
+    fastPostApi(kind,{type:fastPayloadType(kind,action,false),id:id,client_id:fastPostClient(kind)})
+    .then(data=>{
+        if(data.result==="success"||data.result==="duplicate"||data.result==="not_found")return;
+        if(target)fastRestore(target,snapshot);
+        if(beforeLiked)fastMarkLiked(kind,id);else fastUnmarkLiked(kind,id);
+        if(beforeDisliked)fastMarkDisliked(kind,id);else fastUnmarkDisliked(kind,id);
+        fastSetReactionButtons(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert(data.message||"처리 중 오류가 발생했습니다.");
+    })
+    .catch(()=>{
+        if(target)fastRestore(target,snapshot);
+        if(beforeLiked)fastMarkLiked(kind,id);else fastUnmarkLiked(kind,id);
+        if(beforeDisliked)fastMarkDisliked(kind,id);else fastUnmarkDisliked(kind,id);
+        fastSetReactionButtons(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert("처리 중 오류가 발생했습니다.");
+    })
+    .finally(()=>fastReactionEnd(key));
+}
+function fastCommentReactionV2(scope,commentId,ownerId,action,btn){
+    const key="comment-v2:"+scope+":"+commentId;
+    if(!fastReactionBegin(key))return;
+    btn=fastGetEventButton(btn);
+    const target=fastGetComment(scope,commentId);
+    const snapshot=fastSnapshot(target)||{likes:fastGetButtonNumber(fastButtonPair(btn).like),dislikes:fastGetButtonNumber(fastButtonPair(btn).dislike)};
+    const beforeLiked=hasLikedComment(scope,commentId);
+    const beforeDisliked=hasDislikedComment(scope,commentId);
+    let likes=Number(snapshot.likes||0);
+    let dislikes=Number(snapshot.dislikes||0);
+    let nextLiked=beforeLiked;
+    let nextDisliked=beforeDisliked;
+
+    if(action==="like"){
+        nextLiked=true; nextDisliked=false;
+        if(!beforeLiked)likes++;
+        if(beforeDisliked)dislikes=Math.max(0,dislikes-1);
+        markCommentLiked(scope,commentId); unmarkCommentDisliked(scope,commentId);
+    }else if(action==="unlike"){
+        nextLiked=false;
+        if(beforeLiked)likes=Math.max(0,likes-1);
+        unmarkCommentLiked(scope,commentId);
+    }else if(action==="dislike"){
+        nextDisliked=true; nextLiked=false;
+        if(!beforeDisliked)dislikes++;
+        if(beforeLiked)likes=Math.max(0,likes-1);
+        markCommentDisliked(scope,commentId); unmarkCommentLiked(scope,commentId);
+    }else if(action==="undislike"){
+        nextDisliked=false;
+        if(beforeDisliked)dislikes=Math.max(0,dislikes-1);
+        unmarkCommentDisliked(scope,commentId);
+    }
+
+    if(target){target.likes=likes;target.dislikes=dislikes;}
+    fastSetReactionButtons(btn,likes,dislikes,nextLiked,nextDisliked);
+
+    fastPostApi(scope,{type:fastPayloadType(scope,action,true),comment_id:commentId,client_id:getCommentLikeClientId(scope)})
+    .then(data=>{
+        if(data.result==="success"||data.result==="duplicate"||data.result==="not_found")return;
+        if(target)fastRestore(target,snapshot);
+        if(beforeLiked)markCommentLiked(scope,commentId);else unmarkCommentLiked(scope,commentId);
+        if(beforeDisliked)markCommentDisliked(scope,commentId);else unmarkCommentDisliked(scope,commentId);
+        fastSetReactionButtons(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert(data.message||"댓글 반응 처리 중 오류가 발생했습니다.");
+    })
+    .catch(()=>{
+        if(target)fastRestore(target,snapshot);
+        if(beforeLiked)markCommentLiked(scope,commentId);else unmarkCommentLiked(scope,commentId);
+        if(beforeDisliked)markCommentDisliked(scope,commentId);else unmarkCommentDisliked(scope,commentId);
+        fastSetReactionButtons(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert("댓글 반응 처리 중 오류가 발생했습니다.");
+    })
+    .finally(()=>fastReactionEnd(key));
+}
+function toggleBoardLike(id,btn){fastPostReactionV2("board",id,hasLikedBoardPost(id)?"unlike":"like",btn);}
+function likeBoardPost(id,btn){fastPostReactionV2("board",id,"like",btn);}
+function unlikeBoardPost(id,btn){fastPostReactionV2("board",id,"unlike",btn);}
+function toggleBoardDislike(id,btn){fastPostReactionV2("board",id,hasDislikedBoardPost(id)?"undislike":"dislike",btn);}
+function dislikeBoardPost(id,btn){fastPostReactionV2("board",id,"dislike",btn);}
+function undislikeBoardPost(id,btn){fastPostReactionV2("board",id,"undislike",btn);}
+function toggleTubeLike(id,btn){fastPostReactionV2("tube",id,hasLikedTube(id)?"unlike":"like",btn);}
+function likeTube(id,btn){fastPostReactionV2("tube",id,"like",btn);}
+function unlikeTube(id,btn){fastPostReactionV2("tube",id,"unlike",btn);}
+function toggleTubeDislike(id,btn){fastPostReactionV2("tube",id,hasDislikedTube(id)?"undislike":"dislike",btn);}
+function dislikeTube(id,btn){fastPostReactionV2("tube",id,"dislike",btn);}
+function undislikeTube(id,btn){fastPostReactionV2("tube",id,"undislike",btn);}
+function toggleGalleryLike(id,btn){fastPostReactionV2("gallery",id,hasGalleryLiked(id)?"unlike":"like",btn);}
+function likeGallery(id,btn){fastPostReactionV2("gallery",id,"like",btn);}
+function unlikeGallery(id,btn){fastPostReactionV2("gallery",id,"unlike",btn);}
+function toggleGalleryDislike(id,btn){fastPostReactionV2("gallery",id,hasGalleryDisliked(id)?"undislike":"dislike",btn);}
+function dislikeGallery(id,btn){fastPostReactionV2("gallery",id,"dislike",btn);}
+function undislikeGallery(id,btn){fastPostReactionV2("gallery",id,"undislike",btn);}
+function toggleBoardCommentLike(commentId,postId,btn){fastCommentReactionV2("board",commentId,postId,hasLikedComment("board",commentId)?"unlike":"like",btn);}
+function likeBoardComment(commentId,postId,btn){fastCommentReactionV2("board",commentId,postId,"like",btn);}
+function unlikeBoardComment(commentId,postId,btn){fastCommentReactionV2("board",commentId,postId,"unlike",btn);}
+function toggleBoardCommentDislike(commentId,postId,btn){fastCommentReactionV2("board",commentId,postId,hasDislikedComment("board",commentId)?"undislike":"dislike",btn);}
+function dislikeBoardComment(commentId,postId,btn){fastCommentReactionV2("board",commentId,postId,"dislike",btn);}
+function undislikeBoardComment(commentId,postId,btn){fastCommentReactionV2("board",commentId,postId,"undislike",btn);}
+function toggleTubeCommentLike(commentId,tubeId,btn){fastCommentReactionV2("tube",commentId,tubeId,hasLikedComment("tube",commentId)?"unlike":"like",btn);}
+function likeTubeComment(commentId,tubeId,btn){fastCommentReactionV2("tube",commentId,tubeId,"like",btn);}
+function unlikeTubeComment(commentId,tubeId,btn){fastCommentReactionV2("tube",commentId,tubeId,"unlike",btn);}
+function toggleTubeCommentDislike(commentId,tubeId,btn){fastCommentReactionV2("tube",commentId,tubeId,hasDislikedComment("tube",commentId)?"undislike":"dislike",btn);}
+function dislikeTubeComment(commentId,tubeId,btn){fastCommentReactionV2("tube",commentId,tubeId,"dislike",btn);}
+function undislikeTubeComment(commentId,tubeId,btn){fastCommentReactionV2("tube",commentId,tubeId,"undislike",btn);}
+function toggleGalleryCommentLike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,hasLikedComment("gallery",commentId)?"unlike":"like",btn);}
+function galleryCommentLike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,"like",btn);}
+function galleryCommentUnlike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,"unlike",btn);}
+function toggleGalleryCommentDislike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,hasDislikedComment("gallery",commentId)?"undislike":"dislike",btn);}
+function galleryCommentDislike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,"dislike",btn);}
+function galleryCommentUndislike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,"undislike",btn);}
 
 </script>
 </body>
