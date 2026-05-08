@@ -11842,6 +11842,218 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     }
 }
 
+
+
+/* AXE NET V11.1 : 정보 카테고리 위계 정리 - 문구 제거 / 전 탭 적용 / 접두·접미 제외 */
+.info-menu::before,
+.sub-filter::before,
+.quest-filter::before,
+.skill-rank-tabs::before,
+.modbook-category-tabs::before{
+    content:none!important;
+    display:none!important;
+}
+
+/* 상위 카테고리: 제작·퀘스트·가공/재련·개조서·스킬랭크 */
+.info-menu{
+    position:relative!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:10px!important;
+    margin:0 0 16px!important;
+    padding:14px!important;
+    border-radius:18px!important;
+    border:1px solid rgba(255,181,46,.20)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.10),rgba(255,255,255,.018)),rgba(9,9,9,.92)!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+
+.info-menu button{
+    flex:0 0 auto!important;
+    min-width:104px!important;
+    height:46px!important;
+    padding:0 19px!important;
+    border-radius:14px!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.018)),#101010!important;
+    color:#cfcfcf!important;
+    font-size:15px!important;
+    font-weight:950!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+
+.info-menu button:hover{
+    color:#fff!important;
+    border-color:rgba(255,181,46,.45)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.08),rgba(255,255,255,.02)),#111!important;
+    transform:translateY(-1px)!important;
+}
+
+.info-menu button.active{
+    color:#111!important;
+    border-color:rgba(255,181,46,.92)!important;
+    background:linear-gradient(135deg,#ffd36d,#ffb52e 56%,#ff8c00)!important;
+    box-shadow:0 10px 24px rgba(255,181,46,.22)!important;
+}
+
+/* 하위 카테고리 공통: 제작 분류, 퀘스트 직업, 가공/재련 직업, 스킬 선택, 개조서 분류 */
+.sub-filter,
+.quest-filter,
+.skill-rank-tabs,
+.modbook-category-tabs{
+    position:relative!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:9px!important;
+    margin:0 0 15px!important;
+    padding:11px 12px!important;
+    border-radius:16px!important;
+    border:1px solid rgba(255,255,255,.075)!important;
+    border-left:3px solid rgba(255,181,46,.48)!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(255,255,255,.012)),rgba(7,7,7,.88)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+.sub-filter button,
+.quest-filter button,
+.skill-rank-tabs button,
+.modbook-category-tabs button{
+    flex:0 0 auto!important;
+    min-width:82px!important;
+    height:38px!important;
+    padding:0 15px!important;
+    border-radius:12px!important;
+    border:1px solid rgba(255,255,255,.09)!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.048),rgba(255,255,255,.014)),#111!important;
+    color:#b9b9b9!important;
+    font-size:13.5px!important;
+    font-weight:900!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+.sub-filter button:hover,
+.quest-filter button:hover,
+.skill-rank-tabs button:hover,
+.modbook-category-tabs button:hover{
+    color:#fff!important;
+    border-color:rgba(255,181,46,.34)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.055),rgba(255,255,255,.016)),#111!important;
+    transform:translateY(-1px)!important;
+}
+
+.sub-filter button.active,
+.quest-filter button.active,
+.skill-rank-tabs button.active,
+.modbook-category-tabs button.active{
+    color:#ffcf75!important;
+    background:rgba(255,181,46,.12)!important;
+    border-color:rgba(255,181,46,.55)!important;
+    box-shadow:inset 0 0 0 1px rgba(255,181,46,.10)!important;
+}
+
+.sub-filter button.active::before,
+.quest-filter button.active::before,
+.skill-rank-tabs button.active::before,
+.modbook-category-tabs button.active::before{
+    background:rgba(255,207,117,.92)!important;
+}
+
+.sub-filter button.active::after,
+.quest-filter button.active::after,
+.skill-rank-tabs button.active::after,
+.modbook-category-tabs button.active::after{
+    display:none!important;
+}
+
+/* 접두/접미 탭은 기존 파랑/빨강 구조 유지 */
+.modbook-type-tabs,
+.modbook-type-tabs button,
+.modbook-type-tabs button.active.prefix,
+.modbook-type-tabs button.active.suffix{
+    /* intentionally left to existing modbook type styles */
+}
+
+/* 기존 '직업 선택', '스킬 선택', '분류 선택' 라벨은 작게 정돈 */
+.quest-filter-title,
+.modbook-section-label{
+    margin:0 0 7px 2px!important;
+    color:#858585!important;
+    font-size:11px!important;
+    font-weight:950!important;
+    letter-spacing:.3px!important;
+}
+
+.skill-rank-filter-head{
+    margin-bottom:7px!important;
+}
+
+.skill-rank-tabs{
+    width:100%!important;
+    max-width:none!important;
+    display:flex!important;
+    grid-template-columns:none!important;
+}
+
+.modbook-category-wrap{
+    margin-bottom:14px!important;
+}
+
+.result-info{
+    margin-bottom:14px!important;
+    padding-left:2px!important;
+}
+
+@media(max-width:768px){
+    .info-menu{
+        flex-wrap:nowrap!important;
+        overflow-x:auto!important;
+        gap:8px!important;
+        padding:11px!important;
+        margin-bottom:13px!important;
+        border-radius:16px!important;
+    }
+
+    .sub-filter,
+    .quest-filter,
+    .skill-rank-tabs,
+    .modbook-category-tabs{
+        flex-wrap:nowrap!important;
+        overflow-x:auto!important;
+        gap:8px!important;
+        padding:10px!important;
+        margin-bottom:13px!important;
+        border-radius:14px!important;
+        scrollbar-width:none!important;
+    }
+
+    .info-menu::-webkit-scrollbar,
+    .sub-filter::-webkit-scrollbar,
+    .quest-filter::-webkit-scrollbar,
+    .skill-rank-tabs::-webkit-scrollbar,
+    .modbook-category-tabs::-webkit-scrollbar{
+        display:none!important;
+    }
+
+    .info-menu button{
+        min-width:auto!important;
+        height:40px!important;
+        padding:0 14px!important;
+        font-size:13px!important;
+        border-radius:12px!important;
+    }
+
+    .sub-filter button,
+    .quest-filter button,
+    .skill-rank-tabs button,
+    .modbook-category-tabs button{
+        min-width:auto!important;
+        height:36px!important;
+        padding:0 13px!important;
+        font-size:12px!important;
+        border-radius:11px!important;
+    }
+}
+
 </style>
 
 <script id="axe-v10-5-youtube-tube-script">
