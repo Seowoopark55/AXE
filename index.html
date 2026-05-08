@@ -9099,5 +9099,118 @@ function resetAdminMemberPassword(memberId,safeId,btn){
 })();
 
 </script>
+
+<!-- AXE NET V9: 시트 유지형 모바일/모달 UX 안정화 패치 -->
+<style id="axe-v9-sheet-ui-polish-style">
+html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:none}
+@media(max-width:760px){
+    .form-modal.active,.video-modal.active,.image-modal.active{overscroll-behavior:contain}
+    .form-box,.video-box{max-height:92vh;display:flex;flex-direction:column}
+    .form-body{overflow:auto;-webkit-overflow-scrolling:touch}
+    .form-head,.video-head{flex:0 0 auto}
+    .member-profile-box,.notification-box,.point-history-box{max-height:92vh}
+    #memberProfileBody,#notificationList,#pointHistoryList{max-height:62vh;overflow:auto;-webkit-overflow-scrolling:touch}
+    .auth-inline-shell{max-width:100%;overflow:hidden}
+    .auth-inline-profile strong{min-width:0;text-overflow:ellipsis;overflow:hidden}
+    .main-menu button,.auth-btn,.auth-inline-profile,.auth-inline-point,.auth-inline-notify,.auth-inline-logout,
+    .tube-submit-open,.back-btn,.board-action-btn,.reaction-btn,.comment-mini-btn,.comment-reaction-btn,
+    .admin-mini-btn,.form-submit,.comment-submit{touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,181,46,.18)}
+    .tube-submit-open:active,.back-btn:active,.board-action-btn:active,.reaction-btn:active,.comment-mini-btn:active,
+    .comment-reaction-btn:active,.admin-mini-btn:active,.form-submit:active,.comment-submit:active{transform:scale(.985)}
+    .gallery-detail-images{gap:8px;margin-top:12px}
+    .gallery-detail-images img{max-height:72vh;border-radius:12px}
+    .member-profile-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    .member-profile-tabs button{width:100%;height:36px}
+    .notification-toolbar{position:sticky;top:0;z-index:2;background:#0d0d0d;padding-bottom:8px}
+    .point-log-list,.notification-list,.member-profile-list{padding-bottom:6px}
+}
+@media(max-width:420px){
+    .auth-inline-shell{gap:5px}
+    .auth-inline-logout{padding:0 8px!important}
+    .member-profile-stats{grid-template-columns:1fr 1fr!important}
+    .member-profile-stat{padding:10px 8px}
+    .member-profile-stat strong{font-size:17px}
+}
+</style>
+<script id="axe-v9-sheet-ui-polish-script">
+(function(){
+    if(window.__axeV9SheetUiPolishApplied)return;
+    window.__axeV9SheetUiPolishApplied=true;
+
+    const modalIds=["authModal","tubeFormModal","boardFormModal","galleryFormModal","pointHistoryModal","memberProfileModal","notificationModal","videoModal","imageModal"];
+
+    function hasActiveModal(){
+        return modalIds.some(function(id){
+            const el=document.getElementById(id);
+            return !!(el&&el.classList&&el.classList.contains("active"));
+        });
+    }
+
+    function syncModalOpenState(){
+        const active=hasActiveModal();
+        document.documentElement.classList.toggle("axe-modal-open",active);
+        document.body.classList.toggle("axe-modal-open",active);
+    }
+
+    function wrapFunction(name,afterDelay){
+        const original=window[name];
+        if(typeof original!=="function"||original.__axeV9Wrapped)return;
+        const wrapped=function(){
+            const result=original.apply(this,arguments);
+            setTimeout(syncModalOpenState,afterDelay||0);
+            return result;
+        };
+        wrapped.__axeV9Wrapped=true;
+        window[name]=wrapped;
+    }
+
+    [
+        "openAuthModal","closeAuthModal",
+        "openTubeForm","closeTubeForm",
+        "openBoardForm","closeBoardForm",
+        "openGalleryForm","closeGalleryForm",
+        "openPointHistoryModal","closePointHistoryModal",
+        "openMemberProfile","closeMemberProfileModal",
+        "openNotificationModal","closeNotificationModal",
+        "openImageModal","closeImageModal",
+        "openVideo","closeVideo"
+    ].forEach(function(name){wrapFunction(name,20);});
+
+    document.addEventListener("keydown",function(event){
+        if(event.key!=="Escape")return;
+        const closeOrder=[
+            ["imageModal","closeImageModal"],
+            ["videoModal","closeVideo"],
+            ["notificationModal","closeNotificationModal"],
+            ["memberProfileModal","closeMemberProfileModal"],
+            ["pointHistoryModal","closePointHistoryModal"],
+            ["galleryFormModal","closeGalleryForm"],
+            ["boardFormModal","closeBoardForm"],
+            ["tubeFormModal","closeTubeForm"],
+            ["authModal","closeAuthModal"]
+        ];
+        for(const item of closeOrder){
+            const modal=document.getElementById(item[0]);
+            const closer=window[item[1]];
+            if(modal&&modal.classList.contains("active")&&typeof closer==="function"){
+                event.preventDefault();
+                closer();
+                setTimeout(syncModalOpenState,20);
+                return;
+            }
+        }
+    });
+
+    const observer=new MutationObserver(syncModalOpenState);
+    setTimeout(function(){
+        modalIds.forEach(function(id){
+            const el=document.getElementById(id);
+            if(el)observer.observe(el,{attributes:true,attributeFilter:["class"]});
+        });
+        syncModalOpenState();
+    },50);
+})();
+</script>
+
 </body>
 </html>
