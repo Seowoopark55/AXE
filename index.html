@@ -116,7 +116,11 @@ body{margin:0;background:radial-gradient(circle at top,rgba(255,181,46,.14),tran
 .loading-logo{width:120px;height:120px;border-radius:24px;border:1px solid rgba(255,181,46,.35);background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:14px;animation:pulseLogo 1.4s ease-in-out infinite}
 .loading-logo img{max-width:100%;max-height:100%;object-fit:contain}
 .loading-title{margin-top:20px;font-size:28px;font-weight:950;color:#ffb52e;letter-spacing:1px}
-.loading-text{margin-top:8px;font-size:13px;color:#aaa;letter-spacing:.4px}
+.loading-text{margin-top:8px;font-size:13px;color:#aaa;letter-spacing:.4px;min-height:18px;transition:opacity .18s ease,color .18s ease}
+.loading-progress{position:relative;width:210px;height:6px;margin-top:14px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.loading-progress::before{content:"";position:absolute;left:-45%;top:0;width:42%;height:100%;border-radius:999px;background:linear-gradient(90deg,transparent,rgba(255,181,46,.88),rgba(255,207,117,.95),transparent);animation:loadingProgressMove 1.25s ease-in-out infinite}
+.loading-subtext{margin-top:8px;font-size:11px;color:#666;font-weight:800;letter-spacing:.2px;min-height:14px}
+@keyframes loadingProgressMove{0%{left:-45%;opacity:.25}35%{opacity:1}100%{left:110%;opacity:.25}}
 @keyframes pulseLogo{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(255,181,46,0)}50%{transform:scale(1.04);box-shadow:0 0 34px rgba(255,181,46,.22)}}
 
 .wrap{max-width:1280px;margin:auto;padding:28px 18px 50px}
@@ -1741,7 +1745,32 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 <div id="loadingScreen">
     <div class="loading-logo"><img src="./axe.png" alt="AXE 로고"></div>
     <div class="loading-title">AXE NET</div>
-    <div class="loading-text">시스템 접속 중...</div>
+    <div class="loading-text" id="loadingText">AXE NET 접속 준비 중...</div>
+    <div class="loading-progress" id="loadingProgress"></div>
+    <div class="loading-subtext" id="loadingSubtext">시스템 연결 확인</div>
+    <script>
+    (function(){
+        var steps=[
+            ["AXE NET 접속 준비 중...","시스템 연결 확인"],
+            ["전체 데이터를 불러오는 중...","공지 · 게시판 · 갤러리 · 랭킹 준비"],
+            ["회원/포인트 정보를 정리하는 중...","로그인 상태와 알림 확인"],
+            ["화면 구성을 마무리하는 중...","잠시 후 AXE NET이 열립니다"]
+        ];
+        var i=0;
+        function apply(){
+            var main=document.getElementById("loadingText");
+            var sub=document.getElementById("loadingSubtext");
+            if(main)main.textContent=steps[i][0];
+            if(sub)sub.textContent=steps[i][1];
+        }
+        apply();
+        window.__axeLoadingStepTimer=setInterval(function(){
+            i=Math.min(i+1,steps.length-1);
+            apply();
+            if(i>=steps.length-1){clearInterval(window.__axeLoadingStepTimer);window.__axeLoadingStepTimer=null;}
+        },850);
+    })();
+    </script>
 </div>
 
 <div class="wrap">
@@ -2548,22 +2577,68 @@ function backgroundRefreshCurrentRoute(){
     });
 }
 
+const INITIAL_LOADING_MIN_MS=650;
+let initialLoadingStartedAt=Date.now();
+let loadingStepIndex=0;
+let loadingStepTimer=null;
+const loadingSteps=[
+    {text:"AXE NET 접속 준비 중...",sub:"시스템 연결 확인"},
+    {text:"전체 데이터를 불러오는 중...",sub:"공지 · 게시판 · 갤러리 · 랭킹 준비"},
+    {text:"회원/포인트 정보를 정리하는 중...",sub:"로그인 상태와 알림 확인"},
+    {text:"화면 구성을 마무리하는 중...",sub:"잠시 후 AXE NET이 열립니다"}
+];
+
+function setLoadingMessage(text,sub){
+    const main=document.getElementById("loadingText");
+    const subEl=document.getElementById("loadingSubtext");
+    if(main)main.textContent=text||"AXE NET 준비 중...";
+    if(subEl)subEl.textContent=sub||"";
+}
+
+function startInitialLoadingSteps(){
+    loadingStepIndex=0;
+    if(window.__axeLoadingStepTimer){clearInterval(window.__axeLoadingStepTimer);window.__axeLoadingStepTimer=null;}
+    setLoadingMessage(loadingSteps[0].text,loadingSteps[0].sub);
+    if(loadingStepTimer)clearInterval(loadingStepTimer);
+    loadingStepTimer=setInterval(function(){
+        loadingStepIndex=Math.min(loadingStepIndex+1,loadingSteps.length-1);
+        const step=loadingSteps[loadingStepIndex];
+        setLoadingMessage(step.text,step.sub);
+        if(loadingStepIndex>=loadingSteps.length-1){
+            clearInterval(loadingStepTimer);
+            loadingStepTimer=null;
+        }
+    },900);
+}
+
+function finishInitialLoading(){
+    if(loadingStepTimer){clearInterval(loadingStepTimer);loadingStepTimer=null;}
+    setLoadingMessage("접속 준비 완료", "AXE NET으로 이동합니다");
+    const elapsed=Date.now()-initialLoadingStartedAt;
+    const delay=Math.max(180,INITIAL_LOADING_MIN_MS-elapsed);
+    setTimeout(hideLoading,delay);
+}
+
+startInitialLoadingSteps();
 const hasCachedData=applyCachedData();
 if(hasCachedData){
+    setLoadingMessage("저장된 데이터를 적용하는 중...","최신 데이터는 뒤에서 확인합니다");
     initMainHistory();
     afterRenderAuth();
-    hideLoading();
+    finishInitialLoading();
     backgroundRefreshCurrentRoute();
 }else{
     refreshData()
     .then(()=>{
+        setLoadingMessage("데이터 적용 중...","화면 구성을 마무리합니다");
         initMainHistory();
         afterRenderAuth();
-        hideLoading();
+        finishInitialLoading();
     })
     .catch(()=>{
         document.getElementById("content").innerHTML=`<div class="ready">데이터를 불러오지 못했습니다.</div>`;
-        hideLoading();
+        setLoadingMessage("데이터를 불러오지 못했습니다","잠시 후 다시 시도해주세요");
+        setTimeout(hideLoading,500);
     });
 }
 
@@ -2573,6 +2648,8 @@ setInterval(function(){
 },60000);
 
 function hideLoading(){
+    if(window.__axeLoadingStepTimer){clearInterval(window.__axeLoadingStepTimer);window.__axeLoadingStepTimer=null;}
+    if(loadingStepTimer){clearInterval(loadingStepTimer);loadingStepTimer=null;}
     const loading=document.getElementById("loadingScreen");
     if(!loading)return;
     loading.classList.add("hide");
