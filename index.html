@@ -2401,6 +2401,15 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .food-admin-table{display:grid;gap:8px}.food-admin-row{border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);border-radius:14px;padding:12px}.food-admin-row.done{opacity:.55;background:rgba(255,255,255,.025)}.food-admin-row.done .food-admin-main,.food-admin-row.done .food-admin-items{text-decoration:line-through;color:#888}.food-admin-main{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-size:13px;color:#ddd;font-weight:900}.food-admin-buyer{color:#ffcf75}.food-admin-items{margin-top:7px;color:#ddd;font-size:13px;line-height:1.55;white-space:pre-line}.food-admin-sub{margin-top:7px;color:#888;font-size:12px;line-height:1.45}.food-admin-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.food-status-btn{height:31px;padding:0 9px;font-size:11.5px}.food-status-btn.active{color:#111;background:#ffb52e;border-color:#ffb52e}.food-empty{padding:18px;color:#888;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:13px;background:rgba(255,255,255,.025)}
 @media(max-width:1020px){.food-layout{grid-template-columns:1fr}.food-side{position:static}.food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.food-grid{grid-template-columns:1fr}.food-category-title{font-size:18px}.food-card{padding:13px}.food-img{padding:8px}.food-desc{font-size:12px;padding:9px 10px}.food-meta{display:block}.food-price{margin-top:5px}.food-admin-main{display:block}.food-admin-main>div:last-child{margin-top:4px;color:#aaa}.food-admin-actions{display:grid;grid-template-columns:1fr 1fr}.food-status-btn{width:100%}}
+
+.food-top-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.food-admin-open-btn{height:40px;padding:0 15px;border-radius:12px;border:1px solid rgba(255,181,46,.36);background:rgba(255,181,46,.1);color:#ffcf75;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease;white-space:nowrap}
+.food-admin-open-btn:hover{background:rgba(255,181,46,.16);border-color:rgba(255,181,46,.62);transform:translateY(-1px)}
+.food-admin-page-grid{display:grid;grid-template-columns:330px 1fr;gap:14px;align-items:start}
+.food-admin-page-grid .food-box{min-height:0}
+.food-admin-page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.food-admin-page-title{font-size:19px;font-weight:950;color:#ffb52e}
+@media(max-width:920px){.food-admin-page-grid{grid-template-columns:1fr}.food-top-actions{justify-content:flex-start;margin-top:10px}.food-admin-open-btn{width:100%}}
 /* V13.1.1: PC 메뉴 버튼 수 증가 대응 */
 @media(min-width:769px){
     .main-menu{overflow-x:auto!important;scrollbar-width:thin;scrollbar-color:rgba(255,181,46,.55) rgba(255,255,255,.08)}
@@ -13553,7 +13562,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
         adminApi({type:"food_order_status_update",id:id,status:status})
         .then(data=>{
-            if(data.result==="success")return refreshData().then(()=>showFoodOrder());
+            if(data.result==="success")return refreshData().then(()=>currentMainSection==="foodAdmin"?showFoodOrderAdmin():showFoodOrder());
             alert(data.message||"상태 변경 중 오류가 발생했습니다.");
         })
         .catch(()=>{});
@@ -13652,25 +13661,44 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         return `<div class="food-summary-list">${rows.map(row=>`<div class="food-summary-row"><span>${safe(row.name)}</span><strong>${Number(row.qty)}세트</strong></div>`).join("")}</div>`;
     }
 
+    function renderFoodAdminList(){
+        const orders=todayFoodOrders();
+        return orders.length?`<div class="food-admin-table">${orders.map(order=>{
+            const status=String(order.status||"접수");
+            const done=status==="전달완료"||status==="취소";
+            return `<div class="food-admin-row ${done?'done':''}">
+                <div class="food-admin-main"><div><span class="food-admin-buyer">${safe(order.buyer||"-")}</span> · ${safe(status)}</div><div>${foodPrice(order.total_price)}</div></div>
+                <div class="food-admin-items">${safe(foodOrderItemsText(order))}</div>
+                <div class="food-admin-sub">${safe(order.date||"")}${order.memo?` · 메모: ${safe(order.memo)}`:""}</div>
+                <div class="food-admin-actions">
+                    ${["접수","제작완료","전달완료","취소"].map(s=>`<button class="food-status-btn ${status===s?'active':''}" onclick="updateFoodOrderStatus('${escapeText(order.id)}','${s}')">${s}</button>`).join("")}
+                </div>
+            </div>`;
+        }).join("")}</div>`:`<div class="food-empty">오늘 접수된 주문이 없습니다.</div>`;
+    }
+
     function renderFoodAdmin(){
         if(!isCurrentAdmin())return "";
-        const orders=todayFoodOrders();
         return `<div class="food-box" style="grid-column:1/-1">
             <div class="food-box-title">오늘 주문 관리</div>
-            ${orders.length?`<div class="food-admin-table">${orders.map(order=>{
-                const status=String(order.status||"접수");
-                const done=status==="전달완료"||status==="취소";
-                return `<div class="food-admin-row ${done?'done':''}">
-                    <div class="food-admin-main"><div><span class="food-admin-buyer">${safe(order.buyer||"-")}</span> · ${safe(status)}</div><div>${foodPrice(order.total_price)}</div></div>
-                    <div class="food-admin-items">${safe(foodOrderItemsText(order))}</div>
-                    <div class="food-admin-sub">${safe(order.date||"")}${order.memo?` · 메모: ${safe(order.memo)}`:""}</div>
-                    <div class="food-admin-actions">
-                        ${["접수","제작완료","전달완료","취소"].map(s=>`<button class="food-status-btn ${status===s?'active':''}" onclick="updateFoodOrderStatus('${escapeText(order.id)}','${s}')">${s}</button>`).join("")}
-                    </div>
-                </div>`;
-            }).join("")}</div>`:`<div class="food-empty">오늘 접수된 주문이 없습니다.</div>`}
+            ${renderFoodAdminList()}
         </div>`;
     }
+
+    window.showFoodOrderAdmin=function(){
+        if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");showFoodOrder();return;}
+        enterMainSection("foodAdmin");
+        setMainActive(9);
+        document.getElementById("content").innerHTML=`
+            <div class="section-head with-action">
+                <div><div class="section-title">오늘 주문 관리</div><div class="section-desc">오늘 접수된 요리 주문과 제작 수량을 관리합니다.</div></div>
+                <div class="section-action"><button class="back-btn" onclick="showFoodOrder()">요리주문으로</button></div>
+            </div>
+            <div class="food-admin-page-grid">
+                <div class="food-box"><div class="food-box-title">오늘 제작 요약</div>${renderFoodSummary()}</div>
+                <div class="food-box"><div class="food-admin-page-head"><div class="food-admin-page-title">오늘 주문 목록</div><button class="food-status-btn" onclick="refreshData().then(()=>showFoodOrderAdmin())">새로고침</button></div>${renderFoodAdminList()}</div>
+            </div>`;
+    };
 
     window.showFoodOrder=function(){
         enterMainSection("food");
@@ -13681,9 +13709,9 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         menus.forEach(m=>{const cat=String(m.category||"기타");if(!groups[cat])groups[cat]=[];groups[cat].push(m);});
         const groupHtml=Object.keys(groups).map(cat=>`<div class="food-category-block"><div class="food-category-title">${safe(cat)}</div><div class="food-grid">${groups[cat].map((m,i)=>renderFoodMenuCard(m,i)).join("")}</div></div>`).join("");
         document.getElementById("content").innerHTML=`
-            <div class="section-head">
+            <div class="section-head with-action">
                 <div><div class="section-title">요리주문</div><div class="section-desc">팀원용 간편 주문판입니다. 주문자는 로그인 닉네임으로 자동 기록됩니다.</div></div>
-                <div class="count">FOOD</div>
+                <div class="section-action food-top-actions">${isCurrentAdmin()?`<button class="food-admin-open-btn" onclick="showFoodOrderAdmin()">오늘 주문 관리</button>`:""}<div class="count">FOOD</div></div>
             </div>
             <div class="food-layout">
                 <div>${menus.length?groupHtml:`<div class="food-empty">요리메뉴 시트에 표시할 메뉴가 없습니다.</div>`}</div>
@@ -13691,7 +13719,6 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="food-box"><div class="food-box-title">장바구니</div>${renderFoodCart()}</div>
                     <div class="food-box"><div class="food-box-title">오늘 제작 요약</div>${renderFoodSummary()}</div>
                 </div>
-                ${renderFoodAdmin()}
             </div>`;
     };
 })();
