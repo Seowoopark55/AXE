@@ -2120,6 +2120,22 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+/* AXE NET V10.9.1: 모바일 갤러리 메타 줄 한 줄 고정 보강 */
+@media(max-width:768px){
+    .gallery-card .gallery-meta{
+        display:flex!important;
+        flex-wrap:nowrap!important;
+        align-items:center!important;
+        overflow:hidden!important;
+        white-space:nowrap!important;
+        text-overflow:ellipsis!important;
+    }
+    .gallery-card .gallery-meta *{
+        white-space:nowrap!important;
+    }
+}
+
 </style>
 </head>
 
@@ -4146,7 +4162,7 @@ function renderBoardList(){
         return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
             <div class="board-table-title">${title}</div>
             <div class="board-table-cell">${renderWriterName(post.writer,post.writer_badge)}</div>
-            <div class="board-table-cell date">${formatDate(post.date)}</div>
+            <div class="board-table-cell date">${formatDateOnly(post.date)}</div>
             <div class="board-table-cell">${Number(post.views||0)}</div>
             <div class="board-table-cell">👍 ${Number(post.likes||0)}</div>
         </div>`;
@@ -4707,7 +4723,7 @@ function renderGalleryList(){
             <div class="gallery-thumb"><img src="${thumb}" onerror="this.src='./axe.png'"></div>
             <div class="gallery-body">
                 <div class="gallery-title">${safe(post.title)}</div>
-                <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDate(post.date)}</div>
+                <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDateOnly(post.date)}</div>
                 <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
                 <div class="gallery-meta compact">
                     <span class="tube-stat-badge gallery-stat">조회 ${Number(post.views||0)}</span>
@@ -5233,7 +5249,7 @@ function showHome(){
                 ${recentBoards.length?recentBoards.map((post,index)=>`
                     <div class="home-board-item" onclick="navigateMain('board'); setTimeout(()=>selectBoardPost('${escapeText(getBoardId(post,index))}'),60);">
                         <div class="home-board-title">${safe(post.title)}</div>
-                        <div class="home-board-meta">${renderWriterName(post.writer,post.writer_badge)} · ${formatDate(post.date)}</div>
+                        <div class="home-board-meta">${renderWriterName(post.writer,post.writer_badge)} · ${formatDateOnly(post.date)}</div>
                     </div>
                 `).join(""):`<div class="ready">등록된 게시글이 없습니다.</div>`}
             </div>
@@ -7087,7 +7103,7 @@ function renderNotificationRow(item){
         <div class="notification-meta">
             <span class="notification-type">${safe(typeLabel)}</span>
             <span>보낸 사람: ${safe(item.sender||"-")}</span>
-            <span>${formatDate(item.date)}</span>
+            <span>${formatDateOnly(item.date)}</span>
         </div>
     </div>`;
 }
@@ -9865,7 +9881,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V10.9: 모바일 갤러리 목록 날짜 간소화 -->
+<!-- AXE NET V10.9.1: 모바일 갤러리 목록 시간 표시 제거 보강 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -10306,5 +10322,52 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 })();
 </script>
 
+<script>
+
+/* AXE NET V10.9.1: 모바일 갤러리 목록 시간 표시 제거 */
+(function(){
+    function simplifyGalleryMobileDates(){
+        try{
+            if(!window.matchMedia || !window.matchMedia("(max-width: 768px)").matches)return;
+            document.querySelectorAll(".gallery-card .gallery-meta, .gallery-row .gallery-meta, .gallery-list .gallery-meta").forEach(function(el){
+                el.childNodes.forEach(function(node){
+                    if(node.nodeType===3){
+                        node.nodeValue = node.nodeValue.replace(/(\d{4}\.\d{2}\.\d{2})\s+\d{1,2}:\d{2}/g, "$1");
+                    }
+                });
+                el.querySelectorAll("*").forEach(function(child){
+                    if(child.childNodes && child.childNodes.length){
+                        child.childNodes.forEach(function(node){
+                            if(node.nodeType===3){
+                                node.nodeValue = node.nodeValue.replace(/(\d{4}\.\d{2}\.\d{2})\s+\d{1,2}:\d{2}/g, "$1");
+                            }
+                        });
+                    }
+                });
+            });
+        }catch(e){}
+    }
+    window.simplifyGalleryMobileDates = simplifyGalleryMobileDates;
+    document.addEventListener("DOMContentLoaded", simplifyGalleryMobileDates);
+    const originalShowGallery = window.showGallery;
+    if(typeof originalShowGallery === "function"){
+        window.showGallery = function(){
+            const result = originalShowGallery.apply(this, arguments);
+            setTimeout(simplifyGalleryMobileDates, 0);
+            setTimeout(simplifyGalleryMobileDates, 80);
+            return result;
+        };
+    }
+    const originalOpenGalleryDetail = window.openGalleryDetail;
+    if(typeof originalOpenGalleryDetail === "function"){
+        window.openGalleryDetail = function(){
+            const result = originalOpenGalleryDetail.apply(this, arguments);
+            setTimeout(simplifyGalleryMobileDates, 0);
+            return result;
+        };
+    }
+})();
+
+</script>
 </body>
 </html>
