@@ -9645,7 +9645,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V10.6: AXE TUBE 상세 추천/비추천 중앙 정렬 -->
+<!-- AXE NET V10.7: AXE TUBE 상세 메타 간소화 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -10048,7 +10048,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                 ${videoHtml}
                 <div class="tube-watch-info">
                     <div class="tube-watch-title">${safe(target.title||"제목 없음")}</div>
-                    <div class="tube-watch-meta">조회수 ${Number(target.views||0)}회 · 작성일 ${formatDate(target.date)}${target.updated_at?` · 수정됨`:""} · 댓글 ${comments.length}</div>
+                    <div class="tube-watch-meta">조회수 ${Number(target.views||0)}회 · ${formatDate(target.date)}</div>
                     <div class="detail-like-area tube-watch-actions">
                         <button class="reaction-btn like ${hasLikedTube(id)?'active':''}" onclick="toggleTubeLike('${escapeText(id)}',this)" title="추천">👍 <span>${Number(target.likes||0)}</span></button>
                         <button class="reaction-btn dislike ${hasDislikedTube(id)?'active':''}" onclick="toggleTubeDislike('${escapeText(id)}',this)" title="비추천">👎 <span>${Number(target.dislikes||0)}</span></button>
