@@ -8122,6 +8122,402 @@ function addBoardComment(postId,parentCommentId="",inputPrefix=""){axeAddComment
 function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){axeAddComment("tube",tubeId,parentCommentId,inputPrefix);}
 function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){axeAddComment("gallery",galleryId,parentCommentId,inputPrefix);}
 
+
+/* AXE NET 체감속도 개선 v4
+   - 삭제/수정: 버튼 처리 중 표시 + 중복 클릭 방지
+   - 관리자 삭제: 확인 후 즉시 버튼 잠금
+   - 서버 구조와 시트 구조는 변경하지 않음
+*/
+(function(){
+    const style=document.createElement("style");
+    style.textContent=`
+        .board-action-btn.loading,.comment-mini-btn.loading,.admin-mini-btn.loading{
+            opacity:.68!important;
+            cursor:wait!important;
+            pointer-events:none!important;
+            filter:saturate(.82)!important;
+        }
+        .board-action-btn:disabled,.comment-mini-btn:disabled,.admin-mini-btn:disabled{
+            opacity:.68!important;
+            cursor:wait!important;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+function axeGetActionButton(btn){
+    if(btn&&btn.closest)return btn.closest("button");
+    return axeCurrentButton("button");
+}
+function axeProcessingKey(prefix,id){return String(prefix||"action")+":"+String(id||"");}
+function axeBeginProcessing(prefix,id,btn,text){
+    const key=axeProcessingKey(prefix,id);
+    if(!axeActionBegin(key))return null;
+    const targetBtn=axeGetActionButton(btn);
+    axeSetButtonLoading(targetBtn,true,text||"처리 중...");
+    return {key:key,btn:targetBtn};
+}
+function axeEndProcessing(state){
+    if(!state)return;
+    axeSetButtonLoading(state.btn,false);
+    axeActionEnd(state.key);
+}
+function axeClearDeletedCommentMarks(scope,deleted){
+    (deleted||[]).forEach(function(id){
+        unmarkCommentLiked(scope,id);
+        unmarkCommentDisliked(scope,id);
+    });
+}
+
+function submitEditComment(scope,commentId,ownerId,btn){
+    const state=axeBeginProcessing("edit_comment:"+scope,commentId,btn,"수정 중...");
+    if(!state)return;
+
+    const isBoard=scope==="board";
+    const isTube=scope==="tube";
+    const isGallery=scope==="gallery";
+    const contentEl=document.getElementById(`commentEditContent_${scope}_${domSafeId(commentId)}`);
+    const passwordEl=document.getElementById(`commentEditPassword_${scope}_${domSafeId(commentId)}`);
+    const content=contentEl?contentEl.value.trim():"";
+    const password=passwordEl?passwordEl.value.trim():"";
+
+    if(!content){alert("댓글 내용은 비울 수 없습니다.");axeEndProcessing(state);return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");axeEndProcessing(state);return;}
+
+    let api=postBoardApi;
+    let payload={type:"board_comment_update",comment_id:commentId,password:password,content:content};
+    let list=boardComments;
+    let getId=getCommentId;
+    let reopen=function(){openBoardDetail(ownerId);};
+
+    if(isTube){
+        api=postTubeApi;
+        payload={type:"tube_comment_update",comment_id:commentId,password:password,content:content};
+        list=tubeComments;
+        getId=getTubeCommentId;
+        reopen=function(){openTubeDetail(ownerId,false);};
+    }
+    if(isGallery){
+        api=postGalleryApi;
+        payload={type:"gallery_comment_update",comment_id:commentId,password:password,content:content};
+        list=galleryComments;
+        getId=getGalleryCommentId;
+        reopen=function(){openGalleryDetail(ownerId,false,false);};
+    }
+
+    api(payload)
+    .then(function(data){
+        if(data.result==="success"){
+            const target=list.find(function(comment,index){return getId(comment,index)===String(commentId);});
+            if(target){
+                target.content=content;
+                target.updated_at=data.updated_at||new Date().toISOString();
+            }
+            reopen();
+        }else{
+            alert(data.message||"댓글 수정 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(function(){alert("댓글 수정 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function submitTubePostEdit(id,btn){
+    const state=axeBeginProcessing("edit_tube",id,btn,"수정 중...");
+    if(!state)return;
+    const target=findTubeById(id);
+    if(!target){alert("영상 게시글을 찾을 수 없습니다.");axeEndProcessing(state);return;}
+
+    const title=document.getElementById("tubeEditTitle").value.trim();
+    const url=document.getElementById("tubeEditUrl").value.trim();
+    const thumbnail=document.getElementById("tubeEditThumbnail").value.trim();
+    const category=document.getElementById("tubeEditCategory").value.trim()||"일반";
+    const content=document.getElementById("tubeEditContent").value.trim();
+    const password=document.getElementById("tubeEditPassword").value.trim();
+
+    if(!title||!url){alert("영상 제목과 유튜브 링크는 비울 수 없습니다.");axeEndProcessing(state);return;}
+    if(!url.includes("youtube.com")&&!url.includes("youtu.be")){alert("유튜브 링크를 입력해주세요.");axeEndProcessing(state);return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");axeEndProcessing(state);return;}
+
+    postTubeApi({type:"tube_update",id:id,password:password,title:title,url:url,thumbnail:thumbnail,category:category,content:content})
+    .then(function(data){
+        if(data.result==="success"){
+            target.title=title;
+            target.url=url;
+            target.thumbnail=thumbnail;
+            target.category=category;
+            target.content=content;
+            target.updated_at=data.updated_at||new Date().toISOString();
+            openTubeDetail(id,false);
+        }else{alert(data.message||"영상 게시글 수정 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("영상 게시글 수정 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function submitBoardPostEdit(id,btn){
+    const state=axeBeginProcessing("edit_board",id,btn,"수정 중...");
+    if(!state)return;
+    const target=findBoardPostById(id);
+    if(!target){alert("게시글을 찾을 수 없습니다.");axeEndProcessing(state);return;}
+
+    const title=document.getElementById("boardEditTitle").value.trim();
+    const category=document.getElementById("boardEditCategory").value.trim()||"일반";
+    const content=document.getElementById("boardEditContent").value.trim();
+    const password=document.getElementById("boardEditPassword").value.trim();
+
+    if(!title||!content){alert("제목과 내용은 비울 수 없습니다.");axeEndProcessing(state);return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");axeEndProcessing(state);return;}
+
+    postBoardApi({type:"board_update",id:id,password:password,title:title,category:category,content:content})
+    .then(function(data){
+        if(data.result==="success"){
+            target.title=title;
+            target.category=category;
+            target.content=content;
+            target.updated_at=data.updated_at||new Date().toISOString();
+            openBoardDetail(id);
+        }else{alert(data.message||"게시글 수정 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("게시글 수정 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function submitGalleryPostEdit(id,btn){
+    const state=axeBeginProcessing("edit_gallery",id,btn,"수정 중...");
+    if(!state)return;
+    const target=findGalleryById(id);
+    if(!target){alert("갤러리 게시물을 찾을 수 없습니다.");axeEndProcessing(state);return;}
+
+    const title=document.getElementById("galleryEditTitle").value.trim();
+    const category=document.getElementById("galleryEditCategory").value.trim()||"일반";
+    const content=document.getElementById("galleryEditContent").value.trim();
+    const password=document.getElementById("galleryEditPassword").value.trim();
+
+    if(!title){alert("제목은 비울 수 없습니다.");axeEndProcessing(state);return;}
+    if(!password){alert("비밀번호를 입력해야 수정할 수 있습니다.");axeEndProcessing(state);return;}
+
+    postGalleryApi({type:"gallery_update",id:id,password:password,title:title,category:category,content:content})
+    .then(function(data){
+        if(data.result==="success"){
+            target.title=title;
+            target.category=category;
+            target.content=content;
+            target.updated_at=data.updated_at||new Date().toISOString();
+            openGalleryDetail(id,false,false);
+        }else{alert(data.message||"갤러리 수정 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("갤러리 수정 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function deleteTubePost(id,btn){
+    const password=prompt("영상 게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    const state=axeBeginProcessing("delete_tube",id,btn,"삭제 중...");
+    if(!state)return;
+
+    postTubeApi({type:"tube_delete",id:id,password:password.trim()})
+    .then(function(data){
+        if(data.result==="success"){
+            tubes=tubes.filter(function(tube,index){return getTubeId(tube,index)!==String(id);});
+            tubeComments=tubeComments.filter(function(comment){return String(comment.tube_id)!==String(id);});
+            showTube();
+        }else{alert(data.message||"영상 게시글 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("영상 게시글 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function deleteBoardPost(id,btn){
+    const password=prompt("게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    const state=axeBeginProcessing("delete_board",id,btn,"삭제 중...");
+    if(!state)return;
+
+    postBoardApi({type:"board_delete",id:id,password:password.trim()})
+    .then(function(data){
+        if(data.result==="success"){
+            boards=boards.filter(function(post,index){return getBoardId(post,index)!==String(id);});
+            boardComments=boardComments.filter(function(comment){return String(comment.post_id)!==String(id);});
+            showBoard();
+        }else{alert(data.message||"게시글 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("게시글 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function deleteGalleryPost(id,btn){
+    const password=prompt("갤러리 게시물 삭제 비밀번호를 입력하세요. 삭제하면 댓글과 업로드 사진도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    const state=axeBeginProcessing("delete_gallery",id,btn,"삭제 중...");
+    if(!state)return;
+
+    postGalleryApi({type:"gallery_delete",id:id,password:password.trim()})
+    .then(function(data){
+        if(data.result==="success"){
+            galleries=galleries.filter(function(post,index){return getGalleryId(post,index)!==String(id);});
+            galleryComments=galleryComments.filter(function(comment){return String(comment.gallery_id)!==String(id);});
+            showGallery();
+        }else{alert(data.message||"갤러리 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("갤러리 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function deleteTubeComment(commentId,tubeId,btn){
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    const state=axeBeginProcessing("delete_tube_comment",commentId,btn,"삭제 중...");
+    if(!state)return;
+
+    postTubeApi({type:"tube_comment_delete",comment_id:commentId,password:password.trim()})
+    .then(function(data){
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            tubeComments=tubeComments.filter(function(comment,index){return !deleted.includes(getTubeCommentId(comment,index));});
+            axeClearDeletedCommentMarks("tube",deleted);
+            openTubeDetail(tubeId,false);
+        }else{alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("댓글 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function deleteBoardComment(commentId,postId,btn){
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    const state=axeBeginProcessing("delete_board_comment",commentId,btn,"삭제 중...");
+    if(!state)return;
+
+    postBoardApi({type:"board_comment_delete",comment_id:commentId,password:password.trim()})
+    .then(function(data){
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            boardComments=boardComments.filter(function(comment,index){return !deleted.includes(getCommentId(comment,index));});
+            axeClearDeletedCommentMarks("board",deleted);
+            openBoardDetail(postId);
+        }else{alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("댓글 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function deleteGalleryComment(commentId,galleryId,btn){
+    const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
+    if(password===null)return;
+    if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
+    const state=axeBeginProcessing("delete_gallery_comment",commentId,btn,"삭제 중...");
+    if(!state)return;
+
+    postGalleryApi({type:"gallery_comment_delete",comment_id:commentId,password:password.trim()})
+    .then(function(data){
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            galleryComments=galleryComments.filter(function(comment,index){return !deleted.includes(getGalleryCommentId(comment,index));});
+            axeClearDeletedCommentMarks("gallery",deleted);
+            openGalleryDetail(galleryId,false,false);
+        }else{alert(data.message||"댓글 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("댓글 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function adminDeleteBoardPost(id,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 자유게시판 글을 삭제할까요? 댓글과 추천 기록도 함께 삭제됩니다."))return;
+    const state=axeBeginProcessing("admin_delete_board",id,btn,"삭제 중...");
+    if(!state)return;
+
+    adminApi({type:"admin_delete_board",id:id})
+    .then(function(data){
+        if(data.result==="success"){
+            boards=boards.filter(function(post,index){return getBoardId(post,index)!==String(id);});
+            boardComments=boardComments.filter(function(comment){return String(comment.post_id)!==String(id);});
+            showBoard();
+        }else{alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("관리자 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function adminDeleteTubePost(id,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 AXE TUBE 글을 삭제할까요? 댓글과 추천 기록도 함께 삭제됩니다."))return;
+    const state=axeBeginProcessing("admin_delete_tube",id,btn,"삭제 중...");
+    if(!state)return;
+
+    adminApi({type:"admin_delete_tube",id:id})
+    .then(function(data){
+        if(data.result==="success"){
+            tubes=tubes.filter(function(tube,index){return getTubeId(tube,index)!==String(id);});
+            tubeComments=tubeComments.filter(function(comment){return String(comment.tube_id)!==String(id);});
+            showTube();
+        }else{alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("관리자 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function adminDeleteGalleryPost(id,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("관리자 권한으로 이 갤러리 글을 삭제할까요? 댓글, 추천 기록, 업로드 사진도 함께 삭제됩니다."))return;
+    const state=axeBeginProcessing("admin_delete_gallery",id,btn,"삭제 중...");
+    if(!state)return;
+
+    adminApi({type:"admin_delete_gallery",id:id})
+    .then(function(data){
+        if(data.result==="success"){
+            galleries=galleries.filter(function(post,index){return getGalleryId(post,index)!==String(id);});
+            galleryComments=galleryComments.filter(function(comment){return String(comment.gallery_id)!==String(id);});
+            showGallery();
+        }else{alert(data.message||"관리자 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("관리자 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function adminDeleteComment(scope,commentId,ownerId,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    const scopeName=scope==="board"?"자유게시판":scope==="tube"?"AXE TUBE":scope==="gallery"?"갤러리":"댓글";
+    if(!confirm("관리자 권한으로 이 "+scopeName+" 댓글을 삭제할까요? 대댓글도 함께 삭제됩니다."))return;
+    const state=axeBeginProcessing("admin_delete_comment:"+scope,commentId,btn,"삭제 중...");
+    if(!state)return;
+
+    adminApi({type:"admin_delete_comment",scope:scope,comment_id:commentId})
+    .then(function(data){
+        if(data.result==="success"){
+            const deleted=(data.deleted_comment_ids||[commentId]).map(String);
+            if(scope==="board"){
+                boardComments=boardComments.filter(function(comment,index){return !deleted.includes(getCommentId(comment,index));});
+                axeClearDeletedCommentMarks("board",deleted);
+                openBoardDetail(ownerId,false,false);
+                return;
+            }
+            if(scope==="tube"){
+                tubeComments=tubeComments.filter(function(comment,index){return !deleted.includes(getTubeCommentId(comment,index));});
+                axeClearDeletedCommentMarks("tube",deleted);
+                openTubeDetail(ownerId,false,false);
+                return;
+            }
+            if(scope==="gallery"){
+                galleryComments=galleryComments.filter(function(comment,index){return !deleted.includes(getGalleryCommentId(comment,index));});
+                axeClearDeletedCommentMarks("gallery",deleted);
+                openGalleryDetail(ownerId,false,false);
+                return;
+            }
+        }else{alert(data.message||"관리자 댓글 삭제 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("관리자 댓글 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+
 </script>
 </body>
 </html>
