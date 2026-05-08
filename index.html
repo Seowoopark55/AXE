@@ -3078,6 +3078,31 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V12.4: SOOP 일반 주소 반응 보강 */
+.theft-player-fallback{
+    text-align:center;
+    line-height:1.6;
+    padding:22px 18px;
+    color:#aaa;
+}
+.theft-player-fallback strong{
+    display:block;
+    color:#ffb52e;
+    font-size:15px;
+    margin-bottom:7px;
+}
+.theft-player-fallback .theft-mini-btn{
+    margin-top:12px;
+}
+.theft-url-row .theft-mini-btn.danger{
+    color:#ffb52e;
+    border-color:rgba(255,181,46,.32);
+    background:rgba(255,181,46,.075);
+}
+</style>
+
 </head>
 
 <body>
@@ -10958,7 +10983,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V12.3: 편의기능 탭 고정 보강 -->
+<!-- AXE NET V12.4: SOOP 일반 방송 주소 처리 보강 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -12811,6 +12836,105 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
             return;
         }
     },true);
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.4: SOOP 방송 일반 URL 처리 보강 */
+(function(){
+    function theftNormalizeUrl(raw){
+        let url=String(raw||"").trim();
+        if(!url)return "";
+        if(url.indexOf("<iframe")!==-1){
+            const m=url.match(/src=["']([^"']+)["']/i);
+            url=m?m[1]:"";
+        }
+        if(url && !/^https?:\/\//i.test(url)){
+            url="https://"+url;
+        }
+        return url;
+    }
+
+    function isSoopRelatedUrl(url){
+        return /(^https?:\/\/)?([^\/]+\.)?(sooplive\.co\.kr|afreecatv\.com)/i.test(String(url||""));
+    }
+
+    function getTheftInputUrl(){
+        const input=document.getElementById("theftStreamUrl");
+        return input?theftNormalizeUrl(input.value):"";
+    }
+
+    window.openTheftStreamNewWindow=function(){
+        const url=getTheftInputUrl();
+        if(!url){
+            alert("SOOP 방송 주소를 입력하세요.");
+            return;
+        }
+        window.open(url,"_blank","noopener,noreferrer");
+    };
+
+    window.applyTheftStream=function(){
+        const input=document.getElementById("theftStreamUrl");
+        const box=document.getElementById("theftPlayerBox");
+        const status=document.getElementById("theftStatusLine");
+        if(!input || !box)return;
+
+        const url=theftNormalizeUrl(input.value);
+        input.value=url;
+
+        if(!url){
+            box.innerHTML=`<div class="theft-player-empty">SOOP 방송 주소를 입력하고 적용을 누르세요.<br>삽입이 막히면 새 창으로 열 수 있습니다.</div>`;
+            if(status)status.textContent="";
+            try{localStorage.setItem("axe_theft_helper_state",JSON.stringify({
+                url:"",
+                memo:document.getElementById("theftMemo")?document.getElementById("theftMemo").value:"",
+                laps:[],
+                elapsed:0
+            }));}catch(e){}
+            return;
+        }
+
+        if(!isSoopRelatedUrl(url)){
+            box.innerHTML=`<div class="theft-player-fallback">
+                <strong>SOOP 주소로 인식되지 않았습니다.</strong>
+                입력한 주소를 확인해 주세요.
+                <br><button class="theft-mini-btn" onclick="openTheftStreamNewWindow()">입력 주소 새 창 열기</button>
+            </div>`;
+            if(status)status.textContent="SOOP 주소가 아닌 것으로 보여 플레이어 삽입을 중단했습니다.";
+            return;
+        }
+
+        box.innerHTML=`<iframe src="${escapeText(url)}" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; web-share" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+        if(status){
+            status.innerHTML=`SOOP 페이지 삽입을 시도했습니다. 화면이 비어 있거나 거부되면 <button class="theft-mini-btn danger" onclick="openTheftStreamNewWindow()">새 창 열기</button>를 사용하세요.`;
+        }
+
+        try{
+            const stateRaw=localStorage.getItem("axe_theft_helper_state");
+            const state=stateRaw?JSON.parse(stateRaw):{};
+            state.url=url;
+            state.memo=document.getElementById("theftMemo")?document.getElementById("theftMemo").value:(state.memo||"");
+            localStorage.setItem("axe_theft_helper_state",JSON.stringify(state));
+        }catch(e){}
+    };
+
+    const oldShowTheftHelperV12=window.showTheftHelperV12;
+    if(typeof oldShowTheftHelperV12==="function"){
+        window.showTheftHelperV12=function(){
+            const result=oldShowTheftHelperV12.apply(this,arguments);
+            setTimeout(function(){
+                const input=document.getElementById("theftStreamUrl");
+                if(input && input.value){
+                    const status=document.getElementById("theftStatusLine");
+                    if(status && !status.textContent){
+                        status.textContent="저장된 방송 주소가 있습니다. 적용 버튼을 누르거나 새 창 열기를 사용하세요.";
+                    }
+                }
+            },80);
+            return result;
+        };
+    }
 })();
 </script>
 
