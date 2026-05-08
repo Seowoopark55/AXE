@@ -2419,6 +2419,48 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .main-menu button{min-width:102px!important;flex:0 0 auto!important;padding:0 12px!important;font-size:14px!important}
 }
 
+
+
+/* AXE NET V11.0: 개조서 최근 거래가 관리자 수정 버튼 */
+.modbook-price-head{align-items:center}
+.modbook-price-head-left{display:flex;align-items:center;gap:8px;min-width:0}
+.modbook-price-admin-btn{
+    height:25px;
+    padding:0 9px;
+    border-radius:999px;
+    border:1px solid rgba(255,181,46,.24);
+    background:rgba(255,181,46,.055);
+    color:#ffcf75;
+    font-size:11px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.16s ease;
+    white-space:nowrap;
+}
+.modbook-price-admin-btn:hover{
+    border-color:rgba(255,181,46,.55);
+    background:rgba(255,181,46,.12);
+    color:#fff;
+    transform:translateY(-1px);
+}
+.modbook-price-empty{
+    color:#777!important;
+    font-size:15px!important;
+    font-weight:900!important;
+}
+.modbook-price-admin-hint{
+    margin-top:6px;
+    color:#777;
+    font-size:11.5px;
+    font-weight:800;
+    line-height:1.4;
+}
+@media(max-width:760px){
+    .modbook-price-head{gap:8px}
+    .modbook-price-head-left{flex-wrap:wrap}
+    .modbook-price-admin-btn{height:24px;padding:0 8px;font-size:10.5px}
+}
+
 </style>
 
 <style>
@@ -3619,7 +3661,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby-gUK6KY0io85q8ftroHMo0BEy427arVbyHczkZ5F8MYCJM_64saoknTy4RRaDvrzOsg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxqHYOcRzqcFkjGFlEWX9AQBNA0pxf4EWt7kKYkhdyBiBoeRRrOFPSSJ0idL9FG2zqHdQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -7395,19 +7437,65 @@ function hasRecentPrice(m){
     return m.recent_price!==undefined&&m.recent_price!==null&&String(m.recent_price).trim()!=="";
 }
 
-function renderModRecentPrice(m){
-    if(!hasRecentPrice(m))return "";
-    const price=formatModPrice(m.recent_price);
+function renderModRecentPrice(m,key){
+    const canEdit=isCurrentAdmin();
+    if(!hasRecentPrice(m)&&!canEdit)return "";
+    const price=hasRecentPrice(m)?formatModPrice(m.recent_price):"미등록";
     const date=m.recent_date?formatDate(m.recent_date):"";
     const note=String(m.price_note||"").trim();
+    const adminBtn=canEdit?`<button class="modbook-price-admin-btn" onclick="event.stopPropagation();openModBookPriceEditor('${escapeText(key||"")}')">가격 설정</button>`:"";
     return `<div class="modbook-pricebox">
         <div class="modbook-price-head">
-            <div class="modbook-price-title">최근 거래가</div>
+            <div class="modbook-price-head-left">
+                <div class="modbook-price-title">최근 거래가</div>
+                ${adminBtn}
+            </div>
             ${date?`<div class="modbook-price-date">${safe(date)}</div>`:""}
         </div>
-        <div class="modbook-price-value">${safe(price)}</div>
+        <div class="modbook-price-value ${hasRecentPrice(m)?"":"modbook-price-empty"}">${safe(price)}</div>
         ${note?`<div class="modbook-price-note">${safe(note)}</div>`:""}
+        ${canEdit?`<div class="modbook-price-admin-hint">관리자 전용 · 가격 저장 시 거래일은 자동 갱신됩니다.</div>`:""}
     </div>`;
+}
+
+function findModBookByKey(key){
+    const list=getFilteredModBooks();
+    return list.find((m,i)=>getModBookKey(m,i)===String(key||""))||null;
+}
+
+function openModBookPriceEditor(key){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    const target=findModBookByKey(key);
+    if(!target){alert("개조서 정보를 찾을 수 없습니다.");return;}
+
+    const current=target.recent_price!==undefined&&target.recent_price!==null?String(target.recent_price).trim():"";
+    const name=parseModName(target.name).text;
+    const input=prompt(name+" 최근 거래가격을 입력하세요.\n비워서 저장하면 최근 거래가격과 날짜가 삭제됩니다.",current);
+    if(input===null)return;
+
+    const price=String(input||"").trim();
+    if(!price){
+        if(!confirm("최근 거래가격을 비우고 거래일도 삭제할까요?"))return;
+    }
+
+    adminApi({
+        type:"admin_modbook_price_update",
+        mod_type:target.type||"",
+        category:target.category||"",
+        name:target.name||"",
+        order:target.order||"",
+        recent_price:price
+    }).then(data=>{
+        if(data.result==="success"){
+            alert(data.message||"최근 거래가격이 저장되었습니다.");
+            return refreshData().then(()=>{
+                renderModBookCategories();
+                renderModBookList();
+                setTimeout(()=>selectModBook(key),0);
+            });
+        }
+        alert(data.message||"최근 거래가격 저장 중 오류가 발생했습니다.");
+    }).catch(()=>{});
 }
 
 function renderModOption(v){
@@ -7589,7 +7677,7 @@ function selectModBook(key){
         <div class="modbook-options">
             ${options||`<div class="modbook-option">등록된 옵션이 없습니다.</div>`}
         </div>
-        ${renderModRecentPrice(target)}
+        ${renderModRecentPrice(target,key)}
         ${target.note?`<div class="modbook-note">${safe(target.note)}</div>`:""}
     `;
     scrollToElement("modBookDetailBox");
