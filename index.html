@@ -7332,6 +7332,246 @@ function adminDeleteComment(scope,commentId,ownerId){
 }
 
 
+
+
+/* 체감속도 개선 1차: 추천/비추천 낙관적 업데이트 + 중복 요청 잠금 */
+const FAST_REACTION_LOCKS=new Set();
+function fastReactionBegin(key){
+    if(FAST_REACTION_LOCKS.has(key))return false;
+    FAST_REACTION_LOCKS.add(key);
+    return true;
+}
+function fastReactionEnd(key){FAST_REACTION_LOCKS.delete(key);}
+function fastNum(value){return Number(value||0)||0;}
+function fastApplyDelta(target,field,delta){
+    if(!target)return;
+    target[field]=Math.max(0,fastNum(target[field])+Number(delta||0));
+}
+function fastSnapshot(target){
+    if(!target)return null;
+    return {likes:target.likes,dislikes:target.dislikes};
+}
+function fastRestore(target,snapshot){
+    if(!target||!snapshot)return;
+    target.likes=snapshot.likes;
+    target.dislikes=snapshot.dislikes;
+}
+function fastRender(kind,id){
+    if(kind==="board")openBoardDetail(id,false,false);
+    if(kind==="tube")openTubeDetail(id,false,false);
+    if(kind==="gallery")openGalleryDetail(id,false,false);
+}
+function fastRenderComment(scope,ownerId){
+    if(scope==="board")openBoardDetail(ownerId,false,false);
+    if(scope==="tube")openTubeDetail(ownerId,false,false);
+    if(scope==="gallery")openGalleryDetail(ownerId,false,false);
+}
+function fastGetPost(kind,id){
+    if(kind==="board")return findBoardPostById(id);
+    if(kind==="tube")return findTubeById(id);
+    if(kind==="gallery")return findGalleryById(id);
+    return null;
+}
+function fastGetComment(scope,commentId){
+    if(scope==="board")return boardComments.find((comment,index)=>getCommentId(comment,index)===String(commentId));
+    if(scope==="tube")return tubeComments.find((comment,index)=>getTubeCommentId(comment,index)===String(commentId));
+    if(scope==="gallery")return galleryComments.find((comment,index)=>getGalleryCommentId(comment,index)===String(commentId));
+    return null;
+}
+function fastPostApi(kind,payload){
+    if(kind==="board")return postBoardApi(payload);
+    if(kind==="tube")return postTubeApi(payload);
+    if(kind==="gallery")return postGalleryApi(payload);
+    return Promise.reject(new Error("unknown kind"));
+}
+function fastPostClient(kind){
+    if(kind==="board")return getBoardLikeClientId();
+    if(kind==="tube")return getTubeLikeClientId();
+    if(kind==="gallery")return getGalleryClientId();
+    return "";
+}
+function fastIsLiked(kind,id){
+    if(kind==="board")return hasLikedBoardPost(id);
+    if(kind==="tube")return hasLikedTube(id);
+    if(kind==="gallery")return hasGalleryLiked(id);
+    return false;
+}
+function fastIsDisliked(kind,id){
+    if(kind==="board")return hasDislikedBoardPost(id);
+    if(kind==="tube")return hasDislikedTube(id);
+    if(kind==="gallery")return hasGalleryDisliked(id);
+    return false;
+}
+function fastMarkLiked(kind,id){
+    if(kind==="board")markBoardPostLiked(id);
+    if(kind==="tube")markTubeLiked(id);
+    if(kind==="gallery")markGalleryLiked(id);
+}
+function fastUnmarkLiked(kind,id){
+    if(kind==="board")unmarkBoardPostLiked(id);
+    if(kind==="tube")unmarkTubeLiked(id);
+    if(kind==="gallery")unmarkGalleryLiked(id);
+}
+function fastMarkDisliked(kind,id){
+    if(kind==="board")markBoardPostDisliked(id);
+    if(kind==="tube")markTubeDisliked(id);
+    if(kind==="gallery")markGalleryDisliked(id);
+}
+function fastUnmarkDisliked(kind,id){
+    if(kind==="board")unmarkBoardPostDisliked(id);
+    if(kind==="tube")unmarkTubeDisliked(id);
+    if(kind==="gallery")unmarkGalleryDisliked(id);
+}
+function fastPayloadType(kind,action,isComment){
+    const base=kind==="tube"?"tube":kind==="gallery"?"gallery":"board";
+    if(isComment)return base+"_comment_"+action;
+    return base+"_"+action;
+}
+function fastPostReaction(kind,id,action){
+    const key="post:"+kind+":"+id;
+    if(!fastReactionBegin(key))return;
+    const target=fastGetPost(kind,id);
+    const snapshot=fastSnapshot(target);
+    const beforeLiked=fastIsLiked(kind,id);
+    const beforeDisliked=fastIsDisliked(kind,id);
+
+    if(action==="like"){
+        fastMarkLiked(kind,id);fastUnmarkDisliked(kind,id);
+        if(!beforeLiked)fastApplyDelta(target,"likes",1);
+        if(beforeDisliked)fastApplyDelta(target,"dislikes",-1);
+    }
+    if(action==="unlike"){
+        fastUnmarkLiked(kind,id);
+        if(beforeLiked)fastApplyDelta(target,"likes",-1);
+    }
+    if(action==="dislike"){
+        fastMarkDisliked(kind,id);fastUnmarkLiked(kind,id);
+        if(!beforeDisliked)fastApplyDelta(target,"dislikes",1);
+        if(beforeLiked)fastApplyDelta(target,"likes",-1);
+    }
+    if(action==="undislike"){
+        fastUnmarkDisliked(kind,id);
+        if(beforeDisliked)fastApplyDelta(target,"dislikes",-1);
+    }
+    fastRender(kind,id);
+
+    fastPostApi(kind,{type:fastPayloadType(kind,action,false),id:id,client_id:fastPostClient(kind)})
+    .then(data=>{
+        if(data.result==="success"||data.result==="duplicate"||data.result==="not_found")return;
+        fastRestore(target,snapshot);
+        if(beforeLiked)fastMarkLiked(kind,id);else fastUnmarkLiked(kind,id);
+        if(beforeDisliked)fastMarkDisliked(kind,id);else fastUnmarkDisliked(kind,id);
+        fastRender(kind,id);
+        alert(data.message||"처리 중 오류가 발생했습니다.");
+    })
+    .catch(()=>{
+        fastRestore(target,snapshot);
+        if(beforeLiked)fastMarkLiked(kind,id);else fastUnmarkLiked(kind,id);
+        if(beforeDisliked)fastMarkDisliked(kind,id);else fastUnmarkDisliked(kind,id);
+        fastRender(kind,id);
+        alert("처리 중 오류가 발생했습니다.");
+    })
+    .finally(()=>fastReactionEnd(key));
+}
+function fastCommentReaction(scope,commentId,ownerId,action){
+    const key="comment:"+scope+":"+commentId;
+    if(!fastReactionBegin(key))return;
+    const target=fastGetComment(scope,commentId);
+    const snapshot=fastSnapshot(target);
+    const beforeLiked=hasLikedComment(scope,commentId);
+    const beforeDisliked=hasDislikedComment(scope,commentId);
+
+    if(action==="like"){
+        markCommentLiked(scope,commentId);unmarkCommentDisliked(scope,commentId);
+        if(!beforeLiked)fastApplyDelta(target,"likes",1);
+        if(beforeDisliked)fastApplyDelta(target,"dislikes",-1);
+    }
+    if(action==="unlike"){
+        unmarkCommentLiked(scope,commentId);
+        if(beforeLiked)fastApplyDelta(target,"likes",-1);
+    }
+    if(action==="dislike"){
+        markCommentDisliked(scope,commentId);unmarkCommentLiked(scope,commentId);
+        if(!beforeDisliked)fastApplyDelta(target,"dislikes",1);
+        if(beforeLiked)fastApplyDelta(target,"likes",-1);
+    }
+    if(action==="undislike"){
+        unmarkCommentDisliked(scope,commentId);
+        if(beforeDisliked)fastApplyDelta(target,"dislikes",-1);
+    }
+    fastRenderComment(scope,ownerId);
+
+    const payload={type:fastPayloadType(scope,action,true),comment_id:commentId,client_id:getCommentLikeClientId(scope)};
+    fastPostApi(scope,payload)
+    .then(data=>{
+        if(data.result==="success"||data.result==="duplicate"||data.result==="not_found")return;
+        fastRestore(target,snapshot);
+        if(beforeLiked)markCommentLiked(scope,commentId);else unmarkCommentLiked(scope,commentId);
+        if(beforeDisliked)markCommentDisliked(scope,commentId);else unmarkCommentDisliked(scope,commentId);
+        fastRenderComment(scope,ownerId);
+        alert(data.message||"댓글 반응 처리 중 오류가 발생했습니다.");
+    })
+    .catch(()=>{
+        fastRestore(target,snapshot);
+        if(beforeLiked)markCommentLiked(scope,commentId);else unmarkCommentLiked(scope,commentId);
+        if(beforeDisliked)markCommentDisliked(scope,commentId);else unmarkCommentDisliked(scope,commentId);
+        fastRenderComment(scope,ownerId);
+        alert("댓글 반응 처리 중 오류가 발생했습니다.");
+    })
+    .finally(()=>fastReactionEnd(key));
+}
+
+function toggleBoardLike(id){fastPostReaction("board",id,hasLikedBoardPost(id)?"unlike":"like");}
+function likeBoardPost(id){fastPostReaction("board",id,"like");}
+function unlikeBoardPost(id){fastPostReaction("board",id,"unlike");}
+function toggleBoardDislike(id){fastPostReaction("board",id,hasDislikedBoardPost(id)?"undislike":"dislike");}
+function dislikeBoardPost(id){fastPostReaction("board",id,"dislike");}
+function undislikeBoardPost(id){fastPostReaction("board",id,"undislike");}
+
+function toggleTubeLike(id){fastPostReaction("tube",id,hasLikedTube(id)?"unlike":"like");}
+function likeTube(id){fastPostReaction("tube",id,"like");}
+function unlikeTube(id){fastPostReaction("tube",id,"unlike");}
+function toggleTubeDislike(id){fastPostReaction("tube",id,hasDislikedTube(id)?"undislike":"dislike");}
+function dislikeTube(id){fastPostReaction("tube",id,"dislike");}
+function undislikeTube(id){fastPostReaction("tube",id,"undislike");}
+
+function toggleGalleryLike(id){fastPostReaction("gallery",id,hasGalleryLiked(id)?"unlike":"like");}
+function likeGallery(id){fastPostReaction("gallery",id,"like");}
+function unlikeGallery(id){fastPostReaction("gallery",id,"unlike");}
+function toggleGalleryDislike(id){fastPostReaction("gallery",id,hasGalleryDisliked(id)?"undislike":"dislike");}
+function dislikeGallery(id){fastPostReaction("gallery",id,"dislike");}
+function undislikeGallery(id){fastPostReaction("gallery",id,"undislike");}
+
+function toggleBoardCommentLike(commentId,postId){fastCommentReaction("board",commentId,postId,hasLikedComment("board",commentId)?"unlike":"like");}
+function likeBoardComment(commentId,postId){fastCommentReaction("board",commentId,postId,"like");}
+function unlikeBoardComment(commentId,postId){fastCommentReaction("board",commentId,postId,"unlike");}
+function toggleBoardCommentDislike(commentId,postId){fastCommentReaction("board",commentId,postId,hasDislikedComment("board",commentId)?"undislike":"dislike");}
+function dislikeBoardComment(commentId,postId){fastCommentReaction("board",commentId,postId,"dislike");}
+function undislikeBoardComment(commentId,postId){fastCommentReaction("board",commentId,postId,"undislike");}
+
+function toggleTubeCommentLike(commentId,tubeId){fastCommentReaction("tube",commentId,tubeId,hasLikedComment("tube",commentId)?"unlike":"like");}
+function likeTubeComment(commentId,tubeId){fastCommentReaction("tube",commentId,tubeId,"like");}
+function unlikeTubeComment(commentId,tubeId){fastCommentReaction("tube",commentId,tubeId,"unlike");}
+function toggleTubeCommentDislike(commentId,tubeId){fastCommentReaction("tube",commentId,tubeId,hasDislikedComment("tube",commentId)?"undislike":"dislike");}
+function dislikeTubeComment(commentId,tubeId){fastCommentReaction("tube",commentId,tubeId,"dislike");}
+function undislikeTubeComment(commentId,tubeId){fastCommentReaction("tube",commentId,tubeId,"undislike");}
+
+function toggleGalleryCommentLike(commentId,galleryId){fastCommentReaction("gallery",commentId,galleryId,hasLikedComment("gallery",commentId)?"unlike":"like");}
+function galleryCommentLike(commentId,galleryId){fastCommentReaction("gallery",commentId,galleryId,"like");}
+function galleryCommentUnlike(commentId,galleryId){fastCommentReaction("gallery",commentId,galleryId,"unlike");}
+function toggleGalleryCommentDislike(commentId,galleryId){fastCommentReaction("gallery",commentId,galleryId,hasDislikedComment("gallery",commentId)?"undislike":"dislike");}
+function galleryCommentDislike(commentId,galleryId){fastCommentReaction("gallery",commentId,galleryId,"dislike");}
+function galleryCommentUndislike(commentId,galleryId){fastCommentReaction("gallery",commentId,galleryId,"undislike");}
+
+/* 상세 화면 버튼 중복 클릭을 시각적으로 줄이는 보조 처리 */
+document.addEventListener("click",function(event){
+    const btn=event.target.closest(".reaction-btn,.board-like-btn,.comment-reaction-btn");
+    if(!btn)return;
+    btn.style.pointerEvents="none";
+    btn.style.opacity=".72";
+    setTimeout(()=>{btn.style.pointerEvents="";btn.style.opacity="";},900);
+},true);
+
 </script>
 </body>
 </html>
