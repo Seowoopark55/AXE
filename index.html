@@ -2069,6 +2069,15 @@ function isCurrentAdmin(){
     return String(user.role||"").toLowerCase()==="admin" || String(user.badge||"").toLowerCase()==="admin";
 }
 
+function rememberAdminPasswordIfNeeded(user,password){
+    if(!user||!password)return;
+    const role=String(user.role||"").toLowerCase();
+    const badge=String(user.badge||"").toLowerCase();
+    if(role==="admin"||badge==="admin"){
+        sessionStorage.setItem("axe_net_admin_password",String(password));
+    }
+}
+
 function updateAdminMenu(){
     const btn=document.getElementById("adminMenuButton");
     if(btn)btn.style.display=isCurrentAdmin()?"":"none";
@@ -2129,6 +2138,7 @@ function submitAuth(){
         if(data.result==="success"&&data.user){
             localStorage.setItem(AUTH_LAST_NICKNAME_KEY,data.user.nickname||nickname);
             setCurrentUser(data.user);
+            if(authMode==="login")rememberAdminPasswordIfNeeded(data.user,password);
             closeAuthModal();
             alert(data.message||"처리되었습니다.");
         }else{
@@ -2139,6 +2149,7 @@ function submitAuth(){
 }
 
 function logoutMember(){
+    clearAdminPassword();
     setCurrentUser(null);
     applyLoginWriterFields();
     updateAdminMenu();
@@ -4603,6 +4614,7 @@ function renderGalleryCommentItem(galleryId,comment,index,allComments,isReply){
             </span>
             ${!isReply?`<button class="comment-mini-btn" onclick="toggleCommentReplyForm('${formId}')">답글</button>`:""}
             <button class="comment-mini-btn danger" onclick="deleteGalleryComment('${escapeText(commentId)}','${escapeText(galleryId)}')">삭제</button>
+            ${isCurrentAdmin()?`<button class="comment-mini-btn danger" onclick="adminDeleteComment('gallery','${escapeText(commentId)}','${escapeText(galleryId)}')">관리자 삭제</button>`:""}
         </div>
         ${!isReply?`<div class="comment-reply-form" id="${formId}">
             <input class="comment-input" id="${formId}Writer" placeholder="작성자">
