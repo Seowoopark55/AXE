@@ -8530,6 +8530,366 @@ function adminDeleteComment(scope,commentId,ownerId,btn){
 }
 
 
+/* AXE NET 관리자 액션 로딩 개선 v6
+   - 회원 저장/포인트 조정/비밀번호 초기화/공지 저장/공지 삭제/관리자 목록 새로고침 처리 중 표시
+   - 중복 클릭 방지
+   - Apps Script 및 시트 구조 변경 없음
+*/
+(function(){
+    const style=document.createElement("style");
+    style.textContent=`
+        .admin-mini-btn.loading,.tube-submit-open.loading{
+            opacity:.68!important;
+            cursor:wait!important;
+            pointer-events:none!important;
+            filter:saturate(.82)!important;
+        }
+        .admin-mini-btn:disabled,.tube-submit-open:disabled{
+            opacity:.68!important;
+            cursor:wait!important;
+        }
+        .admin-select:disabled,.admin-small-input:disabled,.form-input:disabled,.form-textarea:disabled{
+            opacity:.72!important;
+            cursor:wait!important;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+function axeAdminFindMemberIndex(memberId){
+    return (adminMembers||[]).findIndex(function(member){return String(member.id||"")===String(memberId||"");});
+}
+
+function axeAdminPatchMember(memberId,patch){
+    const index=axeAdminFindMemberIndex(memberId);
+    if(index<0)return;
+    adminMembers[index]=Object.assign({},adminMembers[index],patch||{});
+}
+
+function axeAdminDisableMemberInputs(safeId,disabled){
+    ["adminRole_","adminStatus_","adminBadge_","adminPoint_","adminReason_","adminPw_"].forEach(function(prefix){
+        const el=document.getElementById(prefix+safeId);
+        if(el)el.disabled=!!disabled;
+    });
+}
+
+function axeAdminNoticeFormDisabled(disabled){
+    ["adminNoticeTitle","adminNoticeContent","adminNoticeImportant","adminNoticeCancelBtn"].forEach(function(id){
+        const el=document.getElementById(id);
+        if(el)el.disabled=!!disabled;
+    });
+}
+
+function loadAdminNotices(btn){
+    const state=btn?axeBeginProcessing("admin_notice_refresh","notice",btn,"불러오는 중..."):null;
+    const box=document.getElementById("adminNoticeBox");
+    if(box)box.innerHTML=`<div class="ready">공지 정보를 불러오는 중입니다.</div>`;
+
+    refreshData().then(function(){
+        renderAdminNotices();
+    }).catch(function(){
+        if(box)box.innerHTML=`<div class="ready">공지 정보를 불러오지 못했습니다.</div>`;
+    }).finally(function(){
+        axeEndProcessing(state);
+    });
+}
+
+function loadAdminMembers(btn){
+    const state=btn?axeBeginProcessing("admin_member_refresh","members",btn,"불러오는 중..."):null;
+    const box=document.getElementById("adminMemberBox");
+    if(box)box.innerHTML=`<div class="ready">회원 정보를 불러오는 중입니다.</div>`;
+    adminApi({type:"admin_member_list"})
+    .then(function(data){
+        if(data.result==="success"){
+            adminMembers=data.members||[];
+            renderAdminMembers();
+        }else{
+            if(box)box.innerHTML=`<div class="ready">${safe(data.message||"회원 정보를 불러오지 못했습니다.")}</div>`;
+        }
+    })
+    .catch(function(err){
+        if(String(err.message||"").includes("password"))return;
+        if(box)box.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.</div>`;
+    })
+    .finally(function(){
+        axeEndProcessing(state);
+    });
+}
+
+function renderAdminNoticeRow(notice,index){
+    const id=getNoticeId(notice,index);
+    const important=isImportant(notice.important);
+    return `
+        <tr>
+            <td>
+                <div style="font-weight:950;color:#fff;line-height:1.35;">
+                    ${important?'<span class="important">중요</span>':''}${safe(notice.title)}
+                </div>
+                <div style="color:#777;font-size:11px;margin-top:4px;">${safe(id)}</div>
+            </td>
+            <td>${formatDate(notice.date)}</td>
+            <td>${important?"TRUE":"FALSE"}</td>
+            <td>
+                <div class="admin-action-line">
+                    <button class="admin-mini-btn" onclick="editAdminNotice('${escapeText(id)}')">수정</button>
+                    <button class="admin-mini-btn danger" onclick="deleteAdminNotice('${escapeText(id)}',this)">삭제</button>
+                </div>
+            </td>
+        </tr>`;
+}
+
+function renderAdminMemberRow(member){
+    const safeId=domSafeId(member.id||member.nickname);
+    const role=String(member.role||"user").toLowerCase();
+    const status=String(member.status||"active").toLowerCase();
+    const badge=normalizeBadge(member.badge||"bronze");
+
+    return `
+        <tr>
+            <td><div class="admin-member-name">${renderWriterName(member.nickname||"익명",badge)}</div></td>
+            <td>
+                <select class="admin-select" id="adminRole_${safeId}">
+                    <option value="user" ${role==="user"?"selected":""}>user</option>
+                    <option value="admin" ${role==="admin"?"selected":""}>admin</option>
+                </select>
+            </td>
+            <td>
+                <select class="admin-select" id="adminStatus_${safeId}">
+                    <option value="active" ${status==="active"?"selected":""}>active</option>
+                    <option value="inactive" ${status==="inactive"?"selected":""}>inactive</option>
+                </select>
+            </td>
+            <td>
+                <select class="admin-select" id="adminBadge_${safeId}">
+                    <option value="bronze" ${badge==="bronze"?"selected":""}>bronze</option>
+                    <option value="silver" ${badge==="silver"?"selected":""}>silver</option>
+                    <option value="gold" ${badge==="gold"?"selected":""}>gold</option>
+                    <option value="admin" ${badge==="admin"?"selected":""}>admin</option>
+                    <option value="black" ${badge==="black"?"selected":""}>black</option>
+                    <option value="legend" ${badge==="legend"?"selected":""}>legend</option>
+                </select>
+            </td>
+            <td class="admin-point-cell"><span class="admin-point-pill">P ${Number(member.points||0)}</span></td>
+            <td>
+                <div class="admin-point-adjust-box">
+                    <input class="admin-small-input admin-point-input" id="adminPoint_${safeId}" type="number" step="1" placeholder="+50 / -10">
+                    <input class="admin-small-input admin-reason-input" id="adminReason_${safeId}" type="text" placeholder="사유 입력">
+                    <button class="admin-mini-btn admin-point-apply" onclick="adjustAdminMemberPoints('${escapeText(member.id)}','${safeId}',this)">적용</button>
+                </div>
+            </td>
+            <td>${formatDate(member.created_at)}</td>
+            <td>${formatDate(member.last_login)}</td>
+            <td>
+                <div class="admin-action-line">
+                    <button class="admin-mini-btn" onclick="saveAdminMember('${escapeText(member.id)}','${safeId}',this)">저장</button>
+                    <input class="admin-small-input" id="adminPw_${safeId}" type="text" placeholder="새 비밀번호">
+                    <button class="admin-mini-btn" onclick="resetAdminMemberPassword('${escapeText(member.id)}','${safeId}',this)">초기화</button>
+                </div>
+            </td>
+        </tr>`;
+}
+
+function submitAdminNotice(btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+
+    const id=document.getElementById("adminNoticeId")?.value.trim()||"";
+    const title=document.getElementById("adminNoticeTitle")?.value.trim()||"";
+    const content=document.getElementById("adminNoticeContent")?.value.trim()||"";
+    const important=document.getElementById("adminNoticeImportant")?.checked||false;
+
+    if(!title){alert("공지 제목을 입력하세요.");return;}
+    if(!content){alert("공지 내용을 입력하세요.");return;}
+
+    const state=axeBeginProcessing("admin_notice_submit",id||"new",btn||document.getElementById("adminNoticeSubmitBtn"),id?"수정 중...":"등록 중...");
+    if(!state)return;
+    axeAdminNoticeFormDisabled(true);
+
+    adminApi({
+        type:id?"admin_notice_update":"admin_notice_create",
+        id:id,
+        title:title,
+        content:content,
+        important:important
+    })
+    .then(function(data){
+        if(data.result==="success"){
+            resetAdminNoticeForm();
+            return refreshData();
+        }else{
+            alert(data.message||"공지사항 저장 중 오류가 발생했습니다.");
+        }
+    })
+    .then(function(){
+        renderAdminNotices();
+        showNoticeListIfVisible();
+    })
+    .catch(function(){alert("공지사항 저장 중 오류가 발생했습니다.");})
+    .finally(function(){
+        axeAdminNoticeFormDisabled(false);
+        axeEndProcessing(state);
+        updateAdminNoticeFormMode();
+    });
+}
+
+function deleteAdminNotice(id,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!confirm("이 공지사항을 삭제할까요?"))return;
+    const state=axeBeginProcessing("admin_notice_delete",id,btn,"삭제 중...");
+    if(!state)return;
+
+    adminApi({type:"admin_notice_delete",id:id})
+    .then(function(data){
+        if(data.result==="success"){
+            notices=notices.filter(function(notice,index){return String(getNoticeId(notice,index))!==String(id);});
+            return refreshData();
+        }else{
+            alert(data.message||"공지사항 삭제 중 오류가 발생했습니다.");
+        }
+    })
+    .then(function(){
+        renderAdminNotices();
+        showNoticeListIfVisible();
+    })
+    .catch(function(){alert("공지사항 삭제 중 오류가 발생했습니다.");})
+    .finally(function(){axeEndProcessing(state);});
+}
+
+function saveAdminMember(memberId,safeId,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    const role=document.getElementById("adminRole_"+safeId)?.value||"user";
+    const status=document.getElementById("adminStatus_"+safeId)?.value||"active";
+    const badge=document.getElementById("adminBadge_"+safeId)?.value||"bronze";
+
+    const state=axeBeginProcessing("admin_member_save",memberId,btn,"저장 중...");
+    if(!state)return;
+    axeAdminDisableMemberInputs(safeId,true);
+
+    adminApi({
+        type:"admin_member_update",
+        member_id:memberId,
+        role:role,
+        status:status,
+        badge:badge
+    })
+    .then(function(data){
+        if(data.result==="success"){
+            axeAdminPatchMember(memberId,{role:role,status:status,badge:badge});
+            renderAdminMembers();
+            refreshData().then(function(){
+                refreshCurrentUserProfileAfterApi({result:"success"});
+            }).catch(function(){});
+        }else{
+            alert(data.message||"회원 정보 저장 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(function(){alert("회원 정보 저장 중 오류가 발생했습니다.");})
+    .finally(function(){
+        axeAdminDisableMemberInputs(safeId,false);
+        axeEndProcessing(state);
+    });
+}
+
+function adjustAdminMemberPoints(memberId,safeId,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+
+    const pointInput=document.getElementById("adminPoint_"+safeId);
+    const reasonInput=document.getElementById("adminReason_"+safeId);
+    const pointText=pointInput?String(pointInput.value||"").trim():"";
+    const reason=reasonInput?String(reasonInput.value||"").trim():"";
+    const point=Number(pointText);
+
+    if(!pointText||!Number.isFinite(point)||point===0){
+        alert("조정할 포인트를 입력하세요. 예: 50 또는 -10");
+        return;
+    }
+    if(Math.floor(point)!==point){
+        alert("포인트는 정수로 입력하세요.");
+        return;
+    }
+    if(!reason){
+        alert("포인트 조정 사유를 입력하세요.");
+        return;
+    }
+
+    const actionText=point>0?`+${point}P 지급`:`${point}P 차감`;
+    if(!confirm(`해당 회원에게 ${actionText} 처리할까요?\n사유: ${reason}`))return;
+
+    const state=axeBeginProcessing("admin_point_adjust",memberId,btn,"처리 중...");
+    if(!state)return;
+    axeAdminDisableMemberInputs(safeId,true);
+
+    adminApi({
+        type:"admin_point_adjust",
+        member_id:memberId,
+        point:point,
+        reason:reason
+    })
+    .then(function(data){
+        if(data.result==="success"){
+            if(pointInput)pointInput.value="";
+            if(reasonInput)reasonInput.value="";
+            if(data.member&&data.member.id){
+                axeAdminPatchMember(data.member.id,data.member);
+            }else{
+                const idx=axeAdminFindMemberIndex(memberId);
+                if(idx>=0){
+                    const nowPoint=Number(adminMembers[idx].points||0)+Number(point||0);
+                    axeAdminPatchMember(memberId,{points:Math.max(0,nowPoint)});
+                }
+            }
+            renderAdminMembers();
+            refreshData().then(function(){
+                if(currentHistoryPage==="ranking")showRanking();
+                refreshCurrentUserProfileAfterApi({result:"success"});
+            }).catch(function(){});
+        }else{
+            alert(data.message||"포인트 조정 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(function(){alert("포인트 조정 중 오류가 발생했습니다.");})
+    .finally(function(){
+        axeAdminDisableMemberInputs(safeId,false);
+        axeEndProcessing(state);
+    });
+}
+
+function resetAdminMemberPassword(memberId,safeId,btn){
+    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    const input=document.getElementById("adminPw_"+safeId);
+    const newPassword=input?input.value.trim():"";
+    if(!newPassword){
+        alert("새 비밀번호를 입력하세요.");
+        return;
+    }
+    if(newPassword.length<4){
+        alert("새 비밀번호는 4자리 이상이어야 합니다.");
+        return;
+    }
+    if(!confirm("해당 회원의 비밀번호를 초기화할까요?"))return;
+
+    const state=axeBeginProcessing("admin_password_reset",memberId,btn,"초기화 중...");
+    if(!state)return;
+    axeAdminDisableMemberInputs(safeId,true);
+
+    adminApi({
+        type:"admin_member_reset_password",
+        member_id:memberId,
+        new_password:newPassword
+    })
+    .then(function(data){
+        if(data.result==="success"){
+            if(input)input.value="";
+        }else{
+            alert(data.message||"비밀번호 초기화 중 오류가 발생했습니다.");
+        }
+    })
+    .catch(function(){alert("비밀번호 초기화 중 오류가 발생했습니다.");})
+    .finally(function(){
+        axeAdminDisableMemberInputs(safeId,false);
+        axeEndProcessing(state);
+    });
+}
+
 </script>
 </body>
 </html>
