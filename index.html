@@ -3198,6 +3198,75 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+
+<style id="axe-menu-balance-fix">
+/* AXE NET: 일반 유저/관리자 메뉴 개수 차이에 따른 상단 메뉴 빈칸 보정 */
+
+/* PC: 메뉴 버튼이 전체 폭을 균등하게 채우도록 보정 */
+@media(min-width:769px){
+    .main-menu{
+        display:flex!important;
+        overflow:hidden!important;
+    }
+
+    .main-menu button{
+        flex:1 1 0!important;
+        min-width:0!important;
+        width:auto!important;
+        padding:0 8px!important;
+        font-size:13.5px!important;
+        white-space:nowrap!important;
+    }
+
+    .main-menu::after{
+        display:none!important;
+        content:none!important;
+    }
+}
+
+/* 모바일: 4열 고정 그리드 대신 flex-wrap으로 마지막 줄도 자연스럽게 채움 */
+@media(max-width:768px){
+    .main-menu{
+        display:flex!important;
+        flex-wrap:wrap!important;
+        overflow:hidden!important;
+        white-space:normal!important;
+        gap:0!important;
+    }
+
+    .main-menu button{
+        flex:1 0 25%!important;
+        min-width:0!important;
+        width:auto!important;
+        height:40px!important;
+        padding:0 4px!important;
+        font-size:12px!important;
+        line-height:1.15!important;
+        border-right:1px solid rgba(255,255,255,.06)!important;
+        border-bottom:1px solid rgba(255,255,255,.06)!important;
+        white-space:nowrap!important;
+    }
+
+    .main-menu button:last-child{
+        border-right:0!important;
+    }
+
+    .main-menu::after,
+    .main-menu-shell::after{
+        display:none!important;
+        content:none!important;
+    }
+}
+
+@media(max-width:360px){
+    .main-menu button{
+        font-size:10.8px!important;
+        padding:0 2px!important;
+    }
+}
+</style>
+
 </head>
 
 <body>
