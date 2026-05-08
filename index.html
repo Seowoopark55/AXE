@@ -3103,6 +3103,28 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V12.5: 절도도우미 제거, 편의기능 단일화 */
+.utility-v12-tabs,
+.utility-sub-tabs{
+    display:none!important;
+}
+.utility-single-note{
+    margin:0 0 14px;
+    padding:12px 14px;
+    border:1px solid rgba(255,181,46,.18);
+    border-radius:15px;
+    background:rgba(255,181,46,.055);
+    color:#aaa;
+    font-size:13px;
+    line-height:1.55;
+}
+.utility-single-note strong{
+    color:#ffb52e;
+}
+</style>
+
 </head>
 
 <body>
@@ -10983,7 +11005,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V12.4: SOOP 일반 방송 주소 처리 보강 -->
+<!-- AXE NET V12.5: 절도도우미 제거 및 플리카 계산기 기본화 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -12933,6 +12955,145 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                 }
             },80);
             return result;
+        };
+    }
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.5: 절도도우미 제거 및 플리카 계산기 기본화 */
+(function(){
+    const PLICA_LEVELS_ONLY=[
+        {name:"브론즈",point:2000,key:"bronze"},
+        {name:"실버",point:4000,key:"silver"},
+        {name:"골드",point:8000,key:"gold"},
+        {name:"플래티넘",point:16000,key:"platinum"},
+        {name:"다이아",point:32000,key:"diamond"},
+        {name:"블랙",point:64000,key:"black"}
+    ];
+
+    function moneyOnly(value){
+        const n=Number(value||0);
+        if(!isFinite(n))return "0";
+        return Math.round(n).toLocaleString("ko-KR");
+    }
+
+    function getPlicaOnlyUnit(){
+        const input=document.getElementById("plicaUnitPrice");
+        const value=Number(input?input.value:0);
+        return isFinite(value)&&value>0?value:100;
+    }
+
+    window.renderPlicaOnlyCards=function(){
+        const grid=document.getElementById("plicaResultGrid");
+        const summary=document.getElementById("plicaSummary");
+        if(!grid)return;
+        const unit=getPlicaOnlyUnit();
+        if(summary)summary.textContent=`기준 단가: 1P = ${moneyOnly(unit)}원`;
+        grid.innerHTML=PLICA_LEVELS_ONLY.map(function(item){
+            return `<div class="plica-card plica-${item.key}">
+                <div class="plica-title">${item.name}</div>
+                <div class="plica-point">${moneyOnly(item.point)}P 기준</div>
+                <div class="plica-price">${moneyOnly(item.point*unit)}원</div>
+            </div>`;
+        }).join("");
+        document.querySelectorAll(".plica-btn").forEach(function(btn){
+            btn.classList.toggle("active",Number(btn.dataset.price)===unit);
+        });
+    };
+
+    window.setPlicaOnlyUnit=function(value){
+        const input=document.getElementById("plicaUnitPrice");
+        if(input)input.value=String(value);
+        try{localStorage.setItem("axe_plica_unit_price",String(value));}catch(e){}
+        renderPlicaOnlyCards();
+    };
+
+    function renderPlicaOnly(){
+        let saved=100;
+        try{
+            const raw=Number(localStorage.getItem("axe_plica_unit_price")||100);
+            if(isFinite(raw)&&raw>0)saved=raw;
+        }catch(e){}
+
+        const content=document.getElementById("content");
+        if(!content)return;
+
+        content.innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">편의기능</div>
+                    <div class="section-desc">게임 플레이에 필요한 간단한 계산 도구입니다.</div>
+                </div>
+            </div>
+
+            <div class="utility-single-note">
+                <strong>플리카 계산기</strong><br>
+                절도도우미는 SOOP 라이브 외부 삽입 제한으로 제거했습니다.
+            </div>
+
+            <div class="plica-panel">
+                <div class="plica-control-row">
+                    <div class="plica-input-box">
+                        <div class="plica-label">1P당 가격</div>
+                        <input class="plica-input" id="plicaUnitPrice" type="number" min="1" value="${saved}" oninput="renderPlicaOnlyCards()">
+                    </div>
+                    <div class="plica-input-box" style="min-width:0;flex:1;">
+                        <div class="plica-label">빠른 단가</div>
+                        <div class="plica-preset-box">
+                            <button class="plica-btn" data-price="50" onclick="setPlicaOnlyUnit(50)">50</button>
+                            <button class="plica-btn" data-price="100" onclick="setPlicaOnlyUnit(100)">100</button>
+                            <button class="plica-btn" data-price="150" onclick="setPlicaOnlyUnit(150)">150</button>
+                            <button class="plica-btn" data-price="200" onclick="setPlicaOnlyUnit(200)">200</button>
+                            <button class="plica-btn" data-price="300" onclick="setPlicaOnlyUnit(300)">300</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plica-summary" id="plicaSummary"></div>
+            </div>
+            <div class="plica-grid" id="plicaResultGrid"></div>`;
+
+        renderPlicaOnlyCards();
+
+        const input=document.getElementById("plicaUnitPrice");
+        if(input){
+            input.addEventListener("change",function(){
+                try{localStorage.setItem("axe_plica_unit_price",String(getPlicaOnlyUnit()));}catch(e){}
+            });
+        }
+    }
+
+    window.showUtility=function(){
+        enterMainSection("utility");
+        setMainActive(8);
+        renderPlicaOnly();
+    };
+
+    window.showPlicaCalculator=function(){
+        showUtility();
+    };
+
+    window.showPlicaCalculatorV12=function(){
+        showUtility();
+    };
+
+    window.showTheftHelper=function(){
+        showUtility();
+    };
+
+    window.showTheftHelperV12=function(){
+        showUtility();
+    };
+
+    const originalNavigateMain=window.navigateMain;
+    if(typeof originalNavigateMain==="function"){
+        window.navigateMain=function(section){
+            if(section==="utility"){
+                showUtility();
+                return;
+            }
+            return originalNavigateMain.apply(this,arguments);
         };
     }
 })();
