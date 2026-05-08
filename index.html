@@ -7750,6 +7750,323 @@ function toggleGalleryCommentDislike(commentId,galleryId,btn){fastCommentReactio
 function galleryCommentDislike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,"dislike",btn);}
 function galleryCommentUndislike(commentId,galleryId,btn){fastCommentReactionV2("gallery",commentId,galleryId,"undislike",btn);}
 
+
+/* AXE NET 체감속도 개선 v3
+   - 추천/비추천: 전체 재렌더링 없이 버튼 숫자와 상태 즉시 반영
+   - 글/댓글 등록: 버튼 즉시 비활성화 및 등록 중 표시
+   - 성공 알림창 최소화로 액션 흐름 단축
+*/
+(function(){
+    const style=document.createElement("style");
+    style.textContent=`
+        .reaction-btn.pending,.comment-reaction-btn.pending,.board-like-btn.pending{opacity:.68!important;pointer-events:none!important;filter:saturate(.8)}
+        .form-submit.loading,.comment-submit.loading,.tube-submit-open.loading{opacity:.72!important;cursor:wait!important;pointer-events:none!important}
+        .comment-submit:disabled,.form-submit:disabled{opacity:.72!important;cursor:wait!important}
+    `;
+    document.head.appendChild(style);
+})();
+
+const AXE_ACTION_LOCKS=new Set();
+function axeActionBegin(key){
+    if(AXE_ACTION_LOCKS.has(key))return false;
+    AXE_ACTION_LOCKS.add(key);
+    return true;
+}
+function axeActionEnd(key){AXE_ACTION_LOCKS.delete(key);}
+function axeCurrentButton(selector){
+    const ev=window.event;
+    if(ev&&ev.target&&ev.target.closest){
+        const btn=ev.target.closest(selector||"button");
+        if(btn)return btn;
+    }
+    return null;
+}
+function axeSetButtonLoading(btn,loading,text){
+    if(!btn)return;
+    if(loading){
+        if(!btn.dataset.originalText)btn.dataset.originalText=btn.textContent;
+        btn.disabled=true;
+        btn.classList.add("loading");
+        if(text)btn.textContent=text;
+    }else{
+        btn.disabled=false;
+        btn.classList.remove("loading");
+        if(btn.dataset.originalText){
+            btn.textContent=btn.dataset.originalText;
+            delete btn.dataset.originalText;
+        }
+    }
+}
+function axeGetModalSubmitButton(modalId){
+    const modal=document.getElementById(modalId);
+    return modal?modal.querySelector(".form-submit"):null;
+}
+function axeGetReactionButton(btn){
+    if(btn&&btn.closest)return btn.closest(".reaction-btn,.comment-reaction-btn,.board-like-btn");
+    return axeCurrentButton(".reaction-btn,.comment-reaction-btn,.board-like-btn");
+}
+function axeReactionPair(btn){
+    if(!btn)return {like:null,dislike:null};
+    const wrap=btn.closest(".detail-like-area,.comment-reaction-group")||btn.parentElement;
+    return {
+        like:wrap?wrap.querySelector(".like"):null,
+        dislike:wrap?wrap.querySelector(".dislike"):null
+    };
+}
+function axeReactionNum(btn){
+    if(!btn)return 0;
+    const span=btn.querySelector("span");
+    return Math.max(0,Number(span?span.textContent:0)||0);
+}
+function axeSetReactionNum(btn,value){
+    if(!btn)return;
+    const span=btn.querySelector("span");
+    if(span)span.textContent=String(Math.max(0,Number(value||0)));
+}
+function axeSetReactionPending(btn,pending){
+    const pair=axeReactionPair(btn);
+    [pair.like,pair.dislike].forEach(function(item){
+        if(item)item.classList.toggle("pending",!!pending);
+    });
+}
+function axeSetReactionState(btn,likes,dislikes,liked,disliked){
+    const pair=axeReactionPair(btn);
+    axeSetReactionNum(pair.like,likes);
+    axeSetReactionNum(pair.dislike,dislikes);
+    if(pair.like)pair.like.classList.toggle("active",!!liked);
+    if(pair.dislike)pair.dislike.classList.toggle("active",!!disliked);
+}
+function axeNormalizeReactionAction(action,beforeLiked,beforeDisliked){
+    let nextLiked=beforeLiked;
+    let nextDisliked=beforeDisliked;
+    let likeDelta=0;
+    let dislikeDelta=0;
+    if(action==="like"){
+        nextLiked=true;nextDisliked=false;
+        if(!beforeLiked)likeDelta+=1;
+        if(beforeDisliked)dislikeDelta-=1;
+    }else if(action==="unlike"){
+        nextLiked=false;
+        if(beforeLiked)likeDelta-=1;
+    }else if(action==="dislike"){
+        nextDisliked=true;nextLiked=false;
+        if(!beforeDisliked)dislikeDelta+=1;
+        if(beforeLiked)likeDelta-=1;
+    }else if(action==="undislike"){
+        nextDisliked=false;
+        if(beforeDisliked)dislikeDelta-=1;
+    }
+    return {nextLiked:nextLiked,nextDisliked:nextDisliked,likeDelta:likeDelta,dislikeDelta:dislikeDelta};
+}
+function axeApplyPostMark(kind,id,liked,disliked){
+    if(liked)fastMarkLiked(kind,id);else fastUnmarkLiked(kind,id);
+    if(disliked)fastMarkDisliked(kind,id);else fastUnmarkDisliked(kind,id);
+}
+function axeApplyCommentMark(scope,commentId,liked,disliked){
+    if(liked)markCommentLiked(scope,commentId);else unmarkCommentLiked(scope,commentId);
+    if(disliked)markCommentDisliked(scope,commentId);else unmarkCommentDisliked(scope,commentId);
+}
+function fastPostReactionV3(kind,id,action,btn){
+    const key="post-v3:"+kind+":"+id;
+    if(!fastReactionBegin(key))return;
+    btn=axeGetReactionButton(btn);
+    const pair=axeReactionPair(btn);
+    const target=fastGetPost(kind,id);
+    const snapshot=fastSnapshot(target)||{likes:axeReactionNum(pair.like),dislikes:axeReactionNum(pair.dislike)};
+    const beforeLiked=fastIsLiked(kind,id);
+    const beforeDisliked=fastIsDisliked(kind,id);
+    const next=axeNormalizeReactionAction(action,beforeLiked,beforeDisliked);
+    const nextLikes=Math.max(0,Number(snapshot.likes||0)+next.likeDelta);
+    const nextDislikes=Math.max(0,Number(snapshot.dislikes||0)+next.dislikeDelta);
+
+    if(target){target.likes=nextLikes;target.dislikes=nextDislikes;}
+    axeApplyPostMark(kind,id,next.nextLiked,next.nextDisliked);
+    axeSetReactionState(btn,nextLikes,nextDislikes,next.nextLiked,next.nextDisliked);
+    axeSetReactionPending(btn,true);
+
+    fastPostApi(kind,{type:fastPayloadType(kind,action,false),id:id,client_id:fastPostClient(kind)})
+    .then(function(data){
+        if(data.result==="success"||data.result==="duplicate"||data.result==="not_found")return;
+        if(target)fastRestore(target,snapshot);
+        axeApplyPostMark(kind,id,beforeLiked,beforeDisliked);
+        axeSetReactionState(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert(data.message||"처리 중 오류가 발생했습니다.");
+    })
+    .catch(function(){
+        if(target)fastRestore(target,snapshot);
+        axeApplyPostMark(kind,id,beforeLiked,beforeDisliked);
+        axeSetReactionState(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert("처리 중 오류가 발생했습니다.");
+    })
+    .finally(function(){
+        axeSetReactionPending(btn,false);
+        fastReactionEnd(key);
+    });
+}
+function fastCommentReactionV3(scope,commentId,ownerId,action,btn){
+    const key="comment-v3:"+scope+":"+commentId;
+    if(!fastReactionBegin(key))return;
+    btn=axeGetReactionButton(btn);
+    const pair=axeReactionPair(btn);
+    const target=fastGetComment(scope,commentId);
+    const snapshot=fastSnapshot(target)||{likes:axeReactionNum(pair.like),dislikes:axeReactionNum(pair.dislike)};
+    const beforeLiked=hasLikedComment(scope,commentId);
+    const beforeDisliked=hasDislikedComment(scope,commentId);
+    const next=axeNormalizeReactionAction(action,beforeLiked,beforeDisliked);
+    const nextLikes=Math.max(0,Number(snapshot.likes||0)+next.likeDelta);
+    const nextDislikes=Math.max(0,Number(snapshot.dislikes||0)+next.dislikeDelta);
+
+    if(target){target.likes=nextLikes;target.dislikes=nextDislikes;}
+    axeApplyCommentMark(scope,commentId,next.nextLiked,next.nextDisliked);
+    axeSetReactionState(btn,nextLikes,nextDislikes,next.nextLiked,next.nextDisliked);
+    axeSetReactionPending(btn,true);
+
+    fastPostApi(scope,{type:fastPayloadType(scope,action,true),comment_id:commentId,client_id:getCommentLikeClientId(scope)})
+    .then(function(data){
+        if(data.result==="success"||data.result==="duplicate"||data.result==="not_found")return;
+        if(target)fastRestore(target,snapshot);
+        axeApplyCommentMark(scope,commentId,beforeLiked,beforeDisliked);
+        axeSetReactionState(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert(data.message||"댓글 반응 처리 중 오류가 발생했습니다.");
+    })
+    .catch(function(){
+        if(target)fastRestore(target,snapshot);
+        axeApplyCommentMark(scope,commentId,beforeLiked,beforeDisliked);
+        axeSetReactionState(btn,snapshot.likes,snapshot.dislikes,beforeLiked,beforeDisliked);
+        alert("댓글 반응 처리 중 오류가 발생했습니다.");
+    })
+    .finally(function(){
+        axeSetReactionPending(btn,false);
+        fastReactionEnd(key);
+    });
+}
+
+function toggleBoardLike(id,btn){fastPostReactionV3("board",id,hasLikedBoardPost(id)?"unlike":"like",btn);}
+function likeBoardPost(id,btn){fastPostReactionV3("board",id,"like",btn);}
+function unlikeBoardPost(id,btn){fastPostReactionV3("board",id,"unlike",btn);}
+function toggleBoardDislike(id,btn){fastPostReactionV3("board",id,hasDislikedBoardPost(id)?"undislike":"dislike",btn);}
+function dislikeBoardPost(id,btn){fastPostReactionV3("board",id,"dislike",btn);}
+function undislikeBoardPost(id,btn){fastPostReactionV3("board",id,"undislike",btn);}
+function toggleTubeLike(id,btn){fastPostReactionV3("tube",id,hasLikedTube(id)?"unlike":"like",btn);}
+function likeTube(id,btn){fastPostReactionV3("tube",id,"like",btn);}
+function unlikeTube(id,btn){fastPostReactionV3("tube",id,"unlike",btn);}
+function toggleTubeDislike(id,btn){fastPostReactionV3("tube",id,hasDislikedTube(id)?"undislike":"dislike",btn);}
+function dislikeTube(id,btn){fastPostReactionV3("tube",id,"dislike",btn);}
+function undislikeTube(id,btn){fastPostReactionV3("tube",id,"undislike",btn);}
+function toggleGalleryLike(id,btn){fastPostReactionV3("gallery",id,hasGalleryLiked(id)?"unlike":"like",btn);}
+function likeGallery(id,btn){fastPostReactionV3("gallery",id,"like",btn);}
+function unlikeGallery(id,btn){fastPostReactionV3("gallery",id,"unlike",btn);}
+function toggleGalleryDislike(id,btn){fastPostReactionV3("gallery",id,hasGalleryDisliked(id)?"undislike":"dislike",btn);}
+function dislikeGallery(id,btn){fastPostReactionV3("gallery",id,"dislike",btn);}
+function undislikeGallery(id,btn){fastPostReactionV3("gallery",id,"undislike",btn);}
+function toggleBoardCommentLike(commentId,postId,btn){fastCommentReactionV3("board",commentId,postId,hasLikedComment("board",commentId)?"unlike":"like",btn);}
+function likeBoardComment(commentId,postId,btn){fastCommentReactionV3("board",commentId,postId,"like",btn);}
+function unlikeBoardComment(commentId,postId,btn){fastCommentReactionV3("board",commentId,postId,"unlike",btn);}
+function toggleBoardCommentDislike(commentId,postId,btn){fastCommentReactionV3("board",commentId,postId,hasDislikedComment("board",commentId)?"undislike":"dislike",btn);}
+function dislikeBoardComment(commentId,postId,btn){fastCommentReactionV3("board",commentId,postId,"dislike",btn);}
+function undislikeBoardComment(commentId,postId,btn){fastCommentReactionV3("board",commentId,postId,"undislike",btn);}
+function toggleTubeCommentLike(commentId,tubeId,btn){fastCommentReactionV3("tube",commentId,tubeId,hasLikedComment("tube",commentId)?"unlike":"like",btn);}
+function likeTubeComment(commentId,tubeId,btn){fastCommentReactionV3("tube",commentId,tubeId,"like",btn);}
+function unlikeTubeComment(commentId,tubeId,btn){fastCommentReactionV3("tube",commentId,tubeId,"unlike",btn);}
+function toggleTubeCommentDislike(commentId,tubeId,btn){fastCommentReactionV3("tube",commentId,tubeId,hasDislikedComment("tube",commentId)?"undislike":"dislike",btn);}
+function dislikeTubeComment(commentId,tubeId,btn){fastCommentReactionV3("tube",commentId,tubeId,"dislike",btn);}
+function undislikeTubeComment(commentId,tubeId,btn){fastCommentReactionV3("tube",commentId,tubeId,"undislike",btn);}
+function toggleGalleryCommentLike(commentId,galleryId,btn){fastCommentReactionV3("gallery",commentId,galleryId,hasLikedComment("gallery",commentId)?"unlike":"like",btn);}
+function galleryCommentLike(commentId,galleryId,btn){fastCommentReactionV3("gallery",commentId,galleryId,"like",btn);}
+function galleryCommentUnlike(commentId,galleryId,btn){fastCommentReactionV3("gallery",commentId,galleryId,"unlike",btn);}
+function toggleGalleryCommentDislike(commentId,galleryId,btn){fastCommentReactionV3("gallery",commentId,galleryId,hasDislikedComment("gallery",commentId)?"undislike":"dislike",btn);}
+function galleryCommentDislike(commentId,galleryId,btn){fastCommentReactionV3("gallery",commentId,galleryId,"dislike",btn);}
+function galleryCommentUndislike(commentId,galleryId,btn){fastCommentReactionV3("gallery",commentId,galleryId,"undislike",btn);}
+
+function submitBoardPost(){
+    const lockKey="submit:board_post";
+    if(!axeActionBegin(lockKey))return;
+    const btn=axeGetModalSubmitButton("boardFormModal");
+    if(!requireLogin("자유게시판 글쓰기는 로그인 후 이용해주세요.")){axeActionEnd(lockKey);return;}
+    const writer=getLoginNickname();
+    const writerBadge=getLoginBadge();
+    const title=document.getElementById("boardTitle").value.trim();
+    const category=document.getElementById("boardCategory").value.trim()||"일반";
+    const content=document.getElementById("boardContent").value.trim();
+    const password=document.getElementById("boardPassword").value.trim();
+    if(!writer||!title||!content||!password){alert("작성자, 제목, 내용, 삭제 비밀번호는 필수입니다.");axeActionEnd(lockKey);return;}
+    axeSetButtonLoading(btn,true,"등록 중...");
+    postBoardApi({type:"board_post",writer:writer,writer_badge:writerBadge,title:title,category:category,content:content,password:password})
+    .then(function(data){
+        if(data.result==="success"){
+            addLocalUserPoints(10);
+            const newPost={id:data.id||String(Date.now()),date:data.date||new Date().toISOString(),writer:writer,writer_badge:writerBadge,title:title,category:category,content:content,order:"",views:0,likes:0,dislikes:0,updated_at:""};
+            boards.unshift(newPost);
+            clearBoardForm();closeBoardForm();showBoard();openBoardDetail(getBoardId(newPost,0));
+        }else{alert(data.message||"등록 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("등록 중 오류가 발생했습니다.");})
+    .finally(function(){axeSetButtonLoading(btn,false);axeActionEnd(lockKey);});
+}
+function submitTubePost(){
+    const lockKey="submit:tube_post";
+    if(!axeActionBegin(lockKey))return;
+    const btn=axeGetModalSubmitButton("tubeFormModal");
+    if(!requireLogin("AXE TUBE 글쓰기는 로그인 후 이용해주세요.")){axeActionEnd(lockKey);return;}
+    const writer=getLoginNickname();
+    const writerBadge=getLoginBadge();
+    const title=document.getElementById("tubeTitle").value.trim();
+    const url=document.getElementById("tubeUrl").value.trim();
+    const thumbnail=document.getElementById("tubeThumbnail").value.trim();
+    const category=document.getElementById("tubeCategory").value.trim()||"일반";
+    const content=document.getElementById("tubeContent").value.trim();
+    const password=document.getElementById("tubePassword").value.trim();
+    if(!writer||!title||!url||!password){alert("작성자, 영상 제목, 유튜브 링크, 삭제 비밀번호는 필수입니다.");axeActionEnd(lockKey);return;}
+    if(!url.includes("youtube.com")&&!url.includes("youtu.be")){alert("유튜브 링크를 입력해주세요.");axeActionEnd(lockKey);return;}
+    axeSetButtonLoading(btn,true,"등록 중...");
+    postTubeApi({type:"tube_post",writer:writer,writer_badge:writerBadge,title:title,url:url,thumbnail:thumbnail,category:category,content:content,password:password})
+    .then(function(data){
+        if(data.result==="success"){
+            const newTube={id:data.id||String(Date.now()),title:title,url:url,thumbnail:thumbnail,date:data.date||new Date().toISOString(),writer:writer,writer_badge:writerBadge,content:content,category:category,order:"",views:0,likes:0,dislikes:0,updated_at:""};
+            tubes.unshift(newTube);addLocalUserPoints(10);clearTubeForm();closeTubeForm();showTube();setTimeout(function(){openTubeDetail(getTubeId(newTube,0),false);},40);
+        }else{alert(data.message||"등록 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("등록 중 오류가 발생했습니다.");})
+    .finally(function(){axeSetButtonLoading(btn,false);axeActionEnd(lockKey);});
+}
+function axeAddComment(scope,ownerId,parentCommentId,inputPrefix){
+    if(!requireLogin("댓글 작성은 로그인 후 이용해주세요."))return;
+    const lockKey="comment:"+scope+":"+ownerId+":"+(parentCommentId||"root");
+    if(!axeActionBegin(lockKey))return;
+    const btn=axeCurrentButton(".comment-submit");
+    const writer=getLoginNickname()||"익명";
+    const writerBadge=getLoginBadge();
+    const writerEl=document.getElementById(inputPrefix?inputPrefix+"Writer":scope==="gallery"?"galleryCommentWriter":scope==="tube"?"tubeCommentWriter":"commentWriter");
+    const passwordEl=document.getElementById(inputPrefix?inputPrefix+"Password":scope==="gallery"?"galleryCommentPassword":scope==="tube"?"tubeCommentPassword":"commentPassword");
+    const contentEl=document.getElementById(inputPrefix?inputPrefix+"Content":scope==="gallery"?"galleryCommentContent":scope==="tube"?"tubeCommentContent":"commentContent");
+    const password=passwordEl?passwordEl.value.trim():"";
+    const content=contentEl?contentEl.value.trim():"";
+    if(!content||!password){alert("댓글 내용과 삭제 비밀번호를 입력해주세요.");axeActionEnd(lockKey);return;}
+    axeSetButtonLoading(btn,true,"등록 중");
+    const payload={writer:writer,writer_badge:writerBadge,content:content,password:password,parent_comment_id:parentCommentId||""};
+    let api=postBoardApi;
+    let list=boardComments;
+    let open=function(){openBoardDetail(ownerId);};
+    if(scope==="board"){payload.type="board_comment_add";payload.post_id=ownerId;}
+    if(scope==="tube"){payload.type="tube_comment_add";payload.tube_id=ownerId;api=postTubeApi;list=tubeComments;open=function(){openTubeDetail(ownerId,false);};}
+    if(scope==="gallery"){payload.type="gallery_comment_add";payload.gallery_id=ownerId;api=postGalleryApi;list=galleryComments;open=function(){openGalleryDetail(ownerId,false,false);};}
+    api(payload)
+    .then(function(data){
+        if(data.result==="success"){
+            const row={comment_id:data.comment_id||String(Date.now()),parent_comment_id:parentCommentId||"",writer:writer,writer_badge:writerBadge,content:content,date:data.date||new Date().toISOString(),likes:0,dislikes:0,updated_at:""};
+            if(scope==="board")row.post_id=ownerId;
+            if(scope==="tube")row.tube_id=ownerId;
+            if(scope==="gallery")row.gallery_id=ownerId;
+            list.push(row);addLocalUserPoints(3);open();
+        }else{alert(data.message||"댓글 등록 중 오류가 발생했습니다.");}
+    })
+    .catch(function(){alert("댓글 등록 중 오류가 발생했습니다.");})
+    .finally(function(){axeSetButtonLoading(btn,false);axeActionEnd(lockKey);});
+}
+function addBoardComment(postId,parentCommentId="",inputPrefix=""){axeAddComment("board",postId,parentCommentId,inputPrefix);}
+function addTubeComment(tubeId,parentCommentId="",inputPrefix=""){axeAddComment("tube",tubeId,parentCommentId,inputPrefix);}
+function addGalleryComment(galleryId,parentCommentId="",inputPrefix=""){axeAddComment("gallery",galleryId,parentCommentId,inputPrefix);}
+
 </script>
 </body>
 </html>
