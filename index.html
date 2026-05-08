@@ -4138,7 +4138,7 @@ function getSortedGalleries(){
 function getGalleryImages(post){
     const raw=String(post.image_url||post.image||post.images||"").trim();
     if(!raw)return [];
-    return raw.split(/\n|,/).map(v=>v.trim()).filter(Boolean);
+    return raw.split(/\\n|\n|,/).map(v=>v.trim()).filter(Boolean);
 }
 
 function getCommentsByGallery(galleryId){
@@ -4271,15 +4271,52 @@ function previewGalleryFiles(){
     if((input.files||[]).length>5)alert("사진은 최대 5장까지 업로드됩니다. 앞의 5장만 사용됩니다.");
 }
 
-function readGalleryFiles(files){
-    return Promise.all(files.map(file=>new Promise((resolve,reject)=>{
+function compressGalleryImage(file,index,total,statusEl){
+    return new Promise(function(resolve){
         const reader=new FileReader();
         reader.onload=function(e){
-            resolve({image_base64:e.target.result,image_name:file.name,mime_type:file.type||"image/jpeg"});
+            const img=new Image();
+            img.onload=function(){
+                try{
+                    const maxSide=1600;
+                    const originalWidth=img.naturalWidth||img.width;
+                    const originalHeight=img.naturalHeight||img.height;
+                    let width=originalWidth;
+                    let height=originalHeight;
+                    const ratio=Math.min(1,maxSide/Math.max(width,height));
+                    width=Math.max(1,Math.round(width*ratio));
+                    height=Math.max(1,Math.round(height*ratio));
+                    const canvas=document.createElement("canvas");
+                    canvas.width=width;
+                    canvas.height=height;
+                    const ctx=canvas.getContext("2d");
+                    ctx.drawImage(img,0,0,width,height);
+                    const dataUrl=canvas.toDataURL("image/jpeg",0.78);
+                    resolve({image_base64:dataUrl,image_name:String(file.name||("gallery_"+(index+1))).replace(/\.[^.]+$/,"")+".jpg",mime_type:"image/jpeg"});
+                }catch(err){
+                    resolve({image_base64:e.target.result,image_name:file.name,mime_type:file.type||"image/jpeg"});
+                }
+            };
+            img.onerror=function(){
+                resolve({image_base64:e.target.result,image_name:file.name,mime_type:file.type||"image/jpeg"});
+            };
+            img.src=e.target.result;
         };
-        reader.onerror=reject;
+        reader.onerror=function(){
+            resolve(null);
+        };
+        if(statusEl)statusEl.textContent="사진 변환 중입니다. ("+(index+1)+"/"+total+")";
         reader.readAsDataURL(file);
-    })));
+    });
+}
+
+async function readGalleryFiles(files,statusEl){
+    const result=[];
+    for(let i=0;i<files.length;i++){
+        const item=await compressGalleryImage(files[i],i,files.length,statusEl);
+        if(item)result.push(item);
+    }
+    return result;
 }
 
 let gallerySubmitInProgress=false;
@@ -4333,9 +4370,11 @@ function submitGalleryPost(){
 
     setGallerySubmitState(true,"사진을 업로드 중입니다. 완료될 때까지 이 창을 닫거나 등록 버튼을 다시 누르지 마세요.");
 
-    readGalleryFiles(files).then(images=>{
+    const uploadStatus=document.getElementById("galleryUploadStatus");
+    readGalleryFiles(files,uploadStatus).then(images=>{
         const status=document.getElementById("galleryUploadStatus");
-        if(status)status.textContent="사진 파일을 변환했습니다. 서버에 등록 중입니다...";
+        if(!images.length){throw new Error("NO_IMAGES");}
+        if(status)status.textContent="사진 파일을 압축했습니다. 서버에 등록 중입니다...";
         return postGalleryApi({type:"gallery_post",writer:writer,writer_badge:writerBadge,title:title,category:category,content:content,password:password,images:images});
     }).then(data=>{
         if(data.result==="success"){
@@ -4367,8 +4406,12 @@ function submitGalleryPost(){
             setGallerySubmitState(false,"");
             alert(data.message||"갤러리 등록 중 오류가 발생했습니다.");
         }
-    }).catch(()=>{
+    }).catch((err)=>{
         setGallerySubmitState(false,"");
+        if(err&&err.message==="NO_IMAGES"){
+            alert("사진 파일을 읽지 못했습니다. 다른 사진으로 다시 시도해주세요.");
+            return;
+        }
         alert("갤러리 등록 중 오류가 발생했습니다. Apps Script Drive 권한도 확인해주세요.");
     });
 }
