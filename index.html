@@ -2394,6 +2394,15 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .food-admin-table{display:grid;gap:8px}.food-admin-row{border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);border-radius:14px;padding:12px}.food-admin-row.done{opacity:.55;background:rgba(255,255,255,.025)}.food-admin-row.done .food-admin-main,.food-admin-row.done .food-admin-items{text-decoration:line-through;color:#888}.food-admin-main{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;font-size:13px;color:#ddd;font-weight:900}.food-admin-buyer{color:#ffcf75}.food-admin-items{margin-top:7px;color:#ddd;font-size:13px;line-height:1.55;white-space:pre-line}.food-admin-sub{margin-top:7px;color:#888;font-size:12px;line-height:1.45}.food-admin-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.food-status-btn{height:31px;padding:0 9px;font-size:11.5px}.food-status-btn.active{color:#111;background:#ffb52e;border-color:#ffb52e}.food-empty{padding:18px;color:#888;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:13px;background:rgba(255,255,255,.025)}
 @media(max-width:1020px){.food-layout{grid-template-columns:1fr}.food-side{position:static}.food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.food-grid{grid-template-columns:1fr}.food-category-title{font-size:18px}.food-card{padding:13px}.food-meta{display:block}.food-price{margin-top:5px}.food-admin-main{display:block}.food-admin-main>div:last-child{margin-top:4px;color:#aaa}.food-admin-actions{display:grid;grid-template-columns:1fr 1fr}.food-status-btn{width:100%}}
+/* V13.1.1: PC 메뉴 버튼 수 증가 대응 */
+@media(min-width:769px){
+    .main-menu{overflow-x:auto!important;scrollbar-width:thin;scrollbar-color:rgba(255,181,46,.55) rgba(255,255,255,.08)}
+    .main-menu::-webkit-scrollbar{height:5px}
+    .main-menu::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:999px}
+    .main-menu::-webkit-scrollbar-thumb{background:rgba(255,181,46,.55);border-radius:999px}
+    .main-menu button{min-width:102px!important;flex:0 0 auto!important;padding:0 12px!important;font-size:14px!important}
+}
+
 </style>
 
 <style>
@@ -3231,9 +3240,9 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('info')">정보</button>
         <button onclick="navigateMain('ranking')">랭킹</button>
         <button onclick="navigateMain('utility')">편의기능</button>
+        <button onclick="navigateMain('food')">요리주문</button>
         <button onclick="navigateMain('my')">마이페이지</button>
         <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
-        <button onclick="navigateMain('food')">요리주문</button>
     </div>
     </div>
 
@@ -3424,7 +3433,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby-gUK6KY0io85q8ftroHMo0BEy427arVbyHczkZ5F8MYCJM_64saoknTy4RRaDvrzOsg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbydPri_VLiZ1yybIp3E9z8atjEZH8eteWDMy-Kjl_8KtR0nHMfLLRKLsKIXA0WYX72jrw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -8437,7 +8446,7 @@ function renderMyActivityRows(items,emptyText){
 
 function showMyPage(){
     enterMainSection("my");
-    setMainActive(9);
+    setMainActive(10);
     const user=getCurrentUser();
     if(!user||!user.nickname){
         document.getElementById("content").innerHTML=`<div class="section-head"><div><div class="section-title">마이페이지</div><div class="section-desc">로그인 후 내 활동과 포인트 내역을 확인할 수 있습니다.</div></div></div><div class="ready">로그인이 필요합니다.</div>`;
@@ -8539,7 +8548,7 @@ let adminMembers=[];
 
 function showAdmin(){
     enterMainSection("admin");
-    setMainActive(10);
+    setMainActive(11);
     const user=getCurrentUser();
     if(!user||!isCurrentAdmin()){
         document.getElementById("content").innerHTML=`
@@ -13593,7 +13602,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 
     window.showFoodOrder=function(){
         enterMainSection("food");
-        setMainActive(11);
+        setMainActive(9);
         loadFoodQtyMap();
         const menus=activeFoodMenus();
         const groups={};
