@@ -2518,6 +2518,60 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V11.4: 검색어 초기화 X 버튼 */
+.search{
+    position:relative;
+}
+.search-clear-btn{
+    position:absolute;
+    right:50px;
+    top:50%;
+    transform:translateY(-50%);
+    width:22px;
+    height:22px;
+    border:0;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    color:rgba(255,255,255,.62);
+    font-size:15px;
+    font-weight:950;
+    line-height:20px;
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    transition:.15s ease;
+    z-index:2;
+}
+.search-clear-btn:hover{
+    background:rgba(255,255,255,.16);
+    color:#fff;
+}
+.search.has-value .search-clear-btn{
+    display:flex;
+}
+.pc-expand-search .search input,
+.tube-fixed-search .search input,
+.fixed-bottom-search .search input{
+    padding-right:78px!important;
+}
+.pc-expand-search .search-mark,
+.tube-fixed-search .search-mark,
+.fixed-bottom-search .search-mark{
+    right:17px!important;
+}
+@media(max-width:768px){
+    .search-clear-btn{
+        right:49px;
+        width:21px;
+        height:21px;
+        font-size:14px;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -10398,7 +10452,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V11.3: PC 우측상단 펼침 검색 -->
+<!-- AXE NET V11.4: 검색어 초기화 버튼 추가 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -11370,6 +11424,142 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     window.boardSearchChanged=window.boardSearchChangedStable;
     window.gallerySearchChanged=window.gallerySearchChangedStable;
     window.tubeSearchChanged=window.tubeSearchChangedStable;
+})();
+</script>
+
+
+<script>
+/* AXE NET V11.4: 검색어 초기화 버튼 */
+(function(){
+    function updateSearchClearState(scope){
+        const ids=[scope+"PcSearchInput",scope+"SearchInput"];
+        if(scope==="tube")ids.push("tubeSearchInput");
+        ids.forEach(function(id){
+            const input=document.getElementById(id);
+            if(!input)return;
+            const search=input.closest(".search");
+            if(search)search.classList.toggle("has-value",!!input.value);
+        });
+    }
+
+    function updateAllSearchClearState(){
+        ["board","gallery","tube"].forEach(updateSearchClearState);
+    }
+
+    function enhanceOneSearchInput(input,scope){
+        if(!input || input.dataset.clearReady==="1")return;
+        input.dataset.clearReady="1";
+        const wrap=input.closest(".search");
+        if(!wrap)return;
+        if(!wrap.querySelector(".search-clear-btn")){
+            const btn=document.createElement("button");
+            btn.type="button";
+            btn.className="search-clear-btn";
+            btn.innerHTML="×";
+            btn.setAttribute("aria-label","검색어 지우기");
+            btn.onclick=function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                clearSearchKeyword(scope);
+            };
+            wrap.appendChild(btn);
+        }
+        input.addEventListener("input",function(){updateSearchClearState(scope);});
+        updateSearchClearState(scope);
+    }
+
+    function enhanceSearchClearButtons(){
+        enhanceOneSearchInput(document.getElementById("boardPcSearchInput"),"board");
+        enhanceOneSearchInput(document.getElementById("boardSearchInput"),"board");
+        enhanceOneSearchInput(document.getElementById("galleryPcSearchInput"),"gallery");
+        enhanceOneSearchInput(document.getElementById("gallerySearchInput"),"gallery");
+        enhanceOneSearchInput(document.getElementById("tubePcSearchInput"),"tube");
+        enhanceOneSearchInput(document.getElementById("tubeSearchInput"),"tube");
+        updateAllSearchClearState();
+    }
+
+    window.clearSearchKeyword=function(scope){
+        if(scope==="board"){
+            boardSearchKeyword="";
+            boardCurrentPage=1;
+            ["boardPcSearchInput","boardSearchInput"].forEach(function(id){
+                const el=document.getElementById(id);
+                if(el)el.value="";
+            });
+            renderBoardList();
+            updateSearchClearState("board");
+            const target=document.getElementById("boardPcSearchInput")||document.getElementById("boardSearchInput");
+            if(target)target.focus();
+            return;
+        }
+        if(scope==="gallery"){
+            gallerySearchKeyword="";
+            galleryCurrentPage=1;
+            ["galleryPcSearchInput","gallerySearchInput"].forEach(function(id){
+                const el=document.getElementById(id);
+                if(el)el.value="";
+            });
+            renderGalleryList();
+            updateSearchClearState("gallery");
+            const target=document.getElementById("galleryPcSearchInput")||document.getElementById("gallerySearchInput");
+            if(target)target.focus();
+            return;
+        }
+        if(scope==="tube"){
+            tubeSearchKeyword="";
+            ["tubePcSearchInput","tubeSearchInput"].forEach(function(id){
+                const el=document.getElementById(id);
+                if(el)el.value="";
+            });
+            renderTubeList();
+            updateSearchClearState("tube");
+            const target=document.getElementById("tubePcSearchInput")||document.getElementById("tubeSearchInput");
+            if(target)target.focus();
+            return;
+        }
+    };
+
+    const prevBoardSearch=window.boardSearchChangedStable||window.boardSearchChanged;
+    if(typeof prevBoardSearch==="function"){
+        window.boardSearchChangedStable=function(value){
+            prevBoardSearch(value);
+            setTimeout(function(){updateSearchClearState("board");},0);
+        };
+        window.boardSearchChanged=window.boardSearchChangedStable;
+    }
+
+    const prevGallerySearch=window.gallerySearchChangedStable||window.gallerySearchChanged;
+    if(typeof prevGallerySearch==="function"){
+        window.gallerySearchChangedStable=function(value){
+            prevGallerySearch(value);
+            setTimeout(function(){updateSearchClearState("gallery");},0);
+        };
+        window.gallerySearchChanged=window.gallerySearchChangedStable;
+    }
+
+    const prevTubeSearch=window.tubeSearchChangedStable||window.tubeSearchChanged;
+    if(typeof prevTubeSearch==="function"){
+        window.tubeSearchChangedStable=function(value){
+            prevTubeSearch(value);
+            setTimeout(function(){updateSearchClearState("tube");},0);
+        };
+        window.tubeSearchChanged=window.tubeSearchChangedStable;
+    }
+
+    ["showBoard","showGallery","showTube"].forEach(function(fnName){
+        const original=window[fnName];
+        if(typeof original==="function"){
+            window[fnName]=function(){
+                const result=original.apply(this,arguments);
+                setTimeout(enhanceSearchClearButtons,0);
+                setTimeout(enhanceSearchClearButtons,80);
+                return result;
+            };
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded",enhanceSearchClearButtons);
+    window.addEventListener("load",function(){setTimeout(enhanceSearchClearButtons,120);});
 })();
 </script>
 
