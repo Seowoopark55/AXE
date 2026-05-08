@@ -3125,6 +3125,26 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V12.6: 편의기능 안내문 제거 */
+.utility-single-note{
+    display:none!important;
+}
+</style>
+
+
+<style>
+/* AXE NET V12.7: 플리카 계산기 정리 */
+.utility-single-note,
+.utility-v12-tabs,
+.utility-sub-tabs,
+.theft-helper-layout,
+.theft-panel-card{
+    display:none!important;
+}
+</style>
+
 </head>
 
 <body>
@@ -11005,7 +11025,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V12.5: 절도도우미 제거 및 플리카 계산기 기본화 -->
+<!-- AXE NET V12.7: 플리카 계산기 정리 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -13030,7 +13050,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 
             <div class="utility-single-note">
                 <strong>플리카 계산기</strong><br>
-                절도도우미는 SOOP 라이브 외부 삽입 제한으로 제거했습니다.
+                
             </div>
 
             <div class="plica-panel">
@@ -13094,6 +13114,273 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                 return;
             }
             return originalNavigateMain.apply(this,arguments);
+        };
+    }
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.6: 플리카 계산기 안내문 제거 및 계산식 복구 */
+(function(){
+    /*
+      플리카 계산기 기준:
+      입력값 = 1P당 가격
+      각 등급 가격 = 등급별 필요 포인트 × 1P당 가격
+      등급별 포인트 기준은 기존 플리카 계산기 기준값으로 고정
+    */
+    const PLICA_LEVELS_RESTORE=[
+        {name:"브론즈",point:500,key:"bronze"},
+        {name:"실버",point:1000,key:"silver"},
+        {name:"골드",point:2000,key:"gold"},
+        {name:"플래티넘",point:4000,key:"platinum"},
+        {name:"다이아",point:8000,key:"diamond"},
+        {name:"블랙",point:16000,key:"black"}
+    ];
+
+    function plicaMoney(value){
+        const n=Number(value||0);
+        if(!isFinite(n))return "0";
+        return Math.round(n).toLocaleString("ko-KR");
+    }
+
+    function getPlicaUnit(){
+        const input=document.getElementById("plicaUnitPrice");
+        const value=Number(input?input.value:0);
+        return isFinite(value)&&value>0?value:100;
+    }
+
+    window.renderPlicaRestoredCards=function(){
+        const grid=document.getElementById("plicaResultGrid");
+        const summary=document.getElementById("plicaSummary");
+        if(!grid)return;
+        const unit=getPlicaUnit();
+        if(summary)summary.textContent=`기준 단가: 1P = ${plicaMoney(unit)}원`;
+        grid.innerHTML=PLICA_LEVELS_RESTORE.map(function(item){
+            const price=item.point*unit;
+            return `<div class="plica-card plica-${item.key}">
+                <div class="plica-title">${item.name}</div>
+                <div class="plica-point">${plicaMoney(item.point)}P 기준</div>
+                <div class="plica-price">${plicaMoney(price)}원</div>
+            </div>`;
+        }).join("");
+        document.querySelectorAll(".plica-btn").forEach(function(btn){
+            btn.classList.toggle("active",Number(btn.dataset.price)===unit);
+        });
+    };
+
+    window.setPlicaRestoredUnit=function(value){
+        const input=document.getElementById("plicaUnitPrice");
+        if(input)input.value=String(value);
+        try{localStorage.setItem("axe_plica_unit_price",String(value));}catch(e){}
+        renderPlicaRestoredCards();
+    };
+
+    function renderPlicaRestored(){
+        let saved=100;
+        try{
+            const raw=Number(localStorage.getItem("axe_plica_unit_price")||100);
+            if(isFinite(raw)&&raw>0)saved=raw;
+        }catch(e){}
+
+        const content=document.getElementById("content");
+        if(!content)return;
+
+        content.innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">편의기능</div>
+                    <div class="section-desc">게임 플레이에 필요한 간단한 계산 도구입니다.</div>
+                </div>
+            </div>
+
+            <div class="plica-panel">
+                <div class="plica-control-row">
+                    <div class="plica-input-box">
+                        <div class="plica-label">1P당 가격</div>
+                        <input class="plica-input" id="plicaUnitPrice" type="number" min="1" value="${saved}" oninput="renderPlicaRestoredCards()">
+                    </div>
+                    <div class="plica-input-box" style="min-width:0;flex:1;">
+                        <div class="plica-label">빠른 단가</div>
+                        <div class="plica-preset-box">
+                            <button class="plica-btn" data-price="50" onclick="setPlicaRestoredUnit(50)">50</button>
+                            <button class="plica-btn" data-price="100" onclick="setPlicaRestoredUnit(100)">100</button>
+                            <button class="plica-btn" data-price="150" onclick="setPlicaRestoredUnit(150)">150</button>
+                            <button class="plica-btn" data-price="200" onclick="setPlicaRestoredUnit(200)">200</button>
+                            <button class="plica-btn" data-price="300" onclick="setPlicaRestoredUnit(300)">300</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plica-summary" id="plicaSummary"></div>
+            </div>
+            <div class="plica-grid" id="plicaResultGrid"></div>`;
+
+        renderPlicaRestoredCards();
+
+        const input=document.getElementById("plicaUnitPrice");
+        if(input){
+            input.addEventListener("change",function(){
+                try{localStorage.setItem("axe_plica_unit_price",String(getPlicaUnit()));}catch(e){}
+            });
+        }
+    }
+
+    window.showUtility=function(){
+        enterMainSection("utility");
+        setMainActive(8);
+        renderPlicaRestored();
+    };
+
+    window.showPlicaCalculator=function(){
+        showUtility();
+    };
+
+    window.showPlicaCalculatorV12=function(){
+        showUtility();
+    };
+
+    const originalNavigateMain=window.navigateMain;
+    if(typeof originalNavigateMain==="function"){
+        window.navigateMain=function(section){
+            if(section==="utility"){
+                showUtility();
+                return;
+            }
+            return originalNavigateMain.apply(this,arguments);
+        };
+    }
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.8: 플리카 카드 거래비율 계산기 수정 */
+(function(){
+    const PLICA_LEVELS_FINAL=[
+        {name:"브론즈 카드",point:1000,key:"bronze"},
+        {name:"실버 카드",point:2625,key:"silver"},
+        {name:"골드 카드",point:4950,key:"gold"},
+        {name:"플래티넘 카드",point:10350,key:"platinum"},
+        {name:"다이아 카드",point:18000,key:"diamond"},
+        {name:"블랙 카드",point:37500,key:"black"}
+    ];
+
+    function formatPlicaMoney(value){
+        const n=Number(value||0);
+        if(!isFinite(n))return "0";
+        return Math.round(n).toLocaleString("ko-KR");
+    }
+
+    function getPlicaRatio(){
+        const input=document.getElementById("plicaRatio");
+        const n=Number(input?input.value:0);
+        return isFinite(n)&&n>0?n:38;
+    }
+
+    window.renderPlicaFinalCards=function(){
+        const grid=document.getElementById("plicaResultGrid");
+        const summary=document.getElementById("plicaSummary");
+        if(!grid)return;
+
+        const ratio=getPlicaRatio();
+        if(summary){
+            summary.textContent=`현재 비율 1:${formatPlicaMoney(ratio)} 기준 · 카드 가격 = 적금 포인트 × ${formatPlicaMoney(ratio)}`;
+        }
+
+        grid.innerHTML=PLICA_LEVELS_FINAL.map(function(row){
+            const price=row.point*ratio;
+            return `<div class="plica-card plica-${row.key}">
+                <div class="plica-title">${row.name}</div>
+                <div class="plica-point">적금 포인트 ${formatPlicaMoney(row.point)}P</div>
+                <div class="plica-price">${formatPlicaMoney(price)}</div>
+            </div>`;
+        }).join("");
+
+        document.querySelectorAll(".plica-btn").forEach(function(btn){
+            btn.classList.toggle("active",Number(btn.dataset.ratio)===ratio);
+        });
+    };
+
+    window.setPlicaFinalRatio=function(value){
+        const input=document.getElementById("plicaRatio");
+        if(input)input.value=String(value);
+        try{localStorage.setItem("axe_plica_trade_ratio",String(value));}catch(e){}
+        renderPlicaFinalCards();
+    };
+
+    function renderPlicaFinalPage(){
+        let saved=38;
+        try{
+            const raw=Number(localStorage.getItem("axe_plica_trade_ratio")||38);
+            if(isFinite(raw)&&raw>0)saved=raw;
+        }catch(e){}
+
+        const content=document.getElementById("content");
+        if(!content)return;
+
+        content.innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">편의기능</div>
+                    <div class="section-desc">플리카 카드별 적금 포인트를 거래비율 기준으로 계산합니다.</div>
+                </div>
+            </div>
+
+            <div class="plica-panel">
+                <div class="plica-control-row">
+                    <div class="plica-input-box">
+                        <div class="plica-label">거래비율 입력</div>
+                        <input class="plica-input" id="plicaRatio" type="number" min="1" step="0.1" value="${saved}" oninput="renderPlicaFinalCards()" placeholder="예: 38">
+                    </div>
+                    <div class="plica-input-box" style="min-width:0;flex:1;">
+                        <div class="plica-label">비율 프리셋</div>
+                        <div class="plica-preset-box">
+                            <button class="plica-btn" data-ratio="37" onclick="setPlicaFinalRatio(37)">37</button>
+                            <button class="plica-btn" data-ratio="38" onclick="setPlicaFinalRatio(38)">38</button>
+                            <button class="plica-btn" data-ratio="39" onclick="setPlicaFinalRatio(39)">39</button>
+                            <button class="plica-btn" data-ratio="40" onclick="setPlicaFinalRatio(40)">40</button>
+                            <button class="plica-btn" data-ratio="41" onclick="setPlicaFinalRatio(41)">41</button>
+                            <button class="plica-btn" data-ratio="42" onclick="setPlicaFinalRatio(42)">42</button>
+                            <button class="plica-btn" data-ratio="43" onclick="setPlicaFinalRatio(43)">43</button>
+                            <button class="plica-btn" data-ratio="44" onclick="setPlicaFinalRatio(44)">44</button>
+                            <button class="plica-btn" data-ratio="45" onclick="setPlicaFinalRatio(45)">45</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plica-summary" id="plicaSummary"></div>
+            </div>
+
+            <div class="plica-grid" id="plicaResultGrid"></div>`;
+
+        renderPlicaFinalCards();
+
+        const input=document.getElementById("plicaRatio");
+        if(input){
+            input.addEventListener("change",function(){
+                try{localStorage.setItem("axe_plica_trade_ratio",String(getPlicaRatio()));}catch(e){}
+            });
+        }
+    }
+
+    window.showUtility=function(){
+        enterMainSection("utility");
+        setMainActive(8);
+        renderPlicaFinalPage();
+    };
+
+    window.showPlicaCalculator=function(){showUtility();};
+    window.showPlicaCalculatorV12=function(){showUtility();};
+    window.showTheftHelper=function(){showUtility();};
+    window.showTheftHelperV12=function(){showUtility();};
+
+    const oldNavigate=window.navigateMain;
+    if(typeof oldNavigate==="function"){
+        window.navigateMain=function(section){
+            if(section==="utility"){
+                showUtility();
+                return;
+            }
+            return oldNavigate.apply(this,arguments);
         };
     }
 })();
