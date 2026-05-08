@@ -2377,10 +2377,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .food-card{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.014)),rgba(0,0,0,.24);border-radius:17px;padding:15px;transition:.18s ease}
 .food-card:hover{border-color:rgba(255,181,46,.36);background:rgba(255,181,46,.045);transform:translateY(-1px)}
 .food-card.off{opacity:.48;filter:grayscale(.35)}
+.food-img{width:100%;aspect-ratio:16/10;margin-bottom:12px;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.07)}
+.food-img img{width:100%;height:100%;object-fit:cover;display:block;transition:.22s ease}
+.food-img.food-img-hidden{display:none!important}
+.food-card:hover .food-img img{transform:scale(1.035)}
 .food-card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:10px}
 .food-name{font-size:17px;font-weight:950;color:#fff;line-height:1.32;letter-spacing:-.2px}
 .food-tag{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:999px;background:rgba(255,181,46,.1);border:1px solid rgba(255,181,46,.24);color:#ffcf75;font-size:11px;font-weight:950;white-space:nowrap}
-.food-desc{min-height:38px;color:#aaa;font-size:12px;line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.food-desc{min-height:38px;color:#aaa;font-size:12px;line-height:1.55;margin-bottom:12px;white-space:normal;overflow:visible}
+.food-desc-line{display:block;word-break:keep-all;overflow-wrap:anywhere}
+.food-desc-line+.food-desc-line{margin-top:2px}
 .food-meta{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:10px 0 12px;padding:10px 11px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06)}
 .food-set{color:#bbb;font-size:12px;font-weight:850}.food-price{color:#ffb52e;font-size:18px;font-weight:950;font-variant-numeric:tabular-nums}
 .food-qty-row{display:grid;grid-template-columns:38px 1fr 38px;gap:8px;margin-bottom:10px}
@@ -13552,17 +13558,56 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         .catch(()=>{});
     };
 
+    function foodHtmlSafe(value){
+        return String(value===undefined||value===null?"":value)
+            .replace(/&/g,"&amp;")
+            .replace(/</g,"&lt;")
+            .replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;")
+            .replace(/'/g,"&#39;");
+    }
+    function renderFoodDescriptionText(value){
+        const raw=String(value||"").trim();
+        if(!raw)return "";
+        return raw.split("*").map(part=>part.trim()).filter(Boolean).map(part=>`<span class="food-desc-line">${foodHtmlSafe(part)}</span>`).join("");
+    }
+    function normalizeFoodImageUrl(menu){
+        const direct=String(menu.image_url||menu.image||menu.img||"").trim();
+        const fallbackMap={
+            "계란 샐러드":"/egg_salad.png",
+            "무난한 딸기우유":"/strawberry_milk.png",
+            "딸기우유":"/strawberry_milk.png",
+            "밀크티":"/milk_tea.png",
+            "프라이드 치킨":"/fried_chicken.png",
+            "계란 마요 토스트":"/egg_mayo_toast.png",
+            "마카롱":"/macaron.png",
+            "브라우니":"/brownie.png",
+            "까눌레":"/Canele.png",
+            "라면":"/ramen.png",
+            "아이스 마끼아또":"/iced_macchiato.png",
+            "분홍살 생선조림":"/pink_fish_stew.png",
+            "흰살 생선조림":"/white_fish_stew.png"
+        };
+        let url=direct||fallbackMap[String(menu.name||"").trim()]||"";
+        if(!url)return "";
+        if(/^https?:\/\//i.test(url)||url.startsWith("/")||url.startsWith("data:")||url.startsWith("blob:"))return url;
+        return "/"+url.replace(/^\.?\//,"");
+    }
+
     function renderFoodMenuCard(menu,index){
         const id=getFoodMenuId(menu,index);
         const status=String(menu.status||"ON").toUpperCase();
         const off=status!=="ON";
         const qty=getFoodQty(id);
+        const imageUrl=normalizeFoodImageUrl(menu);
+        const descHtml=renderFoodDescriptionText(menu.description||"");
         return `<div class="food-card ${off?'off':''}">
+            ${imageUrl?`<div class="food-img"><img src="${escapeAttr(imageUrl)}" alt="${foodHtmlSafe(menu.name||'요리')}" loading="lazy" onerror="this.closest('.food-img').classList.add('food-img-hidden')"></div>`:""}
             <div class="food-card-top">
-                <div class="food-name">${safe(menu.name||"메뉴")}</div>
-                <div class="food-tag">${off?"주문불가":safe(menu.tag||menu.category||"요리")}</div>
+                <div class="food-name">${foodHtmlSafe(menu.name||"메뉴")}</div>
+                <div class="food-tag">${off?"주문불가":foodHtmlSafe(menu.tag||menu.category||"요리")}</div>
             </div>
-            <div class="food-desc">${safe(menu.description||"")}</div>
+            <div class="food-desc">${descHtml}</div>
             <div class="food-meta"><div class="food-set">1세트 ${Number(menu.set_count||1)}ea</div><div class="food-price">${foodPrice(menu.price)}</div></div>
             <div class="food-qty-row">
                 <button class="food-qty-btn" onclick="changeFoodQty('${escapeText(id)}',-1)" ${off?'disabled':''}>-</button>
