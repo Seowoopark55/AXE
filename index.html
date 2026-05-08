@@ -10958,7 +10958,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V12.1: 절도도우미 메뉴 연결 보강 -->
+<!-- AXE NET V12.3: 편의기능 탭 고정 보강 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -12513,6 +12513,304 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
             return originalNavigateMain.apply(this,arguments);
         };
     }
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.2: 플리카 계산기 탭 복구 */
+(function(){
+    const PLICA_LEVELS_V12=[
+        {name:"브론즈",point:2000,key:"bronze"},
+        {name:"실버",point:4000,key:"silver"},
+        {name:"골드",point:8000,key:"gold"},
+        {name:"플래티넘",point:16000,key:"platinum"},
+        {name:"다이아",point:32000,key:"diamond"},
+        {name:"블랙",point:64000,key:"black"}
+    ];
+
+    function formatPlicaMoneyV12(value){
+        const n=Number(value||0);
+        if(!isFinite(n))return "0";
+        return Math.round(n).toLocaleString("ko-KR");
+    }
+
+    function getPlicaUnitPriceV12(){
+        const input=document.getElementById("plicaUnitPrice");
+        const value=Number(input?input.value:0);
+        return isFinite(value)&&value>0?value:100;
+    }
+
+    function setPlicaUnitPriceV12(value){
+        const input=document.getElementById("plicaUnitPrice");
+        if(input)input.value=String(value);
+        renderPlicaCardsV12();
+        try{localStorage.setItem("axe_plica_unit_price",String(value));}catch(e){}
+    }
+
+    function renderPlicaCardsV12(){
+        const grid=document.getElementById("plicaResultGrid");
+        const summary=document.getElementById("plicaSummary");
+        if(!grid)return;
+        const unit=getPlicaUnitPriceV12();
+        if(summary)summary.textContent=`기준 단가: 1P = ${formatPlicaMoneyV12(unit)}원`;
+        grid.innerHTML=PLICA_LEVELS_V12.map(function(item){
+            const price=item.point*unit;
+            return `<div class="plica-card plica-${item.key}">
+                <div class="plica-title">${item.name}</div>
+                <div class="plica-point">${formatPlicaMoneyV12(item.point)}P 기준</div>
+                <div class="plica-price">${formatPlicaMoneyV12(price)}원</div>
+            </div>`;
+        }).join("");
+        document.querySelectorAll(".plica-btn").forEach(function(btn){
+            btn.classList.toggle("active",Number(btn.dataset.price)===unit);
+        });
+    }
+
+    function renderPlicaCalculatorV12(){
+        let saved=100;
+        try{
+            const raw=Number(localStorage.getItem("axe_plica_unit_price")||100);
+            if(isFinite(raw)&&raw>0)saved=raw;
+        }catch(e){}
+        const box=document.getElementById("utilityContent")||document.getElementById("content");
+        if(!box)return;
+        box.innerHTML=`
+            <div class="plica-panel">
+                <div class="plica-control-row">
+                    <div class="plica-input-box">
+                        <div class="plica-label">1P당 가격</div>
+                        <input class="plica-input" id="plicaUnitPrice" type="number" min="1" value="${saved}" oninput="renderPlicaCardsV12()">
+                    </div>
+                    <div class="plica-input-box" style="min-width:0;flex:1;">
+                        <div class="plica-label">빠른 단가</div>
+                        <div class="plica-preset-box">
+                            <button class="plica-btn" data-price="50" onclick="setPlicaUnitPriceV12(50)">50</button>
+                            <button class="plica-btn" data-price="100" onclick="setPlicaUnitPriceV12(100)">100</button>
+                            <button class="plica-btn" data-price="150" onclick="setPlicaUnitPriceV12(150)">150</button>
+                            <button class="plica-btn" data-price="200" onclick="setPlicaUnitPriceV12(200)">200</button>
+                            <button class="plica-btn" data-price="300" onclick="setPlicaUnitPriceV12(300)">300</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plica-summary" id="plicaSummary"></div>
+            </div>
+            <div class="plica-grid" id="plicaResultGrid"></div>`;
+        renderPlicaCardsV12();
+        const input=document.getElementById("plicaUnitPrice");
+        if(input){
+            input.addEventListener("change",function(){
+                try{localStorage.setItem("axe_plica_unit_price",String(getPlicaUnitPriceV12()));}catch(e){}
+            });
+        }
+    }
+
+    window.renderPlicaCardsV12=renderPlicaCardsV12;
+    window.setPlicaUnitPriceV12=setPlicaUnitPriceV12;
+
+    window.showPlicaCalculatorV12=function(){
+        if(typeof setUtilityV12Tab==="function"){
+            setUtilityV12Tab("plica");
+        }else{
+            document.querySelectorAll(".utility-v12-tabs button").forEach(function(btn){
+                btn.classList.toggle("active",btn.dataset.utilityTab==="plica");
+            });
+        }
+        renderPlicaCalculatorV12();
+    };
+
+    const originalShowUtility=window.showUtility;
+    if(typeof originalShowUtility==="function"){
+        window.showUtility=function(){
+            originalShowUtility.apply(this,arguments);
+            const plicaBtn=document.querySelector('.utility-v12-tabs button[data-utility-tab="plica"]');
+            if(plicaBtn)plicaBtn.setAttribute("onclick","showPlicaCalculatorV12()");
+        };
+    }
+
+    document.addEventListener("click",function(e){
+        const btn=e.target && e.target.closest ? e.target.closest('.utility-v12-tabs button[data-utility-tab="plica"]') : null;
+        if(btn){
+            e.preventDefault();
+            e.stopPropagation();
+            showPlicaCalculatorV12();
+        }
+    },true);
+})();
+</script>
+
+
+<script>
+/* AXE NET V12.3: 편의기능 탭 고정 보강 */
+(function(){
+    const PLICA_LEVELS_STABLE=[
+        {name:"브론즈",point:2000,key:"bronze"},
+        {name:"실버",point:4000,key:"silver"},
+        {name:"골드",point:8000,key:"gold"},
+        {name:"플래티넘",point:16000,key:"platinum"},
+        {name:"다이아",point:32000,key:"diamond"},
+        {name:"블랙",point:64000,key:"black"}
+    ];
+
+    function stableFormatMoney(value){
+        const n=Number(value||0);
+        if(!isFinite(n))return "0";
+        return Math.round(n).toLocaleString("ko-KR");
+    }
+
+    function setStableUtilityTab(tab){
+        document.querySelectorAll(".utility-v12-tabs button").forEach(function(btn){
+            btn.classList.toggle("active",btn.dataset.utilityTab===tab);
+        });
+    }
+
+    function ensureUtilityShell(tab){
+        const content=document.getElementById("content");
+        if(!content)return null;
+
+        if(!document.getElementById("utilityContent") || !document.querySelector(".utility-v12-tabs")){
+            content.innerHTML=`
+                <div class="section-head">
+                    <div>
+                        <div class="section-title">편의기능</div>
+                        <div class="section-desc">게임 플레이를 보조하는 간단한 도구 모음입니다.</div>
+                    </div>
+                </div>
+                <div class="utility-v12-tabs">
+                    <button data-utility-tab="theft" onclick="showTheftHelperV12()">절도도우미</button>
+                    <button data-utility-tab="plica" onclick="showPlicaCalculatorV12()">플리카 계산기</button>
+                </div>
+                <div id="utilityContent"></div>`;
+        }
+
+        setStableUtilityTab(tab||"theft");
+        return document.getElementById("utilityContent");
+    }
+
+    function renderStablePlicaCalculator(){
+        const box=ensureUtilityShell("plica");
+        if(!box)return;
+
+        let saved=100;
+        try{
+            const raw=Number(localStorage.getItem("axe_plica_unit_price")||100);
+            if(isFinite(raw)&&raw>0)saved=raw;
+        }catch(e){}
+
+        box.innerHTML=`
+            <div class="plica-panel">
+                <div class="plica-control-row">
+                    <div class="plica-input-box">
+                        <div class="plica-label">1P당 가격</div>
+                        <input class="plica-input" id="plicaUnitPrice" type="number" min="1" value="${saved}" oninput="renderStablePlicaCards()">
+                    </div>
+                    <div class="plica-input-box" style="min-width:0;flex:1;">
+                        <div class="plica-label">빠른 단가</div>
+                        <div class="plica-preset-box">
+                            <button class="plica-btn" data-price="50" onclick="setStablePlicaUnitPrice(50)">50</button>
+                            <button class="plica-btn" data-price="100" onclick="setStablePlicaUnitPrice(100)">100</button>
+                            <button class="plica-btn" data-price="150" onclick="setStablePlicaUnitPrice(150)">150</button>
+                            <button class="plica-btn" data-price="200" onclick="setStablePlicaUnitPrice(200)">200</button>
+                            <button class="plica-btn" data-price="300" onclick="setStablePlicaUnitPrice(300)">300</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plica-summary" id="plicaSummary"></div>
+            </div>
+            <div class="plica-grid" id="plicaResultGrid"></div>`;
+        renderStablePlicaCards();
+        const input=document.getElementById("plicaUnitPrice");
+        if(input){
+            input.addEventListener("change",function(){
+                try{localStorage.setItem("axe_plica_unit_price",String(getStablePlicaUnitPrice()));}catch(e){}
+            });
+        }
+    }
+
+    function getStablePlicaUnitPrice(){
+        const input=document.getElementById("plicaUnitPrice");
+        const value=Number(input?input.value:0);
+        return isFinite(value)&&value>0?value:100;
+    }
+
+    window.renderStablePlicaCards=function(){
+        const grid=document.getElementById("plicaResultGrid");
+        const summary=document.getElementById("plicaSummary");
+        if(!grid)return;
+        const unit=getStablePlicaUnitPrice();
+        if(summary)summary.textContent=`기준 단가: 1P = ${stableFormatMoney(unit)}원`;
+        grid.innerHTML=PLICA_LEVELS_STABLE.map(function(item){
+            return `<div class="plica-card plica-${item.key}">
+                <div class="plica-title">${item.name}</div>
+                <div class="plica-point">${stableFormatMoney(item.point)}P 기준</div>
+                <div class="plica-price">${stableFormatMoney(item.point*unit)}원</div>
+            </div>`;
+        }).join("");
+        document.querySelectorAll(".plica-btn").forEach(function(btn){
+            btn.classList.toggle("active",Number(btn.dataset.price)===unit);
+        });
+    };
+
+    window.setStablePlicaUnitPrice=function(value){
+        const input=document.getElementById("plicaUnitPrice");
+        if(input)input.value=String(value);
+        try{localStorage.setItem("axe_plica_unit_price",String(value));}catch(e){}
+        renderStablePlicaCards();
+    };
+
+    const originalTheft=window.showTheftHelper;
+
+    window.showUtility=function(){
+        enterMainSection("utility");
+        setMainActive(8);
+        ensureUtilityShell("theft");
+        showTheftHelperV12();
+    };
+
+    window.showTheftHelperV12=function(){
+        const box=ensureUtilityShell("theft");
+        if(typeof originalTheft==="function"){
+            originalTheft();
+            ensureUtilityShell("theft");
+            setStableUtilityTab("theft");
+            return;
+        }
+        if(box)box.innerHTML=`<div class="ready">절도도우미 모듈을 불러오지 못했습니다.</div>`;
+    };
+
+    window.showPlicaCalculatorV12=function(){
+        renderStablePlicaCalculator();
+        setStableUtilityTab("plica");
+    };
+
+    const originalNavigateMain=window.navigateMain;
+    if(typeof originalNavigateMain==="function"){
+        window.navigateMain=function(section){
+            if(section==="utility"){
+                showUtility();
+                return;
+            }
+            return originalNavigateMain.apply(this,arguments);
+        };
+    }
+
+    document.addEventListener("click",function(e){
+        const btn=e.target && e.target.closest ? e.target.closest(".utility-v12-tabs button") : null;
+        if(!btn)return;
+        const tab=btn.dataset.utilityTab;
+        if(tab==="theft"){
+            e.preventDefault();
+            e.stopPropagation();
+            showTheftHelperV12();
+            return;
+        }
+        if(tab==="plica"){
+            e.preventDefault();
+            e.stopPropagation();
+            showPlicaCalculatorV12();
+            return;
+        }
+    },true);
 })();
 </script>
 
