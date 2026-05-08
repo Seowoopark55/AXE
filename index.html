@@ -2136,6 +2136,139 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+/* AXE NET V11: 게시판/갤러리/AXE TUBE 검색 및 페이지네이션 */
+.board-search-panel{
+    margin:0 0 14px;
+    padding:12px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:16px;
+    background:rgba(0,0,0,.18);
+}
+.board-search-panel .search input{
+    height:42px;
+    border-radius:12px;
+}
+.board-search-panel .search-mark{
+    font-size:12px;
+    font-weight:950;
+    color:#ffb52e;
+}
+.list-result-info{
+    padding:10px 2px 12px;
+    color:#888;
+    font-size:12px;
+    font-weight:850;
+    line-height:1.35;
+}
+.item-list .list-result-info{
+    padding:11px 16px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    background:rgba(255,255,255,.018);
+}
+.list-pagination{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin:16px 0 2px;
+    padding:12px 0 0;
+}
+.item-list .list-pagination{
+    padding:14px 12px;
+    margin:0;
+    border-top:1px solid rgba(255,255,255,.06);
+}
+.page-number-group{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+}
+.page-btn,.page-number{
+    min-width:36px;
+    height:34px;
+    padding:0 11px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(20,20,20,.92);
+    color:#bbb;
+    font-size:12px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.16s ease;
+}
+.page-btn:hover:not(:disabled),.page-number:hover{
+    color:#ffb52e;
+    border-color:rgba(255,181,46,.45);
+    transform:translateY(-1px);
+}
+.page-number.active{
+    background:#ffb52e;
+    border-color:#ffb52e;
+    color:#111;
+}
+.page-btn:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+.page-summary{
+    min-width:52px;
+    color:#888;
+    font-size:12px;
+    font-weight:900;
+    text-align:center;
+}
+@media(max-width:768px){
+    .board-search-panel{
+        margin:0 0 11px;
+        padding:10px;
+        border-radius:14px;
+    }
+    .board-search-panel .search input{
+        height:40px;
+        font-size:14px;
+        padding-right:48px;
+    }
+    .list-result-info{
+        font-size:11.5px;
+        padding:8px 2px 10px;
+    }
+    .item-list .list-result-info{
+        padding:9px 13px;
+    }
+    .list-pagination{
+        gap:6px;
+        flex-wrap:wrap;
+        margin:13px 0 0;
+        padding-top:10px;
+    }
+    .item-list .list-pagination{
+        padding:12px 8px;
+    }
+    .page-number-group{
+        gap:5px;
+        order:1;
+    }
+    .page-btn{
+        order:2;
+        flex:1;
+        max-width:110px;
+    }
+    .page-summary{
+        order:3;
+        width:100%;
+        margin-top:2px;
+    }
+    .page-btn,.page-number{
+        height:32px;
+        min-width:32px;
+        padding:0 9px;
+        border-radius:9px;
+        font-size:11.5px;
+    }
+}
+
 </style>
 </head>
 
@@ -2664,6 +2797,12 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
+
+let boardSearchKeyword="";
+let gallerySearchKeyword="";
+let tubeSearchKeyword="";
+let boardCurrentPage=1;
+let galleryCurrentPage=1;
 const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","ranking","utility","my","admin"];
 const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
@@ -4114,11 +4253,103 @@ function submitBoardPost(){
     });
 }
 
+
+function normalizeSearchText(value){
+    return String(value||"").toLowerCase().replace(/\s+/g," ").trim();
+}
+
+function getResponsivePageSize(type){
+    const isMobile = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+    if(type==="board") return isMobile ? 8 : 15;
+    if(type==="gallery") return isMobile ? 6 : 12;
+    return 12;
+}
+
+function postMatchesKeyword(post, keyword){
+    const q=normalizeSearchText(keyword);
+    if(!q)return true;
+    const haystack=normalizeSearchText([
+        post.title,
+        post.content,
+        post.writer,
+        post.category,
+        post.date
+    ].join(" "));
+    return haystack.indexOf(q)!==-1;
+}
+
+function renderSearchBar(scope, value, placeholder){
+    return `<div class="board-search-panel ${scope}-search-panel">
+        <div class="search">
+            <input id="${scope}SearchInput" value="${escapeText(value||"")}" placeholder="${escapeText(placeholder)}" oninput="${scope}SearchChanged(this.value)" autocomplete="off">
+            <span class="search-mark">검색</span>
+        </div>
+    </div>`;
+}
+
+function renderPagination(scope, currentPage, totalPages, totalCount, pageSize){
+    if(totalCount<=pageSize)return "";
+    const safePage=Math.max(1,Math.min(Number(currentPage||1),Number(totalPages||1)));
+    let pages=[];
+    const start=Math.max(1,safePage-2);
+    const end=Math.min(totalPages,start+4);
+    const adjustedStart=Math.max(1,end-4);
+    for(let i=adjustedStart;i<=end;i++)pages.push(i);
+    return `<div class="list-pagination ${scope}-pagination">
+        <button class="page-btn" ${safePage<=1?"disabled":""} onclick="${scope}GoPage(${safePage-1})">이전</button>
+        <div class="page-number-group">
+            ${pages.map(p=>`<button class="page-number ${p===safePage?"active":""}" onclick="${scope}GoPage(${p})">${p}</button>`).join("")}
+        </div>
+        <button class="page-btn" ${safePage>=totalPages?"disabled":""} onclick="${scope}GoPage(${safePage+1})">다음</button>
+        <div class="page-summary">${safePage} / ${totalPages}</div>
+    </div>`;
+}
+
+function boardSearchChanged(value){
+    boardSearchKeyword=value||"";
+    boardCurrentPage=1;
+    renderBoardList();
+}
+
+function gallerySearchChanged(value){
+    gallerySearchKeyword=value||"";
+    galleryCurrentPage=1;
+    renderGalleryList();
+}
+
+function tubeSearchChanged(value){
+    tubeSearchKeyword=value||"";
+    renderTubeList();
+}
+
+function boardGoPage(page){
+    boardCurrentPage=Math.max(1,Number(page||1));
+    renderBoardList();
+    scrollToElement("boardListBox");
+}
+
+function galleryGoPage(page){
+    galleryCurrentPage=Math.max(1,Number(page||1));
+    renderGalleryList();
+    scrollToElement("galleryListBox");
+}
+
+function getFilteredBoards(){
+    return getSortedBoards().filter(post=>postMatchesKeyword(post,boardSearchKeyword));
+}
+
+function getFilteredGalleries(){
+    return getSortedGalleries().filter(post=>postMatchesKeyword(post,gallerySearchKeyword));
+}
+
+function getFilteredTubes(){
+    return getSortedTubes().filter(post=>postMatchesKeyword(post,tubeSearchKeyword));
+}
+
 function showBoard(){
     enterMainSection("board");
     setMainActive(4);
     selectedBoardId="";
-    const list=getSortedBoards();
 
     document.getElementById("content").innerHTML=`
         <div class="section-head with-action">
@@ -4130,6 +4361,8 @@ function showBoard(){
                 <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
             </div>
         </div>
+
+        ${renderSearchBar("board",boardSearchKeyword,"자유게시판 검색어를 입력하세요")}
 
         <div class="item-list">
             <div class="board-table-head">
@@ -4149,24 +4382,35 @@ function renderBoardList(){
     const box=document.getElementById("boardListBox");
     if(!box)return;
 
-    const list=getSortedBoards();
-    if(!list.length){
-        box.innerHTML=`<div class="ready">등록된 게시글이 없습니다.</div>`;
+    const fullList=getFilteredBoards();
+    const pageSize=getResponsivePageSize("board");
+    const totalPages=Math.max(1,Math.ceil(fullList.length/pageSize));
+    boardCurrentPage=Math.max(1,Math.min(boardCurrentPage,totalPages));
+    const start=(boardCurrentPage-1)*pageSize;
+    const list=fullList.slice(start,start+pageSize);
+
+    if(!fullList.length){
+        box.innerHTML=`<div class="ready">${boardSearchKeyword?"검색 결과가 없습니다.":"등록된 게시글이 없습니다."}</div>`;
         return;
     }
 
-    box.innerHTML=list.map((post,index)=>{
-        const id=getBoardId(post,index);
-        const commentCount=getCommentsByPost(id).length;
-        const title=safe(post.title)+(commentCount?` <span class="board-comment-count-badge">💬 ${commentCount}</span>`:"");
-        return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
-            <div class="board-table-title">${title}</div>
-            <div class="board-table-cell">${renderWriterName(post.writer,post.writer_badge)}</div>
-            <div class="board-table-cell date">${formatDateOnly(post.date)}</div>
-            <div class="board-table-cell">${Number(post.views||0)}</div>
-            <div class="board-table-cell">👍 ${Number(post.likes||0)}</div>
-        </div>`;
-    }).join("");
+    box.innerHTML=`
+        <div class="list-result-info">총 ${fullList.length}개 · ${boardCurrentPage}/${totalPages}페이지</div>
+        ${list.map((post,index)=>{
+            const originalIndex=start+index;
+            const id=getBoardId(post,originalIndex);
+            const commentCount=getCommentsByPost(id).length;
+            const title=safe(post.title)+(commentCount?` <span class="board-comment-count-badge">댓글 ${commentCount}</span>`:"");
+            return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
+                <div class="board-table-title">${title}</div>
+                <div class="board-table-cell">${renderWriterName(post.writer,post.writer_badge)}</div>
+                <div class="board-table-cell date">${formatDateOnly(post.date)}</div>
+                <div class="board-table-cell">${Number(post.views||0)}</div>
+                <div class="board-table-cell">추천 ${Number(post.likes||0)}</div>
+            </div>`;
+        }).join("")}
+        ${renderPagination("board",boardCurrentPage,totalPages,fullList.length,pageSize)}
+    `;
 }
 
 function findBoardPostById(id){
@@ -4691,7 +4935,6 @@ function showGallery(){
     enterMainSection("gallery");
     setMainActive(5);
     selectedGalleryId="";
-    const list=getSortedGalleries();
     document.getElementById("content").innerHTML=`
         <div class="section-head with-action">
             <div>
@@ -4702,6 +4945,7 @@ function showGallery(){
                 <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
             </div>
         </div>
+        ${renderSearchBar("gallery",gallerySearchKeyword,"갤러리 검색어를 입력하세요")}
         <div id="galleryListBox"></div>`;
     renderGalleryList();
 }
@@ -4709,30 +4953,41 @@ function showGallery(){
 function renderGalleryList(){
     const box=document.getElementById("galleryListBox");
     if(!box)return;
-    const list=getSortedGalleries();
-    if(!list.length){
-        box.innerHTML=`<div class="ready">등록된 갤러리 게시물이 없습니다.</div>`;
+    const fullList=getFilteredGalleries();
+    const pageSize=getResponsivePageSize("gallery");
+    const totalPages=Math.max(1,Math.ceil(fullList.length/pageSize));
+    galleryCurrentPage=Math.max(1,Math.min(galleryCurrentPage,totalPages));
+    const start=(galleryCurrentPage-1)*pageSize;
+    const list=fullList.slice(start,start+pageSize);
+
+    if(!fullList.length){
+        box.innerHTML=`<div class="ready">${gallerySearchKeyword?"검색 결과가 없습니다.":"등록된 갤러리 게시물이 없습니다."}</div>`;
         return;
     }
-    box.innerHTML=`<div class="gallery-grid">${list.map((post,index)=>{
-        const id=getGalleryId(post,index);
-        const images=getGalleryImages(post);
-        const comments=getCommentsByGallery(id).length;
-        const thumb=images[0]||"./axe.png";
-        return `<div class="gallery-card" onclick="openGalleryDetail('${escapeText(id)}',true,true)">
-            <div class="gallery-thumb"><img src="${thumb}" onerror="this.src='./axe.png'"></div>
-            <div class="gallery-body">
-                <div class="gallery-title">${safe(post.title)}</div>
-                <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDateOnly(post.date)}</div>
-                <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
-                <div class="gallery-meta compact">
-                    <span class="tube-stat-badge gallery-stat">조회 ${Number(post.views||0)}</span>
-                    <span class="tube-stat-badge like gallery-stat">추천 ${Number(post.likes||0)}</span>
-                    <span class="tube-stat-badge comment gallery-stat">댓글 ${comments}</span>
+    box.innerHTML=`
+        <div class="list-result-info">총 ${fullList.length}개 · ${galleryCurrentPage}/${totalPages}페이지</div>
+        <div class="gallery-grid">${list.map((post,index)=>{
+            const originalIndex=start+index;
+            const id=getGalleryId(post,originalIndex);
+            const images=getGalleryImages(post);
+            const comments=getCommentsByGallery(id).length;
+            const thumb=images[0]||"./axe.png";
+            return `<div class="gallery-card" onclick="openGalleryDetail('${escapeText(id)}',true,true)">
+                <div class="gallery-thumb"><img src="${thumb}" onerror="this.src='./axe.png'"></div>
+                <div class="gallery-body">
+                    <div class="gallery-title">${safe(post.title)}</div>
+                    <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDateOnly(post.date)}</div>
+                    <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
+                    <div class="gallery-meta compact">
+                        <span class="tube-stat-badge gallery-stat">조회 ${Number(post.views||0)}</span>
+                        <span class="tube-stat-badge like gallery-stat">추천 ${Number(post.likes||0)}</span>
+                        <span class="tube-stat-badge comment gallery-stat">댓글 ${comments}</span>
+                    </div>
                 </div>
-            </div>
-        </div>`;
-    }).join("")}</div>`;
+            </div>`;
+        }).join("")}</div>
+        ${renderPagination("gallery",galleryCurrentPage,totalPages,fullList.length,pageSize)}
+    `;
 }
 
 function openGalleryForm(){
@@ -5424,7 +5679,6 @@ function selectOperation(id){
 function showTube(){
     enterMainSection("tube");
     setMainActive(3);
-    const list=getSortedTubes();
 
     document.getElementById("content").innerHTML=`
         <div class="section-head with-action">
@@ -5437,8 +5691,20 @@ function showTube(){
             </div>
         </div>
 
+        ${renderSearchBar("tube",tubeSearchKeyword,"AXE TUBE 검색어를 입력하세요")}
+
+        <div id="tubeListBox"></div>`;
+    renderTubeList();
+}
+
+function renderTubeList(){
+    const box=document.getElementById("tubeListBox");
+    if(!box)return;
+    const list=getFilteredTubes();
+    box.innerHTML=`
+        <div class="list-result-info">총 ${list.length}개${tubeSearchKeyword?" · 검색 중":""}</div>
         <div class="tube-grid">
-            ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
+            ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">${tubeSearchKeyword?"검색 결과가 없습니다.":"등록된 영상이 없습니다."}</div>`}
         </div>`;
 }
 
@@ -9881,7 +10147,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V10.9.1: 모바일 갤러리 목록 시간 표시 제거 보강 -->
+<!-- AXE NET V11: 검색 및 페이지네이션 추가 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
