@@ -3735,7 +3735,13 @@ function renderMainPage(page){
     if(target==="outlaw"){showOutlaw();return;}
     if(target==="info"){showInfo();return;}
     if(target==="utility"){showUtility();return;}
-    if(target==="food"){showFoodOrder();return;}
+    if(target==="food"){
+        if(typeof window.showFoodOrder==="function"){window.showFoodOrder();return;}
+        const contentEl=document.getElementById("content");
+        if(contentEl)contentEl.innerHTML=`<div class="ready">요리주문 화면을 준비하는 중입니다.</div>`;
+        setTimeout(function(){renderMainPage("food");},80);
+        return;
+    }
     if(target==="my"){showMyPage();return;}
     if(target==="board"){showBoard();return;}
     if(target==="gallery"){showGallery();return;}
@@ -13466,9 +13472,20 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     function foodPrice(value){return Number(value||0).toLocaleString()+"원";}
     function todayKey(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`;}
     function normalizeFoodItemArray(items){if(Array.isArray(items))return items;try{const parsed=JSON.parse(String(items||"[]"));return Array.isArray(parsed)?parsed:[];}catch(e){return [];}}
+    function getFoodOrderDateKey(order){
+        const direct=String(order&&order.order_date||"").trim();
+        if(/^\d{4}-\d{2}-\d{2}$/.test(direct))return direct;
+        const dateText=String((order&&order.date)||"").trim();
+        const dateMatch=dateText.match(/^(\d{4})[-.\/]\s*(\d{1,2})[-.\/]\s*(\d{1,2})/);
+        if(dateMatch)return `${dateMatch[1]}-${String(dateMatch[2]).padStart(2,"0")}-${String(dateMatch[3]).padStart(2,"0")}`;
+        const created=order&&order.created_at;
+        const createdDate=new Date(created);
+        if(created&&!isNaN(createdDate.getTime())){const m=String(createdDate.getMonth()+1).padStart(2,"0");const d=String(createdDate.getDate()).padStart(2,"0");return `${createdDate.getFullYear()}-${m}-${d}`;}
+        return direct;
+    }
     function getFoodMenuId(menu,index){return String(menu.id||("food_"+(index+1)));}
     function activeFoodMenus(){return (foodMenus||[]).filter(m=>String(m.status||"ON").toUpperCase()!=="HIDDEN").sort((a,b)=>Number(a.sort_order||9999)-Number(b.sort_order||9999));}
-    function todayFoodOrders(){const today=todayKey();return (foodOrders||[]).filter(o=>String(o.order_date||"")===today).sort((a,b)=>String(b.created_at||b.date||"").localeCompare(String(a.created_at||a.date||"")));}
+    function todayFoodOrders(){const today=todayKey();return (foodOrders||[]).filter(o=>getFoodOrderDateKey(o)===today).sort((a,b)=>String(b.created_at||b.date||"").localeCompare(String(a.created_at||a.date||"")));}
     function foodOrderItemsText(order){return normalizeFoodItemArray(order.items).map(item=>`${item.name} ${Number(item.qty||item.quantity||0)}세트`).join("\n")||"주문 항목 없음";}
     function foodCartTotal(){return foodCart.reduce((sum,item)=>sum+Number(item.price||0)*Number(item.qty||0),0);}
     function foodCartQty(){return foodCart.reduce((sum,item)=>sum+Number(item.qty||0),0);}
@@ -13506,8 +13523,17 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         .then(res=>res.json())
         .then(data=>{
             if(data.result==="success"){
+                const localOrder=data.order?Object.assign({},data.order,{
+                    date:data.order.date||"",
+                    order_date:data.order.order_date||todayKey(),
+                    memo:memo,
+                    items:Array.isArray(data.order.items)?JSON.stringify(data.order.items):data.order.items,
+                    created_at:data.order.created_at||new Date().toISOString()
+                }):null;
+                if(localOrder&&localOrder.id&&!foodOrders.some(o=>String(o.id)===String(localOrder.id)))foodOrders.unshift(localOrder);
                 foodCart=[];setSavedFoodMemo("");
                 alert("주문이 접수되었습니다.");
+                showFoodOrder();
                 return refreshData().then(()=>showFoodOrder());
             }
             alert(data.message||"주문 접수 중 오류가 발생했습니다.");
