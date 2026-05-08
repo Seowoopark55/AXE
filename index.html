@@ -1738,6 +1738,42 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     text-security:disc;
 }
 
+
+/* V10.1 갤러리 목록 메타 정보 한 줄 정렬 */
+.gallery-meta.compact{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    flex-wrap:nowrap!important;
+    gap:5px!important;
+    width:100%!important;
+    min-width:0!important;
+}
+.gallery-meta.compact .gallery-stat{
+    flex:1 1 0!important;
+    min-width:0!important;
+    height:23px!important;
+    padding:0 5px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    font-size:11px!important;
+    letter-spacing:-.35px!important;
+    line-height:1!important;
+}
+@media(max-width:420px){
+    .gallery-meta.compact{gap:4px!important}
+    .gallery-meta.compact .gallery-stat{
+        height:22px!important;
+        padding:0 4px!important;
+        font-size:10.5px!important;
+        letter-spacing:-.45px!important;
+    }
+}
+
 </style>
 </head>
 
@@ -4320,10 +4356,10 @@ function renderGalleryList(){
                 <div class="gallery-title">${safe(post.title)}</div>
                 <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDate(post.date)}</div>
                 <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
-                <div class="gallery-meta">
-                    <span class="tube-stat-badge">조회 ${Number(post.views||0)}</span>
-                    <span class="tube-stat-badge like">👍 ${Number(post.likes||0)}</span>
-                    <span class="tube-stat-badge comment">💬 ${comments}</span>
+                <div class="gallery-meta compact">
+                    <span class="tube-stat-badge gallery-stat">조회 ${Number(post.views||0)}</span>
+                    <span class="tube-stat-badge like gallery-stat">추천 ${Number(post.likes||0)}</span>
+                    <span class="tube-stat-badge comment gallery-stat">댓글 ${comments}</span>
                 </div>
             </div>
         </div>`;
