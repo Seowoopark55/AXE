@@ -2673,6 +2673,17 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V11.6: 모바일 검색 엔터 키보드 닫기 */
+@media(max-width:768px){
+    .fixed-bottom-search .search input,
+    .tube-fixed-search .search input{
+        ime-mode:auto;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -10553,7 +10564,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V11.5: 검색창 컴팩트화 -->
+<!-- AXE NET V11.6: 모바일 검색 엔터 키보드 닫기 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -11661,6 +11672,61 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 
     document.addEventListener("DOMContentLoaded",enhanceSearchClearButtons);
     window.addEventListener("load",function(){setTimeout(enhanceSearchClearButtons,120);});
+})();
+</script>
+
+
+<script>
+/* AXE NET V11.6: 모바일 검색 엔터 입력 시 키보드 닫기 */
+(function(){
+    function isMobileSearchInput(input){
+        if(!input)return false;
+        if(!window.matchMedia || !window.matchMedia("(max-width: 768px)").matches)return false;
+        return [
+            "boardSearchInput",
+            "gallerySearchInput",
+            "tubeSearchInput"
+        ].indexOf(input.id)!==-1;
+    }
+
+    function attachMobileSearchEnterClose(){
+        ["boardSearchInput","gallerySearchInput","tubeSearchInput"].forEach(function(id){
+            const input=document.getElementById(id);
+            if(!input || input.dataset.enterCloseReady==="1")return;
+            input.dataset.enterCloseReady="1";
+            input.setAttribute("enterkeyhint","done");
+            input.addEventListener("keydown",function(e){
+                if(e.key==="Enter"){
+                    e.preventDefault();
+                    if(isMobileSearchInput(input)){
+                        input.blur();
+                    }
+                }
+            });
+            input.addEventListener("search",function(){
+                if(isMobileSearchInput(input)){
+                    setTimeout(function(){input.blur();},0);
+                }
+            });
+        });
+    }
+
+    ["showBoard","showGallery","showTube"].forEach(function(fnName){
+        const original=window[fnName];
+        if(typeof original==="function"){
+            window[fnName]=function(){
+                const result=original.apply(this,arguments);
+                setTimeout(attachMobileSearchEnterClose,0);
+                setTimeout(attachMobileSearchEnterClose,100);
+                return result;
+            };
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded",attachMobileSearchEnterClose);
+    window.addEventListener("load",function(){
+        setTimeout(attachMobileSearchEnterClose,150);
+    });
 })();
 </script>
 
