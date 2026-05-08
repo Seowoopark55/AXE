@@ -11684,6 +11684,164 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         -webkit-box-orient:vertical!important;
     }
 }
+
+
+/* AXE NET V11.0 : 정보 메인 카테고리 / 하위 카테고리 구분 강화 */
+.info-menu,
+.sub-filter{
+    position:relative!important;
+    border-radius:18px!important;
+}
+
+.info-menu{
+    gap:10px!important;
+    padding:18px 14px 14px!important;
+    margin:0 0 14px!important;
+    border:1px solid rgba(255,181,46,.18)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.11),rgba(255,255,255,.02)),rgba(10,10,10,.92)!important;
+    box-shadow:0 10px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+
+.info-menu::before{
+    content:"메인 카테고리";
+    position:absolute;
+    left:14px;
+    top:-10px;
+    padding:4px 9px;
+    border-radius:999px;
+    background:rgba(14,14,14,.96);
+    border:1px solid rgba(255,181,46,.28);
+    color:#ffcf75;
+    font-size:11px;
+    font-weight:950;
+    letter-spacing:.2px;
+    line-height:1;
+}
+
+.info-menu button{
+    min-width:96px!important;
+    height:46px!important;
+    padding:0 18px!important;
+    border-radius:14px!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),#101010!important;
+    border:1px solid rgba(255,255,255,.11)!important;
+    color:#c8c8c8!important;
+    font-size:15px!important;
+    font-weight:950!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+
+.info-menu button:hover{
+    color:#fff!important;
+    border-color:rgba(255,181,46,.45)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.08),rgba(255,255,255,.02)),#111!important;
+}
+
+.info-menu button.active{
+    color:#111!important;
+    border-color:rgba(255,181,46,.88)!important;
+    background:linear-gradient(135deg,#ffd36d,#ffb52e 55%,#ff8c00)!important;
+    box-shadow:0 10px 24px rgba(255,181,46,.22)!important;
+}
+
+.sub-filter{
+    gap:10px!important;
+    padding:16px 14px 12px 16px!important;
+    margin:0 0 14px!important;
+    border:1px solid rgba(255,255,255,.075)!important;
+    border-left:3px solid rgba(255,181,46,.58)!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.012)),rgba(8,8,8,.9)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+.sub-filter::before{
+    content:"세부 분류";
+    position:absolute;
+    left:14px;
+    top:-10px;
+    padding:4px 9px;
+    border-radius:999px;
+    background:rgba(14,14,14,.96);
+    border:1px solid rgba(255,255,255,.13);
+    color:#b9b9b9;
+    font-size:11px;
+    font-weight:950;
+    letter-spacing:.2px;
+    line-height:1;
+}
+
+.sub-filter button{
+    min-width:84px!important;
+    height:40px!important;
+    padding:0 15px!important;
+    border-radius:12px!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),#111!important;
+    border:1px solid rgba(255,255,255,.09)!important;
+    color:#b4b4b4!important;
+    font-size:14px!important;
+    font-weight:900!important;
+}
+
+.sub-filter button:hover{
+    color:#fff!important;
+    border-color:rgba(255,181,46,.34)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.05),rgba(255,255,255,.015)),#111!important;
+}
+
+.sub-filter button.active{
+    color:#ffcf75!important;
+    background:rgba(255,181,46,.12)!important;
+    border-color:rgba(255,181,46,.55)!important;
+    box-shadow:inset 0 0 0 1px rgba(255,181,46,.1)!important;
+}
+
+.sub-filter button.active::before{
+    background:rgba(255,207,117,.92)!important;
+}
+
+.result-info{
+    margin-bottom:14px!important;
+    padding-left:2px!important;
+}
+
+@media(max-width:768px){
+    .info-menu{
+        padding:16px 10px 10px!important;
+        gap:8px!important;
+        margin-bottom:12px!important;
+        overflow-x:auto!important;
+        flex-wrap:nowrap!important;
+    }
+    .sub-filter{
+        padding:14px 10px 10px 12px!important;
+        gap:8px!important;
+        margin-bottom:12px!important;
+        overflow-x:auto!important;
+        flex-wrap:nowrap!important;
+    }
+    .info-menu::before,
+    .sub-filter::before{
+        left:10px!important;
+        top:-9px!important;
+        font-size:10px!important;
+        padding:4px 8px!important;
+    }
+    .info-menu button{
+        min-width:auto!important;
+        height:40px!important;
+        padding:0 14px!important;
+        font-size:13px!important;
+        border-radius:12px!important;
+    }
+    .sub-filter button{
+        min-width:auto!important;
+        height:37px!important;
+        padding:0 13px!important;
+        font-size:12px!important;
+        border-radius:11px!important;
+    }
+}
+
 </style>
 
 <script id="axe-v10-5-youtube-tube-script">
