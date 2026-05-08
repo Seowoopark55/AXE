@@ -2572,6 +2572,107 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style>
+/* AXE NET V11.5: 검색창 컴팩트화 */
+@media(min-width:769px){
+    .pc-expand-search{
+        justify-content:flex-end!important;
+        margin:-3px 0 12px!important;
+    }
+    .pc-expand-search .search{
+        width:260px!important;
+        max-width:260px!important;
+    }
+    .pc-expand-search .search input{
+        height:38px!important;
+        padding:0 72px 0 14px!important;
+        border-radius:13px!important;
+        font-size:13px!important;
+        background:#111!important;
+        box-shadow:0 8px 20px rgba(0,0,0,.18)!important;
+    }
+    .pc-expand-search .search-clear-btn{
+        right:43px!important;
+        width:20px!important;
+        height:20px!important;
+        font-size:14px!important;
+        background:rgba(255,255,255,.075)!important;
+    }
+    .pc-expand-search .search-mark{
+        right:13px!important;
+        font-size:11.5px!important;
+        letter-spacing:-.2px!important;
+    }
+    .tube-fixed-search{
+        max-width:320px!important;
+        margin:0 0 14px auto!important;
+        padding:0!important;
+        border:0!important;
+        background:transparent!important;
+    }
+    .tube-fixed-search .search input{
+        height:38px!important;
+        padding:0 72px 0 14px!important;
+        border-radius:13px!important;
+        font-size:13px!important;
+        background:#111!important;
+    }
+    .tube-fixed-search .search-clear-btn{
+        right:43px!important;
+        width:20px!important;
+        height:20px!important;
+        font-size:14px!important;
+    }
+    .tube-fixed-search .search-mark{
+        right:13px!important;
+        font-size:11.5px!important;
+    }
+    .fixed-bottom-search{
+        max-width:300px!important;
+        margin:12px 0 0 auto!important;
+        padding:0!important;
+        border:0!important;
+        background:transparent!important;
+    }
+    .fixed-bottom-search .search input{
+        height:36px!important;
+        padding:0 70px 0 13px!important;
+        border-radius:12px!important;
+        font-size:12.5px!important;
+        background:#111!important;
+    }
+    .fixed-bottom-search .search-clear-btn{
+        right:42px!important;
+        width:19px!important;
+        height:19px!important;
+        font-size:13px!important;
+    }
+    .fixed-bottom-search .search-mark{
+        right:12px!important;
+        font-size:11px!important;
+    }
+}
+@media(max-width:768px){
+    .fixed-bottom-search,
+    .tube-fixed-search{
+        max-width:100%!important;
+    }
+    .fixed-bottom-search .search input,
+    .tube-fixed-search .search input{
+        padding-right:72px!important;
+    }
+    .fixed-bottom-search .search-clear-btn,
+    .tube-fixed-search .search-clear-btn{
+        right:44px!important;
+    }
+    .fixed-bottom-search .search-mark,
+    .tube-fixed-search .search-mark{
+        right:13px!important;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -10452,7 +10553,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V11.4: 검색어 초기화 버튼 추가 -->
+<!-- AXE NET V11.5: 검색창 컴팩트화 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
