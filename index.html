@@ -2269,6 +2269,103 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+/* AXE NET V11.1: 게시판/갤러리 하단 검색 + AXE TUBE 검색 보강 */
+.bottom-board-tools{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:13px 14px;
+    border-top:1px solid rgba(255,255,255,.06);
+    background:rgba(255,255,255,.014);
+}
+.bottom-board-tools .list-pagination{
+    flex:1;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    justify-content:flex-start;
+}
+.bottom-board-tools .board-search-panel{
+    flex:0 0 310px;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+}
+.bottom-board-tools .board-search-panel .search input{
+    height:34px;
+    border-radius:999px;
+    font-size:12.5px;
+    padding-left:13px;
+    padding-right:44px;
+}
+.bottom-board-tools .board-search-panel .search-mark{
+    right:13px;
+    font-size:11.5px;
+}
+.gallery-bottom-tools{
+    margin-top:14px;
+    border:1px solid rgba(255,255,255,.065);
+    border-radius:15px;
+    background:rgba(0,0,0,.18);
+}
+.tube-search-panel{
+    margin:0 0 16px!important;
+    padding:10px 12px!important;
+    border-radius:999px!important;
+    background:rgba(0,0,0,.24)!important;
+}
+.tube-search-panel .search input{
+    height:42px!important;
+    border-radius:999px!important;
+    background:#111!important;
+    font-size:14px!important;
+}
+.tube-search-panel .search-mark{
+    right:16px!important;
+    font-size:12px!important;
+}
+.tube-result-info{
+    padding:0 2px 12px!important;
+}
+@media(max-width:768px){
+    .bottom-board-tools{
+        display:flex;
+        flex-direction:column;
+        align-items:stretch;
+        gap:9px;
+        padding:11px 10px;
+    }
+    .bottom-board-tools .list-pagination{
+        order:1;
+        justify-content:center;
+    }
+    .bottom-board-tools .board-search-panel{
+        order:2;
+        flex:0 0 auto;
+        width:100%;
+    }
+    .bottom-board-tools .board-search-panel .search input{
+        height:38px;
+        font-size:13px;
+    }
+    .gallery-bottom-tools{
+        margin-top:11px;
+        border-radius:13px;
+    }
+    .tube-search-panel{
+        margin-bottom:12px!important;
+        padding:8px!important;
+        border-radius:14px!important;
+    }
+    .tube-search-panel .search input{
+        height:39px!important;
+        font-size:14px!important;
+    }
+}
+
 </style>
 </head>
 
@@ -4362,8 +4459,6 @@ function showBoard(){
             </div>
         </div>
 
-        ${renderSearchBar("board",boardSearchKeyword,"자유게시판 검색어를 입력하세요")}
-
         <div class="item-list">
             <div class="board-table-head">
                 <div>제목</div>
@@ -4409,7 +4504,10 @@ function renderBoardList(){
                 <div class="board-table-cell">추천 ${Number(post.likes||0)}</div>
             </div>`;
         }).join("")}
-        ${renderPagination("board",boardCurrentPage,totalPages,fullList.length,pageSize)}
+        <div class="bottom-board-tools">
+            ${renderPagination("board",boardCurrentPage,totalPages,fullList.length,pageSize)}
+            ${renderSearchBar("board",boardSearchKeyword,"검색어를 입력하세요")}
+        </div>
     `;
 }
 
@@ -4945,7 +5043,6 @@ function showGallery(){
                 <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
             </div>
         </div>
-        ${renderSearchBar("gallery",gallerySearchKeyword,"갤러리 검색어를 입력하세요")}
         <div id="galleryListBox"></div>`;
     renderGalleryList();
 }
@@ -4986,7 +5083,10 @@ function renderGalleryList(){
                 </div>
             </div>`;
         }).join("")}</div>
-        ${renderPagination("gallery",galleryCurrentPage,totalPages,fullList.length,pageSize)}
+        <div class="bottom-board-tools gallery-bottom-tools">
+            ${renderPagination("gallery",galleryCurrentPage,totalPages,fullList.length,pageSize)}
+            ${renderSearchBar("gallery",gallerySearchKeyword,"검색어를 입력하세요")}
+        </div>
     `;
 }
 
@@ -10147,7 +10247,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V11: 검색 및 페이지네이션 추가 -->
+<!-- AXE NET V11.1: 하단 검색 위치 보정 및 AXE TUBE 검색 보강 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
