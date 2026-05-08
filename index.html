@@ -2099,6 +2099,27 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+/* AXE NET V10.9: 모바일 갤러리 목록 날짜 간소화 */
+@media(max-width:768px){
+    .gallery-meta{
+        flex-wrap:nowrap!important;
+        align-items:center!important;
+        gap:6px!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+    }
+    .gallery-meta .writer-with-badge,
+    .gallery-meta span,
+    .gallery-meta div{
+        min-width:0!important;
+    }
+    .gallery-meta{
+        font-size:11.5px!important;
+        line-height:1.25!important;
+    }
+}
+
 </style>
 </head>
 
@@ -3076,6 +3097,13 @@ function handleSearchKey(event,type){
         return;
     }
 }
+
+function formatDateOnly(value){
+    const full = formatDate(value);
+    if(!full)return "";
+    return String(full).split(" ")[0];
+}
+
 
 function getYoutubeId(url){
     if(!url)return "";
@@ -9837,7 +9865,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V10.8: AXE TUBE 상세 작성자/설명 영역 정돈 -->
+<!-- AXE NET V10.9: 모바일 갤러리 목록 날짜 간소화 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
