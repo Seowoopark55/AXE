@@ -1907,6 +1907,198 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
 }
 
+
+/* AXE NET V10.8: AXE TUBE 상세 작성자/설명 영역 정돈 */
+.tube-watch-shell,
+.tube-watch-card,
+.tube-detail-card{
+    max-width:980px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.tube-watch-title{
+    margin-top:16px!important;
+    margin-bottom:8px!important;
+    line-height:1.32!important;
+}
+
+.tube-watch-meta{
+    color:#999!important;
+    font-size:13px!important;
+    font-weight:800!important;
+    margin-bottom:0!important;
+}
+
+.tube-watch-author-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin:14px 0 12px;
+    padding:13px 14px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:15px;
+    background:rgba(0,0,0,.22);
+}
+
+.tube-watch-author-main{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#eee;
+    font-size:14px;
+    font-weight:950;
+}
+
+.tube-watch-author,
+.tube-detail-author{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:14px 0 12px!important;
+    padding:13px 14px!important;
+    border:1px solid rgba(255,255,255,.075)!important;
+    border-radius:15px!important;
+    background:rgba(0,0,0,.22)!important;
+    color:#eee!important;
+    font-size:14px!important;
+    font-weight:950!important;
+}
+
+.tube-watch-desc-box{
+    margin:12px 0 18px;
+    padding:15px 16px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:16px;
+    background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.014)),rgba(0,0,0,.22);
+}
+
+.tube-watch-desc-title{
+    margin-bottom:8px;
+    color:#ffb52e;
+    font-size:13px;
+    font-weight:950;
+    letter-spacing:.1px;
+}
+
+.tube-watch-desc,
+.tube-watch-content,
+.tube-detail-content{
+    white-space:pre-line;
+    line-height:1.68;
+    color:#d7d7d7;
+    font-size:14px;
+    word-break:break-word;
+}
+
+.tube-watch-desc-empty{
+    color:#888;
+    font-weight:850;
+}
+
+.tube-watch-bottom-actions,
+.tube-detail-bottom-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin:14px 0 8px;
+    padding-top:12px;
+    border-top:1px solid rgba(255,255,255,.07);
+}
+
+.tube-watch-admin-actions,
+.tube-detail-admin-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-left:auto;
+}
+
+.tube-watch-bottom-actions .back-btn,
+.tube-detail-bottom-actions .back-btn{
+    width:auto!important;
+    min-width:92px;
+}
+
+/* 기존 상세 액션이 detail-bottom-actions/detail-admin-actions 이름을 쓰는 경우도 같이 보정 */
+.tube-detail-video + .board-detail-title,
+.tube-detail-video + .tube-watch-title{
+    margin-top:16px!important;
+}
+
+.tube-detail-card .detail-bottom-actions,
+.tube-watch-shell .detail-bottom-actions{
+    margin-top:14px!important;
+    padding-top:12px!important;
+    border-top:1px solid rgba(255,255,255,.07);
+}
+
+.tube-detail-card .detail-admin-actions,
+.tube-watch-shell .detail-admin-actions{
+    margin:0!important;
+}
+
+@media(max-width:768px){
+    .tube-watch-shell,
+    .tube-watch-card,
+    .tube-detail-card{
+        max-width:none;
+    }
+    .tube-watch-title{
+        margin-top:13px!important;
+        font-size:20px!important;
+        line-height:1.35!important;
+    }
+    .tube-watch-meta{
+        font-size:12px!important;
+        line-height:1.45!important;
+    }
+    .tube-watch-author-card,
+    .tube-watch-author,
+    .tube-detail-author{
+        margin:12px 0 10px!important;
+        padding:11px 12px!important;
+        border-radius:13px!important;
+    }
+    .tube-watch-desc-box{
+        margin:10px 0 15px;
+        padding:13px;
+        border-radius:14px;
+    }
+    .tube-watch-desc,
+    .tube-watch-content,
+    .tube-detail-content{
+        font-size:13.5px;
+        line-height:1.62;
+    }
+    .tube-watch-bottom-actions,
+    .tube-detail-bottom-actions,
+    .tube-detail-card .detail-bottom-actions,
+    .tube-watch-shell .detail-bottom-actions{
+        display:grid!important;
+        grid-template-columns:1fr;
+        gap:8px;
+        margin-top:12px!important;
+        padding-top:10px!important;
+    }
+    .tube-watch-admin-actions,
+    .tube-detail-admin-actions,
+    .tube-detail-card .detail-admin-actions,
+    .tube-watch-shell .detail-admin-actions{
+        display:grid!important;
+        grid-template-columns:1fr 1fr;
+        gap:7px;
+        width:100%;
+    }
+    .tube-watch-bottom-actions .back-btn,
+    .tube-detail-bottom-actions .back-btn{
+        width:100%!important;
+    }
+}
+
 </style>
 </head>
 
@@ -9645,7 +9837,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V10.7: AXE TUBE 상세 메타 간소화 -->
+<!-- AXE NET V10.8: AXE TUBE 상세 작성자/설명 영역 정돈 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
