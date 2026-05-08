@@ -2367,6 +2367,81 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 
 </style>
+
+<style>
+/* AXE NET V11.2: 검색창 고정 보정 */
+.fixed-bottom-search{
+    margin:12px 0 0;
+    padding:12px 14px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:15px;
+    background:rgba(0,0,0,.18);
+}
+.fixed-bottom-search .search input{
+    height:38px;
+    border-radius:999px;
+    font-size:13px;
+    padding-right:48px;
+}
+.fixed-bottom-search .search-mark{
+    right:15px;
+    font-size:12px;
+}
+#boardPageBox,#galleryPageBox{
+    border-top:1px solid rgba(255,255,255,.06);
+    background:rgba(255,255,255,.014);
+}
+#boardPageBox .list-pagination,
+#galleryPageBox .list-pagination{
+    margin:0!important;
+    padding:13px 12px!important;
+}
+.tube-fixed-search{
+    margin:0 0 16px;
+    padding:10px 12px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:999px;
+    background:rgba(0,0,0,.24);
+}
+.tube-fixed-search .search input{
+    height:42px;
+    border-radius:999px;
+    background:#111;
+    font-size:14px;
+    padding-right:52px;
+}
+.tube-fixed-search .search-mark{
+    right:17px;
+    font-size:12px;
+    font-weight:950;
+    color:#ffb52e;
+}
+@media(max-width:768px){
+    .fixed-bottom-search{
+        margin-top:10px;
+        padding:10px;
+        border-radius:13px;
+    }
+    .fixed-bottom-search .search input{
+        height:38px;
+        font-size:14px;
+    }
+    #boardPageBox .list-pagination,
+    #galleryPageBox .list-pagination{
+        padding:11px 8px!important;
+    }
+    .tube-fixed-search{
+        margin-bottom:12px;
+        padding:8px;
+        border-radius:14px;
+    }
+    .tube-fixed-search .search input{
+        height:39px;
+        font-size:14px;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -10247,7 +10322,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 </style>
 
 
-<!-- AXE NET V11.1: 하단 검색 위치 보정 및 AXE TUBE 검색 보강 -->
+<!-- AXE NET V11.2: 검색창 고정 및 AXE TUBE 검색 표시 보강 -->
 <!-- AXE NET V10.5: AXE TUBE 유튜브형 피드/상세 개편 -->
 <style id="axe-v10-5-youtube-tube-style">
 /* AXE TUBE: YouTube-style video feed */
@@ -10735,5 +10810,216 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 })();
 
 </script>
+
+<script>
+/* AXE NET V11.2: 검색창 고정 + AXE TUBE 검색 표시 보강 */
+(function(){
+    function renderFixedBottomSearch(scope,value,placeholder){
+        return `<div class="fixed-bottom-search ${scope}-fixed-search">
+            <div class="search">
+                <input id="${scope}SearchInput" value="${escapeText(value||"")}" placeholder="${escapeText(placeholder)}" oninput="${scope}SearchChangedStable(this.value)" autocomplete="off">
+                <span class="search-mark">검색</span>
+            </div>
+        </div>`;
+    }
+
+    function renderTubeFixedSearch(){
+        return `<div class="tube-fixed-search">
+            <div class="search">
+                <input id="tubeSearchInput" value="${escapeText(tubeSearchKeyword||"")}" placeholder="AXE TUBE 검색어를 입력하세요" oninput="tubeSearchChangedStable(this.value)" autocomplete="off">
+                <span class="search-mark">검색</span>
+            </div>
+        </div>`;
+    }
+
+    window.boardSearchChangedStable=function(value){
+        boardSearchKeyword=value||"";
+        boardCurrentPage=1;
+        renderBoardList();
+    };
+
+    window.gallerySearchChangedStable=function(value){
+        gallerySearchKeyword=value||"";
+        galleryCurrentPage=1;
+        renderGalleryList();
+    };
+
+    window.tubeSearchChangedStable=function(value){
+        tubeSearchKeyword=value||"";
+        renderTubeList();
+    };
+
+    window.showBoard=function(){
+        enterMainSection("board");
+        setMainActive(4);
+        selectedBoardId="";
+
+        document.getElementById("content").innerHTML=`
+            <div class="section-head with-action">
+                <div>
+                    <div class="section-title">자유게시판</div>
+                    <div class="section-desc">AXE 구성원들이 자유롭게 글을 남기는 공간입니다.</div>
+                </div>
+                <div class="section-action">
+                    <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
+                </div>
+            </div>
+
+            <div class="item-list">
+                <div class="board-table-head">
+                    <div>제목</div>
+                    <div>작성자</div>
+                    <div>작성일</div>
+                    <div>조회</div>
+                    <div>추천</div>
+                </div>
+                <div id="boardListBox"></div>
+                <div id="boardPageBox"></div>
+            </div>
+            ${renderFixedBottomSearch("board",boardSearchKeyword,"검색어를 입력하세요")}`;
+
+        renderBoardList();
+    };
+
+    window.renderBoardList=function(){
+        const box=document.getElementById("boardListBox");
+        const pageBox=document.getElementById("boardPageBox");
+        if(!box)return;
+
+        const fullList=getFilteredBoards();
+        const pageSize=getResponsivePageSize("board");
+        const totalPages=Math.max(1,Math.ceil(fullList.length/pageSize));
+        boardCurrentPage=Math.max(1,Math.min(boardCurrentPage,totalPages));
+        const start=(boardCurrentPage-1)*pageSize;
+        const list=fullList.slice(start,start+pageSize);
+
+        if(!fullList.length){
+            box.innerHTML=`<div class="list-result-info">총 0개</div><div class="ready">${boardSearchKeyword?"검색 결과가 없습니다.":"등록된 게시글이 없습니다."}</div>`;
+            if(pageBox)pageBox.innerHTML="";
+            return;
+        }
+
+        box.innerHTML=`
+            <div class="list-result-info">총 ${fullList.length}개 · ${boardCurrentPage}/${totalPages}페이지</div>
+            ${list.map((post,index)=>{
+                const originalIndex=start+index;
+                const id=getBoardId(post,originalIndex);
+                const commentCount=getCommentsByPost(id).length;
+                const title=safe(post.title)+(commentCount?` <span class="board-comment-count-badge">댓글 ${commentCount}</span>`:"");
+                return `<div class="board-table-row ${selectedBoardId===id?"active":""}" onclick="openBoardDetail('${escapeText(id)}',true,true)">
+                    <div class="board-table-title">${title}</div>
+                    <div class="board-table-cell">${renderWriterName(post.writer,post.writer_badge)}</div>
+                    <div class="board-table-cell date">${formatDateOnly(post.date)}</div>
+                    <div class="board-table-cell">${Number(post.views||0)}</div>
+                    <div class="board-table-cell">추천 ${Number(post.likes||0)}</div>
+                </div>`;
+            }).join("")}
+        `;
+        if(pageBox)pageBox.innerHTML=renderPagination("board",boardCurrentPage,totalPages,fullList.length,pageSize);
+    };
+
+    window.showGallery=function(){
+        enterMainSection("gallery");
+        setMainActive(5);
+        selectedGalleryId="";
+        document.getElementById("content").innerHTML=`
+            <div class="section-head with-action">
+                <div>
+                    <div class="section-title">갤러리</div>
+                    <div class="section-desc">AXE 활동 사진과 이미지를 공유하는 공간입니다.</div>
+                </div>
+                <div class="section-action">
+                    <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
+                </div>
+            </div>
+            <div id="galleryListBox"></div>
+            <div id="galleryPageBox"></div>
+            ${renderFixedBottomSearch("gallery",gallerySearchKeyword,"검색어를 입력하세요")}`;
+        renderGalleryList();
+    };
+
+    window.renderGalleryList=function(){
+        const box=document.getElementById("galleryListBox");
+        const pageBox=document.getElementById("galleryPageBox");
+        if(!box)return;
+
+        const fullList=getFilteredGalleries();
+        const pageSize=getResponsivePageSize("gallery");
+        const totalPages=Math.max(1,Math.ceil(fullList.length/pageSize));
+        galleryCurrentPage=Math.max(1,Math.min(galleryCurrentPage,totalPages));
+        const start=(galleryCurrentPage-1)*pageSize;
+        const list=fullList.slice(start,start+pageSize);
+
+        if(!fullList.length){
+            box.innerHTML=`<div class="list-result-info">총 0개</div><div class="ready">${gallerySearchKeyword?"검색 결과가 없습니다.":"등록된 갤러리 게시물이 없습니다."}</div>`;
+            if(pageBox)pageBox.innerHTML="";
+            return;
+        }
+
+        box.innerHTML=`
+            <div class="list-result-info">총 ${fullList.length}개 · ${galleryCurrentPage}/${totalPages}페이지</div>
+            <div class="gallery-grid">${list.map((post,index)=>{
+                const originalIndex=start+index;
+                const id=getGalleryId(post,originalIndex);
+                const images=getGalleryImages(post);
+                const comments=getCommentsByGallery(id).length;
+                const thumb=images[0]||"./axe.png";
+                return `<div class="gallery-card" onclick="openGalleryDetail('${escapeText(id)}',true,true)">
+                    <div class="gallery-thumb"><img src="${thumb}" onerror="this.src='./axe.png'"></div>
+                    <div class="gallery-body">
+                        <div class="gallery-title">${safe(post.title)}</div>
+                        <div class="item-date">${renderWriterName(post.writer||"익명",post.writer_badge)} · ${formatDateOnly(post.date)}</div>
+                        <div class="item-content">${safe(String(post.content||"").slice(0,70))}</div>
+                        <div class="gallery-meta compact">
+                            <span class="tube-stat-badge gallery-stat">조회 ${Number(post.views||0)}</span>
+                            <span class="tube-stat-badge like gallery-stat">추천 ${Number(post.likes||0)}</span>
+                            <span class="tube-stat-badge comment gallery-stat">댓글 ${comments}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join("")}</div>
+        `;
+        if(pageBox)pageBox.innerHTML=renderPagination("gallery",galleryCurrentPage,totalPages,fullList.length,pageSize);
+        if(typeof simplifyGalleryMobileDates==="function")setTimeout(simplifyGalleryMobileDates,0);
+    };
+
+    window.showTube=function(){
+        enterMainSection("tube");
+        setMainActive(3);
+
+        document.getElementById("content").innerHTML=`
+            <div class="section-head with-action">
+                <div>
+                    <div class="section-title">AXE TUBE</div>
+                    <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
+                </div>
+                <div class="section-action">
+                    <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
+                </div>
+            </div>
+
+            ${renderTubeFixedSearch()}
+
+            <div id="tubeListBox"></div>`;
+        renderTubeList();
+    };
+
+    window.renderTubeList=function(){
+        const box=document.getElementById("tubeListBox");
+        if(!box)return;
+        const list=getFilteredTubes();
+        box.innerHTML=`
+            <div class="list-result-info tube-result-info">총 ${list.length}개${tubeSearchKeyword?" · 검색 중":""}</div>
+            <div class="tube-grid">
+                ${list.length?list.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">${tubeSearchKeyword?"검색 결과가 없습니다.":"등록된 영상이 없습니다."}</div>`}
+            </div>`;
+    };
+
+    window.boardSearchChanged=window.boardSearchChangedStable;
+    window.gallerySearchChanged=window.gallerySearchChangedStable;
+    window.tubeSearchChanged=window.tubeSearchChangedStable;
+})();
+</script>
+
 </body>
 </html>
