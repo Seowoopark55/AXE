@@ -9472,5 +9472,177 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 })();
 </script>
 
+
+
+<!-- AXE NET V10.4: 목록형 카드 메타 정보 정돈 - AXE TUBE / 자유게시판 / 홈 최근글 -->
+<style id="axe-v10-4-list-meta-polish-style">
+/* AXE TUBE 카드 하단 정보: 갤러리와 같은 균형감으로 정돈 */
+@media(min-width:769px){
+    .tube-grid{
+        gap:16px!important;
+        align-items:stretch!important;
+    }
+    .tube-card{
+        display:flex!important;
+        flex-direction:column!important;
+        height:100%!important;
+        border-radius:18px!important;
+        background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018)),rgba(8,8,8,.94)!important;
+        box-shadow:0 12px 28px rgba(0,0,0,.22)!important;
+    }
+    .tube-card:hover{
+        box-shadow:0 18px 38px rgba(0,0,0,.32)!important;
+    }
+    .tube-thumb{
+        border-bottom:1px solid rgba(255,255,255,.07)!important;
+    }
+    .tube-card .tube-body{
+        display:flex!important;
+        flex-direction:column!important;
+        flex:1 1 auto!important;
+        min-height:150px!important;
+        padding:14px 15px 14px!important;
+    }
+    .tube-card .item-title{
+        min-height:21px!important;
+        margin-bottom:6px!important;
+        font-size:16px!important;
+        line-height:1.32!important;
+        letter-spacing:-.2px!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+    }
+    .tube-card .item-date{
+        margin-top:0!important;
+        min-height:18px!important;
+        font-size:12px!important;
+        line-height:1.45!important;
+        color:#969696!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+    }
+    .tube-card .item-content{
+        margin-top:8px!important;
+        min-height:36px!important;
+        max-height:36px!important;
+        overflow:hidden!important;
+        display:-webkit-box!important;
+        -webkit-line-clamp:2!important;
+        -webkit-box-orient:vertical!important;
+        color:#b8b8b8!important;
+        font-size:13px!important;
+        line-height:1.42!important;
+        word-break:break-word!important;
+    }
+    .tube-card .tube-meta-line{
+        display:grid!important;
+        grid-template-columns:repeat(3,minmax(0,1fr))!important;
+        align-items:center!important;
+        justify-content:stretch!important;
+        gap:6px!important;
+        width:100%!important;
+        margin-top:auto!important;
+        padding:6px!important;
+        border-radius:13px!important;
+        background:rgba(0,0,0,.24)!important;
+        border:1px solid rgba(255,255,255,.075)!important;
+    }
+    .tube-card .tube-stat-badge{
+        width:100%!important;
+        min-width:0!important;
+        height:30px!important;
+        padding:0 8px!important;
+        border-radius:10px!important;
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:clip!important;
+        font-size:12px!important;
+        font-weight:950!important;
+        letter-spacing:-.15px!important;
+        line-height:1!important;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+    }
+    .tube-card .tube-stat-badge:not(.like):not(.comment){
+        color:#d7d7d7!important;
+        background:rgba(255,255,255,.045)!important;
+        border-color:rgba(255,255,255,.095)!important;
+    }
+    .tube-card .tube-stat-badge.like{
+        color:#9fc7ff!important;
+        background:rgba(76,154,255,.09)!important;
+        border-color:rgba(76,154,255,.28)!important;
+    }
+    .tube-card .tube-stat-badge.comment{
+        color:#d5b7ff!important;
+        background:rgba(156,95,255,.11)!important;
+        border-color:rgba(156,95,255,.30)!important;
+    }
+
+    /* 자유게시판 목록: 숫자 칸 정렬감 보강 */
+    .board-table-row{
+        border-radius:0!important;
+    }
+    .board-table-cell:nth-child(4),
+    .board-table-cell:nth-child(5){
+        font-weight:950!important;
+        font-variant-numeric:tabular-nums!important;
+    }
+    .board-table-cell:nth-child(5){
+        color:#9fc7ff!important;
+    }
+
+    /* 메인 최근글 카드: 정보가 아래쪽에서 깔끔하게 보이도록 정돈 */
+    .home-board-item{
+        display:flex!important;
+        flex-direction:column!important;
+        min-height:82px!important;
+    }
+    .home-board-title{
+        line-height:1.35!important;
+    }
+    .home-board-meta{
+        margin-top:auto!important;
+        padding-top:8px!important;
+        display:flex!important;
+        align-items:center!important;
+        gap:7px!important;
+        min-width:0!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+    }
+}
+
+/* 모바일 AXE TUBE 메타도 갤러리처럼 한 줄 유지 */
+@media(max-width:768px){
+    .tube-card .tube-meta-line{
+        display:flex!important;
+        align-items:center!important;
+        justify-content:space-between!important;
+        flex-wrap:nowrap!important;
+        gap:5px!important;
+        width:100%!important;
+    }
+    .tube-card .tube-stat-badge{
+        flex:1 1 0!important;
+        min-width:0!important;
+        height:23px!important;
+        padding:0 5px!important;
+        justify-content:center!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:clip!important;
+        font-size:11px!important;
+        letter-spacing:-.35px!important;
+        line-height:1!important;
+    }
+}
+</style>
+
 </body>
 </html>
