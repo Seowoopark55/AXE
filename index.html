@@ -15015,5 +15015,278 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     };
 })();
 </script>
+
+
+<style id="axe-utility-category-fix-style">
+/* AXE NET V13.5: 편의기능 하위 카테고리화 + 즐겨찾기 이동 보정 */
+.utility-category-shell{
+    margin:0 0 14px;
+    padding:14px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),rgba(0,0,0,.22);
+}
+.utility-category-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:9px;
+}
+.utility-category-tabs button{
+    min-width:112px;
+    height:40px;
+    padding:0 15px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.1);
+    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),#111;
+    color:#bdbdbd;
+    font-size:14px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.18s ease;
+}
+.utility-category-tabs button:hover{
+    color:#fff;
+    border-color:rgba(255,181,46,.38);
+    transform:translateY(-1px);
+}
+.utility-category-tabs button.active{
+    color:#111;
+    background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);
+    border-color:rgba(255,181,46,.82);
+    box-shadow:0 8px 20px rgba(255,181,46,.18);
+}
+.utility-category-note{
+    margin-top:9px;
+    color:#858585;
+    font-size:12px;
+    font-weight:850;
+    line-height:1.45;
+}
+#utilityContent .plica-panel{margin-top:0;}
+@media(max-width:768px){
+    .utility-category-shell{padding:12px;margin-bottom:12px;border-radius:15px;}
+    .utility-category-tabs{flex-wrap:nowrap;overflow-x:auto;gap:7px;scrollbar-width:none;}
+    .utility-category-tabs::-webkit-scrollbar{display:none;}
+    .utility-category-tabs button{flex:0 0 auto;min-width:auto;height:37px;padding:0 13px;font-size:12px;border-radius:11px;}
+}
+</style>
+
+<script id="axe-utility-category-fix-script">
+/* AXE NET V13.5: 편의기능 즐겨찾기 랭킹 이동 오류 수정 + 플리카 하위 카테고리화 */
+(function(){
+    const PLICA_LEVELS_135=[
+        {name:"브론즈 카드",point:1000,key:"bronze"},
+        {name:"실버 카드",point:2625,key:"silver"},
+        {name:"골드 카드",point:4950,key:"gold"},
+        {name:"플래티넘 카드",point:10350,key:"platinum"},
+        {name:"다이아 카드",point:18000,key:"diamond"},
+        {name:"블랙 카드",point:37500,key:"black"}
+    ];
+
+    function plicaMoney135(value){
+        const n=Number(value||0);
+        if(!isFinite(n))return "0";
+        return Math.round(n).toLocaleString("ko-KR");
+    }
+
+    function getPlicaRatio135(){
+        const input=document.getElementById("plicaRatio");
+        const n=Number(input?input.value:0);
+        return isFinite(n)&&n>0?n:38;
+    }
+
+    window.renderPlicaFinalCards=function(){
+        const grid=document.getElementById("plicaResultGrid");
+        const summary=document.getElementById("plicaSummary");
+        if(!grid)return;
+        const ratio=getPlicaRatio135();
+        if(summary){
+            summary.textContent=`현재 비율 1:${plicaMoney135(ratio)} 기준 · 카드 가격 = 적금 포인트 × ${plicaMoney135(ratio)}`;
+        }
+        grid.innerHTML=PLICA_LEVELS_135.map(function(row){
+            const price=Number(row.point||0)*ratio;
+            return `<div class="plica-card plica-${row.key}">
+                <div class="plica-title">${row.name}</div>
+                <div class="plica-point">적금 포인트 ${plicaMoney135(row.point)}P</div>
+                <div class="plica-price">${plicaMoney135(price)}</div>
+            </div>`;
+        }).join("");
+        document.querySelectorAll(".plica-btn").forEach(function(btn){
+            btn.classList.toggle("active",Number(btn.dataset.ratio)===ratio);
+        });
+    };
+
+    window.setPlicaFinalRatio=function(value){
+        const input=document.getElementById("plicaRatio");
+        if(input)input.value=String(value);
+        try{localStorage.setItem("axe_plica_trade_ratio",String(value));}catch(e){}
+        renderPlicaFinalCards();
+    };
+
+    function renderPlicaContent135(){
+        let saved=38;
+        try{
+            const raw=Number(localStorage.getItem("axe_plica_trade_ratio")||38);
+            if(isFinite(raw)&&raw>0)saved=raw;
+        }catch(e){}
+
+        const box=document.getElementById("utilityContent");
+        if(!box)return;
+        box.innerHTML=`
+            <div class="plica-panel">
+                <div class="plica-control-row">
+                    <div class="plica-input-box">
+                        <div class="plica-label">거래비율 입력</div>
+                        <input class="plica-input" id="plicaRatio" type="number" min="1" step="0.1" value="${saved}" oninput="renderPlicaFinalCards()" placeholder="예: 38">
+                    </div>
+                    <div class="plica-input-box" style="min-width:0;flex:1;">
+                        <div class="plica-label">비율 프리셋</div>
+                        <div class="plica-preset-box">
+                            <button class="plica-btn" data-ratio="37" onclick="setPlicaFinalRatio(37)">37</button>
+                            <button class="plica-btn" data-ratio="38" onclick="setPlicaFinalRatio(38)">38</button>
+                            <button class="plica-btn" data-ratio="39" onclick="setPlicaFinalRatio(39)">39</button>
+                            <button class="plica-btn" data-ratio="40" onclick="setPlicaFinalRatio(40)">40</button>
+                            <button class="plica-btn" data-ratio="41" onclick="setPlicaFinalRatio(41)">41</button>
+                            <button class="plica-btn" data-ratio="42" onclick="setPlicaFinalRatio(42)">42</button>
+                            <button class="plica-btn" data-ratio="43" onclick="setPlicaFinalRatio(43)">43</button>
+                            <button class="plica-btn" data-ratio="44" onclick="setPlicaFinalRatio(44)">44</button>
+                            <button class="plica-btn" data-ratio="45" onclick="setPlicaFinalRatio(45)">45</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plica-summary" id="plicaSummary"></div>
+            </div>
+            <div class="plica-grid" id="plicaResultGrid"></div>`;
+        renderPlicaFinalCards();
+        const input=document.getElementById("plicaRatio");
+        if(input){
+            input.addEventListener("change",function(){
+                try{localStorage.setItem("axe_plica_trade_ratio",String(getPlicaRatio135()));}catch(e){}
+            });
+        }
+    }
+
+    function setUtilityTab135(tab){
+        document.querySelectorAll(".utility-category-tabs button").forEach(function(btn){
+            btn.classList.toggle("active",btn.dataset.utilityTab===tab);
+        });
+    }
+
+    function renderUtilityShell135(tab){
+        const activeTab=tab||"plica";
+        enterMainSection("utility");
+        currentHistoryPage="utility";
+        setMainActive(8);
+        const content=document.getElementById("content");
+        if(!content)return;
+        content.innerHTML=`
+            <div class="section-head">
+                <div>
+                    <div class="section-title">편의기능</div>
+                    <div class="section-desc">게임 플레이에 필요한 보조 기능을 확인합니다.</div>
+                </div>
+                <div class="count">UTILITY</div>
+            </div>
+            <div class="utility-category-shell">
+                <div class="utility-category-tabs">
+                    <button data-utility-tab="plica" onclick="navigateSubTab('utility','plica')">플리카 계산기</button>
+                </div>
+                <div class="utility-category-note">추후 필요한 도구를 이 영역에 추가할 수 있습니다.</div>
+            </div>
+            <div id="utilityContent"></div>`;
+        setUtilityTab135(activeTab);
+        renderPlicaContent135();
+        if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+    }
+
+    window.showUtility=function(tab){
+        renderUtilityShell135(tab||"plica");
+    };
+
+    window.showPlicaCalculator=function(){
+        renderUtilityShell135("plica");
+    };
+    window.showPlicaCalculatorV12=function(){
+        renderUtilityShell135("plica");
+    };
+    window.showTheftHelper=function(){
+        renderUtilityShell135("plica");
+    };
+    window.showTheftHelperV12=function(){
+        renderUtilityShell135("plica");
+    };
+
+    const oldRenderSubTab135=window.renderSubTab;
+    window.renderSubTab=function(page,subTab){
+        const target=normalizeMainPage(page);
+        if(target==="utility"){
+            renderUtilityShell135("plica");
+            return;
+        }
+        if(typeof oldRenderSubTab135==="function")return oldRenderSubTab135.apply(this,arguments);
+    };
+
+    const oldNavigateSubTab135=window.navigateSubTab;
+    window.navigateSubTab=function(page,subTab,push){
+        const target=normalizeMainPage(page);
+        if(target==="utility"){
+            const tab="plica";
+            const shouldPush=push!==false;
+            const current=history.state||{};
+            if(shouldPush&&(current.page!=="utility"||current.subTab!==tab)){
+                history.pushState({page:"utility",subTab:tab},"","#utility-plica");
+            }
+            renderUtilityShell135(tab);
+            if(typeof backgroundRefreshCurrentRoute==="function")backgroundRefreshCurrentRoute();
+            return;
+        }
+        if(typeof oldNavigateSubTab135==="function")return oldNavigateSubTab135.apply(this,arguments);
+    };
+
+    const oldNavigateMain135=window.navigateMain;
+    window.navigateMain=function(page,push){
+        const target=normalizeMainPage(page);
+        if(target==="utility"){
+            const shouldPush=push!==false;
+            const current=history.state||{};
+            if(shouldPush&&(current.page!=="utility"||current.subTab!=="plica")){
+                history.pushState({page:"utility",subTab:"plica"},"","#utility-plica");
+            }
+            renderUtilityShell135("plica");
+            if(typeof backgroundRefreshCurrentRoute==="function")backgroundRefreshCurrentRoute();
+            return;
+        }
+        if(typeof oldNavigateMain135==="function")return oldNavigateMain135.apply(this,arguments);
+    };
+
+    const oldGetCurrentRouteForFavorite135=window.getCurrentRouteForFavorite;
+    window.getCurrentRouteForFavorite=function(){
+        const state=history.state||{};
+        const hash=String(location.hash||"");
+        if(currentMainSection==="utility"||state.page==="utility"||hash.indexOf("#utility")===0){
+            return {page:"utility",subTab:"plica"};
+        }
+        if(typeof oldGetCurrentRouteForFavorite135==="function")return oldGetCurrentRouteForFavorite135.apply(this,arguments);
+        return {page:normalizeMainPage(currentHistoryPage||"home")};
+    };
+
+    const oldMakeFavoriteLabel135=window.makeFavoriteLabel;
+    window.makeFavoriteLabel=function(route){
+        const r=route||{};
+        if(normalizeMainPage(r.page||"")==="utility")return "편의기능 · 플리카 계산기";
+        if(typeof oldMakeFavoriteLabel135==="function")return oldMakeFavoriteLabel135.apply(this,arguments);
+        return "즐겨찾기";
+    };
+
+    const oldMakeFavoriteId135=window.makeFavoriteId;
+    window.makeFavoriteId=function(route){
+        const r=route||{};
+        if(normalizeMainPage(r.page||"")==="utility")return "utility|plica";
+        if(typeof oldMakeFavoriteId135==="function")return oldMakeFavoriteId135.apply(this,arguments);
+        return String(Date.now());
+    };
+})();
+</script>
+
 </body>
 </html>
