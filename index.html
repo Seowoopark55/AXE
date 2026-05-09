@@ -3408,6 +3408,14 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     }
     .admin-mini-btn,.admin-select,.admin-small-input{height:32px!important;font-size:11.5px!important}
 }
+
+
+/* AXE NET V12.2: 즐겨찾기 전역 고정 표시 */
+#globalFavoriteMount{position:fixed;z-index:9997;right:18px;top:50%;transform:translateY(-50%);pointer-events:none}
+#globalFavoriteMount .favorite-sidebar{position:relative!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;pointer-events:auto}
+.favorite-sidebar-add:disabled{opacity:.46!important;cursor:not-allowed!important;filter:grayscale(.35)!important}
+.favorite-sidebar-add:disabled:hover{transform:none!important;border-color:rgba(255,255,255,.1)!important;color:#aaa!important;background:rgba(20,20,20,.92)!important}
+@media(max-width:900px){#globalFavoriteMount{right:10px;top:auto;bottom:12px;transform:none}}
 </style>
 
 </head>
@@ -3476,6 +3484,8 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
     <div class="panel" id="content"></div>
 </div>
+
+<div id="globalFavoriteMount"></div>
 
 <div class="video-modal" id="videoModal" onclick="closeVideoOutside(event)">
     <div class="video-box">
@@ -3988,6 +3998,7 @@ function navigateMain(page,push=true){
     }
 
     renderMainPage(target);
+    refreshFavoriteSidebar();
     backgroundRefreshCurrentRoute();
 }
 
@@ -4042,6 +4053,7 @@ function navigateSubTab(page,subTab,push=true){
 
     currentHistoryPage=target;
     renderSubTab(target,tab);
+    refreshFavoriteSidebar();
     backgroundRefreshCurrentRoute();
 }
 
@@ -4314,6 +4326,7 @@ const hasCachedData=applyCachedData();
 if(hasCachedData){
     setLoadingMessage("저장된 데이터를 적용하는 중...","최신 데이터는 뒤에서 확인합니다");
     initMainHistory();
+    refreshFavoriteSidebar();
     afterRenderAuth();
     finishInitialLoading();
     backgroundRefreshCurrentRoute();
@@ -4322,6 +4335,7 @@ if(hasCachedData){
     .then(()=>{
         setLoadingMessage("데이터 적용 중...","화면 구성을 마무리합니다");
         initMainHistory();
+        refreshFavoriteSidebar();
         afterRenderAuth();
         finishInitialLoading();
     })
@@ -6987,8 +7001,6 @@ function showQuest(){
 
     ${infoMenu("퀘스트")}
 
-    ${renderFavoriteSidebar()}
-
     <div class="quest-panel">
         <div class="toolbar">
             <div class="search">
@@ -7098,8 +7110,6 @@ function showProcess(){
     </div>
 
     ${infoMenu("가공/재련")}
-
-    ${renderFavoriteSidebar()}
 
     <div class="quest-panel">
         <div class="toolbar">
@@ -7258,8 +7268,6 @@ function showSkillRanks(){
     </div>
 
     ${infoMenu("스킬랭크")}
-
-    ${renderFavoriteSidebar()}
 
     <div class="skill-rank-panel">
         <div class="skill-rank-toolbar">
@@ -7525,7 +7533,7 @@ function saveInfoFavorites(list){
 }
 
 function getCurrentInfoFavorite(){
-    if(currentHistoryPage!=="info"&&currentInfoSubTab){currentHistoryPage="info";}
+    if(currentHistoryPage!=="info")return null;
     const sub=currentInfoSubTab||"craft";
     if(sub==="craft"){
         const cat=currentCategory||"ALL";
@@ -7567,6 +7575,9 @@ function toggleInfoFavoriteSidebar(){
 function renderFavoriteSidebar(){
     const list=getInfoFavorites();
     const collapsed=isInfoFavoriteSidebarCollapsed();
+    const canAdd=currentHistoryPage==="info";
+    const addLabel=canAdd?"+ 현재 분류 추가":"정보 화면에서 추가";
+    const addDisabled=canAdd?"":" disabled";
     const items=list.length?list.map(f=>`
         <div class="favorite-item">
             <div class="favorite-item-main" onclick="goInfoFavorite('${escapeText(f.id)}')" title="${safe(f.label||'즐겨찾기')}">
@@ -7580,7 +7591,7 @@ function renderFavoriteSidebar(){
             <button class="favorite-sidebar-toggle" onclick="toggleInfoFavoriteSidebar()" title="${collapsed?"펼치기":"접기"}">${collapsed?"≡":"−"}</button>
         </div>
         <div class="favorite-sidebar-body">
-            <button class="favorite-sidebar-add" onclick="addCurrentInfoFavorite()">+ 현재 분류 추가</button>
+            <button class="favorite-sidebar-add" onclick="addCurrentInfoFavorite()"${addDisabled}>${addLabel}</button>
             <div class="favorite-sidebar-count">${list.length}/12</div>
             <div class="favorite-sidebar-list">${items}</div>
             <div class="favorite-mini-note">브라우저에 저장됩니다.</div>
@@ -7588,17 +7599,23 @@ function renderFavoriteSidebar(){
     </div>`;
 }
 
+function ensureGlobalFavoriteSidebar(){
+    let mount=document.getElementById("globalFavoriteMount");
+    if(!mount){
+        mount=document.createElement("div");
+        mount.id="globalFavoriteMount";
+        document.body.appendChild(mount);
+    }
+    mount.innerHTML=renderFavoriteSidebar();
+}
+
 function refreshFavoriteSidebar(){
-    const old=document.getElementById("infoFavoriteSidebar");
-    if(!old)return;
-    const temp=document.createElement("div");
-    temp.innerHTML=renderFavoriteSidebar();
-    old.replaceWith(temp.firstElementChild);
+    ensureGlobalFavoriteSidebar();
 }
 
 function addCurrentInfoFavorite(){
     const fav=getCurrentInfoFavorite();
-    if(!fav){alert("정보 페이지에서 추가할 수 있습니다.");return;}
+    if(!fav){alert("정보 화면에서 원하는 분류를 연 뒤 추가할 수 있습니다.");return;}
     const list=getInfoFavorites().filter(item=>String(item.id)!==String(fav.id));
     list.unshift(fav);
     saveInfoFavorites(list);
@@ -7674,7 +7691,6 @@ function showModBooks(){
             <div class="count">개조서</div>
         </div>
         ${infoMenu("개조서")}
-        ${renderFavoriteSidebar()}
         <div class="modbook-top-search">
             <div class="toolbar">
                 <div class="search">
@@ -7850,8 +7866,6 @@ function showCraft(){
     </div>
 
     ${infoMenu("제작")}
-
-    ${renderFavoriteSidebar()}
 
     <div class="toolbar">
         <div class="search">
