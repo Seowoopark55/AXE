@@ -3939,6 +3939,7 @@ let selectedBoardId="";
 let selectedGalleryId="";
 let currentMainSection="";
 let currentHistoryPage="home";
+let currentInfoSubTab="";
 
 let boardSearchKeyword="";
 let gallerySearchKeyword="";
@@ -6970,6 +6971,7 @@ function calcPlica(){
 
 
 function showQuest(){
+    currentInfoSubTab="quest";
     setMainActive(6);
     const jobs=[...new Set(quests.map(q=>q.job).filter(Boolean))];
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
@@ -6984,6 +6986,8 @@ function showQuest(){
     </div>
 
     ${infoMenu("퀘스트")}
+
+    ${renderFavoriteSidebar()}
 
     <div class="quest-panel">
         <div class="toolbar">
@@ -7079,6 +7083,7 @@ function renderQuestTable(){
 
 
 function showProcess(){
+    currentInfoSubTab="process";
     setMainActive(6);
     const jobs=[...new Set(processes.map(p=>p.job).filter(Boolean))];
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
@@ -7093,6 +7098,8 @@ function showProcess(){
     </div>
 
     ${infoMenu("가공/재련")}
+
+    ${renderFavoriteSidebar()}
 
     <div class="quest-panel">
         <div class="toolbar">
@@ -7236,6 +7243,7 @@ function renderProcessCards(){
 
 
 function showSkillRanks(){
+    currentInfoSubTab="skillrank";
     setMainActive(6);
     const skills=[...new Set(skillRanks.map(r=>String(r.skill||"").trim()).filter(Boolean))];
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
@@ -7250,6 +7258,8 @@ function showSkillRanks(){
     </div>
 
     ${infoMenu("스킬랭크")}
+
+    ${renderFavoriteSidebar()}
 
     <div class="skill-rank-panel">
         <div class="skill-rank-toolbar">
@@ -7498,6 +7508,126 @@ function openModBookPriceEditor(key){
     }).catch(()=>{});
 }
 
+
+const INFO_FAVORITE_KEY="axe_net_info_favorites_v1";
+
+function getInfoFavorites(){
+    try{
+        const raw=localStorage.getItem(INFO_FAVORITE_KEY)||"[]";
+        const list=JSON.parse(raw);
+        return Array.isArray(list)?list:[];
+    }catch(e){return [];}
+}
+
+function saveInfoFavorites(list){
+    try{localStorage.setItem(INFO_FAVORITE_KEY,JSON.stringify((list||[]).slice(0,12)));}catch(e){}
+}
+
+function getCurrentInfoFavorite(){
+    if(currentHistoryPage!=="info"&&currentInfoSubTab){currentHistoryPage="info";}
+    const sub=currentInfoSubTab||"craft";
+    if(sub==="craft"){
+        const cat=currentCategory||"ALL";
+        return {id:"craft|"+cat,subTab:"craft",category:cat,label:"제작 · "+catName(cat)};
+    }
+    if(sub==="quest"){
+        const job=questJobFilter||"전체";
+        return {id:"quest|"+job,subTab:"quest",job:job,label:"퀘스트 · "+job};
+    }
+    if(sub==="process"){
+        const job=processJobFilter||"전체";
+        return {id:"process|"+job,subTab:"process",job:job,label:"가공·재련 · "+job};
+    }
+    if(sub==="modbook"){
+        const type=modBookTypeFilter||"접두";
+        const cat=modBookCategoryFilter||"전체";
+        return {id:"modbook|"+type+"|"+cat,subTab:"modbook",type:type,category:cat,label:"개조서 · "+type+" · "+cat};
+    }
+    if(sub==="skillrank"){
+        const skill=skillRankFilter||"전체";
+        return {id:"skillrank|"+skill,subTab:"skillrank",skill:skill,label:"스킬랭크 · "+skill};
+    }
+    return null;
+}
+
+function renderFavoriteSidebar(){
+    const list=getInfoFavorites();
+    const items=list.length?list.map(f=>`
+        <div class="favorite-item">
+            <div class="favorite-item-main" onclick="goInfoFavorite('${escapeText(f.id)}')" title="${safe(f.label||'즐겨찾기')}">
+                <span class="favorite-item-label">${safe(f.label||"즐겨찾기")}</span>
+            </div>
+            <button class="favorite-item-remove" onclick="removeInfoFavorite('${escapeText(f.id)}',event)" title="삭제">×</button>
+        </div>`).join(""):`<div class="favorite-sidebar-empty">자주 보는 분류를 추가해두면 바로 이동할 수 있습니다.</div>`;
+    return `<div class="favorite-sidebar" id="infoFavoriteSidebar">
+        <div class="favorite-sidebar-head"><span>즐겨찾기</span><span>${list.length}/12</span></div>
+        <button class="favorite-sidebar-add" onclick="addCurrentInfoFavorite()">+ 현재 분류 추가</button>
+        <div class="favorite-sidebar-list">${items}</div>
+        <div class="favorite-mini-note">브라우저에 저장됩니다.</div>
+    </div>`;
+}
+
+function refreshFavoriteSidebar(){
+    const old=document.getElementById("infoFavoriteSidebar");
+    if(!old)return;
+    const temp=document.createElement("div");
+    temp.innerHTML=renderFavoriteSidebar();
+    old.replaceWith(temp.firstElementChild);
+}
+
+function addCurrentInfoFavorite(){
+    const fav=getCurrentInfoFavorite();
+    if(!fav){alert("정보 페이지에서 추가할 수 있습니다.");return;}
+    const list=getInfoFavorites().filter(item=>String(item.id)!==String(fav.id));
+    list.unshift(fav);
+    saveInfoFavorites(list);
+    refreshFavoriteSidebar();
+}
+
+function removeInfoFavorite(id,event){
+    if(event)event.stopPropagation();
+    const list=getInfoFavorites().filter(item=>String(item.id)!==String(id));
+    saveInfoFavorites(list);
+    refreshFavoriteSidebar();
+}
+
+function goInfoFavorite(id){
+    const fav=getInfoFavorites().find(item=>String(item.id)===String(id));
+    if(!fav)return;
+    if(fav.subTab==="craft"){
+        currentCategory=fav.category||"ALL";
+        searchKeyword="";
+        selectedId="";
+        navigateSubTab("info","craft");
+        return;
+    }
+    if(fav.subTab==="quest"){
+        questJobFilter=fav.job||"";
+        questSearchKeyword="";
+        navigateSubTab("info","quest");
+        return;
+    }
+    if(fav.subTab==="process"){
+        processJobFilter=fav.job||"";
+        processSearchKeyword="";
+        navigateSubTab("info","process");
+        return;
+    }
+    if(fav.subTab==="modbook"){
+        modBookTypeFilter=fav.type||"접두";
+        modBookCategoryFilter=fav.category||"";
+        modBookSearchKeyword="";
+        navigateSubTab("info","modbook");
+        return;
+    }
+    if(fav.subTab==="skillrank"){
+        skillRankFilter=fav.skill||"";
+        skillRankSearchKeyword="";
+        navigateSubTab("info","skillrank");
+        return;
+    }
+}
+
 function renderModOption(v){
     const opt=parseModOption(v);
     if(!opt)return "";
@@ -7508,6 +7638,7 @@ function renderModOption(v){
 }
 
 function showModBooks(){
+    currentInfoSubTab="modbook";
     setMainActive(6);
     if(!modBookTypeFilter)modBookTypeFilter="접두";
     const categories=getModBookCategories();
@@ -7522,8 +7653,14 @@ function showModBooks(){
             <div class="count">개조서</div>
         </div>
         ${infoMenu("개조서")}
-        <div class="modbook-guide">
-            <strong>접두</strong>는 파란색, <strong>접미</strong>는 빨간색으로 표시됩니다.
+        ${renderFavoriteSidebar()}
+        <div class="modbook-top-search">
+            <div class="toolbar">
+                <div class="search">
+                    <input id="modBookSearchInput" type="text" placeholder="이름, 부위, 옵션 검색" value="${modBookSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'modbook')" oninput="onModBookSearch(this.value)">
+                    <span class="search-mark">⌕</span>
+                </div>
+            </div>
         </div>
         <div class="modbook-type-tabs">
             <button class="${modBookTypeFilter==="접두"?"active prefix":""}" onclick="setModBookType('접두')">접두</button>
@@ -7532,12 +7669,6 @@ function showModBooks(){
         <div class="modbook-category-wrap">
             <div class="modbook-section-label">분류 선택</div>
             <div class="modbook-category-tabs" id="modBookCategoryTabs"></div>
-        </div>
-        <div class="toolbar">
-            <div class="search">
-                <input id="modBookSearchInput" type="text" placeholder="이름, 부위, 옵션 검색" value="${modBookSearchKeyword}" onfocus="this.select()" onkeydown="handleSearchKey(event,'modbook')" oninput="onModBookSearch(this.value)">
-                <span class="search-mark">⌕</span>
-            </div>
         </div>
         <div class="result-info" id="modBookResultInfo"></div>
         <div class="modbook-layout">
@@ -7684,6 +7815,7 @@ function selectModBook(key){
 }
 
 function showCraft(){
+    currentInfoSubTab="craft";
     setMainActive(6);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
@@ -7697,6 +7829,8 @@ function showCraft(){
     </div>
 
     ${infoMenu("제작")}
+
+    ${renderFavoriteSidebar()}
 
     <div class="toolbar">
         <div class="search">
@@ -12050,6 +12184,180 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         padding:0 13px!important;
         font-size:12px!important;
         border-radius:11px!important;
+    }
+}
+
+
+
+/* AXE NET V12.0: 즐겨찾기 사이드바 + 개조서 검색 위치 보정 */
+.favorite-sidebar{
+    position:fixed;
+    right:14px;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:1200;
+    width:188px;
+    max-height:72vh;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:10px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018)),rgba(7,7,7,.92);
+    box-shadow:0 16px 38px rgba(0,0,0,.35);
+    backdrop-filter:blur(8px);
+}
+.favorite-sidebar-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    color:#ffcf75;
+    font-size:12px;
+    font-weight:950;
+    letter-spacing:.1px;
+}
+.favorite-sidebar-add{
+    width:100%;
+    height:34px;
+    border-radius:12px;
+    border:1px solid rgba(255,181,46,.32);
+    background:rgba(255,181,46,.08);
+    color:#ffcf75;
+    font-size:12px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.16s ease;
+}
+.favorite-sidebar-add:hover{
+    transform:translateY(-1px);
+    border-color:rgba(255,181,46,.62);
+    background:rgba(255,181,46,.13);
+}
+.favorite-sidebar-list{
+    display:grid;
+    gap:6px;
+    overflow:auto;
+    padding-right:1px;
+}
+.favorite-sidebar-empty{
+    padding:8px 4px 4px;
+    color:#777;
+    font-size:11px;
+    line-height:1.45;
+    text-align:center;
+}
+.favorite-item{
+    display:grid;
+    grid-template-columns:1fr 24px;
+    gap:5px;
+    align-items:center;
+    min-height:34px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.075);
+    background:rgba(0,0,0,.24);
+    overflow:hidden;
+}
+.favorite-item-main{
+    min-width:0;
+    height:100%;
+    padding:8px 0 8px 10px;
+    display:flex;
+    align-items:center;
+    color:#dcdcdc;
+    font-size:12px;
+    font-weight:900;
+    line-height:1.25;
+    cursor:pointer;
+    transition:.16s ease;
+}
+.favorite-item-main:hover{
+    color:#ffcf75;
+    background:rgba(255,181,46,.045);
+}
+.favorite-item-label{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.favorite-item-remove{
+    width:24px;
+    height:100%;
+    border:0;
+    border-left:1px solid rgba(255,255,255,.06);
+    background:rgba(255,255,255,.025);
+    color:#777;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:950;
+    transition:.16s ease;
+}
+.favorite-item-remove:hover{
+    color:#ff7070;
+    background:rgba(255,80,80,.08);
+}
+.favorite-mini-note{
+    color:#6f6f6f;
+    font-size:10.5px;
+    line-height:1.35;
+    text-align:center;
+}
+.modbook-top-search{
+    margin-bottom:12px!important;
+}
+.modbook-top-search .toolbar{
+    margin-bottom:0!important;
+}
+@media(max-width:1320px){
+    .favorite-sidebar{
+        right:8px;
+        width:166px;
+    }
+}
+@media(max-width:1080px){
+    .favorite-sidebar{
+        position:static;
+        width:100%;
+        max-height:none;
+        transform:none;
+        margin:0 0 12px;
+        border-radius:16px;
+    }
+    .favorite-sidebar-list{
+        display:flex;
+        overflow-x:auto;
+        gap:6px;
+        padding-bottom:2px;
+    }
+    .favorite-item{
+        flex:0 0 auto;
+        min-width:132px;
+    }
+    .favorite-mini-note{
+        display:none;
+    }
+}
+@media(max-width:768px){
+    .favorite-sidebar{
+        padding:9px;
+        margin-bottom:10px;
+    }
+    .favorite-sidebar-head{
+        font-size:11px;
+    }
+    .favorite-sidebar-add{
+        height:32px;
+        font-size:11px;
+    }
+    .favorite-item{
+        min-width:120px;
+        min-height:32px;
+    }
+    .favorite-item-main{
+        padding:7px 0 7px 9px;
+        font-size:11px;
     }
 }
 
