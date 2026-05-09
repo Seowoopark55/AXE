@@ -6648,56 +6648,117 @@ function galleryCommentUndislike(commentId,galleryId){
 function showHome(){
     enterMainSection("home");
     setMainActive(0);
-    const recentNotices=notices.slice(-3).reverse();
-    const recentTubes=getSortedTubes().slice(0,6);
-    const recentBoards=getSortedBoards().slice(0,4);
+
+    const recentNotices=notices.slice(-4).reverse();
+    const recentTubes=getSortedTubes().slice(0,4);
+    const recentBoards=getSortedBoards().slice(0,5);
+    const recentGalleries=getSortedGalleries().slice(0,4);
+
+    const foodStatus=function(order){return String(order&&order.status||"접수").trim()||"접수";};
+    const pendingOrders=(foodOrders||[]).filter(order=>foodStatus(order)==="접수"||foodStatus(order)==="제작완료");
+    const receiveCount=pendingOrders.filter(order=>foodStatus(order)==="접수").length;
+    const readyCount=pendingOrders.filter(order=>foodStatus(order)==="제작완료").length;
+    const todayKeyForHome=function(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`;};
+    const getOrderDateKeyForHome=function(order){
+        const direct=String(order&&order.order_date||"").trim();
+        if(/^\d{4}-\d{2}-\d{2}$/.test(direct))return direct;
+        const dateText=String(order&&order.date||"").trim();
+        const match=dateText.match(/^(\d{4})[-.\/]\s*(\d{1,2})[-.\/]\s*(\d{1,2})/);
+        if(match)return `${match[1]}-${String(match[2]).padStart(2,"0")}-${String(match[3]).padStart(2,"0")}`;
+        return direct;
+    };
+    const todayOrders=(foodOrders||[]).filter(order=>getOrderDateKeyForHome(order)===todayKeyForHome());
+    const foodMoveTarget=isCurrentAdmin()?"showFoodOrderAdmin('pending')":"navigateMain('food')";
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">최근 공지사항과 AXE TUBE 업데이트를 확인하세요.</div>
+                <div class="section-desc">최근 소식과 주요 컨텐츠를 먼저 확인합니다.</div>
             </div>
             <div class="count">AXE NET</div>
         </div>
 
-        <div class="home-grid">
-            <div class="home-card">
-                <div class="home-card-title">최근 공지사항</div>
-                ${
-                    recentNotices.length
-                    ? recentNotices.map((n,i)=>`
-                        <div class="notice-item" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
-                            <div class="item-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
-                            <div class="item-date">${formatDate(n.date)}</div>
-                            <div class="item-content">${safe(n.content)}</div>
-                        </div>
-                    `).join("")
-                    : `<div class="ready">등록된 공지사항이 없습니다.</div>`
-                }
+        <div class="home-dashboard-grid home-dashboard-priority">
+            <div class="home-dashboard-column">
+                <div class="home-card home-card-primary">
+                    <div class="home-card-title">최근 공지사항</div>
+                    ${
+                        recentNotices.length
+                        ? recentNotices.map((n,i)=>`
+                            <div class="notice-item" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
+                                <div class="item-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
+                                <div class="item-date">${formatDate(n.date)}</div>
+                                <div class="item-content">${safe(n.content)}</div>
+                            </div>
+                        `).join("")
+                        : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+                    }
+                </div>
             </div>
 
-            <div class="home-card">
-                <div class="home-card-title">AXE TUBE</div>
-                <div class="tube-grid">
-                    ${recentTubes.length?recentTubes.map((t,i)=>renderTubeCard(t,i)).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
+            <div class="home-dashboard-column">
+                <div class="home-card home-card-primary">
+                    <div class="home-card-title">자유게시판 최신글</div>
+                    <div class="home-mini-list">
+                        ${recentBoards.length?recentBoards.map((post,index)=>`
+                            <div class="home-mini-item" onclick="navigateMain('board'); setTimeout(()=>selectBoardPost('${escapeText(getBoardId(post,index))}'),60);">
+                                <div class="home-mini-title">${safe(post.title)}</div>
+                                <div class="home-mini-meta">${renderWriterName(post.writer,post.writer_badge)} · ${formatDateOnly(post.date)}</div>
+                            </div>
+                        `).join(""):`<div class="ready">등록된 게시글이 없습니다.</div>`}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="home-card home-board-wide">
-            <div class="home-card-title">자유게시판 최신글</div>
-            <div class="home-board-list">
-                ${recentBoards.length?recentBoards.map((post,index)=>`
-                    <div class="home-board-item" onclick="navigateMain('board'); setTimeout(()=>selectBoardPost('${escapeText(getBoardId(post,index))}'),60);">
-                        <div class="home-board-title">${safe(post.title)}</div>
-                        <div class="home-board-meta">${renderWriterName(post.writer,post.writer_badge)} · ${formatDateOnly(post.date)}</div>
+        <div class="home-dashboard-grid home-dashboard-media">
+            <div class="home-dashboard-column">
+                <div class="home-card">
+                    <div class="home-card-title">최근 갤러리</div>
+                    ${recentGalleries.length?`<div class="home-gallery-strip">${recentGalleries.map((post,index)=>{
+                        const images=getGalleryImages(post);
+                        const img=images[0]||"";
+                        return `<div class="home-gallery-thumb" onclick="navigateMain('gallery'); setTimeout(()=>openGalleryDetail('${escapeText(getGalleryId(post,index))}',true,true),70);">${img?`<img src="${escapeAttr(img)}" loading="lazy" alt="${escapeAttr(post.title||'갤러리')}">`:""}<span>${safe(post.title||"갤러리")}</span></div>`;
+                    }).join("")}</div>`:`<div class="ready">등록된 갤러리 글이 없습니다.</div>`}
+                </div>
+            </div>
+
+            <div class="home-dashboard-column">
+                <div class="home-card">
+                    <div class="home-card-title">최근 AXE TUBE</div>
+                    <div class="home-mini-list">
+                        ${recentTubes.length?recentTubes.map((tube,index)=>`
+                            <div class="home-mini-item" onclick="navigateMain('tube'); setTimeout(()=>openTubeDetail('${escapeText(getTubeId(tube,index))}',true,true),70);">
+                                <div class="home-mini-title">${safe(tube.title)}</div>
+                                <div class="home-mini-meta">${renderWriterName(tube.writer||"익명",tube.writer_badge)} · ${formatDateOnly(tube.date)}</div>
+                            </div>
+                        `).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
                     </div>
-                `).join(""):`<div class="ready">등록된 게시글이 없습니다.</div>`}
+                </div>
+            </div>
+        </div>
+
+        <div class="home-card home-order-card home-order-card-compact">
+            <div class="home-order-compact-head">
+                <div>
+                    <div class="home-card-title">오늘 처리할 요리주문</div>
+                    <div class="home-order-compact-desc">상세 주문 내용은 홈에 노출하지 않고, 처리 필요 여부만 표시합니다.</div>
+                </div>
+                <button class="home-mini-btn" onclick="${foodMoveTarget}">요리주문으로 이동</button>
+            </div>
+            <div class="home-order-compact-body">
+                <div class="home-order-compact-count ${pendingOrders.length?'pending':''}">
+                    <strong>${pendingOrders.length}</strong>
+                    <span>처리 필요</span>
+                </div>
+                <div class="home-order-compact-stat"><span>접수</span><strong>${receiveCount}</strong></div>
+                <div class="home-order-compact-stat"><span>제작완료</span><strong>${readyCount}</strong></div>
+                <div class="home-order-compact-stat"><span>오늘 접수</span><strong>${todayOrders.length}</strong></div>
+                <div class="home-order-compact-message ${pendingOrders.length?'':'clear'}">${pendingOrders.length?"처리할 주문이 있습니다.":"처리할 주문이 없습니다."}</div>
             </div>
         </div>`;
 }
-
 function showNotice(){
     enterMainSection("notice");
     setMainActive(1);
@@ -15129,6 +15190,145 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     .utility-category-tabs::-webkit-scrollbar{display:none;}
     .utility-category-tabs button{flex:0 0 auto;min-width:auto;height:37px;padding:0 13px;font-size:12px;border-radius:11px;}
 }
+
+
+/* AXE NET V14.0: 홈 대시보드 - 최근 소식/처리할 주문 요약 */
+.home-dashboard-grid{display:grid;grid-template-columns:.9fr .75fr;gap:16px;margin-top:16px}
+.home-dashboard-column{display:grid;gap:16px;min-width:0}
+.home-order-card{position:relative;overflow:hidden;border-color:rgba(255,181,46,.18)!important;background:linear-gradient(145deg,rgba(255,181,46,.09),rgba(255,255,255,.022)),rgba(0,0,0,.24)!important}
+.home-order-card::after{content:"ORDER";position:absolute;right:14px;top:12px;color:rgba(255,255,255,.045);font-size:38px;font-weight:950;letter-spacing:2px;pointer-events:none}
+.home-order-main{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 0 13px}
+.home-order-count{font-size:38px;font-weight:950;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
+.home-order-count.pending{color:#ffcf75}
+.home-order-label{margin-top:6px;color:#aaa;font-size:13px;font-weight:850}
+.home-order-status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 13px}
+.home-order-status-item{padding:10px 11px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.24);border-radius:13px}
+.home-order-status-item span{display:block;color:#888;font-size:12px;font-weight:900;margin-bottom:5px}
+.home-order-status-item strong{display:block;color:#fff;font-size:18px;font-weight:950;font-variant-numeric:tabular-nums}
+.home-order-status-item.receive strong{color:#ffcf75}
+.home-order-status-item.ready strong{color:#9fc7ff}
+.home-order-message{position:relative;z-index:1;color:#aaa;font-size:13px;line-height:1.5;margin-top:7px}
+.home-order-message.clear{color:#8fd9aa}
+.home-card-action{display:flex;justify-content:flex-end;margin-top:12px}
+.home-mini-btn{height:34px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,181,46,.28);background:rgba(255,181,46,.08);color:#ffcf75;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease}
+.home-mini-btn:hover{border-color:rgba(255,181,46,.55);background:rgba(255,181,46,.13);transform:translateY(-1px)}
+.home-mini-list{display:grid;gap:8px}
+.home-mini-item{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:13px;padding:11px 12px;cursor:pointer;transition:.16s ease;min-width:0}
+.home-mini-item:hover{border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045);transform:translateY(-1px)}
+.home-mini-title{font-size:13px;font-weight:950;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-mini-meta{margin-top:5px;color:#888;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-gallery-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.home-gallery-thumb{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#000;border:1px solid rgba(255,255,255,.08);cursor:pointer}
+.home-gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.2s ease}
+.home-gallery-thumb:hover img{transform:scale(1.05);filter:brightness(.78)}
+.home-gallery-thumb span{position:absolute;left:7px;right:7px;bottom:7px;padding:5px 7px;border-radius:8px;background:rgba(0,0,0,.68);color:#fff;font-size:11px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:920px){.home-dashboard-grid{grid-template-columns:1fr}.home-order-main{align-items:flex-start}.home-order-count{font-size:34px}}
+@media(max-width:520px){.home-order-status{grid-template-columns:1fr}.home-gallery-strip{grid-template-columns:1fr 1fr}.home-card-action{justify-content:stretch}.home-mini-btn{width:100%}}
+
+
+
+/* AXE NET V13.8: 홈 대시보드 노출 우선순위 조정 */
+.home-dashboard-priority,
+.home-dashboard-media{
+    margin-top:16px!important;
+}
+.home-dashboard-media{
+    grid-template-columns:1fr 1fr!important;
+}
+.home-card-primary{
+    min-height:265px!important;
+}
+.home-order-card-compact{
+    margin-top:16px!important;
+    border-color:rgba(255,181,46,.12)!important;
+    background:linear-gradient(145deg,rgba(255,181,46,.055),rgba(255,255,255,.018)),rgba(0,0,0,.22)!important;
+}
+.home-order-card-compact::after{
+    display:none!important;
+    content:none!important;
+}
+.home-order-compact-head{
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:12px;
+}
+.home-order-compact-desc{
+    margin-top:5px;
+    color:#888;
+    font-size:12px;
+    line-height:1.45;
+    font-weight:850;
+}
+.home-order-compact-body{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:130px repeat(3,1fr) minmax(180px,1.2fr);
+    gap:9px;
+    align-items:stretch;
+}
+.home-order-compact-count,
+.home-order-compact-stat,
+.home-order-compact-message{
+    min-height:54px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.075);
+    background:rgba(0,0,0,.22);
+    padding:10px 12px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+.home-order-compact-count strong{
+    color:#fff;
+    font-size:24px;
+    line-height:1;
+    font-weight:950;
+    font-variant-numeric:tabular-nums;
+}
+.home-order-compact-count.pending strong{
+    color:#ffcf75;
+}
+.home-order-compact-count span,
+.home-order-compact-stat span{
+    margin-top:5px;
+    color:#888;
+    font-size:11px;
+    font-weight:950;
+}
+.home-order-compact-stat strong{
+    margin-top:5px;
+    color:#ddd;
+    font-size:17px;
+    line-height:1;
+    font-weight:950;
+    font-variant-numeric:tabular-nums;
+}
+.home-order-compact-message{
+    color:#ffcf75;
+    font-size:13px;
+    line-height:1.45;
+    font-weight:950;
+}
+.home-order-compact-message.clear{
+    color:#8fd9aa;
+}
+@media(max-width:920px){
+    .home-dashboard-media{grid-template-columns:1fr!important}
+    .home-card-primary{min-height:auto!important}
+    .home-order-compact-head{display:block}
+    .home-order-compact-head .home-mini-btn{margin-top:10px;width:100%}
+    .home-order-compact-body{grid-template-columns:1fr 1fr}
+    .home-order-compact-message{grid-column:1 / -1}
+}
+@media(max-width:520px){
+    .home-order-compact-body{grid-template-columns:1fr}
+}
+
 </style>
 
 <script id="axe-utility-category-fix-script">
