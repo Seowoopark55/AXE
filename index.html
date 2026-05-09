@@ -7611,7 +7611,8 @@ function getCurrentRouteForFavorite(){
 
     if(page==="outlaw"){
         route.subTab=normalizeSubTab("outlaw",state.subTab||"briefing");
-        if(route.subTab==="briefing")route.selectedId=selectedGuideId||selectedMapId||"";
+        if(route.subTab==="briefing")route.selectedId=selectedMapId||"";
+        if(route.subTab==="guide")route.selectedId=selectedGuideId||"";
         return route;
     }
 
@@ -7647,6 +7648,7 @@ function makeFavoriteId(route){
     if(r.job)parts.push("job:"+r.job);
     if(r.type)parts.push("type:"+r.type);
     if(r.skill)parts.push("skill:"+r.skill);
+    if(r.selectedId)parts.push("sel:"+r.selectedId);
     return parts.map(v=>String(v)).join("|");
 }
 
@@ -7683,6 +7685,14 @@ function makeFavoriteLabel(route){
     if(r.subTab){
         let base=SUB_FAVORITE_LABELS[page+"|"+r.subTab]||((MAIN_FAVORITE_LABELS[page]||page)+" · "+r.subTab);
         if(page==="notice"&&r.subTab==="operations"&&r.category&&r.category!=="ALL")base+=" · "+r.category;
+        if(page==="outlaw"&&r.subTab==="briefing"&&r.selectedId){
+            const map=briefingMaps.find(m=>String(m.id)===String(r.selectedId));
+            if(map&&map.map_name)base+=" · "+map.map_name;
+        }
+        if(page==="outlaw"&&r.subTab==="guide"&&r.selectedId){
+            const guide=getOutlawGuideGroups().find(g=>String(g.id)===String(r.selectedId));
+            if(guide&&guide.map_name)base+=" · "+guide.map_name;
+        }
         if(page==="info"&&r.subTab==="craft")base+=" · "+catName(r.category||"ALL");
         if(page==="info"&&r.subTab==="quest")base+=" · "+(r.job||"전체");
         if(page==="info"&&r.subTab==="process")base+=" · "+(r.job||"전체");
@@ -7802,6 +7812,33 @@ function goInfoFavorite(id){
     if(r.page==="notice"&&r.subTab==="operations"){
         operationCategory=r.category||"ALL";
         selectedOperationId="";
+    }
+
+    if(r.page==="outlaw"){
+        mapSearchKeyword="";
+        const targetSelectedId=String(r.selectedId||"");
+        if(r.subTab==="briefing"){
+            selectedGuideId="";
+            navigateSubTab("outlaw","briefing",true);
+            if(targetSelectedId){
+                setTimeout(function(){
+                    selectBriefingMap(targetSelectedId);
+                    refreshFavoriteSidebar();
+                },0);
+            }
+            return;
+        }
+        if(r.subTab==="guide"){
+            selectedMapId="";
+            navigateSubTab("outlaw","guide",true);
+            if(targetSelectedId){
+                setTimeout(function(){
+                    selectOutlawGuide(targetSelectedId);
+                    refreshFavoriteSidebar();
+                },0);
+            }
+            return;
+        }
     }
 
     if(r.detailType&&r.id){
