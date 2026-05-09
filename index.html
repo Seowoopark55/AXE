@@ -3732,12 +3732,30 @@ function refreshCurrentUserProfileAfterApi(data){
     return data;
 }
 
+function getFoodOrderStatusForTopBar(order){
+    return String(order&&order.status||"접수").trim()||"접수";
+}
+
+function renderAdminFoodTopSummary(){
+    if(!isCurrentAdmin())return "";
+    const list=Array.isArray(foodOrders)?foodOrders:[];
+    const pending=list.filter(order=>{
+        const status=getFoodOrderStatusForTopBar(order);
+        return status==="접수"||status==="제작완료";
+    });
+    const receive=pending.filter(order=>getFoodOrderStatusForTopBar(order)==="접수").length;
+    const ready=pending.filter(order=>getFoodOrderStatusForTopBar(order)==="제작완료").length;
+    const text=pending.length?`주문 미처리 ${pending.length} · 접수 ${receive} · 제작완료 ${ready}`:"주문 처리 없음";
+    return `<button class="auth-food-summary ${pending.length?'pending':'clear'}" onclick="showFoodOrderAdmin('pending')" title="요리주문 관리로 이동">${text}</button><span class="auth-inline-sep auth-food-sep">|</span>`;
+}
+
 function renderAuthBar(){
     const box=document.getElementById("authBar");
     if(!box)return;
     const user=getCurrentUser();
     if(user&&user.nickname){
         box.innerHTML=`<div class="auth-inline-shell">
+            ${renderAdminFoodTopSummary()}
             <button class="auth-inline-profile" title="${escapeAttr(user.nickname)}" onclick="openMemberProfile('${escapeText(user.nickname)}')">${renderAxeBadge(user.badge||user.role)}<strong>${safe(user.nickname)}</strong></button>
             <span class="auth-inline-sep">|</span>
             <button class="auth-inline-point" title="포인트 내역 보기" onclick="openPointHistoryModal()">P ${Number(user.points||0)}</button>
@@ -6654,32 +6672,44 @@ function showHome(){
     const recentBoards=getSortedBoards().slice(0,5);
     const recentGalleries=getSortedGalleries().slice(0,4);
 
-    const foodStatus=function(order){return String(order&&order.status||"접수").trim()||"접수";};
-    const pendingOrders=(foodOrders||[]).filter(order=>foodStatus(order)==="접수"||foodStatus(order)==="제작완료");
-    const receiveCount=pendingOrders.filter(order=>foodStatus(order)==="접수").length;
-    const readyCount=pendingOrders.filter(order=>foodStatus(order)==="제작완료").length;
-    const todayKeyForHome=function(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`;};
-    const getOrderDateKeyForHome=function(order){
-        const direct=String(order&&order.order_date||"").trim();
-        if(/^\d{4}-\d{2}-\d{2}$/.test(direct))return direct;
-        const dateText=String(order&&order.date||"").trim();
-        const match=dateText.match(/^(\d{4})[-.\/]\s*(\d{1,2})[-.\/]\s*(\d{1,2})/);
-        if(match)return `${match[1]}-${String(match[2]).padStart(2,"0")}-${String(match[3]).padStart(2,"0")}`;
-        return direct;
-    };
-    const todayOrders=(foodOrders||[]).filter(order=>getOrderDateKeyForHome(order)===todayKeyForHome());
-    const foodMoveTarget=isCurrentAdmin()?"showFoodOrderAdmin('pending')":"navigateMain('food')";
-
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
                 <div class="section-title">메인</div>
-                <div class="section-desc">최근 소식과 주요 컨텐츠를 먼저 확인합니다.</div>
+                <div class="section-desc">최근 갤러리와 AXE TUBE, 공지사항과 자유게시판 소식을 확인합니다.</div>
             </div>
             <div class="count">AXE NET</div>
         </div>
 
-        <div class="home-dashboard-grid home-dashboard-priority">
+        <div class="home-dashboard-grid home-dashboard-media home-dashboard-top-media">
+            <div class="home-dashboard-column">
+                <div class="home-card home-media-card">
+                    <div class="home-card-title">최근 갤러리</div>
+                    ${recentGalleries.length?`<div class="home-gallery-strip">${recentGalleries.map((post,index)=>{
+                        const images=getGalleryImages(post);
+                        const img=images[0]||"";
+                        return `<div class="home-gallery-thumb" onclick="navigateMain('gallery'); setTimeout(()=>openGalleryDetail('${escapeText(getGalleryId(post,index))}',true,true),70);">${img?`<img src="${escapeAttr(img)}" loading="lazy" alt="${escapeAttr(post.title||'갤러리')}">`:""}<span>${safe(post.title||"갤러리")}</span></div>`;
+                    }).join("")}</div>`:`<div class="ready">등록된 갤러리 글이 없습니다.</div>`}
+                </div>
+            </div>
+
+            <div class="home-dashboard-column">
+                <div class="home-card home-media-card">
+                    <div class="home-card-title">최근 AXE TUBE</div>
+                    ${recentTubes.length?`<div class="home-tube-strip">${recentTubes.map((tube,index)=>`
+                        <div class="home-tube-thumb" onclick="navigateMain('tube'); setTimeout(()=>openTubeDetail('${escapeText(getTubeId(tube,index))}',true,true),70);">
+                            <div class="home-tube-thumb-img"><img src="${escapeAttr(getTubeThumb(tube))}" loading="lazy" onerror="this.src='./axe.png'" alt="${escapeAttr(tube.title||'AXE TUBE')}"></div>
+                            <div class="home-tube-thumb-body">
+                                <div class="home-tube-thumb-title">${safe(tube.title||"제목 없음")}</div>
+                                <div class="home-tube-thumb-meta">${renderWriterName(tube.writer||"익명",tube.writer_badge)} · ${formatDateOnly(tube.date)}</div>
+                            </div>
+                        </div>
+                    `).join("")}</div>`:`<div class="ready">등록된 영상이 없습니다.</div>`}
+                </div>
+            </div>
+        </div>
+
+        <div class="home-dashboard-grid home-dashboard-priority home-dashboard-center-news">
             <div class="home-dashboard-column">
                 <div class="home-card home-card-primary">
                     <div class="home-card-title">최근 공지사항</div>
@@ -6709,53 +6739,6 @@ function showHome(){
                         `).join(""):`<div class="ready">등록된 게시글이 없습니다.</div>`}
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="home-dashboard-grid home-dashboard-media">
-            <div class="home-dashboard-column">
-                <div class="home-card">
-                    <div class="home-card-title">최근 갤러리</div>
-                    ${recentGalleries.length?`<div class="home-gallery-strip">${recentGalleries.map((post,index)=>{
-                        const images=getGalleryImages(post);
-                        const img=images[0]||"";
-                        return `<div class="home-gallery-thumb" onclick="navigateMain('gallery'); setTimeout(()=>openGalleryDetail('${escapeText(getGalleryId(post,index))}',true,true),70);">${img?`<img src="${escapeAttr(img)}" loading="lazy" alt="${escapeAttr(post.title||'갤러리')}">`:""}<span>${safe(post.title||"갤러리")}</span></div>`;
-                    }).join("")}</div>`:`<div class="ready">등록된 갤러리 글이 없습니다.</div>`}
-                </div>
-            </div>
-
-            <div class="home-dashboard-column">
-                <div class="home-card">
-                    <div class="home-card-title">최근 AXE TUBE</div>
-                    <div class="home-mini-list">
-                        ${recentTubes.length?recentTubes.map((tube,index)=>`
-                            <div class="home-mini-item" onclick="navigateMain('tube'); setTimeout(()=>openTubeDetail('${escapeText(getTubeId(tube,index))}',true,true),70);">
-                                <div class="home-mini-title">${safe(tube.title)}</div>
-                                <div class="home-mini-meta">${renderWriterName(tube.writer||"익명",tube.writer_badge)} · ${formatDateOnly(tube.date)}</div>
-                            </div>
-                        `).join(""):`<div class="ready">등록된 영상이 없습니다.</div>`}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="home-card home-order-card home-order-card-compact">
-            <div class="home-order-compact-head">
-                <div>
-                    <div class="home-card-title">오늘 처리할 요리주문</div>
-                    <div class="home-order-compact-desc">상세 주문 내용은 홈에 노출하지 않고, 처리 필요 여부만 표시합니다.</div>
-                </div>
-                <button class="home-mini-btn" onclick="${foodMoveTarget}">요리주문으로 이동</button>
-            </div>
-            <div class="home-order-compact-body">
-                <div class="home-order-compact-count ${pendingOrders.length?'pending':''}">
-                    <strong>${pendingOrders.length}</strong>
-                    <span>처리 필요</span>
-                </div>
-                <div class="home-order-compact-stat"><span>접수</span><strong>${receiveCount}</strong></div>
-                <div class="home-order-compact-stat"><span>제작완료</span><strong>${readyCount}</strong></div>
-                <div class="home-order-compact-stat"><span>오늘 접수</span><strong>${todayOrders.length}</strong></div>
-                <div class="home-order-compact-message ${pendingOrders.length?'':'clear'}">${pendingOrders.length?"처리할 주문이 있습니다.":"처리할 주문이 없습니다."}</div>
             </div>
         </div>`;
 }
@@ -15329,6 +15312,28 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     .home-order-compact-body{grid-template-columns:1fr}
 }
 
+
+
+/* AXE NET V14.2: 홈 재배치 + 관리자 상단 주문 요약 + AXE TUBE 썸네일 */
+.home-dashboard-top-media{margin-top:0!important;grid-template-columns:1fr 1fr!important;align-items:stretch!important;}
+.home-dashboard-center-news{margin-top:16px!important;grid-template-columns:1fr 1fr!important;}
+.home-media-card{min-height:255px!important;}
+.home-tube-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+.home-tube-thumb{min-width:0;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.22);border-radius:13px;overflow:hidden;cursor:pointer;transition:.16s ease;}
+.home-tube-thumb:hover{border-color:rgba(255,181,46,.35);background:rgba(255,181,46,.045);transform:translateY(-1px);}
+.home-tube-thumb-img{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden;}
+.home-tube-thumb-img img{width:100%;height:100%;object-fit:cover;display:block;transition:.2s ease;}
+.home-tube-thumb:hover .home-tube-thumb-img img{transform:scale(1.04);filter:brightness(.82);}
+.home-tube-thumb-body{padding:9px 10px 10px;min-width:0;}
+.home-tube-thumb-title{font-size:12.5px;font-weight:950;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.home-tube-thumb-meta{margin-top:5px;color:#888;font-size:11px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.auth-food-summary{height:28px!important;max-width:260px;padding:0 10px!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.1)!important;background:rgba(255,255,255,.045)!important;color:#cfcfcf!important;font-size:12px!important;font-weight:950!important;cursor:pointer!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;transition:.16s ease!important;}
+.auth-food-summary.pending{color:#ffcf75!important;border-color:rgba(255,181,46,.36)!important;background:rgba(255,181,46,.09)!important;}
+.auth-food-summary.clear{color:#8fd9aa!important;border-color:rgba(143,217,170,.24)!important;background:rgba(143,217,170,.055)!important;}
+.auth-food-summary:hover{transform:translateY(-1px)!important;filter:brightness(1.07)!important;}
+@media(max-width:920px){.home-dashboard-top-media,.home-dashboard-center-news{grid-template-columns:1fr!important}.home-media-card{min-height:auto!important}.auth-food-summary{max-width:190px;font-size:11px!important;padding:0 8px!important}}
+@media(max-width:620px){.home-tube-strip{grid-template-columns:1fr 1fr}.auth-food-summary{order:-1;flex:1 1 100%;width:100%;max-width:none!important}.auth-food-sep{display:none!important}}
+@media(max-width:420px){.home-gallery-strip,.home-tube-strip{grid-template-columns:1fr 1fr}.home-tube-thumb-title{font-size:12px}.home-tube-thumb-meta{font-size:10.5px}}
 </style>
 
 <script id="axe-utility-category-fix-script">
