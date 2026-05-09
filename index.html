@@ -4046,12 +4046,22 @@ function navigateSubTab(page,subTab,push=true){
     const target=normalizeMainPage(page);
     const tab=normalizeSubTab(target,subTab);
     const current=history.state||{};
+    const previousPage=currentHistoryPage;
 
     if(push&&(current.page!==target||current.subTab!==tab)){
         history.pushState({page:target,subTab:tab},"",`#${target}-${tab}`);
     }
 
     currentHistoryPage=target;
+
+    const needsPageShell=
+        previousPage!==target ||
+        (target==="outlaw"&&!document.getElementById("outlawContent"));
+
+    if(needsPageShell){
+        renderMainPage(target);
+    }
+
     renderSubTab(target,tab);
     refreshFavoriteSidebar();
     backgroundRefreshCurrentRoute();
