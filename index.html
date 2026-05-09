@@ -7510,6 +7510,7 @@ function openModBookPriceEditor(key){
 
 
 const INFO_FAVORITE_KEY="axe_net_info_favorites_v1";
+const INFO_FAVORITE_COLLAPSE_KEY="axe_net_info_favorites_collapsed_v1";
 
 function getInfoFavorites(){
     try{
@@ -7550,8 +7551,22 @@ function getCurrentInfoFavorite(){
     return null;
 }
 
+function isInfoFavoriteSidebarCollapsed(){
+    try{return localStorage.getItem(INFO_FAVORITE_COLLAPSE_KEY)==="1";}catch(e){return false;}
+}
+
+function setInfoFavoriteSidebarCollapsed(value){
+    try{localStorage.setItem(INFO_FAVORITE_COLLAPSE_KEY,value?"1":"0");}catch(e){}
+}
+
+function toggleInfoFavoriteSidebar(){
+    setInfoFavoriteSidebarCollapsed(!isInfoFavoriteSidebarCollapsed());
+    refreshFavoriteSidebar();
+}
+
 function renderFavoriteSidebar(){
     const list=getInfoFavorites();
+    const collapsed=isInfoFavoriteSidebarCollapsed();
     const items=list.length?list.map(f=>`
         <div class="favorite-item">
             <div class="favorite-item-main" onclick="goInfoFavorite('${escapeText(f.id)}')" title="${safe(f.label||'즐겨찾기')}">
@@ -7559,11 +7574,17 @@ function renderFavoriteSidebar(){
             </div>
             <button class="favorite-item-remove" onclick="removeInfoFavorite('${escapeText(f.id)}',event)" title="삭제">×</button>
         </div>`).join(""):`<div class="favorite-sidebar-empty">자주 보는 분류를 추가해두면 바로 이동할 수 있습니다.</div>`;
-    return `<div class="favorite-sidebar" id="infoFavoriteSidebar">
-        <div class="favorite-sidebar-head"><span>즐겨찾기</span><span>${list.length}/12</span></div>
-        <button class="favorite-sidebar-add" onclick="addCurrentInfoFavorite()">+ 현재 분류 추가</button>
-        <div class="favorite-sidebar-list">${items}</div>
-        <div class="favorite-mini-note">브라우저에 저장됩니다.</div>
+    return `<div class="favorite-sidebar ${collapsed?"collapsed":""}" id="infoFavoriteSidebar">
+        <div class="favorite-sidebar-head">
+            <span class="favorite-sidebar-title">즐겨찾기</span>
+            <button class="favorite-sidebar-toggle" onclick="toggleInfoFavoriteSidebar()" title="${collapsed?"펼치기":"접기"}">${collapsed?"≡":"−"}</button>
+        </div>
+        <div class="favorite-sidebar-body">
+            <button class="favorite-sidebar-add" onclick="addCurrentInfoFavorite()">+ 현재 분류 추가</button>
+            <div class="favorite-sidebar-count">${list.length}/12</div>
+            <div class="favorite-sidebar-list">${items}</div>
+            <div class="favorite-mini-note">브라우저에 저장됩니다.</div>
+        </div>
     </div>`;
 }
 
@@ -12359,6 +12380,128 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         padding:7px 0 7px 9px;
         font-size:11px;
     }
+}
+
+
+
+/* AXE NET V12.1: 즐겨찾기 사이드바 상시 고정 + 접기/펼치기 */
+.favorite-sidebar{
+    position:fixed!important;
+    right:16px!important;
+    top:50%!important;
+    bottom:auto!important;
+    transform:translateY(-50%)!important;
+    z-index:2400!important;
+    width:198px!important;
+    max-height:74vh!important;
+    margin:0!important;
+    transition:width .18s ease, max-height .18s ease, border-radius .18s ease, opacity .18s ease!important;
+}
+.favorite-sidebar-head{
+    min-height:30px!important;
+}
+.favorite-sidebar-title{
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+}
+.favorite-sidebar-toggle{
+    flex:0 0 auto!important;
+    width:28px!important;
+    height:28px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(255,255,255,.11)!important;
+    background:rgba(255,255,255,.045)!important;
+    color:#d0d0d0!important;
+    font-size:15px!important;
+    font-weight:950!important;
+    line-height:1!important;
+    cursor:pointer!important;
+    transition:.16s ease!important;
+}
+.favorite-sidebar-toggle:hover{
+    color:#ffcf75!important;
+    border-color:rgba(255,181,46,.45)!important;
+    background:rgba(255,181,46,.08)!important;
+    transform:translateY(-1px)!important;
+}
+.favorite-sidebar-body{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    min-height:0!important;
+}
+.favorite-sidebar-count{
+    align-self:flex-end!important;
+    margin-top:-4px!important;
+    color:#777!important;
+    font-size:10.5px!important;
+    font-weight:950!important;
+    line-height:1!important;
+}
+.favorite-sidebar.collapsed{
+    width:46px!important;
+    max-height:46px!important;
+    min-height:46px!important;
+    padding:8px!important;
+    border-radius:999px!important;
+    overflow:hidden!important;
+}
+.favorite-sidebar.collapsed .favorite-sidebar-head{
+    min-height:28px!important;
+    justify-content:center!important;
+}
+.favorite-sidebar.collapsed .favorite-sidebar-title,
+.favorite-sidebar.collapsed .favorite-sidebar-body{
+    display:none!important;
+}
+.favorite-sidebar.collapsed .favorite-sidebar-toggle{
+    width:30px!important;
+    height:30px!important;
+    color:#ffcf75!important;
+    border-color:rgba(255,181,46,.32)!important;
+    background:rgba(255,181,46,.08)!important;
+}
+@media(max-width:1080px){
+    .favorite-sidebar{
+        position:fixed!important;
+        right:12px!important;
+        top:auto!important;
+        bottom:14px!important;
+        transform:none!important;
+        width:min(320px,calc(100vw - 24px))!important;
+        max-height:44vh!important;
+        border-radius:18px!important;
+    }
+    .favorite-sidebar-list{
+        display:grid!important;
+        overflow:auto!important;
+        gap:6px!important;
+        padding-bottom:0!important;
+    }
+    .favorite-item{
+        min-width:0!important;
+        width:100%!important;
+    }
+    .favorite-sidebar.collapsed{
+        width:48px!important;
+        max-height:48px!important;
+        min-height:48px!important;
+        border-radius:999px!important;
+    }
+}
+@media(max-width:768px){
+    .favorite-sidebar{
+        right:10px!important;
+        bottom:10px!important;
+        width:min(300px,calc(100vw - 20px))!important;
+        max-height:42vh!important;
+        padding:9px!important;
+    }
+    .favorite-sidebar-add{height:32px!important;font-size:11px!important;}
+    .favorite-sidebar-count{font-size:10px!important;}
+    .favorite-sidebar-list{max-height:calc(42vh - 112px)!important;}
 }
 
 </style>
