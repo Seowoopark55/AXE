@@ -7564,7 +7564,7 @@ function normalizeFavoriteItem(item){
     if(item.route){
         const route=Object.assign({},item.route);
         const id=String(item.id||makeFavoriteId(route));
-        const label=String(item.label||makeFavoriteLabel(route));
+        const label=makeFavoriteLabel(route);
         return {id:id,label:label,route:route,created_at:item.created_at||new Date().toISOString()};
     }
     if(item.subTab){
@@ -7573,7 +7573,7 @@ function normalizeFavoriteItem(item){
         if(item.job)route.job=item.job;
         if(item.type)route.type=item.type;
         if(item.skill)route.skill=item.skill;
-        return {id:"legacy|"+String(item.id||makeFavoriteId(route)),label:String(item.label||makeFavoriteLabel(route)),route:route,created_at:item.created_at||new Date().toISOString()};
+        return {id:"legacy|"+String(item.id||makeFavoriteId(route)),label:makeFavoriteLabel(route),route:route,created_at:item.created_at||new Date().toISOString()};
     }
     return null;
 }
@@ -7687,32 +7687,40 @@ function findTitleByRoute(route){
 function makeFavoriteLabel(route){
     const r=route||{};
     const page=normalizeMainPage(r.page||"home");
+
     if(r.detailType&&r.id){
         const base=MAIN_FAVORITE_LABELS[page]||page;
         const title=findTitleByRoute(r);
-        return base+" · "+title;
+        return title?base+" · "+title:base;
     }
+
     if(r.subTab){
-        let base=SUB_FAVORITE_LABELS[page+"|"+r.subTab]||((MAIN_FAVORITE_LABELS[page]||page)+" · "+r.subTab);
-        if(page==="notice"&&r.subTab==="operations"&&r.category&&r.category!=="ALL")base+=" · "+r.category;
-        if(page==="outlaw"&&r.subTab==="briefing"&&r.selectedId){
-            const map=briefingMaps.find(m=>String(m.id)===String(r.selectedId));
-            if(map&&map.map_name)base+=" · "+map.map_name;
+        if(page==="notice"){
+            if(r.subTab==="operations")return "운영기준";
+            return "공지사항";
         }
-        if(page==="outlaw"&&r.subTab==="guide"&&r.selectedId){
-            const guide=getOutlawGuideGroups().find(g=>String(g.id)===String(r.selectedId));
-            if(guide&&guide.map_name)base+=" · "+guide.map_name;
+        if(page==="outlaw"){
+            if(r.subTab==="briefing")return "브리핑맵";
+            if(r.subTab==="guide")return "무법지대 공략";
+            return "무법지대";
         }
-        if(page==="info"&&r.subTab==="craft")base+=" · "+catName(r.category||"ALL");
-        if(page==="info"&&r.subTab==="quest")base+=" · "+(r.job||"전체");
-        if(page==="info"&&r.subTab==="process")base+=" · "+(r.job||"전체");
-        if(page==="info"&&r.subTab==="modbook")base+=" · "+(r.type||"접두")+" · "+(r.category||"전체");
-        if(page==="info"&&r.subTab==="skillrank")base+=" · "+(r.skill||"전체");
-        return base;
+        if(page==="info"){
+            if(r.subTab==="craft")return "제작";
+            if(r.subTab==="quest")return "퀘스트";
+            if(r.subTab==="process")return "가공·재련";
+            if(r.subTab==="modbook")return "개조서";
+            if(r.subTab==="skillrank")return "스킬랭크";
+            return "정보";
+        }
+        if(page==="utility"){
+            if(r.subTab==="plica")return "플리카 계산기";
+            return "편의기능";
+        }
+        return MAIN_FAVORITE_LABELS[page]||page;
     }
+
     return MAIN_FAVORITE_LABELS[page]||page;
 }
-
 function getCurrentInfoFavorite(){
     const route=getCurrentRouteForFavorite();
     return {id:makeFavoriteId(route),label:makeFavoriteLabel(route),route:route,created_at:new Date().toISOString()};
@@ -15273,7 +15281,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
     const oldMakeFavoriteLabel135=window.makeFavoriteLabel;
     window.makeFavoriteLabel=function(route){
         const r=route||{};
-        if(normalizeMainPage(r.page||"")==="utility")return "편의기능 · 플리카 계산기";
+        if(normalizeMainPage(r.page||"")==="utility")return "플리카 계산기";
         if(typeof oldMakeFavoriteLabel135==="function")return oldMakeFavoriteLabel135.apply(this,arguments);
         return "즐겨찾기";
     };
@@ -15285,6 +15293,25 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         if(typeof oldMakeFavoriteId135==="function")return oldMakeFavoriteId135.apply(this,arguments);
         return String(Date.now());
     };
+})();
+</script>
+
+<script id="axe-favorite-label-compact-fix">
+/* AXE NET V13.6: 즐겨찾기 표시명 간소화 */
+(function(){
+    function compactFavoriteLabelsOnce(){
+        try{
+            if(typeof getInfoFavorites!=="function"||typeof saveInfoFavorites!=="function")return;
+            const list=getInfoFavorites();
+            saveInfoFavorites(list);
+            if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+        }catch(e){}
+    }
+    if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",function(){setTimeout(compactFavoriteLabelsOnce,120);});
+    }else{
+        setTimeout(compactFavoriteLabelsOnce,120);
+    }
 })();
 </script>
 
