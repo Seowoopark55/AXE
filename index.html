@@ -4283,19 +4283,16 @@ function shouldSkipBackgroundRouteRerender(route){
 }
 
 function backgroundRefreshCurrentRoute(){
-    const routeBefore=history.state||parseRouteFromHash();
-    const before=JSON.stringify(routeBefore||{});
+    /*
+        자동 화면 재렌더링 제거 버전.
+        기존에는 최신 데이터를 받아온 뒤 renderRouteState()를 다시 실행해서
+        작성 중인 글, 상세 화면, 관리자 작업 화면이 갑자기 바뀌는 현상이 있었습니다.
+        이제는 데이터 배열과 캐시만 조용히 갱신하고 현재 화면은 건드리지 않습니다.
+        화면 갱신이 필요한 작업은 각 작성/수정/삭제/상태변경 함수에서 별도로 처리합니다.
+    */
     refreshData().then(()=>{
-        const routeAfter=history.state||parseRouteFromHash();
-        const after=JSON.stringify(routeAfter||{});
-        if(before!==after)return;
-
-        if(shouldSkipBackgroundRouteRerender(routeAfter)){
-            setTimeout(afterRenderAuth,0);
-            return;
-        }
-
-        renderRouteState(routeAfter);
+        setTimeout(afterRenderAuth,0);
+        if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
     });
 }
 
