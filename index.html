@@ -15572,5 +15572,237 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
 })();
 </script>
 
+
+
+<script id="axe-favorite-persistence-stability-fix">
+/* AXE NET V14.2: 즐겨찾기 저장 안정화
+   - 요리주문 관리 등 화면 전환 중 localStorage 읽기 실패/일시 빈값으로 보이는 현상 방지
+   - primary + backup 이중 저장
+   - 잘못된 저장값이 감지되면 backup에서 자동 복구
+*/
+(function(){
+    const FAVORITE_PRIMARY_KEY="axe_net_global_favorites_v1";
+    const FAVORITE_BACKUP_KEY="axe_net_global_favorites_backup_v1";
+    const FAVORITE_LEGACY_KEY="axe_net_info_favorites_v1";
+
+    function parseFavoriteStorage(key){
+        try{
+            const raw=localStorage.getItem(key);
+            if(!raw)return null;
+            const parsed=JSON.parse(raw);
+            return Array.isArray(parsed)?parsed:null;
+        }catch(e){return null;}
+    }
+
+    function normalizeFavoriteList(list){
+        if(!Array.isArray(list))return [];
+        return list.map(function(item){
+            try{
+                if(typeof normalizeFavoriteItem==="function")return normalizeFavoriteItem(item);
+                return item;
+            }catch(e){return null;}
+        }).filter(Boolean).slice(0,18);
+    }
+
+    window.getInfoFavorites=function(){
+        let primary=normalizeFavoriteList(parseFavoriteStorage(FAVORITE_PRIMARY_KEY));
+        if(primary.length)return primary;
+
+        let backup=normalizeFavoriteList(parseFavoriteStorage(FAVORITE_BACKUP_KEY));
+        if(backup.length){
+            try{localStorage.setItem(FAVORITE_PRIMARY_KEY,JSON.stringify(backup));}catch(e){}
+            return backup;
+        }
+
+        let legacy=normalizeFavoriteList(parseFavoriteStorage(FAVORITE_LEGACY_KEY));
+        if(legacy.length){
+            window.saveInfoFavorites(legacy);
+            return legacy;
+        }
+
+        return [];
+    };
+
+    window.saveInfoFavorites=function(list){
+        const normalized=normalizeFavoriteList(list);
+        const payload=JSON.stringify(normalized);
+        try{localStorage.setItem(FAVORITE_PRIMARY_KEY,payload);}catch(e){}
+        try{localStorage.setItem(FAVORITE_BACKUP_KEY,payload);}catch(e){}
+        return normalized;
+    };
+
+    const originalShowFoodOrderAdmin=window.showFoodOrderAdmin;
+    if(typeof originalShowFoodOrderAdmin==="function"){
+        window.showFoodOrderAdmin=function(mode){
+            try{
+                const state={page:"food",subTab:"admin",foodAdminMode:mode||"pending"};
+                if(location.hash!=="#food-admin")history.pushState(state,"","#food-admin");
+                currentHistoryPage="food";
+            }catch(e){}
+            originalShowFoodOrderAdmin(mode);
+            if(typeof refreshFavoriteSidebar==="function")setTimeout(refreshFavoriteSidebar,0);
+        };
+    }
+
+    const originalParseRouteFromHash=window.parseRouteFromHash;
+    window.parseRouteFromHash=function(){
+        const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
+        if(raw==="food-admin")return {page:"food",subTab:"admin",foodAdminMode:"pending"};
+        return typeof originalParseRouteFromHash==="function"?originalParseRouteFromHash():{page:"home"};
+    };
+
+    const originalRenderRouteState=window.renderRouteState;
+    window.renderRouteState=function(state){
+        if(state&&state.page==="food"&&state.subTab==="admin"){
+            if(typeof window.showFoodOrderAdmin==="function"){
+                window.showFoodOrderAdmin(state.foodAdminMode||"pending");
+                return;
+            }
+        }
+        if(typeof originalRenderRouteState==="function")return originalRenderRouteState(state);
+    };
+
+    if(typeof refreshFavoriteSidebar==="function")setTimeout(refreshFavoriteSidebar,0);
+})();
+</script>
+
+
+
+<!-- AXE NET V15: 이미지 확대 모달 뒤로가기 닫기 / 확대 크기 개선 -->
+<style id="axe-v15-image-modal-back-size-style">
+.image-modal.active{
+    padding:2px!important;
+    background:rgba(0,0,0,.94)!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:hidden!important;
+}
+.image-modal-box{
+    width:100vw!important;
+    height:100dvh!important;
+    max-width:100vw!important;
+    max-height:100dvh!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:4px!important;
+}
+.image-modal-box img{
+    width:auto!important;
+    height:auto!important;
+    max-width:calc(100vw - 8px)!important;
+    max-height:calc(100dvh - 8px)!important;
+    object-fit:contain!important;
+    border-radius:8px!important;
+    border:1px solid rgba(255,181,46,.32)!important;
+    background:#000!important;
+    box-shadow:0 18px 70px rgba(0,0,0,.72)!important;
+}
+.image-close{
+    position:fixed!important;
+    top:10px!important;
+    right:10px!important;
+    z-index:10001!important;
+    background:rgba(0,0,0,.78)!important;
+    backdrop-filter:blur(6px)!important;
+}
+@media(max-width:760px){
+    .image-modal.active{padding:0!important}
+    .image-modal-box{padding:2px!important}
+    .image-modal-box img{
+        max-width:calc(100vw - 4px)!important;
+        max-height:calc(100dvh - 4px)!important;
+        border-radius:6px!important;
+    }
+    .image-close{
+        top:calc(8px + env(safe-area-inset-top,0px))!important;
+        right:8px!important;
+    }
+}
+</style>
+<script id="axe-v15-image-modal-back-size-script">
+(function(){
+    if(window.__axeV15ImageModalBackSizeApplied)return;
+    window.__axeV15ImageModalBackSizeApplied=true;
+
+    let imageModalHistoryActive=false;
+    let closingImageModalByHistory=false;
+
+    function isImageModalActive(){
+        const modal=document.getElementById("imageModal");
+        return !!(modal&&modal.classList&&modal.classList.contains("active"));
+    }
+
+    function getCleanState(){
+        const current=Object.assign({},history.state||{});
+        delete current.axeImageModal;
+        return current;
+    }
+
+    const originalOpenImageModal=window.openImageModal;
+    const originalCloseImageModal=window.closeImageModal;
+
+    window.openImageModal=function(src){
+        if(typeof originalOpenImageModal==="function"){
+            originalOpenImageModal.call(this,src);
+        }else{
+            const modal=document.getElementById("imageModal");
+            const img=document.getElementById("imageModalImg");
+            if(img)img.src=src||"";
+            if(modal)modal.classList.add("active");
+        }
+
+        try{
+            const current=history.state||{};
+            if(!current.axeImageModal){
+                history.pushState(Object.assign({},current,{axeImageModal:true}),"",location.href);
+                imageModalHistoryActive=true;
+            }else{
+                imageModalHistoryActive=true;
+            }
+        }catch(e){
+            imageModalHistoryActive=false;
+        }
+    };
+
+    window.closeImageModal=function(){
+        if(isImageModalActive()&&imageModalHistoryActive&&history.state&&history.state.axeImageModal&&!closingImageModalByHistory){
+            history.back();
+            return;
+        }
+
+        imageModalHistoryActive=false;
+        if(typeof originalCloseImageModal==="function"){
+            originalCloseImageModal.call(this);
+        }else{
+            const modal=document.getElementById("imageModal");
+            const img=document.getElementById("imageModalImg");
+            if(modal)modal.classList.remove("active");
+            if(img)img.src="";
+        }
+    };
+
+    window.addEventListener("popstate",function(event){
+        if(!isImageModalActive())return;
+
+        closingImageModalByHistory=true;
+        imageModalHistoryActive=false;
+
+        if(typeof originalCloseImageModal==="function"){
+            originalCloseImageModal.call(window);
+        }else{
+            const modal=document.getElementById("imageModal");
+            const img=document.getElementById("imageModalImg");
+            if(modal)modal.classList.remove("active");
+            if(img)img.src="";
+        }
+
+        closingImageModalByHistory=false;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    },true);
+})();
+</script>
+
 </body>
 </html>
