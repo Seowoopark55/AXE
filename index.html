@@ -8853,15 +8853,24 @@ function openMemberProfile(nickname,event){
     modal.classList.add("active");
     body.innerHTML=`<div class="ready">회원 정보를 불러오는 중...</div>`;
     fetch(API_URL,{method:"POST",body:JSON.stringify({type:"member_profile",nickname:name})})
-    .then(res=>res.json())
+    .then(function(res){
+        return res.text().then(function(text){
+            try{return JSON.parse(text);}
+            catch(e){throw new Error("JSON 응답 아님: "+String(text||"").slice(0,180));}
+        });
+    })
     .then(data=>{
-        if(data.result==="success"&&data.user){
-            body.innerHTML=renderMemberProfile(data.user);
+        if(data&&data.result==="success"&&data.user){
+            try{
+                body.innerHTML=axeRenderMemberProfileSafe(data.user,name);
+            }catch(renderErr){
+                body.innerHTML=`<div class="ready">회원 기본정보는 불러왔지만 화면 구성 중 오류가 발생했습니다.<br><br><span style="color:#888;font-size:12px;">${safe(renderErr.message||renderErr)}</span></div>`;
+            }
         }else{
-            body.innerHTML=`<div class="ready">${safe(data.message||"회원 정보를 불러오지 못했습니다.")}</div>`;
+            body.innerHTML=`<div class="ready">${safe((data&&data.message)||"회원 정보를 불러오지 못했습니다.")}</div>`;
         }
     })
-    .catch(()=>{body.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.</div>`;});
+    .catch(function(err){body.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.<br><br><span style="color:#888;font-size:12px;">${safe(err.message||err)}</span></div>`;});
 }
 
 function showRanking(){
@@ -11268,7 +11277,7 @@ function resetAdminMemberPassword(memberId,safeId,btn){
 }
 
 
-/* AXE NET V7 - 회원 정보 카드 로딩 안정화 */
+/* AXE NET V7.1 - 회원 정보 카드 로딩/렌더링 오류 진단 안정화 */
 (function(){
     window.axeMemberProfileCache=window.axeMemberProfileCache||{};
     window.axeMemberProfileInflight=window.axeMemberProfileInflight||{};
@@ -11331,12 +11340,35 @@ function resetAdminMemberPassword(memberId,safeId,btn){
             </div>`;
     }
 
+    function axeParseMemberProfileResponse(res){
+        return res.text().then(function(text){
+            try{
+                return JSON.parse(text);
+            }catch(e){
+                throw new Error("JSON 응답 아님: "+String(text||"").slice(0,220));
+            }
+        });
+    }
+
+    function axeRenderMemberProfileSafe(user,name){
+        try{
+            return renderMemberProfile(user);
+        }catch(err){
+            const base=axeRenderMemberProfileLoading((user&&user.nickname)||name||"");
+            const msg=(typeof safe==="function")?safe(err&&err.message?err.message:String(err)):String(err&&err.message?err.message:err);
+            return base.replace(
+                '<div class="point-history-summary">회원 정보를 불러오는 중입니다. 잠시 후 작성글과 작성댓글 목록이 표시됩니다.</div>',
+                '<div class="point-history-summary">회원 기본정보는 불러왔지만 작성글/댓글 목록 구성 중 오류가 발생했습니다.<br><span style="color:#888;font-size:12px;">'+msg+'</span></div>'
+            );
+        }
+    }
+
     function axeFetchMemberProfile(name){
         const target=String(name||"").trim();
         if(!target)return Promise.reject(new Error("empty nickname"));
         if(window.axeMemberProfileInflight[target])return window.axeMemberProfileInflight[target];
         const promise=fetch(API_URL,{method:"POST",body:JSON.stringify({type:"member_profile",nickname:target})})
-            .then(function(res){return res.json();})
+            .then(axeParseMemberProfileResponse)
             .then(function(data){
                 if(data&&data.result==="success"&&data.user){
                     window.axeMemberProfileCache[target]={time:Date.now(),user:data.user};
@@ -11362,7 +11394,7 @@ function resetAdminMemberPassword(memberId,safeId,btn){
 
         const cached=window.axeMemberProfileCache[name];
         if(cached&&cached.user&&Date.now()-Number(cached.time||0)<60000){
-            body.innerHTML=renderMemberProfile(cached.user);
+            body.innerHTML=axeRenderMemberProfileSafe(cached.user,name);
         }else{
             body.innerHTML=axeRenderMemberProfileLoading(name);
         }
@@ -11378,10 +11410,11 @@ function resetAdminMemberPassword(memberId,safeId,btn){
                 body.innerHTML=`<div class="ready">${safe(data.message||"회원 정보를 불러오지 못했습니다.")}</div>`;
             }
         })
-        .catch(function(){
+        .catch(function(err){
             if(requestId!==window.axeMemberProfileRequestSeq)return;
             if(String(modal.dataset.nickname||"")!==name)return;
-            body.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.</div>`;
+            const msg=(typeof safe==="function")?safe(err&&err.message?err.message:String(err)):String(err&&err.message?err.message:err);
+            body.innerHTML=`<div class="ready">회원 정보를 불러오지 못했습니다.<br><br><span style="color:#888;font-size:12px;">${msg}</span></div>`;
         });
     };
 
