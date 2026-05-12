@@ -3637,6 +3637,147 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+
+<!-- AXE NET V17: 상단 정보바 균형 정렬 -->
+<style id="axe-v17-top-status-balance-style">
+.top-status-bar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    gap:12px!important;
+    min-height:38px!important;
+    margin:0 2px 12px!important;
+    padding:4px 0!important;
+    position:relative!important;
+    z-index:35!important;
+}
+.top-status-left,.top-status-right{
+    min-width:0!important;
+    display:flex!important;
+    align-items:center!important;
+}
+.top-status-left{justify-content:flex-start!important}
+.top-status-right{justify-content:flex-end!important}
+.top-status-bar .axe-today-topbar{
+    margin:0!important;
+    min-height:32px!important;
+    width:100%!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+}
+.top-status-bar .axe-today-pill{
+    height:32px!important;
+    max-width:100%!important;
+    padding:0 13px!important;
+    font-size:12px!important;
+    border-color:rgba(255,181,46,.30)!important;
+    background:linear-gradient(135deg,rgba(255,181,46,.125),rgba(255,255,255,.025))!important;
+    box-shadow:0 8px 20px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+.top-status-bar .auth-bar{
+    margin:0!important;
+    min-height:32px!important;
+    justify-content:flex-end!important;
+    align-items:center!important;
+    gap:8px!important;
+    width:auto!important;
+    flex-wrap:nowrap!important;
+}
+.top-status-bar .auth-inline-shell{
+    min-height:32px!important;
+    height:auto!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:9px!important;
+    padding:4px 8px!important;
+    border-radius:999px!important;
+    background:rgba(255,255,255,.026)!important;
+    border:1px solid rgba(255,255,255,.065)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+.top-status-bar .auth-inline-profile,
+.top-status-bar .auth-inline-point,
+.top-status-bar .auth-inline-notify{
+    height:28px!important;
+    font-size:12px!important;
+}
+.top-status-bar .auth-inline-logout{
+    height:28px!important;
+    padding:0 10px!important;
+    font-size:11.5px!important;
+}
+.top-status-bar .auth-food-summary{
+    height:28px!important;
+    max-width:240px!important;
+    font-size:11.5px!important;
+}
+.top-status-bar .auth-bar>.auth-btn:not(.auth-inline-logout){
+    height:32px!important;
+    padding:0 14px!important;
+}
+.hero{margin-top:0!important}
+@media(max-width:900px){
+    .top-status-bar{
+        grid-template-columns:1fr!important;
+        gap:7px!important;
+        margin:0 0 10px!important;
+        padding:0!important;
+    }
+    .top-status-left,.top-status-right{justify-content:center!important;width:100%!important}
+    .top-status-bar .axe-today-topbar{justify-content:center!important;min-height:28px!important}
+    .top-status-bar .axe-today-pill{
+        height:28px!important;
+        width:100%!important;
+        justify-content:center!important;
+        padding:0 10px!important;
+        font-size:11px!important;
+    }
+    .top-status-bar .auth-bar{
+        width:100%!important;
+        justify-content:center!important;
+        margin:0!important;
+    }
+    .top-status-bar .auth-inline-shell{
+        width:100%!important;
+        justify-content:center!important;
+        gap:7px!important;
+        padding:6px 8px!important;
+        border-radius:16px!important;
+        background:rgba(255,255,255,.035)!important;
+    }
+    .top-status-bar .auth-inline-profile strong{max-width:86px!important}
+    .top-status-bar .auth-food-summary{max-width:180px!important;font-size:11px!important}
+}
+@media(max-width:620px){
+    .top-status-bar{gap:6px!important;margin-bottom:9px!important}
+    .top-status-bar .auth-inline-shell{
+        flex-wrap:wrap!important;
+        border-radius:15px!important;
+        padding:6px 7px!important;
+    }
+    .top-status-bar .auth-food-summary{
+        order:-1!important;
+        flex:1 1 100%!important;
+        width:100%!important;
+        max-width:none!important;
+    }
+    .top-status-bar .auth-food-sep{display:none!important}
+    .top-status-bar .auth-inline-profile,
+    .top-status-bar .auth-inline-point,
+    .top-status-bar .auth-inline-notify{font-size:11.5px!important}
+}
+@media(max-width:420px){
+    .top-status-bar .axe-today-pill{height:27px!important;font-size:10.5px!important;padding:0 8px!important}
+    .top-status-bar .auth-inline-shell{gap:6px!important}
+    .top-status-bar .auth-inline-profile strong{max-width:68px!important}
+    .top-status-bar .auth-inline-sep{font-size:10px!important}
+    .top-status-bar .auth-inline-logout{padding:0 8px!important;font-size:11px!important}
+}
+</style>
+
 </head>
 
 <body>
@@ -3672,10 +3813,15 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <div class="wrap">
-    <div class="auth-bar" id="authBar"></div>
-
-    <div class="axe-today-topbar">
-        <button class="axe-today-pill" id="axeTodayPill" type="button" onclick="event.stopPropagation(); openAxeTodayModal();"><span>AXE TODAY 준비 중...</span></button>
+    <div class="top-status-bar">
+        <div class="top-status-left">
+            <div class="axe-today-topbar">
+                <button class="axe-today-pill" id="axeTodayPill" type="button" onclick="event.stopPropagation(); openAxeTodayModal();"><span>AXE TODAY 준비 중...</span></button>
+            </div>
+        </div>
+        <div class="top-status-right">
+            <div class="auth-bar" id="authBar"></div>
+        </div>
     </div>
 
     <div class="hero" onclick="navigateMain('home')">
@@ -16068,7 +16214,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
             isOutlawActive:isActive,
             money:between(rand,35,98),
             trade:between(rand,30,96),
-            survival:isActive?between(rand,18,72):between(rand,45,93)
+            survival:isActive?between(rand,35,88):between(rand,55,97)
         };
         fortune.line=makeTodayLine(rand,fortune);
         fortune.moneyText=moneyMessage(fortune.money);
