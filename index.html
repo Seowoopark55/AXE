@@ -3546,13 +3546,20 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 <!-- AXE NET V16: AXE TODAY 하루 운세 배지 -->
 <style id="axe-v16-today-fortune-style">
+.axe-today-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    margin:0 0 8px 2px;
+    min-height:30px;
+    position:relative;
+    z-index:20;
+}
 .axe-today-pill{
-    position:absolute!important;
-    left:18px!important;
-    top:14px!important;
+    position:relative!important;
     z-index:8!important;
     height:30px!important;
-    max-width:min(560px,calc(100% - 36px))!important;
+    max-width:min(560px,100%)!important;
     padding:0 12px!important;
     display:inline-flex!important;
     align-items:center!important;
@@ -3611,9 +3618,9 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .axe-today-detail-row strong{display:block;color:#ffb52e;font-size:12px;font-weight:950;margin-bottom:4px;letter-spacing:.1px}
 .axe-today-footer{margin-top:12px;color:#777;font-size:11px;font-weight:850;line-height:1.45;text-align:center}
 @media(max-width:768px){
-    .axe-today-pill{left:12px!important;top:8px!important;height:25px!important;max-width:calc(100% - 24px)!important;padding:0 9px!important;font-size:10.5px!important;gap:5px!important}
+    .axe-today-topbar{margin:0 0 7px 0;min-height:25px}
+    .axe-today-pill{height:25px!important;max-width:100%!important;padding:0 9px!important;font-size:10.5px!important;gap:5px!important}
     .axe-today-pill::before{width:6px;height:6px}
-    .hero{padding-top:42px!important}
     .axe-today-summary{grid-template-columns:1fr 1fr 1fr;gap:7px}
     .axe-today-stat{padding:10px 7px;border-radius:13px}
     .axe-today-stat-value{font-size:20px}
@@ -3667,9 +3674,12 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 <div class="wrap">
     <div class="auth-bar" id="authBar"></div>
 
+    <div class="axe-today-topbar">
+        <button class="axe-today-pill" id="axeTodayPill" type="button" onclick="event.stopPropagation(); openAxeTodayModal();"><span>AXE TODAY 준비 중...</span></button>
+    </div>
+
     <div class="hero" onclick="navigateMain('home')">
         <div class="hero-shine"></div>
-        <button class="axe-today-pill" id="axeTodayPill" type="button" onclick="event.stopPropagation(); openAxeTodayModal();"><span>AXE TODAY 준비 중...</span></button>
         <div class="logo-box"><img src="./axe.png" alt="AXE 로고"></div>
         <div>
             <div class="kicker">AXE COMPANY NETWORK</div>
