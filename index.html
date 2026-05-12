@@ -6667,10 +6667,10 @@ function showHome(){
     enterMainSection("home");
     setMainActive(0);
 
-    const recentNotices=notices.slice(-4).reverse();
+    const recentNotices=notices.slice(-3).reverse();
     const recentTubes=getSortedTubes().slice(0,4);
-    const recentBoards=getSortedBoards().slice(0,5);
-    const recentGalleries=getSortedGalleries().slice(0,4);
+    const recentBoards=getSortedBoards().slice(0,3);
+    const recentGalleries=getSortedGalleries().slice(0,6);
 
     document.getElementById("content").innerHTML=`
         <div class="section-head">
