@@ -19993,5 +19993,246 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 .fund-ledger-filter-panel.v19 .fund-ledger-filter-field.account{max-width:140px}
 </style>
 
+
+
+<script id="axe-net-duplicate-click-guard-v11">
+/* AXE NET V11 중복 클릭/중복 요청 방지 패치
+   - 기존 AXE_ACTION_LOCKS, axeSetButtonLoading 구조를 유지하면서 누락된 버튼까지 방어
+   - 로그인/회원가입/출석체크/요리주문/공금/게시글/댓글/관리자 처리 연타 방지
+   - fetch POST 요청에 request_id를 자동 부여하여 백엔드 확장 시 중복 처리 추적 가능
+*/
+(function(){
+    if(window.__AXE_DUPLICATE_CLICK_GUARD_V11__)return;
+    window.__AXE_DUPLICATE_CLICK_GUARD_V11__=true;
+
+    const style=document.createElement("style");
+    style.textContent=`
+        button[data-axe-busy="1"],
+        button.loading,
+        button.processing,
+        button.pending,
+        .form-submit.loading,
+        .comment-submit.loading,
+        .attendance-btn.loading,
+        .fund-btn.processing,
+        .fund-status-btn.processing,
+        .fund-mini-btn.processing{
+            opacity:.68!important;
+            cursor:wait!important;
+            pointer-events:none!important;
+            filter:saturate(.82)!important;
+        }
+        button:disabled,
+        .form-submit:disabled,
+        .comment-submit:disabled,
+        .attendance-btn:disabled{
+            opacity:.68!important;
+            cursor:wait!important;
+        }
+        .axe-processing-message{
+            color:#ffcf75!important;
+            font-weight:950!important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    const GLOBAL_LOCKS=new Map();
+    const DEFAULT_UNLOCK_MS=6500;
+
+    function now(){return Date.now();}
+    function keyOf(key){return String(key||"action");}
+    function hasLock(key){
+        key=keyOf(key);
+        const item=GLOBAL_LOCKS.get(key);
+        if(!item)return false;
+        if(item.until&&item.until<now()){
+            GLOBAL_LOCKS.delete(key);
+            return false;
+        }
+        return true;
+    }
+    function setLock(key,ms){
+        key=keyOf(key);
+        GLOBAL_LOCKS.set(key,{until:now()+Number(ms||DEFAULT_UNLOCK_MS)});
+    }
+    function clearLock(key){GLOBAL_LOCKS.delete(keyOf(key));}
+
+    function getEventButton(){
+        const ev=window.event;
+        if(ev&&ev.target&&ev.target.closest)return ev.target.closest("button");
+        return null;
+    }
+    function setBusy(btn,busy,text){
+        if(!btn)return;
+        if(busy){
+            if(!btn.dataset.axeOriginalText)btn.dataset.axeOriginalText=btn.textContent||"";
+            btn.dataset.axeBusy="1";
+            btn.disabled=true;
+            btn.classList.add("loading");
+            if(text)btn.textContent=text;
+        }else{
+            delete btn.dataset.axeBusy;
+            btn.disabled=false;
+            btn.classList.remove("loading","processing","pending");
+            if(btn.dataset.axeOriginalText!==undefined){
+                btn.textContent=btn.dataset.axeOriginalText;
+                delete btn.dataset.axeOriginalText;
+            }
+        }
+    }
+    function findButton(args){
+        for(const arg of args||[]){
+            if(arg&&arg.nodeType===1&&arg.closest){
+                const btn=arg.closest("button");
+                if(btn)return btn;
+            }
+        }
+        return getEventButton();
+    }
+    function stablePart(value){
+        if(value===undefined||value===null)return "";
+        if(typeof value==="string"||typeof value==="number"||typeof value==="boolean")return String(value);
+        try{return JSON.stringify(value).slice(0,240);}catch(e){return String(value).slice(0,240);}
+    }
+    function lockMessage(name){
+        if(String(name||"").includes("login")||String(name||"").includes("Auth"))return "처리 중...";
+        if(String(name||"").includes("Food")||String(name||"").includes("Order"))return "처리 중...";
+        if(String(name||"").includes("Attendance"))return "처리 중...";
+        if(String(name||"").includes("delete")||String(name||"").includes("Delete"))return "삭제 중...";
+        if(String(name||"").includes("save")||String(name||"").includes("Save"))return "저장 중...";
+        if(String(name||"").includes("submit")||String(name||"").includes("Submit"))return "처리 중...";
+        return "처리 중...";
+    }
+
+    function protectFunction(name,options){
+        options=options||{};
+        const original=window[name];
+        if(typeof original!=="function"||original.__axeProtectedV11)return;
+        const wrapped=function(){
+            const args=Array.prototype.slice.call(arguments);
+            const key=typeof options.key==="function"?options.key(args):("fn:"+name+":"+args.map(stablePart).join(":"));
+            if(hasLock(key))return;
+            setLock(key,options.ms||DEFAULT_UNLOCK_MS);
+            const btn=findButton(args);
+            const shouldBusy=options.button!==false;
+            if(shouldBusy)setBusy(btn,true,options.text||lockMessage(name));
+            let result;
+            try{
+                result=original.apply(this,args);
+            }catch(err){
+                clearLock(key);
+                if(shouldBusy)setBusy(btn,false);
+                throw err;
+            }
+            if(result&&typeof result.finally==="function"){
+                return result.finally(function(){
+                    clearLock(key);
+                    if(shouldBusy)setBusy(btn,false);
+                });
+            }
+            setTimeout(function(){
+                clearLock(key);
+                if(shouldBusy)setBusy(btn,false);
+            },options.holdMs||DEFAULT_UNLOCK_MS);
+            return result;
+        };
+        wrapped.__axeProtectedV11=true;
+        window[name]=wrapped;
+    }
+
+    document.addEventListener("click",function(event){
+        const btn=event.target&&event.target.closest?event.target.closest("button"):null;
+        if(!btn)return;
+        if(btn.disabled||btn.dataset.axeBusy==="1"||btn.classList.contains("loading")||btn.classList.contains("processing")||btn.classList.contains("pending")){
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return false;
+        }
+    },true);
+
+    document.addEventListener("keydown",function(event){
+        if(event.key!=="Enter")return;
+        const active=document.activeElement;
+        if(!active)return;
+        const modal=active.closest&&active.closest(".form-modal.active");
+        if(!modal)return;
+        const busy=modal.querySelector('button[data-axe-busy="1"],button.loading,button.processing,button.pending,button:disabled');
+        if(busy){
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    },true);
+
+    function addRequestIdToBody(body){
+        if(!body||typeof body!=="object"||Array.isArray(body))return body;
+        if(!body.request_id){
+            body.request_id="req_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);
+        }
+        return body;
+    }
+
+    if(!window.__AXE_FETCH_REQUEST_ID_PATCH_V11__&&window.fetch){
+        window.__AXE_FETCH_REQUEST_ID_PATCH_V11__=true;
+        const originalFetch=window.fetch.bind(window);
+        window.fetch=function(input,init){
+            try{
+                const url=String(input&&input.url?input.url:input||"");
+                const method=String(init&&init.method||"GET").toUpperCase();
+                if(method==="POST"&&typeof API_URL!=="undefined"&&url===String(API_URL)&&init&&typeof init.body==="string"){
+                    const parsed=JSON.parse(init.body||"{}");
+                    init=Object.assign({},init,{body:JSON.stringify(addRequestIdToBody(parsed))});
+                }
+            }catch(e){}
+            return originalFetch(input,init);
+        };
+    }
+
+    function applyProtection(){
+        protectFunction("submitAuth",{key:function(){
+            const nick=document.getElementById("authNickname")?.value.trim()||"";
+            return "auth:"+(window.authMode||"login")+":"+nick;
+        },text:"처리 중...",holdMs:4500});
+
+        protectFunction("checkAttendance",{key:function(){
+            const user=typeof getCurrentUser==="function"?getCurrentUser():null;
+            return "attendance:"+(user&&user.nickname?user.nickname:"guest");
+        },text:"처리 중...",holdMs:5000});
+
+        protectFunction("submitFoodOrder",{key:function(){
+            const user=typeof getCurrentUser==="function"?getCurrentUser():null;
+            let cart="";
+            try{cart=JSON.stringify(window.foodCart||[]);}catch(e){}
+            return "food_order:"+(user&&user.nickname?user.nickname:"guest")+":"+cart;
+        },text:"접수 중...",holdMs:7000});
+
+        protectFunction("updateFoodOrderStatus",{key:function(args){return "food_status:"+stablePart(args[0])+":"+stablePart(args[1]);},text:"처리 중...",holdMs:5000});
+
+        protectFunction("submitBoardPost",{key:function(){return "submit_board_post";},text:"등록 중...",holdMs:6500});
+        protectFunction("submitTubePost",{key:function(){return "submit_tube_post";},text:"등록 중...",holdMs:6500});
+        protectFunction("submitGalleryPost",{key:function(){return "submit_gallery_post";},text:"등록 중...",holdMs:9000});
+
+        protectFunction("addBoardComment",{key:function(args){return "comment_board:"+stablePart(args[0])+":"+stablePart(args[1]||"root");},text:"등록 중...",holdMs:5000});
+        protectFunction("addTubeComment",{key:function(args){return "comment_tube:"+stablePart(args[0])+":"+stablePart(args[1]||"root");},text:"등록 중...",holdMs:5000});
+        protectFunction("addGalleryComment",{key:function(args){return "comment_gallery:"+stablePart(args[0])+":"+stablePart(args[1]||"root");},text:"등록 중...",holdMs:5000});
+
+        protectFunction("saveFundMember",{key:function(){return "fund_member_save";},text:"저장 중...",holdMs:6000});
+        protectFunction("disableFundMember",{key:function(args){return "fund_member_disable:"+stablePart(args[0]);},text:"처리 중...",holdMs:6000});
+        protectFunction("submitFundRequest",{key:function(){return "fund_submit_request";},button:false,holdMs:12000});
+        protectFunction("submitFundReview",{key:function(){return "fund_review";},button:false,holdMs:9000});
+        protectFunction("submitFundLedger",{key:function(){return "fund_ledger";},button:false,holdMs:9000});
+        protectFunction("submitFundBalanceCheck",{key:function(){return "fund_balance_check";},button:false,holdMs:9000});
+        protectFunction("deleteFundLedger",{key:function(args){return "fund_ledger_delete:"+stablePart(args[0]);},button:false,holdMs:8000});
+    }
+
+    applyProtection();
+    setTimeout(applyProtection,400);
+    setTimeout(applyProtection,1200);
+
+    window.axeDuplicateGuardStatus=function(){
+        return {active:true,version:"v11",locks:Array.from(GLOBAL_LOCKS.keys())};
+    };
+})();
+</script>
+
 </body>
 </html>
