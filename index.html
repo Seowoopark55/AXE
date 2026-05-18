@@ -2589,18 +2589,19 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 /* AXE NET 공금관리 */
 .fund-dashboard{display:grid;gap:14px}
-.fund-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.fund-summary-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:15px;padding:14px;text-align:center}
-.fund-summary-value{font-size:22px;font-weight:950;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2}.fund-summary-value.gold{color:#ffcf75}.fund-summary-value.warn{color:#ff7a7a}.fund-summary-label{margin-top:5px;color:#888;font-size:12px;font-weight:850}
-.fund-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.fund-tabs button{height:38px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease}.fund-tabs button:hover,.fund-tabs button.active{color:#111;background:#ffb52e;border-color:#ffb52e;transform:translateY(-1px)}
-.fund-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}.fund-toolbar-left,.fund-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fund-select,.fund-input,.fund-textarea{border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:11px;padding:10px 11px;outline:none}.fund-select,.fund-input{height:40px}.fund-textarea{width:100%;min-height:76px;resize:vertical;font-family:Arial,sans-serif}.fund-file{width:100%;border:1px dashed rgba(255,181,46,.35);background:#151515;color:#ddd;border-radius:12px;padding:11px;cursor:pointer}
-.fund-btn{height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease}.fund-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}.fund-btn.primary{background:#ffb52e;color:#111;border-color:#ffb52e}.fund-btn.primary:hover{color:#111;filter:brightness(1.06)}.fund-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
-.fund-table-wrap{width:100%;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(0,0,0,.22)}.fund-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}.fund-table th,.fund-table td{padding:10px 9px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12.5px;text-align:center;vertical-align:middle}.fund-table th{color:#888;font-size:11.5px;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}.fund-table td{color:#ddd}.fund-table tr:last-child td{border-bottom:0}.fund-table .left{text-align:left}.fund-table .money{font-weight:950;color:#ffcf75;font-variant-numeric:tabular-nums}.fund-table .minus{color:#ff7a7a}.fund-table .plus{color:#6ee7a8}
-.fund-status-pill{display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:25px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#bbb;font-size:11.5px;font-weight:950;white-space:nowrap}.fund-status-pill.public{color:#8fd0ff;background:rgba(76,154,255,.12);border-color:rgba(76,154,255,.35)}.fund-status-pill.company{color:#ffcf75;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32)}.fund-status-pill.split{color:#c8adff;background:rgba(156,95,255,.14);border-color:rgba(156,95,255,.42)}.fund-status-pill.pending{color:#9fd2ff;background:rgba(76,154,255,.08);border-color:rgba(76,154,255,.28)}.fund-status-pill.reject{color:#ff8d8d;background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.28)}.fund-status-pill.exempt{color:#aaa;background:rgba(255,255,255,.045)}
-.fund-form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.fund-form-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.22);border-radius:16px;padding:15px}.fund-form-title{font-size:16px;font-weight:950;color:#ffb52e;margin-bottom:12px}.fund-label{font-size:12px;color:#aaa;font-weight:850;margin:9px 0 5px}.fund-help{color:#888;font-size:12px;line-height:1.5;margin-top:8px}.fund-evidence-link{color:#ffcf75;text-decoration:none;font-weight:950}.fund-evidence-link:hover{text-decoration:underline}.fund-empty{padding:24px;border:1px dashed rgba(255,255,255,.14);background:rgba(255,255,255,.025);border-radius:15px;color:#888;text-align:center;line-height:1.6}
+.fund-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.fund-summary-card{border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);border-radius:13px;padding:11px 12px;text-align:center;min-height:70px;display:flex;flex-direction:column;justify-content:center}
+.fund-summary-value{font-size:19px;font-weight:950;color:#fff;font-variant-numeric:tabular-nums;line-height:1.15}.fund-summary-value.gold{color:#ffcf75}.fund-summary-value.warn{color:#ff7a7a}.fund-summary-label{margin-top:5px;color:#888;font-size:11.5px;font-weight:850;line-height:1.25}
+.fund-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.fund-tabs button{height:36px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,255,255,.09);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease}.fund-tabs button:hover,.fund-tabs button.active{color:#111;background:#ffb52e;border-color:#ffb52e;transform:translateY(-1px)}
+.fund-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.fund-toolbar-left,.fund-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fund-select,.fund-input,.fund-textarea{border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:11px;padding:9px 10px;outline:none}.fund-select,.fund-input{height:38px}.fund-textarea{width:100%;min-height:76px;resize:vertical;font-family:Arial,sans-serif}.fund-file{width:100%;border:1px dashed rgba(255,181,46,.35);background:#151515;color:#ddd;border-radius:12px;padding:10px;cursor:pointer}
+.fund-btn{height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease}.fund-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}.fund-btn.primary{background:#ffb52e;color:#111;border-color:#ffb52e}.fund-btn.primary:hover{color:#111;filter:brightness(1.06)}.fund-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
+.fund-table-wrap{width:100%;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(0,0,0,.22)}.fund-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}.fund-table th,.fund-table td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12.5px;text-align:center;vertical-align:middle}.fund-table th{color:#888;font-size:11.5px;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}.fund-table td{color:#ddd}.fund-table tr:last-child td{border-bottom:0}.fund-table .left{text-align:left}.fund-table .money{font-weight:950;color:#ffcf75;font-variant-numeric:tabular-nums}.fund-table .minus{color:#ff7a7a}.fund-table .plus{color:#6ee7a8}
+.fund-status-table{width:max-content!important;min-width:650px!important;max-width:100%;table-layout:fixed}.fund-status-table th,.fund-status-table td{padding:8px 7px!important}.fund-status-table th:first-child,.fund-status-table td:first-child{width:170px}.fund-status-table th:not(:first-child):not(:last-child),.fund-status-table td:not(:first-child):not(:last-child){width:92px}.fund-status-table th:last-child,.fund-status-table td:last-child{width:74px}.fund-week-head{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.15}.fund-week-title{font-size:12px;font-weight:950;color:#ddd}.fund-week-range{font-size:10.5px;font-weight:950;color:#ffcf75;letter-spacing:-.2px}.fund-member-note{color:#777;font-size:10.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}.fund-status-guide{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:9px;color:#888;font-size:11.5px;line-height:1.45}
+.fund-status-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:24px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#bbb;font-size:11px;font-weight:950;white-space:nowrap}.fund-status-pill.public{color:#8fd0ff;background:rgba(76,154,255,.12);border-color:rgba(76,154,255,.35)}.fund-status-pill.company{color:#ffcf75;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32)}.fund-status-pill.split{color:#c8adff;background:rgba(156,95,255,.14);border-color:rgba(156,95,255,.42)}.fund-status-pill.pending{color:#9fd2ff;background:rgba(76,154,255,.08);border-color:rgba(76,154,255,.28)}.fund-status-pill.reject{color:#ff8d8d;background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.28)}.fund-status-pill.exempt{color:#aaa;background:rgba(255,255,255,.045)}
+.fund-form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.fund-form-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.22);border-radius:16px;padding:15px}.fund-form-title{font-size:16px;font-weight:950;color:#ffb52e;margin-bottom:12px}.fund-label{font-size:12px;color:#aaa;font-weight:850;margin:9px 0 5px}.fund-help,.fund-mini-help{color:#888;font-size:12px;line-height:1.5;margin-top:8px}.fund-mini-help{font-size:11.5px;margin-top:5px}.fund-evidence-link{color:#ffcf75;text-decoration:none;font-weight:950}.fund-evidence-link:hover{text-decoration:underline}.fund-empty{padding:24px;border:1px dashed rgba(255,255,255,.14);background:rgba(255,255,255,.025);border-radius:15px;color:#888;text-align:center;line-height:1.6}
 .fund-request-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.22);border-radius:15px;padding:14px;margin-bottom:10px}.fund-request-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}.fund-request-title{font-size:15px;font-weight:950;color:#fff}.fund-request-meta{color:#888;font-size:12px;line-height:1.55}.fund-request-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px}
-@media(max-width:920px){.fund-summary-grid,.fund-form-grid{grid-template-columns:1fr 1fr}.fund-toolbar{display:block}.fund-toolbar-right{margin-top:8px}.fund-table{min-width:680px}}
-@media(max-width:620px){.fund-summary-grid,.fund-form-grid{grid-template-columns:1fr}.fund-tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.fund-tabs::-webkit-scrollbar{display:none}.fund-tabs button{flex:0 0 auto}.fund-summary-card{padding:12px}.fund-summary-value{font-size:19px}.fund-request-head{display:block}.fund-request-actions{justify-content:stretch}.fund-request-actions .fund-btn{flex:1}}
+@media(max-width:920px){.fund-summary-grid,.fund-form-grid{grid-template-columns:1fr 1fr}.fund-toolbar{display:block}.fund-toolbar-right{margin-top:8px}.fund-table{min-width:680px}.fund-status-table{min-width:620px!important}}
+@media(max-width:620px){.fund-summary-grid,.fund-form-grid{grid-template-columns:1fr}.fund-tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.fund-tabs::-webkit-scrollbar{display:none}.fund-tabs button{flex:0 0 auto}.fund-summary-card{padding:10px;min-height:64px}.fund-summary-value{font-size:18px}.fund-request-head{display:block}.fund-request-actions{justify-content:stretch}.fund-request-actions .fund-btn{flex:1}.fund-status-table{min-width:560px!important}.fund-status-table th:first-child,.fund-status-table td:first-child{width:135px}.fund-status-table th:not(:first-child):not(:last-child),.fund-status-table td:not(:first-child):not(:last-child){width:82px}.fund-member-note{max-width:118px}}
 
 </style>
 
@@ -16500,13 +16501,59 @@ function getFundCurrentMonth(){
     return fundSelectedMonth || (fundSummary&&fundSummary.current_month) || getFundSetting("current_month",new Date().toISOString().slice(0,7));
 }
 function getFundWeekCount(){return Math.max(1,Math.min(6,Number(getFundSetting("week_count",4)||4)));}
+function getFundFirstSunday(month){
+    const parts=String(month||new Date().toISOString().slice(0,7)).split("-");
+    const year=Number(parts[0])||new Date().getFullYear();
+    const monthIndex=(Number(parts[1])||1)-1;
+    const first=new Date(year,monthIndex,1);
+    const offset=(7-first.getDay())%7;
+    return new Date(year,monthIndex,1+offset);
+}
+function getFundWeekRange(month,week){
+    const start=getFundFirstSunday(month);
+    start.setDate(start.getDate()+(Number(week||1)-1)*7);
+    const end=new Date(start);
+    end.setDate(start.getDate()+6);
+    const startText=String(start.getDate()).padStart(2,"0");
+    const endText=String(end.getDate()).padStart(2,"0");
+    const sameMonth=start.getMonth()===end.getMonth();
+    if(sameMonth)return startText+"~"+endText+"일";
+    return String(start.getMonth()+1).padStart(2,"0")+"/"+startText+"~"+String(end.getMonth()+1).padStart(2,"0")+"/"+endText;
+}
+function renderFundWeekHeader(month,week){
+    return `<span class="fund-week-head"><span class="fund-week-title">${safe(week)}주차</span><span class="fund-week-range">${safe(getFundWeekRange(month,week))}</span></span>`;
+}
+function renderFundWeekOptions(month,selected){
+    const current=String(selected||"1");
+    return Array.from({length:getFundWeekCount()},(_,i)=>String(i+1)).map(w=>`<option value="${w}" ${w===current?'selected':''}>${w}주차 (${safe(getFundWeekRange(month,w))})</option>`).join("");
+}
+function refreshFundSubmitWeekOptions(month){
+    const select=document.getElementById("fundSubmitWeek");
+    if(select)select.innerHTML=renderFundWeekOptions(month,select.value);
+}
 function getFundWeeklyFee(){return Number(getFundSetting("weekly_fee",fundSummary&&fundSummary.weekly_fee||20000)||20000);}
+function fundMonthOffset(month,offset){
+    const base=String(month||new Date().toISOString().slice(0,7));
+    const parts=base.split("-");
+    const y=Number(parts[0]);
+    const m=Number(parts[1]);
+    const d=new Date(isFinite(y)?y:new Date().getFullYear(),(isFinite(m)?m:1)-1+Number(offset||0),1);
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+}
 function getFundMonths(){
     const set={};
-    [getFundCurrentMonth()].forEach(x=>{if(x)set[x]=true;});
+    const base=(fundSummary&&fundSummary.current_month)||getFundSetting("current_month",new Date().toISOString().slice(0,7));
+    for(let i=-2;i<=1;i++){set[fundMonthOffset(base,i)]=true;}
+    [getFundCurrentMonth(),base].forEach(x=>{if(x)set[String(x)]=true;});
     (fundRequests||[]).forEach(x=>{if(x.month)set[String(x.month)]=true;});
     (fundLedger||[]).forEach(x=>{if(x.month)set[String(x.month)]=true;});
     return Object.keys(set).sort().reverse();
+}
+function renderFundMonthSelect(id,selected,attrs){
+    const months=getFundMonths();
+    const current=String(selected||getFundCurrentMonth());
+    if(current&&!months.includes(current))months.unshift(current);
+    return `<select class="fund-select" id="${escapeAttr(id)}" ${attrs||""}>${months.map(m=>`<option value="${escapeAttr(m)}" ${m===current?'selected':''}>${safe(m)}</option>`).join("")}</select>`;
 }
 function getFundActiveMembers(){
     const rows=(fundMembers||[]).filter(x=>String(x.status||"active").toLowerCase()!=="inactive");
@@ -16594,10 +16641,10 @@ function showFund(tab,push){
             <div><div class="section-title">공금관리</div><div class="section-desc">팀원 증빙 제출, 운영진 검수, 월별 공금표, 공용계좌 잔액을 통합 관리합니다.</div></div>
         </div>
         <div class="fund-summary-grid">
-            <div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">사이트 계산 공용계좌</div></div>
+            <div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">검수대기</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.approved_this_month||0)}</div><div class="fund-summary-label">이번 달 승인 건</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value">${fundMoney(fundSummary&&fundSummary.company_recognized_this_month||0)}</div><div class="fund-summary-label">회사잔고 납부 인정액</div></div>
+            <div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.approved_this_month||0)}</div><div class="fund-summary-label">설정월 승인 건</div></div>
+            <div class="fund-summary-card"><div class="fund-summary-value">${fundMoney(fundSummary&&fundSummary.company_recognized_this_month||0)}</div><div class="fund-summary-label">설정월 잔고 인정액</div></div>
         </div>
         <div class="fund-tabs">${tabs.map(t=>`<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`).join("")}</div>
         <div id="fundContent"></div>`;
@@ -16625,9 +16672,9 @@ function renderFundStatus(){
     const rows=members.map(m=>{
         let unpaid=0;
         const cells=weeks.map(w=>{const st=getFundWeekStatus(m,month,w);if(st==="미납"||st==="반려")unpaid++;return `<td>${fundStatusPill(st)}</td>`;}).join("");
-        return `<tr><td class="left"><strong>${safe(m.nickname)}</strong><div style="color:#777;font-size:11px;margin-top:3px">${safe(m.note||"")}</div></td>${cells}<td>${unpaid}</td></tr>`;
+        return `<tr><td class="left"><strong>${safe(m.nickname)}</strong>${m.note?`<div class="fund-member-note">${safe(m.note||"")}</div>`:""}</td>${cells}<td><strong>${unpaid}</strong></td></tr>`;
     }).join("") || `<tr><td colspan="${weeks.length+2}"><div class="fund-empty">공금멤버가 없습니다. 관리자 메뉴에서 공금멤버를 등록하세요.</div></td></tr>`;
-    return `${renderFundMonthToolbar()}<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${w}주차</th>`).join("")}<th>미납/반려</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-help">공용/잔고/분할은 운영진 승인 후 표시됩니다. 회사잔고 납부는 공금 납부로 인정되지만 공용계좌 잔액 계산에는 반영하지 않습니다.</div>`;
+    return `${renderFundMonthToolbar()}<div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월의 첫 일요일부터 7일 단위로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
 function renderFundSubmit(){
     const user=getCurrentUser();
@@ -16637,8 +16684,8 @@ function renderFundSubmit(){
     return `<div class="fund-form-card"><div class="fund-form-title">공금 납부 증빙 제출</div>
         <div class="fund-form-grid">
             <div><div class="fund-label">제출자</div><input class="fund-input" value="${escapeAttr(user.nickname)}" disabled></div>
-            <div><div class="fund-label">대상 월</div><input class="fund-input" id="fundSubmitMonth" value="${escapeAttr(month)}" placeholder="2026-05"></div>
-            <div><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${weeks.map(w=>`<option value="${w}">${w}주차</option>`).join("")}</select></div>
+            <div><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help">전월 미납분도 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div></div>
+            <div><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
             <div><div class="fund-label">입금 위치</div><select class="fund-select" id="fundSubmitAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
             <div><div class="fund-label">금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${getFundWeeklyFee()}"></div>
             <div><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
@@ -16678,7 +16725,7 @@ function renderFundLedger(){
 function openFundLedgerForm(){
     const box=document.getElementById("fundLedgerForm");
     if(!box)return;
-    box.innerHTML=`<div class="fund-form-card" style="margin-bottom:12px"><div class="fund-form-title">지출/수입/조정 등록</div><div class="fund-form-grid"><div><div class="fund-label">방향</div><select class="fund-select" id="ledgerDirection"><option>지출</option><option>수입</option><option>조정</option></select></div><div><div class="fund-label">계좌</div><select class="fund-select" id="ledgerAccount"><option>공용계좌</option><option>회사잔고</option></select></div><div><div class="fund-label">금액</div><input class="fund-input" id="ledgerAmount" type="number" placeholder="20000"></div><div><div class="fund-label">항목</div><input class="fund-input" id="ledgerCategory" placeholder="의뢰비 / 회사상점 / 기타"></div><div><div class="fund-label">대상 월</div><input class="fund-input" id="ledgerMonth" value="${escapeAttr(getFundCurrentMonth())}"></div><div><div class="fund-label">증빙</div><input class="fund-file" id="ledgerFile" type="file" accept="image/*"></div></div><div class="fund-label">메모</div><textarea class="fund-textarea" id="ledgerMemo"></textarea><button class="fund-btn primary" style="margin-top:10px" onclick="submitFundLedger()">등록</button></div>`;
+    box.innerHTML=`<div class="fund-form-card" style="margin-bottom:12px"><div class="fund-form-title">지출/수입/조정 등록</div><div class="fund-form-grid"><div><div class="fund-label">방향</div><select class="fund-select" id="ledgerDirection"><option>지출</option><option>수입</option><option>조정</option></select></div><div><div class="fund-label">계좌</div><select class="fund-select" id="ledgerAccount"><option>공용계좌</option><option>회사잔고</option></select></div><div><div class="fund-label">금액</div><input class="fund-input" id="ledgerAmount" type="number" placeholder="20000"></div><div><div class="fund-label">항목</div><input class="fund-input" id="ledgerCategory" placeholder="의뢰비 / 회사상점 / 기타"></div><div><div class="fund-label">대상 월</div>${renderFundMonthSelect("ledgerMonth",getFundCurrentMonth())}</div><div><div class="fund-label">증빙</div><input class="fund-file" id="ledgerFile" type="file" accept="image/*"></div></div><div class="fund-label">메모</div><textarea class="fund-textarea" id="ledgerMemo"></textarea><button class="fund-btn primary" style="margin-top:10px" onclick="submitFundLedger()">등록</button></div>`;
 }
 function submitFundLedger(){
     const file=document.getElementById("ledgerFile")?.files?.[0];
