@@ -4154,6 +4154,125 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 @media(max-width:620px){.fund-summary-grid-premium{grid-template-columns:1fr!important}.fund-status-overview{padding:13px;border-radius:16px}.fund-overview-stats{grid-template-columns:1fr 1fr}.fund-filter-head{display:block}.fund-filter-head .fund-btn{width:100%;margin-top:10px}.fund-submit-hero{display:block;padding:17px}.fund-submit-title{font-size:25px}.fund-submit-fee{text-align:left;margin-top:13px}.fund-submit-section{padding:15px}.fund-submit-compact-grid{grid-template-columns:1fr}.fund-field-amount{max-width:none}.fund-submit-bottom-help{padding:12px 15px}}
 </style>
 
+
+<style id="axe-fund-compact-v2">
+/* AXE NET 공금관리: 월별현황 상단 박스 축소 + 공금납부 폼 재압축 */
+.fund-status-overview{
+    display:block!important;
+    margin:0 0 10px!important;
+    padding:11px 13px!important;
+    border-radius:14px!important;
+    border-color:rgba(255,181,46,.13)!important;
+    background:linear-gradient(135deg,rgba(255,181,46,.052),rgba(255,255,255,.015)),rgba(0,0,0,.18)!important;
+}
+.fund-overview-main{display:flex!important;align-items:center!important;gap:10px!important;min-height:0!important}
+.fund-overview-kicker{display:none!important}
+.fund-overview-title{font-size:18px!important;line-height:1.2!important;letter-spacing:-.2px!important;white-space:nowrap!important}
+.fund-overview-desc{margin-top:0!important;color:#888!important;font-size:12px!important;line-height:1.35!important}
+.fund-overview-stats{display:none!important}
+
+.fund-submit-premium-card{
+    border-radius:18px!important;
+    box-shadow:0 12px 30px rgba(0,0,0,.22)!important;
+}
+.fund-submit-hero{
+    padding:14px 16px!important;
+    gap:12px!important;
+}
+.fund-submit-title{
+    margin-top:3px!important;
+    font-size:24px!important;
+    line-height:1.15!important;
+}
+.fund-submit-desc{
+    margin-top:5px!important;
+    font-size:12.5px!important;
+    line-height:1.42!important;
+}
+.fund-submit-fee{
+    min-width:132px!important;
+    padding:9px 11px!important;
+    border-radius:13px!important;
+}
+.fund-submit-fee span{font-size:10.5px!important}
+.fund-submit-fee strong{margin-top:3px!important;font-size:20px!important}
+.fund-submit-layout{
+    grid-template-columns:minmax(0,1fr) 315px!important;
+}
+.fund-submit-section{
+    padding:13px 15px!important;
+}
+.fund-submit-section-title{
+    margin-bottom:9px!important;
+    font-size:14px!important;
+}
+.fund-submit-compact-grid{
+    gap:8px 10px!important;
+    max-width:640px!important;
+}
+.fund-submit-premium-card .fund-label{
+    margin:6px 0 4px!important;
+    font-size:11.5px!important;
+}
+.fund-submit-premium-card .fund-input,
+.fund-submit-premium-card .fund-select{
+    height:36px!important;
+    border-radius:10px!important;
+    padding:0 9px!important;
+    font-size:12.5px!important;
+}
+.fund-file-premium{
+    height:36px!important;
+    border-radius:10px!important;
+    padding:7px 9px!important;
+    font-size:12px!important;
+}
+.fund-textarea-premium{
+    min-height:56px!important;
+    height:56px!important;
+    border-radius:10px!important;
+    padding:8px 9px!important;
+    font-size:12.5px!important;
+    line-height:1.35!important;
+}
+.fund-submit-note-inline{
+    margin-top:9px!important;
+    padding:8px 10px!important;
+    border-radius:10px!important;
+    font-size:11.5px!important;
+    line-height:1.35!important;
+}
+.fund-submit-main-btn{
+    height:38px!important;
+    margin-top:9px!important;
+    border-radius:11px!important;
+}
+.fund-submit-bottom-help{
+    padding:9px 15px!important;
+    font-size:11.5px!important;
+    line-height:1.35!important;
+}
+.fund-submit-status{
+    margin-top:8px!important;
+    padding:9px 10px!important;
+    font-size:12px!important;
+}
+@media(max-width:920px){
+    .fund-overview-main{display:block!important}
+    .fund-overview-title{font-size:18px!important}
+    .fund-overview-desc{margin-top:4px!important}
+    .fund-submit-layout{grid-template-columns:1fr!important}
+}
+@media(max-width:620px){
+    .fund-status-overview{padding:10px 11px!important;border-radius:13px!important}
+    .fund-submit-hero{padding:13px!important}
+    .fund-submit-title{font-size:22px!important}
+    .fund-submit-section{padding:12px!important}
+    .fund-submit-compact-grid{grid-template-columns:1fr!important;max-width:none!important}
+    .fund-textarea-premium{min-height:52px!important;height:52px!important}
+}
+</style>
+
 </head>
 
 <body>
@@ -17393,12 +17512,7 @@ function renderFundStatus(){
             <div class="fund-overview-title">${safe(fundMonthLabel(month))}</div>
             <div class="fund-overview-desc">${safe(firstRange)}부터 ${safe(lastRange)}까지 ${weeks.length}개 주차 기준으로 납부 상태를 표시합니다.</div>
         </div>
-        <div class="fund-overview-stats">
-            <div><strong>${members.length}</strong><span>대상 인원</span></div>
-            <div><strong>${totalPaid}</strong><span>완료/면제</span></div>
-            <div><strong>${totalPending}</strong><span>검수대기</span></div>
-            <div><strong>${totalUnpaid}</strong><span>미납/반려</span></div>
-        </div>
+
     </div>
     <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월의 첫 일요일부터 7일 단위로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
