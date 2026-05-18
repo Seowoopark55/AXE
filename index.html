@@ -4405,7 +4405,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw8z3uwUO_QwnI4KPBiHwm9jr_U52Zb89Pq8DtpC03upZ0XqGLCWdmK4QG-NGw34Fw7qQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwhZIeUpmpa6n-l2gIRaJUUuBk7vtj1pbjnVMDK7GSzgrY46UtD1fSuG32MzsGV4fexAw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -18289,6 +18289,244 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         .catch(err=>{
             finish(false,(err&&err.message)||"공금내역 등록 중 오류가 발생했습니다.");
         });
+    };
+})();
+</script>
+
+
+
+<style>
+/* AXE NET V16: 공금 분할납부 UI */
+.fund-split-box{
+    display:none;
+    grid-column:1 / -1;
+    margin-top:2px;
+    padding:12px;
+    border:1px solid rgba(255,181,46,.18);
+    border-radius:14px;
+    background:linear-gradient(135deg,rgba(255,181,46,.055),rgba(255,255,255,.018));
+}
+.fund-split-box.active{display:block}
+.fund-split-grid{display:grid;grid-template-columns:1fr 1fr 160px;gap:10px;align-items:end}
+.fund-split-total{height:38px;display:flex;align-items:center;justify-content:center;border-radius:11px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.22);color:#ffcf75;font-weight:950;font-size:13px;font-variant-numeric:tabular-nums}
+.fund-split-help{margin-top:8px;color:#999;font-size:12px;font-weight:850;line-height:1.45}
+.fund-payment-detail{display:block;margin-top:4px;color:#888;font-size:11.5px;font-weight:850;line-height:1.35}
+.fund-status-pill.paid{color:#6ee7a8;background:rgba(110,231,168,.10);border-color:rgba(110,231,168,.30)}
+@media(max-width:760px){.fund-split-grid{grid-template-columns:1fr}.fund-split-total{justify-content:flex-start;padding:0 12px}}
+</style>
+
+<script>
+/* AXE NET V16: 공금 분할납부 - 한 번의 신청에서 공용계좌/회사잔고 금액 분리 */
+(function(){
+    const oldFundStatusClass=window.fundStatusClass;
+    window.fundStatusClass=function(status){
+        if(status==="납부완료")return "paid";
+        return typeof oldFundStatusClass==="function"?oldFundStatusClass(status):"";
+    };
+
+    window.fundPaymentModeOf=function(row){
+        const mode=String(row&&row.payment_mode||row&&row.deposit_account||"").trim();
+        if(mode==="분할납부"||mode==="분할")return "분할납부";
+        if(mode==="회사잔고"||mode==="잔고")return "회사잔고";
+        return "공용계좌";
+    };
+    window.fundPublicAmountOf=function(row){
+        const mode=fundPaymentModeOf(row);
+        const amount=Number(String(row&&row.amount||0).replace(/[$,\s]/g,""))||0;
+        const v=Number(String(row&&row.public_amount||0).replace(/[$,\s]/g,""))||0;
+        if(mode==="공용계좌")return amount;
+        if(mode==="회사잔고")return 0;
+        return v;
+    };
+    window.fundCompanyAmountOf=function(row){
+        const mode=fundPaymentModeOf(row);
+        const amount=Number(String(row&&row.amount||0).replace(/[$,\s]/g,""))||0;
+        const v=Number(String(row&&row.company_amount||0).replace(/[$,\s]/g,""))||0;
+        if(mode==="회사잔고")return amount;
+        if(mode==="공용계좌")return 0;
+        return v;
+    };
+    window.fundPaymentDetail=function(row){
+        const mode=fundPaymentModeOf(row);
+        const pub=fundPublicAmountOf(row);
+        const comp=fundCompanyAmountOf(row);
+        if(mode==="분할납부")return `분할납부 <span class="fund-payment-detail">공용 ${fundMoney(pub)} + 잔고 ${fundMoney(comp)}</span>`;
+        if(mode==="회사잔고")return `회사잔고 <span class="fund-payment-detail">잔고 ${fundMoney(comp||row.amount)}</span>`;
+        return `공용계좌 <span class="fund-payment-detail">공용 ${fundMoney(pub||row.amount)}</span>`;
+    };
+    window.fundApprovedDetailFor=function(nickname,month,week){
+        const rows=(fundRequests||[]).filter(x=>String(x.nickname||"")===String(nickname)&&normalizeFundMonth(x.month)===normalizeFundMonth(month)&&String(x.week||"")===String(week)&&String(x.status||"")==="승인");
+        let pub=0,comp=0;
+        rows.forEach(r=>{pub+=fundPublicAmountOf(r);comp+=fundCompanyAmountOf(r);});
+        if(pub&&comp)return "공용 "+fundMoney(pub)+" + 잔고 "+fundMoney(comp);
+        if(pub)return "공용 "+fundMoney(pub);
+        if(comp)return "잔고 "+fundMoney(comp);
+        return "";
+    };
+    window.getFundWeekStatus=function(member,month,week){
+        if(isFundExempt(member,week))return "면제";
+        const rows=getFundRequestsFor(member.nickname,month,week);
+        const approved=rows.filter(x=>String(x.status||"")==="승인");
+        if(approved.length){
+            let pub=0,comp=0;
+            approved.forEach(r=>{pub+=fundPublicAmountOf(r);comp+=fundCompanyAmountOf(r);});
+            if(pub&&comp)return "분할";
+            return "납부완료";
+        }
+        if(rows.some(x=>String(x.status||"")==="검수대기"))return "대기";
+        if(rows.some(x=>String(x.status||"")==="보류"))return "대기";
+        if(rows.some(x=>String(x.status||"")==="반려"))return "반려";
+        return "미납";
+    };
+
+    window.updateFundPaymentModeUI=function(){
+        const mode=document.getElementById("fundSubmitPaymentMode")?.value||"공용계좌";
+        const splitBox=document.getElementById("fundSplitBox");
+        const amountEl=document.getElementById("fundSubmitAmount");
+        const pub=document.getElementById("fundSubmitPublicAmount");
+        const comp=document.getElementById("fundSubmitCompanyAmount");
+        const total=document.getElementById("fundSplitTotal");
+        const base=Number(amountEl&&amountEl.value||getFundWeeklyFee()||0)||0;
+        if(splitBox)splitBox.classList.toggle("active",mode==="분할납부");
+        if(mode==="공용계좌"){
+            if(pub)pub.value=base;
+            if(comp)comp.value=0;
+        }else if(mode==="회사잔고"){
+            if(pub)pub.value=0;
+            if(comp)comp.value=base;
+        }else{
+            const p=Number(pub&&pub.value||0)||0;
+            const c=Number(comp&&comp.value||0)||0;
+            if(total)total.textContent="합계 "+fundMoney(p+c)+" / 기준 "+fundMoney(base);
+            return;
+        }
+        const p=Number(pub&&pub.value||0)||0;
+        const c=Number(comp&&comp.value||0)||0;
+        if(total)total.textContent="합계 "+fundMoney(p+c)+" / 기준 "+fundMoney(base);
+    };
+
+    window.renderFundSubmit=function(){
+        const user=getCurrentUser();
+        if(!user)return `<div class="fund-empty">로그인 후 공금 증빙을 제출할 수 있습니다.</div>`;
+        const month=getFundCurrentMonth();
+        const fee=getFundWeeklyFee();
+        return `<div class="fund-form-card"><div class="fund-form-title">공금 납부 증빙 제출</div>
+            <div class="fund-form-grid">
+                <div><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
+                <div><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help">전월 미납분도 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div></div>
+                <div><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
+                <div><div class="fund-label">납부 방식</div><select class="fund-select" id="fundSubmitPaymentMode" onchange="updateFundPaymentModeUI()"><option value="공용계좌">공용계좌 전액</option><option value="회사잔고">회사잔고 전액</option><option value="분할납부">분할납부</option></select></div>
+                <div><div class="fund-label">총 납부금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
+                <div><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
+                <div id="fundSplitBox" class="fund-split-box">
+                    <div class="fund-split-grid">
+                        <div><div class="fund-label">공용계좌 입금액</div><input class="fund-input" id="fundSubmitPublicAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
+                        <div><div class="fund-label">회사잔고 입금액</div><input class="fund-input" id="fundSubmitCompanyAmount" type="number" value="0" oninput="updateFundPaymentModeUI()"></div>
+                        <div><div class="fund-label">합계 확인</div><div class="fund-split-total" id="fundSplitTotal">합계 ${fundMoney(fee)} / 기준 ${fundMoney(fee)}</div></div>
+                    </div>
+                    <div class="fund-split-help">분할납부는 한 번만 제출하면 됩니다. 예: 공용 13,000원 + 잔고 7,000원처럼 나눠 입력할 수 있습니다.</div>
+                </div>
+            </div>
+            <div class="fund-label">메모</div><textarea class="fund-textarea" id="fundSubmitMemo" placeholder="예: 공용 13,000원, 잔고 7,000원으로 분할 납부했습니다."></textarea>
+            <button class="fund-btn primary" id="fundSubmitBtn" style="margin-top:12px" onclick="submitFundRequest(this)">증빙 제출</button>
+            <div class="fund-submit-status" id="fundSubmitStatus"><span class="fund-submit-spinner"></span><span id="fundSubmitStatusText">제출 중입니다. 잠시만 기다려주세요.</span></div>
+            <div class="fund-help">제출 즉시 납부완료가 아니라 검수대기 상태가 됩니다. 운영진 승인 후 월별현황에 반영됩니다.</div>
+        </div>`;
+    };
+
+    const oldSetFundSubmitFormLocked=window.setFundSubmitFormLocked;
+    window.setFundSubmitFormLocked=function(locked,btn){
+        if(typeof oldSetFundSubmitFormLocked==="function")oldSetFundSubmitFormLocked(locked,btn);
+        ["fundSubmitPaymentMode","fundSubmitPublicAmount","fundSubmitCompanyAmount"].forEach(id=>{
+            const el=document.getElementById(id);
+            if(el&&!el.disabled){
+                if(locked){el.dataset.fundTempDisabled="1";el.disabled=true;}
+                else if(el.dataset.fundTempDisabled){el.disabled=false;delete el.dataset.fundTempDisabled;}
+            }else if(el&&el.dataset.fundTempDisabled&&!locked){el.disabled=false;delete el.dataset.fundTempDisabled;}
+        });
+    };
+
+    window.submitFundRequest=function(btn){
+        const lockKey="fund_submit_request";
+        if(!axeActionBegin(lockKey)){
+            setFundSubmitStatus("error","이전 제출 잠금이 남아 있습니다. 다시 시도할 수 있도록 잠금을 해제했습니다. 한 번 더 눌러주세요.");
+            setFundSubmitFormLocked(false,btn);
+            axeActionEnd(lockKey);
+            return;
+        }
+        const releaseSubmitLock=function(){try{axeActionEnd(lockKey);}catch(e){}try{setFundSubmitFormLocked(false,btn);}catch(e){}};
+        const file=document.getElementById("fundSubmitFile")?.files?.[0];
+        if(!file){releaseSubmitLock();setFundSubmitStatus("error","증빙 스크린샷을 먼저 첨부해주세요.");return;}
+        if(file.size&&file.size>3*1024*1024){releaseSubmitLock();setFundSubmitStatus("error","증빙 이미지는 3MB 이하로 첨부해주세요.");return;}
+        setFundSubmitFormLocked(true,btn);
+        setFundSubmitStatus("loading","증빙 스크린샷을 읽는 중입니다. 완료될 때까지 창을 닫지 마세요.");
+        const user=getCurrentUser();
+        const submitter=String(document.getElementById("fundSubmitter")?.value||user?.nickname||"").trim();
+        if(!submitter){releaseSubmitLock();setFundSubmitStatus("error","제출자를 확인할 수 없습니다.");return;}
+        const isProxySubmit=isCurrentAdmin()&&user&&submitter!==String(user.nickname||"");
+        const rawMemo=document.getElementById("fundSubmitMemo").value||"";
+        const month=normalizeFundMonth(document.getElementById("fundSubmitMonth").value);
+        const week=document.getElementById("fundSubmitWeek").value;
+        const amount=Number(document.getElementById("fundSubmitAmount").value||0)||0;
+        const paymentMode=document.getElementById("fundSubmitPaymentMode")?.value||"공용계좌";
+        let publicAmount=Number(document.getElementById("fundSubmitPublicAmount")?.value||0)||0;
+        let companyAmount=Number(document.getElementById("fundSubmitCompanyAmount")?.value||0)||0;
+        if(paymentMode==="공용계좌"){publicAmount=amount;companyAmount=0;}
+        if(paymentMode==="회사잔고"){publicAmount=0;companyAmount=amount;}
+        if(paymentMode==="분할납부"&&publicAmount+companyAmount!==amount){
+            releaseSubmitLock();
+            setFundSubmitStatus("error","분할납부 합계가 총 납부금액과 일치하지 않습니다. 공용계좌 금액과 회사잔고 금액을 다시 확인해주세요.");
+            return;
+        }
+        if(amount<=0){releaseSubmitLock();setFundSubmitStatus("error","납부금액을 입력해주세요.");return;}
+        const splitMemo=paymentMode==="분할납부"?`[분할납부: 공용 ${publicAmount}원 + 잔고 ${companyAmount}원] `:"";
+        const memo=(isProxySubmit?(`[관리자 대리제출: ${user.nickname}] `):"")+splitMemo+rawMemo;
+        const payload={type:"fund_submit",submitter_nickname:submitter,proxy_admin_nickname:isProxySubmit?user.nickname:"",admin_proxy:isProxySubmit?"Y":"N",month:month,week:week,amount:amount,deposit_account:paymentMode,payment_mode:paymentMode,public_amount:publicAmount,company_amount:companyAmount,memo:memo.trim()};
+        fileToBase64(file)
+        .then(img=>{setFundSubmitStatus("loading","증빙 스크린샷을 서버에 등록 중입니다. 보통 수 초 정도 걸릴 수 있습니다.");return postFundSubmitDirect(Object.assign(payload,img||{}));})
+        .then(data=>{
+            const now=new Date().toISOString();
+            const newRow={id:data.id||String(Date.now()),created_at:now,nickname:submitter,month:month,week:week,amount:amount,deposit_account:paymentMode,payment_mode:paymentMode,public_amount:publicAmount,company_amount:companyAmount,evidence_url:data.evidence_url||"",evidence_file_id:data.evidence_file_id||"",memo:memo.trim(),status:"검수대기",reviewed_by:"",reviewed_at:"",review_memo:""};
+            if(Array.isArray(fundRequests))fundRequests.unshift(newRow);
+            setFundSubmitStatus("success",data.message||"제출되었습니다. 내 제출 화면으로 이동합니다.");
+            setTimeout(()=>{releaseSubmitLock();currentFundTab="mine";showFund("mine",false);try{if(typeof requestPartialRefresh==="function")requestPartialRefresh("fund").catch(()=>{});}catch(e){}},500);
+        })
+        .catch(err=>{releaseSubmitLock();setFundSubmitStatus("error",(err&&err.message)||"제출 중 오류가 발생했습니다. 공금신청 시트에 접수 여부를 확인한 뒤 다시 제출해주세요.");});
+    };
+
+    window.renderFundMine=function(){
+        const user=getCurrentUser();
+        if(!user)return `<div class="fund-empty">로그인 후 확인할 수 있습니다.</div>`;
+        const rows=(fundRequests||[]).filter(x=>String(x.nickname||"")===String(user.nickname)).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+        if(!rows.length)return `<div class="fund-empty">제출한 공금 증빙이 없습니다.</div>`;
+        return `<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>제출일</th><th>월/주차</th><th>금액</th><th>납부방식</th><th>상태</th><th>증빙</th><th class="left">검수메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${formatDate(r.created_at)}</td><td>${safe(fundMonthLabel(r.month))} · ${safe(r.week)}주차</td><td class="money">${fundMoney(r.amount)}</td><td>${fundPaymentDetail(r)}</td><td>${fundStatusPill(String(r.status||"검수대기")==="승인"?"납부완료":String(r.status||"검수대기")==="반려"?"반려":"대기")}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.review_memo||"")}</td></tr>`).join("")}</tbody></table></div>`;
+    };
+
+    window.renderFundReview=function(){
+        const rows=(typeof getPendingFundRows==="function"?getPendingFundRows():(fundRequests||[]).filter(x=>String(x.status||"검수대기")==="검수대기"||String(x.status||"")==="보류")).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+        if(!rows.length)return `<div id="fundActionBusyMsg" class="fund-action-busy-msg"></div><div class="fund-empty">검수대기 중인 공금 신청이 없습니다.</div>`;
+        const selected=(typeof getSelectedReviewIds==="function"?getSelectedReviewIds():[]).filter(id=>rows.some(r=>String(r.id)===String(id)));
+        if(typeof setSelectedReviewIds==="function")setSelectedReviewIds(selected);
+        const allChecked=rows.length>0&&rows.every(r=>selected.includes(String(r.id||"")));
+        const toolbar=`<div id="fundActionBusyMsg" class="fund-action-busy-msg"></div>
+            <div class="fund-review-toolbar">
+                <div class="fund-review-toolbar-left">
+                    <label class="fund-review-checkline" style="margin:0"><input type="checkbox" id="fundReviewSelectAll" ${allChecked?"checked":""} onchange="toggleAllFundReviewSelection(this.checked)"> 전체 선택</label>
+                    <div><div class="fund-review-toolbar-title">검수대기 ${rows.length}건 · 선택 <span id="fundReviewSelectedCount" class="fund-review-selected-count">${selected.length}</span>건</div><div class="fund-review-toolbar-desc">증빙을 확인한 항목만 선택해 일괄승인하세요.</div></div>
+                </div>
+                <div class="fund-review-toolbar-actions"><button class="fund-btn primary" onclick="approveSelectedFundRequests(this)">선택 일괄승인</button><button class="fund-btn" onclick="refreshCurrentPageOnly('fund')">현재 화면 새로고침</button></div>
+            </div>`;
+        const cards=rows.map(r=>{
+            const safeId=String(r.id||"").replace(/[^a-zA-Z0-9_\-]/g,"_");
+            const checked=selected.includes(String(r.id||""));
+            return `<div class="fund-request-card fund-review-card" id="fundReviewCard_${escapeAttr(safeId)}" data-request-id="${escapeAttr(r.id||"")}">
+                <label class="fund-review-checkline"><input type="checkbox" ${checked?"checked":""} onchange="toggleFundReviewSelection('${escapeText(r.id||"")}',this.checked)"> 검수 선택</label>
+                <div class="fund-request-head"><div><div class="fund-request-title">${safe(r.nickname)} · ${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차 · ${fundMoney(r.amount)}</div><div class="fund-request-meta">납부방식 ${fundPaymentDetail(r)} · 제출일 ${formatDate(r.created_at)} · ${safe(r.memo||"")}</div></div><div>${fundEvidenceLink(r.evidence_url,"증빙 보기")}</div></div>
+                <div class="fund-request-actions"><input class="fund-input" id="reviewMemo_${escapeAttr(r.id)}" placeholder="검수 메모/반려 사유"><button class="fund-btn primary" onclick="reviewFundRequest('${escapeText(r.id)}','승인',this)">승인</button><button class="fund-btn" onclick="reviewFundRequest('${escapeText(r.id)}','보류',this)">보류</button><button class="fund-btn danger" onclick="reviewFundRequest('${escapeText(r.id)}','반려',this)">반려</button></div>
+            </div>`;
+        }).join("");
+        setTimeout(()=>{try{if(typeof updateFundReviewSelectedCount==="function")updateFundReviewSelectedCount();}catch(e){}},0);
+        return toolbar+cards;
     };
 })();
 </script>
