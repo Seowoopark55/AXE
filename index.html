@@ -4405,7 +4405,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzGH4WQGNkHkau3og-UUk_611poq_4Sbwm62OyONYB655NTZPYiAbCv8OK-_Qw2UjT5DA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyqCf5KB8K4lU6Ay8HF7XS45Nc3MXMh2lXHLxXrRIPRX3D3nubp5Iute0WycvveQ0pj7A/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -17033,21 +17033,53 @@ function getFundSetting(key,fallback){
 }
 function normalizeFundMonth(value){
     if(value===undefined||value===null||value==="")return "";
-    if(value instanceof Date&&!isNaN(value.getTime())){
-        return value.getFullYear()+"-"+String(value.getMonth()+1).padStart(2,"0");
+
+    function toYmFromDate(date){
+        if(!(date instanceof Date)||isNaN(date.getTime()))return "";
+        return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0");
     }
+
+    if(value instanceof Date){
+        return toYmFromDate(value);
+    }
+
     let text=String(value).trim();
     if(!text)return "";
-    let direct=text.match(/^(\d{4})[-./년\s]+(\d{1,2})/);
-    if(direct){
-        const y=Number(direct[1]);
-        const m=Number(direct[2]);
+
+    /*
+      Google Sheets의 month 셀이 날짜 형식으로 반환되면
+      Apps Script JSON 변환 과정에서 2026-05-01 00:00(KST)가
+      2026-04-30T15:00:00.000Z 같은 UTC 문자열로 넘어올 수 있다.
+      이 값을 단순 정규식으로 앞의 2026-04만 읽으면 5월 자료가 4월로 표시된다.
+      따라서 ISO 날짜/시간 문자열은 먼저 Date로 파싱한 뒤 로컬 월 기준으로 변환한다.
+    */
+    if(/^\d{4}-\d{2}-\d{2}T/.test(text)||/^\d{4}-\d{2}-\d{2}\s/.test(text)){
+        const parsedIso=new Date(text);
+        const ym=toYmFromDate(parsedIso);
+        if(ym)return ym;
+    }
+
+    // 순수 월 값 또는 월 라벨만 직접 처리: 2026-05, 2026/5, 2026년 5월
+    let monthOnly=text.match(/^(\d{4})\s*(?:-|\/|\.|년)\s*(\d{1,2})\s*(?:월)?\s*$/);
+    if(monthOnly){
+        const y=Number(monthOnly[1]);
+        const m=Number(monthOnly[2]);
         if(isFinite(y)&&isFinite(m)&&m>=1&&m<=12)return y+"-"+String(m).padStart(2,"0");
     }
+
+    // 날짜 문자열은 Date로 해석해 로컬 월 기준으로 처리
     const parsed=new Date(text);
-    if(!isNaN(parsed.getTime())){
-        return parsed.getFullYear()+"-"+String(parsed.getMonth()+1).padStart(2,"0");
+    const parsedYm=toYmFromDate(parsed);
+    if(parsedYm)return parsedYm;
+
+    // 마지막 방어: 문장 안의 yyyy년 m월 형태만 추출
+    let embedded=text.match(/(\d{4})\s*년\s*(\d{1,2})\s*월/);
+    if(embedded){
+        const y=Number(embedded[1]);
+        const m=Number(embedded[2]);
+        if(isFinite(y)&&isFinite(m)&&m>=1&&m<=12)return y+"-"+String(m).padStart(2,"0");
     }
+
     return text;
 }
 function getFundTodayMonth(){
