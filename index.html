@@ -17753,5 +17753,375 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 })();
 </script>
 
+
+<style>
+/* AXE NET 공금 검수 편의 개선: 선택 일괄승인 / 처리중 액션 / 관리자 세션 유지 */
+.fund-review-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin:0 0 12px;
+    padding:12px 13px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:15px;
+    background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.22);
+}
+.fund-review-toolbar-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.fund-review-toolbar-title{font-size:13px;font-weight:950;color:#ffcf75;white-space:nowrap}
+.fund-review-toolbar-desc{font-size:12px;font-weight:850;color:#888;line-height:1.4}
+.fund-review-toolbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fund-review-checkline{display:flex;align-items:center;gap:9px;margin-bottom:8px;color:#aaa;font-size:12px;font-weight:900}
+.fund-review-checkline input{width:16px;height:16px;accent-color:#ffb52e;cursor:pointer}
+.fund-review-card.processing{position:relative;opacity:.72;pointer-events:none;filter:saturate(.85)}
+.fund-review-card.processing::after{
+    content:"처리 중";
+    position:absolute;
+    right:12px;
+    top:12px;
+    height:28px;
+    padding:0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    border:1px solid rgba(255,181,46,.32);
+    background:rgba(0,0,0,.74);
+    color:#ffcf75;
+    font-size:11px;
+    font-weight:950;
+    box-shadow:0 8px 20px rgba(0,0,0,.28);
+}
+.fund-action-busy-msg{
+    display:none;
+    align-items:center;
+    gap:9px;
+    margin:0 0 12px;
+    padding:11px 13px;
+    border-radius:14px;
+    border:1px solid rgba(255,181,46,.28);
+    background:linear-gradient(135deg,rgba(255,181,46,.105),rgba(255,255,255,.025));
+    color:#ffcf75;
+    font-size:13px;
+    font-weight:950;
+    line-height:1.45;
+}
+.fund-action-busy-msg.active{display:flex}
+.fund-action-busy-msg::before{
+    content:"";
+    width:15px;
+    height:15px;
+    border-radius:999px;
+    border:2px solid rgba(255,181,46,.24);
+    border-top-color:#ffb52e;
+    animation:fundActionSpin .82s linear infinite;
+    flex:0 0 auto;
+}
+.fund-action-busy-msg.done{border-color:rgba(110,231,168,.32);background:rgba(110,231,168,.075);color:#8ff0ba}
+.fund-action-busy-msg.done::before{display:none}
+.fund-action-busy-msg.error{border-color:rgba(255,107,107,.36);background:rgba(255,80,80,.08);color:#ff9a9a}
+.fund-action-busy-msg.error::before{display:none}
+@keyframes fundActionSpin{to{transform:rotate(360deg)}}
+.fund-review-selected-count{color:#ffcf75;font-weight:950}
+.fund-btn.processing,.fund-status-btn.processing,.fund-mini-btn.processing{
+    opacity:.7!important;
+    cursor:wait!important;
+    pointer-events:none!important;
+    position:relative;
+}
+.fund-btn.processing::after,.fund-status-btn.processing::after,.fund-mini-btn.processing::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+    animation:fundBtnShine 1.05s linear infinite;
+}
+@keyframes fundBtnShine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@media(max-width:760px){
+    .fund-review-toolbar{display:block;padding:11px 12px;border-radius:14px}
+    .fund-review-toolbar-actions{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    .fund-review-toolbar-actions .fund-btn{width:100%}
+    .fund-review-toolbar-desc{margin-top:4px}
+}
+</style>
+
+<script>
+/* AXE NET 공금 검수 편의 개선 v2 */
+(function(){
+    const ADMIN_PERSIST_KEY="axe_net_admin_password_persist";
+    const FUND_REVIEW_SELECTED_KEY="axe_net_fund_review_selected";
+    const FUND_ACTION_TIMEOUT_MS=45000;
+    let fundActionBusy=false;
+    let fundActionHardTimer=null;
+
+    window.rememberAdminPasswordIfNeeded=function(user,password){
+        if(!user||!password)return;
+        const role=String(user.role||"").toLowerCase();
+        const badge=String(user.badge||"").toLowerCase();
+        if(role==="admin"||badge==="admin"){
+            try{sessionStorage.setItem("axe_net_admin_password",String(password));}catch(e){}
+            try{localStorage.setItem(ADMIN_PERSIST_KEY,String(password));}catch(e){}
+        }
+    };
+
+    window.getAdminPassword=function(){
+        let pw="";
+        try{pw=sessionStorage.getItem("axe_net_admin_password")||"";}catch(e){}
+        if(!pw){try{pw=localStorage.getItem(ADMIN_PERSIST_KEY)||"";}catch(e){}}
+        if(pw){try{sessionStorage.setItem("axe_net_admin_password",pw);}catch(e){}}
+        return pw||"";
+    };
+
+    window.clearAdminPassword=function(){
+        try{sessionStorage.removeItem("axe_net_admin_password");}catch(e){}
+        try{localStorage.removeItem(ADMIN_PERSIST_KEY);}catch(e){}
+    };
+
+    function getAdminPayload(payload){
+        const user=getCurrentUser&&getCurrentUser();
+        if(!user||!user.nickname){
+            alert("관리자 기능은 로그인 후 이용 가능합니다.");
+            if(typeof openAuthModal==="function")openAuthModal("login");
+            throw new Error("login required");
+        }
+        if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){
+            alert("관리자 권한이 필요합니다.");
+            throw new Error("admin required");
+        }
+        const password=window.getAdminPassword();
+        if(!password){
+            alert("관리자 인증 정보가 없습니다. 관리자 계정으로 다시 로그인해주세요.");
+            if(typeof openAuthModal==="function")openAuthModal("login");
+            throw new Error("admin session required");
+        }
+        return Object.assign({},payload||{}, {admin_nickname:user.nickname, admin_password:password});
+    }
+
+    function fetchJsonWithTimeout(body,timeoutMs){
+        const controller=(typeof AbortController!=="undefined")?new AbortController():null;
+        const timer=setTimeout(()=>{try{if(controller)controller.abort();}catch(e){}},timeoutMs||FUND_ACTION_TIMEOUT_MS);
+        return fetch(API_URL,{method:"POST",body:JSON.stringify(body),signal:controller?controller.signal:undefined})
+        .then(res=>res.json())
+        .finally(()=>clearTimeout(timer));
+    }
+
+    window.adminApi=function(payload){
+        let body;
+        try{body=getAdminPayload(payload);}catch(err){return Promise.reject(err);}
+        return fetchJsonWithTimeout(body,FUND_ACTION_TIMEOUT_MS).then(data=>{
+            if(data&&data.result==="fail"&&String(data.message||"").includes("비밀번호")){
+                window.clearAdminPassword();
+                alert("관리자 인증이 만료되었거나 일치하지 않습니다. 다시 로그인해주세요.");
+                if(typeof openAuthModal==="function")openAuthModal("login");
+            }
+            try{if(typeof refreshCurrentUserProfileAfterApi==="function")refreshCurrentUserProfileAfterApi(data);}catch(e){}
+            return data;
+        });
+    };
+
+    function fundAdminFastApi(payload){
+        let body;
+        try{body=getAdminPayload(payload);}catch(err){return Promise.reject(err);}
+        return fetchJsonWithTimeout(body,FUND_ACTION_TIMEOUT_MS).then(data=>{
+            if(!data||data.result!=="success")throw new Error((data&&data.message)||"처리 중 오류가 발생했습니다.");
+            return data;
+        });
+    }
+    window.fundAdminFastApi=fundAdminFastApi;
+
+    window.fundAdminApi=function(payload){
+        fundSetActionBusy(true,"공금 자료를 처리 중입니다.");
+        return fundAdminFastApi(payload)
+        .then(data=>{
+            fundSetActionBusy(false,data.message||"처리되었습니다.","done");
+            try{if(typeof requestPartialRefresh==="function")requestPartialRefresh("fund").catch(()=>{});}catch(e){}
+            return data;
+        })
+        .catch(err=>{
+            fundSetActionBusy(false,(err&&err.message)||"처리 중 오류가 발생했습니다.","error");
+            return {result:"fail",message:(err&&err.message)||"처리 중 오류가 발생했습니다."};
+        });
+    };
+
+    function setButtonProcessing(btn,loading,text){
+        if(!btn)return;
+        if(loading){
+            if(!btn.dataset.originalText)btn.dataset.originalText=btn.textContent||"";
+            btn.disabled=true;
+            btn.classList.add("processing");
+            if(text)btn.textContent=text;
+        }else{
+            btn.disabled=false;
+            btn.classList.remove("processing");
+            if(btn.dataset.originalText){btn.textContent=btn.dataset.originalText;delete btn.dataset.originalText;}
+        }
+    }
+    window.setFundButtonProcessing=setButtonProcessing;
+
+    function fundSetActionBusy(loading,message,type){
+        fundActionBusy=!!loading;
+        const msg=document.getElementById("fundActionBusyMsg");
+        if(msg){
+            msg.classList.remove("active","done","error");
+            if(message)msg.textContent=message;
+            if(loading)msg.classList.add("active");
+            else if(message){msg.classList.add("active"); if(type)msg.classList.add(type); setTimeout(()=>{try{msg.classList.remove("active","done","error");}catch(e){}},2200);}
+        }
+        if(fundActionHardTimer){clearTimeout(fundActionHardTimer);fundActionHardTimer=null;}
+        if(loading){
+            fundActionHardTimer=setTimeout(()=>{
+                fundActionBusy=false;
+                document.querySelectorAll(".fund-btn.processing,.fund-status-btn.processing,.fund-mini-btn.processing").forEach(btn=>setButtonProcessing(btn,false));
+                const m=document.getElementById("fundActionBusyMsg");
+                if(m){m.textContent="응답이 지연되어 버튼 잠금을 해제했습니다. 시트 반영 여부를 확인한 뒤 다시 시도하세요.";m.classList.add("active","error");}
+            },FUND_ACTION_TIMEOUT_MS+3000);
+        }
+    }
+    window.fundSetActionBusy=fundSetActionBusy;
+
+    function getSelectedReviewIds(){
+        try{return JSON.parse(localStorage.getItem(FUND_REVIEW_SELECTED_KEY)||"[]").map(String);}catch(e){return [];}
+    }
+    function setSelectedReviewIds(ids){
+        const unique=[]; const seen={};
+        (ids||[]).map(String).forEach(id=>{if(id&&!seen[id]){seen[id]=true;unique.push(id);}});
+        try{localStorage.setItem(FUND_REVIEW_SELECTED_KEY,JSON.stringify(unique));}catch(e){}
+        return unique;
+    }
+    function getPendingFundRows(){
+        return (fundRequests||[]).filter(x=>String(x.status||"검수대기")==="검수대기"||String(x.status||"")==="보류").sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+    }
+    window.toggleFundReviewSelection=function(id,checked){
+        const ids=getSelectedReviewIds().filter(x=>x!==String(id));
+        if(checked)ids.push(String(id));
+        setSelectedReviewIds(ids);
+        updateFundReviewSelectedCount();
+    };
+    window.toggleAllFundReviewSelection=function(checked){
+        const ids=checked?getPendingFundRows().map(r=>String(r.id||"")):[ ];
+        setSelectedReviewIds(ids);
+        renderFundTab();
+    };
+    function updateFundReviewSelectedCount(){
+        const selected=getSelectedReviewIds();
+        const countBox=document.getElementById("fundReviewSelectedCount");
+        if(countBox)countBox.textContent=String(selected.length);
+        const all=document.getElementById("fundReviewSelectAll");
+        if(all){
+            const rows=getPendingFundRows();
+            all.checked=rows.length>0&&rows.every(r=>selected.includes(String(r.id||"")));
+        }
+    }
+    window.updateFundReviewSelectedCount=updateFundReviewSelectedCount;
+
+    function normalizeReviewActionLabel(action){
+        return action==="승인"?"승인":action==="반려"?"반려":"보류";
+    }
+
+    window.reviewFundRequest=function(id,action,btn){
+        if(fundActionBusy)return;
+        const memo=document.getElementById("reviewMemo_"+id)?.value||"";
+        const label=normalizeReviewActionLabel(action);
+        if(action==="반려"&&!memo&&!confirm("반려 사유 없이 반려할까요?"))return;
+        if(action==="승인"&&!confirm("이 공금 신청을 승인할까요? 승인 시 공금내역에 수입 기록이 생성됩니다."))return;
+        const card=document.getElementById("fundReviewCard_"+String(id).replace(/[^a-zA-Z0-9_\-]/g,"_"));
+        if(card)card.classList.add("processing");
+        setButtonProcessing(btn||event?.currentTarget,true,"처리중");
+        fundSetActionBusy(true,label+" 처리 중입니다.");
+        fundAdminFastApi({type:"fund_review",request_id:id,action:action,review_memo:memo})
+        .then(data=>{
+            const row=(fundRequests||[]).find(r=>String(r.id)===String(id));
+            if(row){
+                row.status=action;
+                row.review_memo=memo;
+                row.reviewed_at=new Date().toISOString();
+                const u=getCurrentUser&&getCurrentUser();
+                row.reviewed_by=u&&u.nickname?u.nickname:"";
+            }
+            setSelectedReviewIds(getSelectedReviewIds().filter(x=>x!==String(id)));
+            fundSetActionBusy(false,data.message||label+" 처리되었습니다.","done");
+            renderFundTab();
+            try{if(typeof requestPartialRefresh==="function")requestPartialRefresh("fund").catch(()=>{});}catch(e){}
+        })
+        .catch(err=>{
+            if(card)card.classList.remove("processing");
+            setButtonProcessing(btn||event?.currentTarget,false);
+            fundSetActionBusy(false,(err&&err.message)||label+" 처리 중 오류가 발생했습니다.","error");
+        });
+    };
+
+    window.approveSelectedFundRequests=function(btn){
+        if(fundActionBusy)return;
+        const pending=getPendingFundRows();
+        const pendingIds=pending.map(r=>String(r.id||""));
+        const ids=getSelectedReviewIds().filter(id=>pendingIds.includes(String(id)));
+        if(!ids.length){alert("일괄 승인할 항목을 선택하세요.");return;}
+        if(!confirm("선택한 "+ids.length+"건을 일괄 승인할까요?\n승인 시 각 항목이 공금내역 수입 기록으로 생성됩니다."))return;
+        setButtonProcessing(btn||event?.currentTarget,true,"일괄 처리중");
+        fundSetActionBusy(true,"선택한 "+ids.length+"건을 일괄 승인 중입니다.");
+        document.querySelectorAll(".fund-review-card").forEach(card=>{
+            const id=card.getAttribute("data-request-id");
+            if(ids.includes(String(id)))card.classList.add("processing");
+        });
+        let ok=0, fail=0;
+        const errors=[];
+        ids.reduce((p,id)=>p.then(()=>fundAdminFastApi({type:"fund_review",request_id:id,action:"승인",review_memo:"선택 일괄승인"})
+            .then(()=>{
+                ok++;
+                const row=(fundRequests||[]).find(r=>String(r.id)===String(id));
+                if(row){row.status="승인";row.review_memo=row.review_memo||"선택 일괄승인";row.reviewed_at=new Date().toISOString();}
+            })
+            .catch(err=>{fail++;errors.push(id+": "+((err&&err.message)||"실패"));})
+        ),Promise.resolve()).then(()=>{
+            setSelectedReviewIds(getSelectedReviewIds().filter(id=>!ids.includes(String(id))));
+            setButtonProcessing(btn||event?.currentTarget,false);
+            fundSetActionBusy(false,"일괄승인 완료 · 성공 "+ok+"건"+(fail?" / 실패 "+fail+"건":""),fail?"error":"done");
+            renderFundTab();
+            if(fail)alert("일괄승인 일부 실패\n"+errors.slice(0,8).join("\n"));
+            try{if(typeof requestPartialRefresh==="function")requestPartialRefresh("fund").catch(()=>{});}catch(e){}
+        });
+    };
+
+    window.renderFundReview=function(){
+        const rows=getPendingFundRows();
+        if(!rows.length)return `<div id="fundActionBusyMsg" class="fund-action-busy-msg"></div><div class="fund-empty">검수대기 중인 공금 신청이 없습니다.</div>`;
+        const selected=getSelectedReviewIds().filter(id=>rows.some(r=>String(r.id)===String(id)));
+        setSelectedReviewIds(selected);
+        const allChecked=rows.length>0&&rows.every(r=>selected.includes(String(r.id||"")));
+        const toolbar=`<div id="fundActionBusyMsg" class="fund-action-busy-msg"></div>
+            <div class="fund-review-toolbar">
+                <div class="fund-review-toolbar-left">
+                    <label class="fund-review-checkline" style="margin:0"><input type="checkbox" id="fundReviewSelectAll" ${allChecked?"checked":""} onchange="toggleAllFundReviewSelection(this.checked)"> 전체 선택</label>
+                    <div><div class="fund-review-toolbar-title">검수대기 ${rows.length}건 · 선택 <span id="fundReviewSelectedCount" class="fund-review-selected-count">${selected.length}</span>건</div><div class="fund-review-toolbar-desc">증빙을 확인한 항목만 선택해 일괄승인하세요.</div></div>
+                </div>
+                <div class="fund-review-toolbar-actions">
+                    <button class="fund-btn primary" onclick="approveSelectedFundRequests(this)">선택 일괄승인</button>
+                    <button class="fund-btn" onclick="refreshCurrentPageOnly('fund')">현재 화면 새로고침</button>
+                </div>
+            </div>`;
+        const cards=rows.map(r=>{
+            const safeId=String(r.id||"").replace(/[^a-zA-Z0-9_\-]/g,"_");
+            const checked=selected.includes(String(r.id||""));
+            return `<div class="fund-request-card fund-review-card" id="fundReviewCard_${escapeAttr(safeId)}" data-request-id="${escapeAttr(r.id||"")}">
+                <label class="fund-review-checkline"><input type="checkbox" ${checked?"checked":""} onchange="toggleFundReviewSelection('${escapeText(r.id||"")}',this.checked)"> 검수 선택</label>
+                <div class="fund-request-head"><div><div class="fund-request-title">${safe(r.nickname)} · ${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차 · ${fundMoney(r.amount)}</div><div class="fund-request-meta">입금위치 ${safe(r.deposit_account)} · 제출일 ${formatDate(r.created_at)} · ${safe(r.memo||"")}</div></div><div>${fundEvidenceLink(r.evidence_url,"증빙 보기")}</div></div>
+                <div class="fund-request-actions"><input class="fund-input" id="reviewMemo_${escapeAttr(r.id)}" placeholder="검수 메모/반려 사유"><button class="fund-btn primary" onclick="reviewFundRequest('${escapeText(r.id)}','승인',this)">승인</button><button class="fund-btn" onclick="reviewFundRequest('${escapeText(r.id)}','보류',this)">보류</button><button class="fund-btn danger" onclick="reviewFundRequest('${escapeText(r.id)}','반려',this)">반려</button></div>
+            </div>`;
+        }).join("");
+        setTimeout(updateFundReviewSelectedCount,0);
+        return toolbar+cards;
+    };
+
+    const originalSubmitFundRequest=window.submitFundRequest;
+    if(typeof originalSubmitFundRequest==="function"){
+        window.submitFundRequest=function(btn){
+            fundSetActionBusy(true,"공금 증빙을 제출 중입니다.");
+            try{return originalSubmitFundRequest(btn);}catch(err){fundSetActionBusy(false,(err&&err.message)||"제출 중 오류가 발생했습니다.","error");throw err;}
+        };
+    }
+})();
+</script>
+
 </body>
 </html>
