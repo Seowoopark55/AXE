@@ -2603,6 +2603,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 @media(max-width:920px){.fund-summary-grid,.fund-form-grid{grid-template-columns:1fr 1fr}.fund-toolbar{display:block}.fund-toolbar-right{margin-top:8px}.fund-table{min-width:680px}.fund-status-table{min-width:620px!important}}
 @media(max-width:620px){.fund-summary-grid,.fund-form-grid{grid-template-columns:1fr}.fund-tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.fund-tabs::-webkit-scrollbar{display:none}.fund-tabs button{flex:0 0 auto}.fund-summary-card{padding:10px;min-height:64px}.fund-summary-value{font-size:18px}.fund-request-head{display:block}.fund-request-actions{justify-content:stretch}.fund-request-actions .fund-btn{flex:1}.fund-status-table{min-width:560px!important}.fund-status-table th:first-child,.fund-status-table td:first-child{width:135px}.fund-status-table th:not(:first-child):not(:last-child),.fund-status-table td:not(:first-child):not(:last-child){width:82px}.fund-member-note{max-width:118px}}
 
+
+/* AXE NET 공금: 관리자 대리 제출자 선택 */
+.fund-submitter-select{width:100%;min-width:0}
+.fund-form-card.submitting .fund-submitter-select{opacity:.7;cursor:wait}
 </style>
 
 <style>
@@ -16837,7 +16841,16 @@ function fundRefreshAfter(data){
 function fundApi(payload){
     const user=getCurrentUser();
     if(!user||!user.nickname){alert("로그인 후 이용 가능합니다.");openAuthModal("login");return Promise.reject(new Error("login required"));}
-    return fetch(API_URL,{method:"POST",body:JSON.stringify(Object.assign({},payload,{nickname:user.nickname}))}).then(res=>res.json()).then(fundRefreshAfter);
+    const body=Object.assign({},payload||{});
+    let requestNickname=user.nickname;
+    if(body.type==="fund_submit"&&body.submitter_nickname&&isCurrentAdmin()){
+        requestNickname=String(body.submitter_nickname||user.nickname).trim()||user.nickname;
+        body.proxy_admin_nickname=user.nickname;
+        body.admin_proxy="Y";
+    }
+    body.login_nickname=user.nickname;
+    body.nickname=requestNickname;
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(body)}).then(res=>res.json()).then(fundRefreshAfter);
 }
 function fundAdminApi(payload){
     return adminApi(payload).then(fundRefreshAfter);
@@ -16913,6 +16926,25 @@ function renderFundStatus(){
     }).join("") || `<tr><td colspan="${weeks.length+2}"><div class="fund-empty">공금멤버가 없습니다. 관리자 메뉴에서 공금멤버를 등록하세요.</div></td></tr>`;
     return `${renderFundMonthToolbar()}<div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월의 첫 일요일부터 7일 단위로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
+function renderFundSubmitterField(user){
+    const currentName=String(user&&user.nickname||"").trim();
+    if(!isCurrentAdmin()){
+        return `<input class="fund-input" id="fundSubmitter" value="${escapeAttr(currentName)}" disabled><div class="fund-mini-help">일반 이용자는 본인 이름으로만 제출됩니다.</div>`;
+    }
+    const names=[];
+    const seen={};
+    function addName(v){
+        const name=String(v||"").trim();
+        if(!name||seen[name])return;
+        seen[name]=true;
+        names.push(name);
+    }
+    addName(currentName);
+    getFundActiveMembers().forEach(m=>addName(m.nickname));
+    (rankings||[]).forEach(m=>addName(m.nickname));
+    const options=names.map(n=>`<option value="${escapeAttr(n)}" ${n===currentName?'selected':''}>${safe(n)}</option>`).join("");
+    return `<select class="fund-select fund-submitter-select" id="fundSubmitter">${options}</select><div class="fund-mini-help">관리자는 다른 멤버 이름으로 대리 제출할 수 있습니다. 기본값은 본인입니다.</div>`;
+}
 function renderFundSubmit(){
     const user=getCurrentUser();
     if(!user)return `<div class="fund-empty">로그인 후 공금 증빙을 제출할 수 있습니다.</div>`;
@@ -16920,7 +16952,7 @@ function renderFundSubmit(){
     const weeks=Array.from({length:getFundWeekCount()},(_,i)=>String(i+1));
     return `<div class="fund-form-card"><div class="fund-form-title">공금 납부 증빙 제출</div>
         <div class="fund-form-grid">
-            <div><div class="fund-label">제출자</div><input class="fund-input" value="${escapeAttr(user.nickname)}" disabled></div>
+            <div><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
             <div><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help">전월 미납분도 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div></div>
             <div><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
             <div><div class="fund-label">입금 위치</div><select class="fund-select" id="fundSubmitAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
@@ -16962,7 +16994,7 @@ function setFundSubmitFormLocked(locked,btn){
             }
         }
     }
-    ["fundSubmitMonth","fundSubmitWeek","fundSubmitAccount","fundSubmitAmount","fundSubmitFile","fundSubmitMemo"].forEach(id=>{
+    ["fundSubmitter","fundSubmitMonth","fundSubmitWeek","fundSubmitAccount","fundSubmitAmount","fundSubmitFile","fundSubmitMemo"].forEach(id=>{
         const el=document.getElementById(id);
         if(el&&!el.disabled){
             if(locked){el.dataset.fundTempDisabled="1";el.disabled=true;}
@@ -16984,13 +17016,26 @@ function submitFundRequest(btn){
     }
     setFundSubmitFormLocked(true,btn);
     setFundSubmitStatus("loading","증빙 스크린샷을 제출 중입니다. 중복 등록 방지를 위해 버튼을 잠궜습니다.");
+    const user=getCurrentUser();
+    const submitter=String(document.getElementById("fundSubmitter")?.value||user?.nickname||"").trim();
+    if(!submitter){
+        axeActionEnd(lockKey);
+        setFundSubmitFormLocked(false,btn);
+        setFundSubmitStatus("error","제출자를 확인할 수 없습니다.");
+        return;
+    }
+    const isProxySubmit=isCurrentAdmin()&&user&&submitter!==String(user.nickname||"");
+    const rawMemo=document.getElementById("fundSubmitMemo").value||"";
     const payload={
         type:"fund_submit",
+        submitter_nickname:submitter,
+        proxy_admin_nickname:isProxySubmit?user.nickname:"",
+        admin_proxy:isProxySubmit?"Y":"N",
         month:normalizeFundMonth(document.getElementById("fundSubmitMonth").value),
         week:document.getElementById("fundSubmitWeek").value,
         amount:document.getElementById("fundSubmitAmount").value,
         deposit_account:document.getElementById("fundSubmitAccount").value,
-        memo:document.getElementById("fundSubmitMemo").value
+        memo:isProxySubmit?("[관리자 대리제출: "+user.nickname+"] "+rawMemo).trim():rawMemo
     };
     fileToBase64(file)
     .then(img=>fundApi(Object.assign(payload,img)))
