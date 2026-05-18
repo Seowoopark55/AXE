@@ -17155,12 +17155,14 @@ function renderFundMonthSelect(id,selected,attrs){
 function getFundActiveMembers(){
     const list=[];
     const seen={};
-    function addMember(item,sourceNote){
-        if(!item)return;
+    let explicitFundMemberCount=0;
+
+    function addMember(item,sourceNote,options){
+        if(!item)return false;
         const nickname=String(item.nickname||item.name||"").trim();
-        if(!nickname||seen[nickname])return;
+        if(!nickname||seen[nickname])return false;
         const status=String(item.status||"active").toLowerCase();
-        if(status==="inactive")return;
+        if(status==="inactive")return false;
         seen[nickname]=true;
         list.push({
             id:item.id||"",
@@ -17170,14 +17172,30 @@ function getFundActiveMembers(){
             exempt_until:item.exempt_until||"",
             note:item.note||sourceNote||""
         });
+        if(options&&options.explicit)explicitFundMemberCount++;
+        return true;
     }
 
-    (fundMembers||[]).forEach(m=>addMember(m,""));
+    (fundMembers||[]).forEach(m=>addMember(m,"",{explicit:true}));
 
     /*
-      공금멤버 시트에 일부 인원만 등록된 상태에서도,
-      현재 로그인한 관리자는 공금 납부 대상에서 빠지지 않도록 보정합니다.
-      관리자는 랭킹 목록에서 제외되는 구조라 월별현황/멤버관리에서 누락될 수 있습니다.
+      공금멤버 시트가 비어 있으면 회원/랭킹 목록을 기준으로 전체 멤버를 표시합니다.
+      단, 관리자를 먼저 자동 포함해버리면 list.length 때문에 일반 멤버 fallback이 막히므로,
+      explicitFundMemberCount를 따로 기준으로 삼습니다.
+    */
+    if(explicitFundMemberCount===0){
+        (rankings||[]).forEach(x=>addMember({
+            id:x.id||"",
+            nickname:x.nickname,
+            status:x.status||"active",
+            join_date:x.created_at||"",
+            note:"회원목록 기준 자동 표시"
+        },"회원목록 기준 자동 표시"));
+    }
+
+    /*
+      관리자는 랭킹 목록에서 제외되는 구조라 공금멤버 시트에 없으면 누락될 수 있습니다.
+      따라서 현재 로그인한 관리자는 마지막에 한 번만 추가합니다.
     */
     const currentUser=getCurrentUser&&getCurrentUser();
     if(currentUser&&currentUser.nickname&&isCurrentAdmin&&isCurrentAdmin()){
@@ -17187,18 +17205,9 @@ function getFundActiveMembers(){
             status:currentUser.status||"active",
             join_date:currentUser.created_at||"",
             exempt_until:"",
-            note:"관리자 자동 포함"
+            note:explicitFundMemberCount===0?"관리자 자동 포함":"관리자 자동 포함"
         },"관리자 자동 포함");
     }
-
-    if(list.length)return list;
-
-    (rankings||[]).forEach(x=>addMember({
-        nickname:x.nickname,
-        status:x.status||"active",
-        join_date:x.created_at||"",
-        note:"회원목록 기준 자동 표시"
-    },"회원목록 기준 자동 표시"));
 
     return list;
 }
