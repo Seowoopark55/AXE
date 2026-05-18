@@ -3884,6 +3884,127 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+<style id="axe-fund-manual-refresh-style">
+/* AXE NET 공금: 현재 화면 새로고침 버튼 */
+.fund-page-head{
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:space-between!important;
+    gap:16px!important;
+}
+.fund-page-head-main{
+    min-width:0!important;
+}
+.fund-page-actions{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    flex:0 0 auto!important;
+    min-height:40px!important;
+}
+.fund-refresh-btn{
+    position:relative!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    height:38px!important;
+    padding:0 14px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(255,181,46,.26)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.075),rgba(255,255,255,.018)),rgba(15,15,15,.96)!important;
+    color:#ffcf75!important;
+    font-size:12.5px!important;
+    font-weight:950!important;
+    letter-spacing:-.1px!important;
+    cursor:pointer!important;
+    transition:.18s ease!important;
+    white-space:nowrap!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 8px 18px rgba(0,0,0,.16)!important;
+}
+.fund-refresh-btn:hover:not(:disabled){
+    color:#fff!important;
+    border-color:rgba(255,181,46,.52)!important;
+    background:linear-gradient(180deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),rgba(18,18,18,.98)!important;
+    transform:translateY(-1px)!important;
+    box-shadow:0 10px 24px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+.fund-refresh-btn:disabled{
+    opacity:.72!important;
+    cursor:wait!important;
+    transform:none!important;
+}
+.fund-refresh-icon{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:15px!important;
+    height:15px!important;
+    font-size:14px!important;
+    line-height:1!important;
+    transition:.18s ease!important;
+}
+.fund-refresh-btn.loading .fund-refresh-icon{
+    animation:fundRefreshSpin .82s linear infinite!important;
+}
+@keyframes fundRefreshSpin{to{transform:rotate(360deg)}}
+.fund-refresh-note{
+    display:inline-flex!important;
+    align-items:center!important;
+    min-height:28px!important;
+    padding:0 10px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(255,255,255,.08)!important;
+    background:rgba(255,255,255,.035)!important;
+    color:#aaa!important;
+    font-size:11.5px!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+}
+.fund-refresh-note.ok{
+    color:#8fe7b0!important;
+    border-color:rgba(110,231,168,.26)!important;
+    background:rgba(110,231,168,.06)!important;
+}
+.fund-refresh-note.err{
+    color:#ff9a9a!important;
+    border-color:rgba(255,107,107,.28)!important;
+    background:rgba(255,107,107,.06)!important;
+}
+@media(max-width:760px){
+    .fund-page-head{
+        display:flex!important;
+        align-items:flex-start!important;
+        gap:10px!important;
+    }
+    .fund-page-head-main{
+        flex:1 1 auto!important;
+    }
+    .fund-page-actions{
+        gap:6px!important;
+        min-height:36px!important;
+    }
+    .fund-refresh-btn{
+        width:36px!important;
+        min-width:36px!important;
+        height:36px!important;
+        padding:0!important;
+        border-radius:12px!important;
+        font-size:0!important;
+        gap:0!important;
+    }
+    .fund-refresh-icon{
+        width:16px!important;
+        height:16px!important;
+        font-size:16px!important;
+    }
+    .fund-refresh-note{
+        display:none!important;
+    }
+}
+</style>
+
 <style id="axe-fund-submit-loading-style">
 /* AXE NET 공금 제출 처리중 표시 + 중복 제출 방지 UI */
 .fund-submit-status{
@@ -16864,6 +16985,56 @@ function fileToBase64(file){
         reader.readAsDataURL(file);
     });
 }
+
+let fundManualRefreshBusy=false;
+let fundManualRefreshNotice="";
+let fundManualRefreshNoticeType="";
+let fundManualRefreshTimer=null;
+function renderFundManualRefreshArea(){
+    const note=fundManualRefreshNotice?`<span id="fundRefreshNote" class="fund-refresh-note ${fundManualRefreshNoticeType||''}">${escapeHtml(fundManualRefreshNotice)}</span>`:"";
+    const label=fundManualRefreshBusy?"새로고침 중":"현재 화면 새로고침";
+    return `<div class="fund-page-actions"><button id="fundManualRefreshBtn" class="fund-refresh-btn ${fundManualRefreshBusy?'loading':''}" onclick="refreshFundCurrentScreen()" ${fundManualRefreshBusy?'disabled':''} title="공금관리의 현재 화면 자료만 다시 불러옵니다."><span class="fund-refresh-icon">↻</span><span class="fund-refresh-label">${label}</span></button>${note}</div>`;
+}
+function setFundManualRefreshButtonState(loading){
+    const btn=document.getElementById("fundManualRefreshBtn");
+    if(!btn)return;
+    btn.disabled=!!loading;
+    btn.classList.toggle("loading",!!loading);
+    const label=btn.querySelector(".fund-refresh-label");
+    if(label)label.textContent=loading?"새로고침 중":"현재 화면 새로고침";
+}
+function refreshFundCurrentScreen(){
+    if(fundManualRefreshBusy)return;
+    const targetTab=currentFundTab||"status";
+    fundManualRefreshBusy=true;
+    fundManualRefreshNotice="";
+    fundManualRefreshNoticeType="";
+    setFundManualRefreshButtonState(true);
+    refreshData().then(data=>{
+        fundManualRefreshBusy=false;
+        if(data){
+            fundManualRefreshNotice="최신 자료 반영됨";
+            fundManualRefreshNoticeType="ok";
+        }else{
+            fundManualRefreshNotice="불러오기 실패";
+            fundManualRefreshNoticeType="err";
+        }
+        showFund(targetTab,false);
+        if(fundManualRefreshTimer)clearTimeout(fundManualRefreshTimer);
+        fundManualRefreshTimer=setTimeout(()=>{
+            fundManualRefreshNotice="";
+            fundManualRefreshNoticeType="";
+            const note=document.getElementById("fundRefreshNote");
+            if(note)note.remove();
+        },3600);
+    }).catch(()=>{
+        fundManualRefreshBusy=false;
+        fundManualRefreshNotice="불러오기 실패";
+        fundManualRefreshNoticeType="err";
+        showFund(targetTab,false);
+    });
+}
+
 function getFundApprovedCountForMonth(month){
     const target=normalizeFundMonth(month);
     return (fundRequests||[]).filter(x=>normalizeFundMonth(x.month)===target&&String(x.status||"")==="승인").length;
@@ -16888,8 +17059,9 @@ function showFund(tab,push){
     const content=document.getElementById("content");
     if(!content)return;
     content.innerHTML=`
-        <div class="section-head">
-            <div><div class="section-title">공금관리</div><div class="section-desc">팀원 증빙 제출, 운영진 검수, 월별 공금표, 공용계좌 잔액을 통합 관리합니다.</div></div>
+        <div class="section-head fund-page-head">
+            <div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">팀원 증빙 제출, 운영진 검수, 월별 공금표, 공용계좌 잔액을 통합 관리합니다.</div></div>
+            ${renderFundManualRefreshArea()}
         </div>
         <div class="fund-summary-grid">
             <div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
