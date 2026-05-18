@@ -16497,12 +16497,46 @@ function getFundSetting(key,fallback){
     const row=(fundSettings||[]).find(x=>String(x.key||"").trim()===String(key));
     return row&&row.value!==undefined&&row.value!==""?row.value:fallback;
 }
+function normalizeFundMonth(value){
+    if(value===undefined||value===null||value==="")return "";
+    if(value instanceof Date&&!isNaN(value.getTime())){
+        return value.getFullYear()+"-"+String(value.getMonth()+1).padStart(2,"0");
+    }
+    let text=String(value).trim();
+    if(!text)return "";
+    let direct=text.match(/^(\d{4})[-./년\s]+(\d{1,2})/);
+    if(direct){
+        const y=Number(direct[1]);
+        const m=Number(direct[2]);
+        if(isFinite(y)&&isFinite(m)&&m>=1&&m<=12)return y+"-"+String(m).padStart(2,"0");
+    }
+    const parsed=new Date(text);
+    if(!isNaN(parsed.getTime())){
+        return parsed.getFullYear()+"-"+String(parsed.getMonth()+1).padStart(2,"0");
+    }
+    return text;
+}
+function getFundTodayMonth(){
+    const now=new Date();
+    return now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+}
+function fundMonthLabel(value){
+    const month=normalizeFundMonth(value);
+    const parts=String(month||"").split("-");
+    const y=Number(parts[0]);
+    const m=Number(parts[1]);
+    if(isFinite(y)&&isFinite(m))return y+"년 "+m+"월";
+    return month;
+}
 function getFundCurrentMonth(){
-    return fundSelectedMonth || (fundSummary&&fundSummary.current_month) || getFundSetting("current_month",new Date().toISOString().slice(0,7));
+    const selected=normalizeFundMonth(fundSelectedMonth);
+    if(selected)return selected;
+    return getFundTodayMonth();
 }
 function getFundWeekCount(){return Math.max(1,Math.min(6,Number(getFundSetting("week_count",4)||4)));}
 function getFundFirstSunday(month){
-    const parts=String(month||new Date().toISOString().slice(0,7)).split("-");
+    const normalized=normalizeFundMonth(month)||getFundTodayMonth();
+    const parts=String(normalized).split("-");
     const year=Number(parts[0])||new Date().getFullYear();
     const monthIndex=(Number(parts[1])||1)-1;
     const first=new Date(year,monthIndex,1);
@@ -16525,15 +16559,16 @@ function renderFundWeekHeader(month,week){
 }
 function renderFundWeekOptions(month,selected){
     const current=String(selected||"1");
-    return Array.from({length:getFundWeekCount()},(_,i)=>String(i+1)).map(w=>`<option value="${w}" ${w===current?'selected':''}>${w}주차 (${safe(getFundWeekRange(month,w))})</option>`).join("");
+    const normalized=normalizeFundMonth(month)||getFundCurrentMonth();
+    return Array.from({length:getFundWeekCount()},(_,i)=>String(i+1)).map(w=>`<option value="${w}" ${w===current?'selected':''}>${w}주차 (${safe(getFundWeekRange(normalized,w))})</option>`).join("");
 }
 function refreshFundSubmitWeekOptions(month){
     const select=document.getElementById("fundSubmitWeek");
-    if(select)select.innerHTML=renderFundWeekOptions(month,select.value);
+    if(select)select.innerHTML=renderFundWeekOptions(normalizeFundMonth(month),select.value);
 }
 function getFundWeeklyFee(){return Number(getFundSetting("weekly_fee",fundSummary&&fundSummary.weekly_fee||20000)||20000);}
 function fundMonthOffset(month,offset){
-    const base=String(month||new Date().toISOString().slice(0,7));
+    const base=normalizeFundMonth(month)||getFundTodayMonth();
     const parts=base.split("-");
     const y=Number(parts[0]);
     const m=Number(parts[1]);
@@ -16541,19 +16576,15 @@ function fundMonthOffset(month,offset){
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
 }
 function getFundMonths(){
-    const set={};
-    const base=(fundSummary&&fundSummary.current_month)||getFundSetting("current_month",new Date().toISOString().slice(0,7));
-    for(let i=-2;i<=1;i++){set[fundMonthOffset(base,i)]=true;}
-    [getFundCurrentMonth(),base].forEach(x=>{if(x)set[String(x)]=true;});
-    (fundRequests||[]).forEach(x=>{if(x.month)set[String(x.month)]=true;});
-    (fundLedger||[]).forEach(x=>{if(x.month)set[String(x.month)]=true;});
-    return Object.keys(set).sort().reverse();
+    const current=getFundCurrentMonth()||getFundTodayMonth();
+    const year=Number(String(current).split("-")[0])||new Date().getFullYear();
+    return Array.from({length:12},(_,i)=>year+"-"+String(i+1).padStart(2,"0"));
 }
 function renderFundMonthSelect(id,selected,attrs){
     const months=getFundMonths();
-    const current=String(selected||getFundCurrentMonth());
-    if(current&&!months.includes(current))months.unshift(current);
-    return `<select class="fund-select" id="${escapeAttr(id)}" ${attrs||""}>${months.map(m=>`<option value="${escapeAttr(m)}" ${m===current?'selected':''}>${safe(m)}</option>`).join("")}</select>`;
+    let current=normalizeFundMonth(selected)||getFundCurrentMonth();
+    if(!months.includes(current))current=getFundTodayMonth();
+    return `<select class="fund-select" id="${escapeAttr(id)}" ${attrs||""}>${months.map(m=>`<option value="${escapeAttr(m)}" ${m===current?'selected':''}>${safe(fundMonthLabel(m))}</option>`).join("")}</select>`;
 }
 function getFundActiveMembers(){
     const rows=(fundMembers||[]).filter(x=>String(x.status||"active").toLowerCase()!=="inactive");
@@ -16578,7 +16609,7 @@ function isFundExempt(member,week){
     return false;
 }
 function getFundRequestsFor(nickname,month,week){
-    return (fundRequests||[]).filter(x=>String(x.nickname||"")===String(nickname)&&String(x.month||"")===String(month)&&String(x.week||"")===String(week));
+    return (fundRequests||[]).filter(x=>String(x.nickname||"")===String(nickname)&&normalizeFundMonth(x.month)===normalizeFundMonth(month)&&String(x.week||"")===String(week));
 }
 function getFundWeekStatus(member,month,week){
     if(isFundExempt(member,week))return "면제";
@@ -16622,6 +16653,14 @@ function fileToBase64(file){
         reader.readAsDataURL(file);
     });
 }
+function getFundApprovedCountForMonth(month){
+    const target=normalizeFundMonth(month);
+    return (fundRequests||[]).filter(x=>normalizeFundMonth(x.month)===target&&String(x.status||"")==="승인").length;
+}
+function getFundCompanyRecognizedForMonth(month){
+    const target=normalizeFundMonth(month);
+    return (fundRequests||[]).filter(x=>normalizeFundMonth(x.month)===target&&String(x.status||"")==="승인"&&String(x.deposit_account||"")==="회사잔고").reduce((sum,x)=>sum+Number(String(x.amount||0).replace(/[$,\s]/g,"")),0);
+}
 function showFund(tab,push){
     currentFundTab=tab||currentFundTab||"status";
     if(!fundSelectedMonth)fundSelectedMonth=getFundCurrentMonth();
@@ -16643,8 +16682,8 @@ function showFund(tab,push){
         <div class="fund-summary-grid">
             <div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">검수대기</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.approved_this_month||0)}</div><div class="fund-summary-label">설정월 승인 건</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value">${fundMoney(fundSummary&&fundSummary.company_recognized_this_month||0)}</div><div class="fund-summary-label">설정월 잔고 인정액</div></div>
+            <div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div>
+            <div class="fund-summary-card"><div class="fund-summary-value">${fundMoney(getFundCompanyRecognizedForMonth(getFundCurrentMonth()))}</div><div class="fund-summary-label">선택월 잔고 인정액</div></div>
         </div>
         <div class="fund-tabs">${tabs.map(t=>`<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`).join("")}</div>
         <div id="fundContent"></div>`;
@@ -16662,8 +16701,7 @@ function renderFundTab(){
     box.innerHTML=renderFundStatus();
 }
 function renderFundMonthToolbar(extra){
-    const months=getFundMonths();
-    return `<div class="fund-toolbar"><div class="fund-toolbar-left"><select class="fund-select" onchange="fundSelectedMonth=this.value;renderFundTab();">${months.map(m=>`<option value="${escapeAttr(m)}" ${m===getFundCurrentMonth()?'selected':''}>${safe(m)}</option>`).join("")}</select>${extra||""}</div><div class="fund-toolbar-right"><span class="fund-help">기본 주간 공금: ${fundMoney(getFundWeeklyFee())}</span></div></div>`;
+    return `<div class="fund-toolbar"><div class="fund-toolbar-left">${renderFundMonthSelect("fundMonthView",getFundCurrentMonth(),`onchange="fundSelectedMonth=this.value;renderFundTab();"`)}${extra||""}</div><div class="fund-toolbar-right"><span class="fund-help">기본 주간 공금: ${fundMoney(getFundWeeklyFee())}</span></div></div>`;
 }
 function renderFundStatus(){
     const month=getFundCurrentMonth();
@@ -16698,19 +16736,19 @@ function renderFundSubmit(){
 function submitFundRequest(){
     const file=document.getElementById("fundSubmitFile")?.files?.[0];
     if(!file){alert("증빙 스크린샷을 첨부해주세요.");return;}
-    fileToBase64(file).then(img=>fundApi(Object.assign({type:"fund_submit",month:document.getElementById("fundSubmitMonth").value,week:document.getElementById("fundSubmitWeek").value,amount:document.getElementById("fundSubmitAmount").value,deposit_account:document.getElementById("fundSubmitAccount").value,memo:document.getElementById("fundSubmitMemo").value},img))).then(data=>{alert(data.message||"제출되었습니다.");currentFundTab="mine";showFund("mine",false);}).catch(err=>alert(err.message||"제출 중 오류가 발생했습니다."));
+    fileToBase64(file).then(img=>fundApi(Object.assign({type:"fund_submit",month:normalizeFundMonth(document.getElementById("fundSubmitMonth").value),week:document.getElementById("fundSubmitWeek").value,amount:document.getElementById("fundSubmitAmount").value,deposit_account:document.getElementById("fundSubmitAccount").value,memo:document.getElementById("fundSubmitMemo").value},img))).then(data=>{alert(data.message||"제출되었습니다.");currentFundTab="mine";showFund("mine",false);}).catch(err=>alert(err.message||"제출 중 오류가 발생했습니다."));
 }
 function renderFundMine(){
     const user=getCurrentUser();
     if(!user)return `<div class="fund-empty">로그인 후 확인할 수 있습니다.</div>`;
     const rows=(fundRequests||[]).filter(x=>String(x.nickname||"")===String(user.nickname)).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
     if(!rows.length)return `<div class="fund-empty">제출한 공금 증빙이 없습니다.</div>`;
-    return `<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>제출일</th><th>월/주차</th><th>금액</th><th>입금위치</th><th>상태</th><th>증빙</th><th class="left">검수메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${formatDate(r.created_at)}</td><td>${safe(r.month)} · ${safe(r.week)}주차</td><td class="money">${fundMoney(r.amount)}</td><td>${safe(r.deposit_account)}</td><td>${fundStatusPill(String(r.status||"검수대기")==="승인"?(r.deposit_account==="회사잔고"?"잔고":"공용"):String(r.status||"검수대기")==="반려"?"반려":"대기")}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.review_memo||"")}</td></tr>`).join("")}</tbody></table></div>`;
+    return `<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>제출일</th><th>월/주차</th><th>금액</th><th>입금위치</th><th>상태</th><th>증빙</th><th class="left">검수메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${formatDate(r.created_at)}</td><td>${safe(fundMonthLabel(r.month))} · ${safe(r.week)}주차</td><td class="money">${fundMoney(r.amount)}</td><td>${safe(r.deposit_account)}</td><td>${fundStatusPill(String(r.status||"검수대기")==="승인"?(r.deposit_account==="회사잔고"?"잔고":"공용"):String(r.status||"검수대기")==="반려"?"반려":"대기")}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.review_memo||"")}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function renderFundReview(){
     const rows=(fundRequests||[]).filter(x=>String(x.status||"검수대기")==="검수대기"||String(x.status||"")==="보류").sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
     if(!rows.length)return `<div class="fund-empty">검수대기 중인 공금 신청이 없습니다.</div>`;
-    return rows.map(r=>`<div class="fund-request-card"><div class="fund-request-head"><div><div class="fund-request-title">${safe(r.nickname)} · ${safe(r.month)} ${safe(r.week)}주차 · ${fundMoney(r.amount)}</div><div class="fund-request-meta">입금위치 ${safe(r.deposit_account)} · 제출일 ${formatDate(r.created_at)} · ${safe(r.memo||"")}</div></div><div>${fundEvidenceLink(r.evidence_url,"증빙 보기")}</div></div><div class="fund-request-actions"><input class="fund-input" id="reviewMemo_${escapeAttr(r.id)}" placeholder="검수 메모/반려 사유"><button class="fund-btn primary" onclick="reviewFundRequest('${escapeText(r.id)}','승인')">승인</button><button class="fund-btn" onclick="reviewFundRequest('${escapeText(r.id)}','보류')">보류</button><button class="fund-btn danger" onclick="reviewFundRequest('${escapeText(r.id)}','반려')">반려</button></div></div>`).join("");
+    return rows.map(r=>`<div class="fund-request-card"><div class="fund-request-head"><div><div class="fund-request-title">${safe(r.nickname)} · ${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차 · ${fundMoney(r.amount)}</div><div class="fund-request-meta">입금위치 ${safe(r.deposit_account)} · 제출일 ${formatDate(r.created_at)} · ${safe(r.memo||"")}</div></div><div>${fundEvidenceLink(r.evidence_url,"증빙 보기")}</div></div><div class="fund-request-actions"><input class="fund-input" id="reviewMemo_${escapeAttr(r.id)}" placeholder="검수 메모/반려 사유"><button class="fund-btn primary" onclick="reviewFundRequest('${escapeText(r.id)}','승인')">승인</button><button class="fund-btn" onclick="reviewFundRequest('${escapeText(r.id)}','보류')">보류</button><button class="fund-btn danger" onclick="reviewFundRequest('${escapeText(r.id)}','반려')">반려</button></div></div>`).join("");
 }
 function reviewFundRequest(id,action){
     const memo=document.getElementById("reviewMemo_"+id)?.value||"";
@@ -16719,8 +16757,8 @@ function reviewFundRequest(id,action){
 }
 function renderFundLedger(){
     const month=getFundCurrentMonth();
-    const rows=(fundLedger||[]).filter(x=>!month||String(x.month||"")===String(month)||!x.month).sort((a,b)=>new Date(b.date||b.created_at||0)-new Date(a.date||a.created_at||0));
-    return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div><div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${formatDateOnly(r.date||r.created_at)}</td><td>${safe(r.type)}</td><td>${safe(r.category)}</td><td>${safe(r.nickname)}</td><td>${safe(r.month)} ${r.week?safe(r.week)+'주차':''}</td><td class="money ${String(r.direction)==='지출'?'minus':String(r.direction)==='수입'?'plus':''}">${String(r.direction)==='지출'?'-':''}${fundMoney(r.amount)}</td><td>${safe(r.direction)}</td><td>${safe(r.account)}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.memo||"")}</td></tr>`).join("")||`<tr><td colspan="10"><div class="fund-empty">공금내역이 없습니다.</div></td></tr>`}</tbody></table></div>`;
+    const rows=(fundLedger||[]).filter(x=>!month||normalizeFundMonth(x.month)===normalizeFundMonth(month)||!x.month).sort((a,b)=>new Date(b.date||b.created_at||0)-new Date(a.date||a.created_at||0));
+    return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div><div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${formatDateOnly(r.date||r.created_at)}</td><td>${safe(r.type)}</td><td>${safe(r.category)}</td><td>${safe(r.nickname)}</td><td>${safe(fundMonthLabel(r.month))} ${r.week?safe(r.week)+'주차':''}</td><td class="money ${String(r.direction)==='지출'?'minus':String(r.direction)==='수입'?'plus':''}">${String(r.direction)==='지출'?'-':''}${fundMoney(r.amount)}</td><td>${safe(r.direction)}</td><td>${safe(r.account)}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.memo||"")}</td></tr>`).join("")||`<tr><td colspan="10"><div class="fund-empty">공금내역이 없습니다.</div></td></tr>`}</tbody></table></div>`;
 }
 function openFundLedgerForm(){
     const box=document.getElementById("fundLedgerForm");
@@ -16729,7 +16767,7 @@ function openFundLedgerForm(){
 }
 function submitFundLedger(){
     const file=document.getElementById("ledgerFile")?.files?.[0];
-    fileToBase64(file).then(img=>fundAdminApi(Object.assign({type:"fund_ledger_create",direction:document.getElementById("ledgerDirection").value,account:document.getElementById("ledgerAccount").value,amount:document.getElementById("ledgerAmount").value,category:document.getElementById("ledgerCategory").value||"기타",month:document.getElementById("ledgerMonth").value,memo:document.getElementById("ledgerMemo").value},img||{}))).then(data=>alert(data.message||"등록되었습니다."));
+    fileToBase64(file).then(img=>fundAdminApi(Object.assign({type:"fund_ledger_create",direction:document.getElementById("ledgerDirection").value,account:document.getElementById("ledgerAccount").value,amount:document.getElementById("ledgerAmount").value,category:document.getElementById("ledgerCategory").value||"기타",month:normalizeFundMonth(document.getElementById("ledgerMonth").value),memo:document.getElementById("ledgerMemo").value},img||{}))).then(data=>alert(data.message||"등록되었습니다."));
 }
 function renderFundBalance(){
     const latest=(fundBalanceChecks||[]).slice().sort((a,b)=>new Date(b.checked_at||0)-new Date(a.checked_at||0))[0];
