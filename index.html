@@ -4405,7 +4405,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyqCf5KB8K4lU6Ay8HF7XS45Nc3MXMh2lXHLxXrRIPRX3D3nubp5Iute0WycvveQ0pj7A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzGH4WQGNkHkau3og-UUk_611poq_4Sbwm62OyONYB655NTZPYiAbCv8OK-_Qw2UjT5DA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -5071,17 +5071,34 @@ function applyPartialData(source,scope){
 }
 function requestPartialRefresh(scope){
     const payload=getPartialRefreshPayload(scope);
-    return fetch(API_URL,{method:"POST",cache:"no-store",body:JSON.stringify(payload)})
-        .then(function(res){return res.json();})
-        .then(function(data){
-            if(data&&data.result==="success"){
-                applyPartialData(data,scope);
-                return data;
-            }
-            const hasUsefulData=!!(data&&(data.fundRequests||data.fund_requests||data.boards||data.tubes||data.galleries||data.notices||data.foodOrders||data.food_orders||data.rankings));
-            if(hasUsefulData){applyPartialData(data,scope);return data;}
-            throw new Error((data&&data.message)||"partial refresh unsupported");
-        });
+    const controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(function(){
+        try{ controller.abort(); }catch(e){}
+    }, 12000) : null;
+
+    return fetch(API_URL,{
+        method:"POST",
+        cache:"no-store",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(payload),
+        signal:controller ? controller.signal : undefined
+    })
+    .then(function(res){
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        return res.json();
+    })
+    .then(function(data){
+        if(data&&data.result==="success"){
+            applyPartialData(data,scope);
+            return data;
+        }
+        const hasUsefulData=!!(data&&(data.fundRequests||data.fund_requests||data.boards||data.tubes||data.galleries||data.notices||data.foodOrders||data.food_orders||data.rankings));
+        if(hasUsefulData){applyPartialData(data,scope);return data;}
+        throw new Error((data&&data.message)||"partial refresh unsupported");
+    })
+    .finally(function(){
+        if(timeoutId)clearTimeout(timeoutId);
+    });
 }
 function rerenderCurrentPageScope(scope){
     const key=String(scope||currentMainSection||"");
@@ -5120,7 +5137,19 @@ function finishPageRefresh(scope,message,type){
     pageRefreshBusyMap[key]=false;
     pageRefreshNoticeMap[key]=message||"";
     pageRefreshNoticeTypeMap[key]=type||"";
-    rerenderCurrentPageScope(key);
+
+    // 기존 DOM 버튼이 남아 있어도 반드시 먼저 잠금을 해제합니다.
+    setPageRefreshButtonState(key,false);
+
+    try{
+        rerenderCurrentPageScope(key);
+    }catch(err){
+        console.error("page refresh rerender failed", err);
+        setPageRefreshButtonState(key,false);
+        pageRefreshNoticeMap[key]=message||"처리는 완료됐지만 화면 정리에 실패했습니다.";
+        pageRefreshNoticeTypeMap[key]=type||"err";
+    }
+
     if(pageRefreshTimerMap[key])clearTimeout(pageRefreshTimerMap[key]);
     pageRefreshTimerMap[key]=setTimeout(function(){
         pageRefreshNoticeMap[key]="";
@@ -5136,15 +5165,29 @@ function refreshCurrentPageOnly(scope){
     pageRefreshNoticeMap[key]="";
     pageRefreshNoticeTypeMap[key]="";
     setPageRefreshButtonState(key,true);
+
+    const hardUnlockTimer=setTimeout(function(){
+        if(pageRefreshBusyMap[key]){
+            finishPageRefresh(key,"응답 지연 · 다시 시도 가능","err");
+        }
+    },15000);
+
     requestPartialRefresh(key)
         .then(function(){finishPageRefresh(key,"최신 자료 반영됨","ok");})
-        .catch(function(){
+        .catch(function(err){
+            console.error("partial refresh failed",err);
             if(PAGE_REFRESH_USE_FULL_FALLBACK){
-                refreshData().then(function(){finishPageRefresh(key,"전체 자료로 반영됨","ok");})
+                refreshData()
+                    .then(function(){finishPageRefresh(key,"전체 자료로 반영됨","ok");})
                     .catch(function(){finishPageRefresh(key,"불러오기 실패","err");});
                 return;
             }
-            finishPageRefresh(key,"전용 새로고침 미지원","err");
+            finishPageRefresh(key,"불러오기 실패","err");
+        })
+        .finally(function(){
+            clearTimeout(hardUnlockTimer);
+            pageRefreshBusyMap[key]=false;
+            setPageRefreshButtonState(key,false);
         });
 }
 
