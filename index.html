@@ -17153,9 +17153,54 @@ function renderFundMonthSelect(id,selected,attrs){
     return `<select class="fund-select" id="${escapeAttr(id)}" ${attrs||""}>${months.map(m=>`<option value="${escapeAttr(m)}" ${m===current?'selected':''}>${safe(fundMonthLabel(m))}</option>`).join("")}</select>`;
 }
 function getFundActiveMembers(){
-    const rows=(fundMembers||[]).filter(x=>String(x.status||"active").toLowerCase()!=="inactive");
-    if(rows.length)return rows;
-    return (rankings||[]).map(x=>({nickname:x.nickname,status:"active",join_date:x.created_at||"",note:"회원목록 기준 자동 표시"})).filter(x=>x.nickname);
+    const list=[];
+    const seen={};
+    function addMember(item,sourceNote){
+        if(!item)return;
+        const nickname=String(item.nickname||item.name||"").trim();
+        if(!nickname||seen[nickname])return;
+        const status=String(item.status||"active").toLowerCase();
+        if(status==="inactive")return;
+        seen[nickname]=true;
+        list.push({
+            id:item.id||"",
+            nickname:nickname,
+            status:"active",
+            join_date:item.join_date||item.created_at||"",
+            exempt_until:item.exempt_until||"",
+            note:item.note||sourceNote||""
+        });
+    }
+
+    (fundMembers||[]).forEach(m=>addMember(m,""));
+
+    /*
+      공금멤버 시트에 일부 인원만 등록된 상태에서도,
+      현재 로그인한 관리자는 공금 납부 대상에서 빠지지 않도록 보정합니다.
+      관리자는 랭킹 목록에서 제외되는 구조라 월별현황/멤버관리에서 누락될 수 있습니다.
+    */
+    const currentUser=getCurrentUser&&getCurrentUser();
+    if(currentUser&&currentUser.nickname&&isCurrentAdmin&&isCurrentAdmin()){
+        addMember({
+            id:currentUser.id||"",
+            nickname:currentUser.nickname,
+            status:currentUser.status||"active",
+            join_date:currentUser.created_at||"",
+            exempt_until:"",
+            note:"관리자 자동 포함"
+        },"관리자 자동 포함");
+    }
+
+    if(list.length)return list;
+
+    (rankings||[]).forEach(x=>addMember({
+        nickname:x.nickname,
+        status:x.status||"active",
+        join_date:x.created_at||"",
+        note:"회원목록 기준 자동 표시"
+    },"회원목록 기준 자동 표시"));
+
+    return list;
 }
 function fundStatusClass(status){
     if(status==="공용")return "public";
