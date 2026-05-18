@@ -17367,7 +17367,7 @@ function renderFundStatus(){
 function renderFundSubmitterField(user){
     const currentName=String(user&&user.nickname||"").trim();
     if(!isCurrentAdmin()){
-        return `<input class="fund-input" id="fundSubmitter" value="${escapeAttr(currentName)}" disabled><div class="fund-mini-help">일반 이용자는 본인 이름으로만 제출됩니다.</div>`;
+        return `<input class="fund-input" id="fundSubmitter" value="${escapeAttr(currentName)}" disabled><div class="fund-mini-help fund-submit-help-compact">본인 명의로 제출됩니다.</div>`;
     }
     const names=[];
     const seen={};
@@ -17381,7 +17381,7 @@ function renderFundSubmitterField(user){
     getFundActiveMembers().forEach(m=>addName(m.nickname));
     (rankings||[]).forEach(m=>addName(m.nickname));
     const options=names.map(n=>`<option value="${escapeAttr(n)}" ${n===currentName?'selected':''}>${safe(n)}</option>`).join("");
-    return `<select class="fund-select fund-submitter-select" id="fundSubmitter">${options}</select><div class="fund-mini-help">관리자는 다른 멤버 이름으로 대리 제출할 수 있습니다. 기본값은 본인입니다.</div>`;
+    return `<select class="fund-select fund-submitter-select" id="fundSubmitter">${options}</select><div class="fund-mini-help fund-submit-help-compact">관리자는 제출자를 선택할 수 있습니다.</div>`;
 }
 function renderFundSubmit(){
     const user=getCurrentUser();
@@ -18312,6 +18312,44 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 .fund-split-help{margin-top:8px;color:#999;font-size:12px;font-weight:850;line-height:1.45}
 .fund-payment-detail{display:block;margin-top:4px;color:#888;font-size:11.5px;font-weight:850;line-height:1.35}
 .fund-status-pill.paid{color:#6ee7a8;background:rgba(110,231,168,.10);border-color:rgba(110,231,168,.30)}
+
+/* AXE NET V16.1: 공금 납부제출 입력 박스 균형 정리 */
+.fund-submit-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    align-items:start;
+    gap:11px 12px!important;
+}
+.fund-submit-field{
+    min-width:0;
+}
+.fund-submit-field .fund-input,
+.fund-submit-field .fund-select,
+.fund-submit-field .fund-file{
+    width:100%;
+    min-width:0;
+}
+.fund-submit-help-compact{
+    min-height:17px;
+    font-size:11.5px!important;
+    line-height:1.35!important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.fund-submit-grid .fund-split-box{
+    grid-column:1 / -1;
+}
+.fund-submit-grid + .fund-label{
+    margin-top:12px;
+}
+@media(max-width:920px){
+    .fund-submit-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:620px){
+    .fund-submit-grid{grid-template-columns:1fr!important}
+    .fund-submit-help-compact{white-space:normal;min-height:auto}
+}
+
 @media(max-width:760px){.fund-split-grid{grid-template-columns:1fr}.fund-split-total{justify-content:flex-start;padding:0 12px}}
 </style>
 
@@ -18411,13 +18449,13 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         const month=getFundCurrentMonth();
         const fee=getFundWeeklyFee();
         return `<div class="fund-form-card"><div class="fund-form-title">공금 납부 증빙 제출</div>
-            <div class="fund-form-grid">
-                <div><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
-                <div><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help">전월 미납분도 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div></div>
-                <div><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
-                <div><div class="fund-label">납부 방식</div><select class="fund-select" id="fundSubmitPaymentMode" onchange="updateFundPaymentModeUI()"><option value="공용계좌">공용계좌 전액</option><option value="회사잔고">회사잔고 전액</option><option value="분할납부">분할납부</option></select></div>
-                <div><div class="fund-label">총 납부금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
-                <div><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
+            <div class="fund-form-grid fund-submit-grid">
+                <div class="fund-submit-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
+                <div class="fund-submit-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help fund-submit-help-compact">주차별 날짜 범위를 확인하세요.</div></div>
+                <div class="fund-submit-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select><div class="fund-mini-help fund-submit-help-compact">납부할 주차를 선택하세요.</div></div>
+                <div class="fund-submit-field"><div class="fund-label">납부 방식</div><select class="fund-select" id="fundSubmitPaymentMode" onchange="updateFundPaymentModeUI()"><option value="공용계좌">공용계좌 전액</option><option value="회사잔고">회사잔고 전액</option><option value="분할납부">분할납부</option></select></div>
+                <div class="fund-submit-field"><div class="fund-label">총 납부금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
+                <div class="fund-submit-field"><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
                 <div id="fundSplitBox" class="fund-split-box">
                     <div class="fund-split-grid">
                         <div><div class="fund-label">공용계좌 입금액</div><input class="fund-input" id="fundSubmitPublicAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
