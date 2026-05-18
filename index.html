@@ -17345,53 +17345,144 @@ function setFundSubmitFormLocked(locked,btn){
         }
     });
 }
+function postFundSubmitDirect(payload){
+    const user=getCurrentUser();
+    if(!user||!user.nickname){
+        alert("로그인 후 이용 가능합니다.");
+        openAuthModal("login");
+        return Promise.reject(new Error("로그인이 필요합니다."));
+    }
+    const body=Object.assign({},payload||{});
+    let requestNickname=user.nickname;
+    if(body.type==="fund_submit"&&body.submitter_nickname&&isCurrentAdmin()){
+        requestNickname=String(body.submitter_nickname||user.nickname).trim()||user.nickname;
+        body.proxy_admin_nickname=user.nickname;
+        body.admin_proxy="Y";
+    }
+    body.login_nickname=user.nickname;
+    body.nickname=requestNickname;
+
+    const controller=(typeof AbortController!=="undefined")?new AbortController():null;
+    const timeout=setTimeout(()=>{
+        try{if(controller)controller.abort();}catch(e){}
+    },45000);
+
+    return fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify(body),
+        signal:controller?controller.signal:undefined
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        if(!data||data.result!=="success"){
+            throw new Error((data&&data.message)||"공금 증빙 제출에 실패했습니다.");
+        }
+        return data;
+    })
+    .catch(err=>{
+        if(err&&err.name==="AbortError"){
+            throw new Error("응답 시간이 오래 걸려 제출을 중단했습니다. 공금신청 시트에 접수 여부를 확인한 뒤 다시 시도해주세요.");
+        }
+        throw err;
+    })
+    .finally(()=>clearTimeout(timeout));
+}
 function submitFundRequest(btn){
     const lockKey="fund_submit_request";
     if(!axeActionBegin(lockKey)){
-        setFundSubmitStatus("loading","이미 제출 처리 중입니다. 중복 등록 방지를 위해 완료될 때까지 기다려주세요.");
+        setFundSubmitStatus("error","이전 제출 잠금이 남아 있습니다. 새로고침 없이도 다시 시도할 수 있도록 잠금을 해제했습니다. 다시 한 번 눌러주세요.");
+        setFundSubmitFormLocked(false,btn);
+        axeActionEnd(lockKey);
         return;
     }
+
+    const releaseSubmitLock=function(){
+        try{axeActionEnd(lockKey);}catch(e){}
+        try{setFundSubmitFormLocked(false,btn);}catch(e){}
+    };
+
     const file=document.getElementById("fundSubmitFile")?.files?.[0];
     if(!file){
-        axeActionEnd(lockKey);
+        releaseSubmitLock();
         setFundSubmitStatus("error","증빙 스크린샷을 먼저 첨부해주세요.");
         return;
     }
+    const maxFileSize=3*1024*1024;
+    if(file.size&&file.size>maxFileSize){
+        releaseSubmitLock();
+        setFundSubmitStatus("error","증빙 이미지는 3MB 이하로 첨부해주세요. 스크린샷을 잘라내거나 압축한 뒤 다시 제출해주세요.");
+        return;
+    }
+
     setFundSubmitFormLocked(true,btn);
-    setFundSubmitStatus("loading","증빙 스크린샷을 제출 중입니다. 중복 등록 방지를 위해 버튼을 잠궜습니다.");
+    setFundSubmitStatus("loading","증빙 스크린샷을 읽는 중입니다. 완료될 때까지 창을 닫지 마세요.");
+
     const user=getCurrentUser();
     const submitter=String(document.getElementById("fundSubmitter")?.value||user?.nickname||"").trim();
     if(!submitter){
-        axeActionEnd(lockKey);
-        setFundSubmitFormLocked(false,btn);
+        releaseSubmitLock();
         setFundSubmitStatus("error","제출자를 확인할 수 없습니다.");
         return;
     }
     const isProxySubmit=isCurrentAdmin()&&user&&submitter!==String(user.nickname||"");
     const rawMemo=document.getElementById("fundSubmitMemo").value||"";
+    const month=normalizeFundMonth(document.getElementById("fundSubmitMonth").value);
+    const week=document.getElementById("fundSubmitWeek").value;
+    const amount=document.getElementById("fundSubmitAmount").value;
+    const depositAccount=document.getElementById("fundSubmitAccount").value;
+    const memo=isProxySubmit?("[관리자 대리제출: "+user.nickname+"] "+rawMemo).trim():rawMemo;
     const payload={
         type:"fund_submit",
         submitter_nickname:submitter,
         proxy_admin_nickname:isProxySubmit?user.nickname:"",
         admin_proxy:isProxySubmit?"Y":"N",
-        month:normalizeFundMonth(document.getElementById("fundSubmitMonth").value),
-        week:document.getElementById("fundSubmitWeek").value,
-        amount:document.getElementById("fundSubmitAmount").value,
-        deposit_account:document.getElementById("fundSubmitAccount").value,
-        memo:isProxySubmit?("[관리자 대리제출: "+user.nickname+"] "+rawMemo).trim():rawMemo
+        month:month,
+        week:week,
+        amount:amount,
+        deposit_account:depositAccount,
+        memo:memo
     };
+
     fileToBase64(file)
-    .then(img=>fundApi(Object.assign(payload,img)))
+    .then(img=>{
+        setFundSubmitStatus("loading","증빙 스크린샷을 서버에 등록 중입니다. 보통 수 초 정도 걸릴 수 있습니다.");
+        return postFundSubmitDirect(Object.assign(payload,img||{}));
+    })
     .then(data=>{
+        const now=new Date().toISOString();
+        const newRow={
+            id:data.id||String(Date.now()),
+            created_at:now,
+            nickname:submitter,
+            month:month,
+            week:week,
+            amount:amount,
+            deposit_account:depositAccount,
+            evidence_url:data.evidence_url||"",
+            evidence_file_id:data.evidence_file_id||"",
+            memo:memo,
+            status:"검수대기",
+            reviewed_by:"",
+            reviewed_at:"",
+            review_memo:""
+        };
+        if(Array.isArray(fundRequests))fundRequests.unshift(newRow);
         setFundSubmitStatus("success",data.message||"제출되었습니다. 내 제출 화면으로 이동합니다.");
-        setTimeout(()=>{currentFundTab="mine";showFund("mine",false);},650);
+        setTimeout(()=>{
+            releaseSubmitLock();
+            currentFundTab="mine";
+            showFund("mine",false);
+            if(typeof requestPartialRefresh==="function"){
+                requestPartialRefresh("fund").catch(()=>{});
+            }
+        },500);
     })
     .catch(err=>{
-        setFundSubmitStatus("error",err.message||"제출 중 오류가 발생했습니다. 내용을 확인한 뒤 다시 제출해주세요.");
-        setFundSubmitFormLocked(false,btn);
-        axeActionEnd(lockKey);
+        releaseSubmitLock();
+        setFundSubmitStatus("error",(err&&err.message)||"제출 중 오류가 발생했습니다. 공금신청 시트에 접수 여부를 확인한 뒤 다시 제출해주세요.");
     });
 }
+
 function renderFundMine(){
     const user=getCurrentUser();
     if(!user)return `<div class="fund-empty">로그인 후 확인할 수 있습니다.</div>`;
