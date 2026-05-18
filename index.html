@@ -4405,7 +4405,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzGH4WQGNkHkau3og-UUk_611poq_4Sbwm62OyONYB655NTZPYiAbCv8OK-_Qw2UjT5DA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyqCf5KB8K4lU6Ay8HF7XS45Nc3MXMh2lXHLxXrRIPRX3D3nubp5Iute0WycvveQ0pj7A/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -13908,6 +13908,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="section-desc">AXE 구성원들이 자유롭게 글을 남기는 공간입니다.</div>
                 </div>
                 <div class="section-action">
+                    ${renderPageRefreshAction("board")}
                     <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
                 </div>
             </div>
@@ -13976,6 +13977,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="section-desc">AXE 활동 사진과 이미지를 공유하는 공간입니다.</div>
                 </div>
                 <div class="section-action">
+                    ${renderPageRefreshAction("gallery")}
                     <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
                 </div>
             </div>
@@ -14041,6 +14043,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
                 </div>
                 <div class="section-action">
+                    ${renderPageRefreshAction("tube")}
                     <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
                 </div>
             </div>
@@ -14157,6 +14160,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="section-desc">AXE 구성원들이 자유롭게 글을 남기는 공간입니다.</div>
                 </div>
                 <div class="section-action">
+                    ${renderPageRefreshAction("board")}
                     ${renderPcSearchToggle("board")}
                     <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
                 </div>
@@ -14234,6 +14238,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="section-desc">AXE 활동 사진과 이미지를 공유하는 공간입니다.</div>
                 </div>
                 <div class="section-action">
+                    ${renderPageRefreshAction("gallery")}
                     ${renderPcSearchToggle("gallery")}
                     <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
                 </div>
@@ -14309,6 +14314,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                     <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
                 </div>
                 <div class="section-action">
+                    ${renderPageRefreshAction("tube")}
                     ${renderPcSearchToggle("tube")}
                     <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
                 </div>
@@ -17439,6 +17445,92 @@ function renderFundMembers(){
 function fillFundMember(n,j,e,note){document.getElementById("fundMemberNickname").value=n;document.getElementById("fundMemberJoin").value=j;document.getElementById("fundMemberExempt").value=e;document.getElementById("fundMemberNote").value=note;}
 function saveFundMember(){fundAdminApi({type:"fund_member_save",nickname:document.getElementById("fundMemberNickname").value,join_date:document.getElementById("fundMemberJoin").value,exempt_until:document.getElementById("fundMemberExempt").value,note:document.getElementById("fundMemberNote").value,status:"active"}).then(data=>alert(data.message||"저장되었습니다."));}
 function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버에서 비활성 처리할까요?"))return;fundAdminApi({type:"fund_member_disable",nickname:nickname}).then(data=>alert(data.message||"처리되었습니다."));}
+</script>
+
+
+
+<script>
+/* AXE NET V15.2: 주요 카테고리 현재 화면 새로고침 버튼 보강 */
+(function(){
+    const REFRESHABLE_SCOPES={
+        home:true,
+        notice:true,
+        board:true,
+        gallery:true,
+        tube:true,
+        fund:true,
+        food:true,
+        foodAdmin:true,
+        ranking:true
+    };
+
+    function getScopeFromFunctionName(fnName){
+        if(fnName==="showHome")return "home";
+        if(fnName==="showNotice")return "notice";
+        if(fnName==="showBoard")return "board";
+        if(fnName==="showGallery")return "gallery";
+        if(fnName==="showTube")return "tube";
+        if(fnName==="showFund")return "fund";
+        if(fnName==="showFoodOrder")return "food";
+        if(fnName==="showFoodOrderAdmin")return "foodAdmin";
+        if(fnName==="showRanking")return "ranking";
+        return "";
+    }
+
+    function getCurrentRefreshScope(){
+        const s=String(currentMainSection||"");
+        if(REFRESHABLE_SCOPES[s])return s;
+        const route=(typeof parseRouteFromHash==="function"?parseRouteFromHash():null)||history.state||{};
+        const page=String(route.page||"");
+        return REFRESHABLE_SCOPES[page]?page:"";
+    }
+
+    window.ensureCurrentScreenRefreshButton=function(scope){
+        const key=String(scope||getCurrentRefreshScope()||"");
+        if(!key||!REFRESHABLE_SCOPES[key])return;
+        if(typeof renderPageRefreshAction!=="function")return;
+        const content=document.getElementById("content");
+        if(!content)return;
+        if(content.querySelector("#pageRefreshBtn_"+CSS.escape(key)))return;
+
+        let head=content.querySelector(".section-head.with-action")||content.querySelector(".section-head");
+        if(!head)return;
+        head.classList.add("with-action");
+
+        let action=head.querySelector(":scope > .section-action");
+        if(!action){
+            action=document.createElement("div");
+            action.className="section-action";
+            head.appendChild(action);
+        }
+        const holder=document.createElement("span");
+        holder.innerHTML=renderPageRefreshAction(key);
+        const node=holder.firstElementChild;
+        if(!node)return;
+        action.insertBefore(node,action.firstChild);
+    };
+
+    ["showHome","showNotice","showBoard","showGallery","showTube","showFund","showFoodOrder","showFoodOrderAdmin","showRanking"].forEach(function(fnName){
+        const original=window[fnName];
+        if(typeof original!=="function"||original.__refreshGuarded)return;
+        const wrapped=function(){
+            const result=original.apply(this,arguments);
+            const scope=getScopeFromFunctionName(fnName);
+            setTimeout(function(){ensureCurrentScreenRefreshButton(scope);},0);
+            setTimeout(function(){ensureCurrentScreenRefreshButton(scope);},80);
+            return result;
+        };
+        wrapped.__refreshGuarded=true;
+        window[fnName]=wrapped;
+    });
+
+    document.addEventListener("DOMContentLoaded",function(){
+        setTimeout(function(){ensureCurrentScreenRefreshButton();},120);
+    });
+    window.addEventListener("load",function(){
+        setTimeout(function(){ensureCurrentScreenRefreshButton();},180);
+    });
+})();
 </script>
 
 </body>
