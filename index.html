@@ -4142,6 +4142,18 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 }
 </style>
 
+
+<style id="axe-fund-filter-submit-polish">
+/* AXE NET 공금관리: 필터/월별현황/공금납부 UI 개선 */
+.fund-summary-grid-premium{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+.fund-status-overview{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:12px;margin:0 0 12px;padding:15px;border:1px solid rgba(255,181,46,.16);border-radius:18px;background:linear-gradient(135deg,rgba(255,181,46,.075),rgba(255,255,255,.02)),rgba(0,0,0,.22)}
+.fund-overview-kicker{color:#ffb52e;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.fund-overview-title{font-size:23px;font-weight:950;color:#fff}.fund-overview-desc{margin-top:6px;color:#aaa;font-size:13px;line-height:1.5}.fund-overview-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.fund-overview-stats div{min-height:72px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.24);display:flex;flex-direction:column;align-items:center;justify-content:center}.fund-overview-stats strong{font-size:21px;color:#ffcf75;font-weight:950}.fund-overview-stats span{margin-top:5px;color:#888;font-size:11.5px;font-weight:850}
+.fund-filter-panel{margin:0 0 12px;padding:14px;border:1px solid rgba(255,255,255,.075);border-radius:17px;background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.24)}.fund-filter-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.fund-filter-title{color:#ffb52e;font-size:16px;font-weight:950}.fund-filter-desc{margin-top:4px;color:#888;font-size:12.5px;line-height:1.45}.fund-filter-grid{display:grid;grid-template-columns:1.1fr .9fr .9fr;gap:10px}.fund-filter-grid label{display:block;min-width:0}.fund-filter-grid span{display:block;margin:0 0 5px 2px;color:#aaa;font-size:12px;font-weight:950}.fund-filter-grid .fund-select{width:100%;height:39px}.fund-ledger-result-line{margin:0 0 10px;color:#aaa;font-size:12.5px;font-weight:850;line-height:1.4}
+.fund-submit-premium-card{overflow:hidden;border:1px solid rgba(255,181,46,.18);border-radius:22px;background:radial-gradient(circle at top left,rgba(255,181,46,.11),transparent 32%),linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.012)),rgba(0,0,0,.28);box-shadow:0 18px 44px rgba(0,0,0,.28)}.fund-submit-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.018)}.fund-submit-kicker{color:#ffb52e;font-size:11px;font-weight:950;letter-spacing:1.1px}.fund-submit-title{margin-top:5px;color:#fff;font-size:29px;font-weight:950;letter-spacing:-.4px}.fund-submit-desc{max-width:720px;margin-top:7px;color:#aaa;font-size:13.5px;line-height:1.55}.fund-submit-fee{flex:0 0 auto;min-width:160px;padding:13px 15px;border-radius:16px;border:1px solid rgba(255,181,46,.24);background:rgba(255,181,46,.075);text-align:right}.fund-submit-fee span{display:block;color:#999;font-size:11.5px;font-weight:900}.fund-submit-fee strong{display:block;margin-top:5px;color:#ffcf75;font-size:24px;font-weight:950}.fund-submit-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0}.fund-submit-section{padding:18px 20px}.fund-submit-section-side{border-left:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.14)}.fund-submit-section-title{margin-bottom:12px;color:#ffb52e;font-size:15px;font-weight:950}.fund-submit-compact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;max-width:720px}.fund-field{min-width:0}.fund-field-amount{max-width:220px}.fund-submit-premium-card .fund-input,.fund-submit-premium-card .fund-select{width:100%;height:40px;border-radius:12px}.fund-submitter-select{width:100%!important}.fund-submit-help-compact{display:none!important}.fund-submit-note-inline{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(255,181,46,.055);border:1px solid rgba(255,181,46,.13);color:#aaa;font-size:12.5px;line-height:1.45}.fund-file-premium{height:42px}.fund-textarea-premium{min-height:96px!important}.fund-submit-main-btn{width:100%;height:43px;margin-top:12px!important;border-radius:13px!important}.fund-submit-bottom-help{padding:13px 20px;border-top:1px solid rgba(255,255,255,.075);color:#888;font-size:12.5px;line-height:1.5;background:rgba(255,255,255,.012)}
+@media(max-width:920px){.fund-summary-grid-premium{grid-template-columns:1fr 1fr!important}.fund-status-overview{grid-template-columns:1fr}.fund-overview-stats{grid-template-columns:repeat(4,1fr)}.fund-filter-grid{grid-template-columns:1fr}.fund-submit-layout{grid-template-columns:1fr}.fund-submit-section-side{border-left:0;border-top:1px solid rgba(255,255,255,.075)}.fund-submit-compact-grid{max-width:none}}
+@media(max-width:620px){.fund-summary-grid-premium{grid-template-columns:1fr!important}.fund-status-overview{padding:13px;border-radius:16px}.fund-overview-stats{grid-template-columns:1fr 1fr}.fund-filter-head{display:block}.fund-filter-head .fund-btn{width:100%;margin-top:10px}.fund-submit-hero{display:block;padding:17px}.fund-submit-title{font-size:25px}.fund-submit-fee{text-align:left;margin-top:13px}.fund-submit-section{padding:15px}.fund-submit-compact-grid{grid-template-columns:1fr}.fund-field-amount{max-width:none}.fund-submit-bottom-help{padding:12px 15px}}
+</style>
+
 </head>
 
 <body>
@@ -17318,7 +17330,7 @@ function showFund(tab,push){
     const admin=isCurrentAdmin();
     const tabs=[
         ["status","월별현황"],
-        ["submit","납부제출"],
+        ["submit","공금납부"],
         ["mine","내 제출"],
         ...(admin?[["review","검수대기"],["ledger","공금내역/지출"],["balance","잔액점검"],["members","멤버관리"]]:[])
     ];
@@ -17329,7 +17341,7 @@ function showFund(tab,push){
             <div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">팀원 증빙 제출, 운영진 검수, 월별 공금표, 공용계좌 잔액을 통합 관리합니다.</div></div>
             ${renderFundManualRefreshArea()}
         </div>
-        <div class="fund-summary-grid">
+        <div class="fund-summary-grid fund-summary-grid-premium">
             <div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">검수대기</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div>
@@ -17357,12 +17369,38 @@ function renderFundStatus(){
     const month=getFundCurrentMonth();
     const weeks=Array.from({length:getFundWeekCount()},(_,i)=>String(i+1));
     const members=getFundActiveMembers();
+    let totalUnpaid=0;
+    let totalPaid=0;
+    let totalPending=0;
     const rows=members.map(m=>{
         let unpaid=0;
-        const cells=weeks.map(w=>{const st=getFundWeekStatus(m,month,w);if(st==="미납"||st==="반려")unpaid++;return `<td>${fundStatusPill(st)}</td>`;}).join("");
+        const cells=weeks.map(w=>{
+            const st=getFundWeekStatus(m,month,w);
+            if(st==="미납"||st==="반려")unpaid++;
+            if(st==="공용"||st==="잔고"||st==="분할"||st==="면제")totalPaid++;
+            if(st==="대기")totalPending++;
+            return `<td>${fundStatusPill(st)}</td>`;
+        }).join("");
+        totalUnpaid+=unpaid;
         return `<tr><td class="left"><strong>${safe(m.nickname)}</strong>${m.note?`<div class="fund-member-note">${safe(m.note||"")}</div>`:""}</td>${cells}<td><strong>${unpaid}</strong></td></tr>`;
     }).join("") || `<tr><td colspan="${weeks.length+2}"><div class="fund-empty">공금멤버가 없습니다. 관리자 메뉴에서 공금멤버를 등록하세요.</div></td></tr>`;
-    return `${renderFundMonthToolbar()}<div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월의 첫 일요일부터 7일 단위로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
+    const firstRange=getFundWeekRange(month,"1");
+    const lastRange=getFundWeekRange(month,String(weeks.length));
+    return `${renderFundMonthToolbar()}
+    <div class="fund-status-overview">
+        <div class="fund-overview-main">
+            <div class="fund-overview-kicker">선택 월</div>
+            <div class="fund-overview-title">${safe(fundMonthLabel(month))}</div>
+            <div class="fund-overview-desc">${safe(firstRange)}부터 ${safe(lastRange)}까지 ${weeks.length}개 주차 기준으로 납부 상태를 표시합니다.</div>
+        </div>
+        <div class="fund-overview-stats">
+            <div><strong>${members.length}</strong><span>대상 인원</span></div>
+            <div><strong>${totalPaid}</strong><span>완료/면제</span></div>
+            <div><strong>${totalPending}</strong><span>검수대기</span></div>
+            <div><strong>${totalUnpaid}</strong><span>미납/반려</span></div>
+        </div>
+    </div>
+    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월의 첫 일요일부터 7일 단위로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
 function renderFundSubmitterField(user){
     const currentName=String(user&&user.nickname||"").trim();
@@ -17387,20 +17425,38 @@ function renderFundSubmit(){
     const user=getCurrentUser();
     if(!user)return `<div class="fund-empty">로그인 후 공금 증빙을 제출할 수 있습니다.</div>`;
     const month=getFundCurrentMonth();
-    const weeks=Array.from({length:getFundWeekCount()},(_,i)=>String(i+1));
-    return `<div class="fund-form-card"><div class="fund-form-title">공금 납부 증빙 제출</div>
-        <div class="fund-form-grid">
-            <div><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
-            <div><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help">전월 미납분도 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div></div>
-            <div><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
-            <div><div class="fund-label">입금 위치</div><select class="fund-select" id="fundSubmitAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
-            <div><div class="fund-label">금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${getFundWeeklyFee()}"></div>
-            <div><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
+    return `<div class="fund-submit-premium-card">
+        <div class="fund-submit-hero">
+            <div>
+                <div class="fund-submit-kicker">AXE NET FUND</div>
+                <div class="fund-submit-title">공금납부</div>
+                <div class="fund-submit-desc">납부자, 월/주차, 입금 위치, 증빙만 확인해서 제출하면 운영진 검수 후 월별현황에 반영됩니다.</div>
+            </div>
+            <div class="fund-submit-fee"><span>기본 주간 공금</span><strong>${fundMoney(getFundWeeklyFee())}</strong></div>
         </div>
-        <div class="fund-label">메모</div><textarea class="fund-textarea" id="fundSubmitMemo" placeholder="예: 이번 주는 회사잔고로 납부했습니다."></textarea>
-        <button class="fund-btn primary" id="fundSubmitBtn" style="margin-top:12px" onclick="submitFundRequest(this)">증빙 제출</button>
-        <div class="fund-submit-status" id="fundSubmitStatus"><span class="fund-submit-spinner"></span><span id="fundSubmitStatusText">제출 중입니다. 잠시만 기다려주세요.</span></div>
-        <div class="fund-help">제출 즉시 납부완료가 아니라 검수대기 상태가 됩니다. 운영진 승인 후 월별현황에 반영됩니다.</div>
+        <div class="fund-submit-layout">
+            <div class="fund-submit-section">
+                <div class="fund-submit-section-title">납부 정보</div>
+                <div class="fund-submit-compact-grid">
+                    <div class="fund-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
+                    <div class="fund-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}</div>
+                    <div class="fund-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
+                    <div class="fund-field"><div class="fund-label">입금 위치</div><select class="fund-select" id="fundSubmitAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
+                    <div class="fund-field fund-field-amount"><div class="fund-label">금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${getFundWeeklyFee()}"></div>
+                </div>
+                <div class="fund-submit-note-inline">전월 미납분도 대상 월에서 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div>
+            </div>
+            <div class="fund-submit-section fund-submit-section-side">
+                <div class="fund-submit-section-title">증빙 및 메모</div>
+                <div class="fund-label">증빙 스크린샷</div>
+                <input class="fund-file fund-file-premium" id="fundSubmitFile" type="file" accept="image/*">
+                <div class="fund-label">메모</div>
+                <textarea class="fund-textarea fund-textarea-premium" id="fundSubmitMemo" placeholder="예: 이번 주는 회사잔고로 납부했습니다."></textarea>
+                <button class="fund-btn primary fund-submit-main-btn" id="fundSubmitBtn" onclick="submitFundRequest(this)">증빙 제출</button>
+                <div class="fund-submit-status" id="fundSubmitStatus"><span class="fund-submit-spinner"></span><span id="fundSubmitStatusText">제출 중입니다. 잠시만 기다려주세요.</span></div>
+            </div>
+        </div>
+        <div class="fund-submit-bottom-help">제출 즉시 납부완료가 아니라 검수대기 상태가 됩니다. 운영진 승인 후 월별현황에 반영됩니다.</div>
     </div>`;
 }
 function setFundSubmitStatus(state,message){
@@ -17619,17 +17675,68 @@ function isFundLedgerDeleted(row){
     const status=String(row&&row.status||row&&row.deleted||row&&row.delete_status||"").trim();
     return status==="삭제"||status==="삭제처리"||status.toLowerCase()==="deleted"||status==="TRUE"||status===true;
 }
+let fundLedgerPersonFilter="";
+let fundLedgerDirectionFilter="";
+let fundLedgerSourceFilter="";
+function getFundLedgerNickname(row){return String(row&&row.nickname||row&&row.name||row&&row.writer||"").trim();}
+function getFundLedgerDirection(row){return String(row&&row.direction||row&&row.type||"").trim();}
+function isFundLedgerManual(row){
+    const nick=getFundLedgerNickname(row);
+    const type=String(row&&row.type||row&&row.source||row&&row.category||"").trim();
+    const memo=String(row&&row.memo||"").trim();
+    if(!nick)return true;
+    return /직접|수기|관리자|manual/i.test(type+" "+memo);
+}
+function getFundLedgerFilterNames(rows){
+    const seen={};
+    const names=[];
+    (rows||[]).forEach(r=>{
+        const n=getFundLedgerNickname(r);
+        if(n&&!seen[n]){seen[n]=true;names.push(n);}
+    });
+    return names.sort((a,b)=>a.localeCompare(b,"ko"));
+}
+function renderFundLedgerFilterSelects(baseRows){
+    const names=getFundLedgerFilterNames(baseRows);
+    const nameOptions=[`<option value="">이름 전체</option>`,`<option value="__manual__" ${fundLedgerPersonFilter==="__manual__"?'selected':''}>직접기입 내역</option>`].concat(names.map(n=>`<option value="${escapeAttr(n)}" ${fundLedgerPersonFilter===n?'selected':''}>${safe(n)}</option>`)).join("");
+    const directionOptions=["","수입","지출","조정"].map(v=>`<option value="${escapeAttr(v)}" ${fundLedgerDirectionFilter===v?'selected':''}>${v?safe(v):"수입/지출 전체"}</option>`).join("");
+    const sourceOptions=["","공금 납부","직접기입","기타"].map(v=>`<option value="${escapeAttr(v)}" ${fundLedgerSourceFilter===v?'selected':''}>${v?safe(v):"유형 전체"}</option>`).join("");
+    return `<div class="fund-filter-panel">
+        <div class="fund-filter-head">
+            <div><div class="fund-filter-title">공금 내역 필터</div><div class="fund-filter-desc">검색창 대신 선택식 필터로 월 안에서 이름, 수입/지출, 직접기입 내역을 빠르게 분류합니다.</div></div>
+            <button class="fund-btn" onclick="fundLedgerPersonFilter='';fundLedgerDirectionFilter='';fundLedgerSourceFilter='';renderFundTab();">필터 초기화</button>
+        </div>
+        <div class="fund-filter-grid">
+            <label><span>이름</span><select class="fund-select" onchange="fundLedgerPersonFilter=this.value;renderFundTab();">${nameOptions}</select></label>
+            <label><span>수입/지출</span><select class="fund-select" onchange="fundLedgerDirectionFilter=this.value;renderFundTab();">${directionOptions}</select></label>
+            <label><span>유형</span><select class="fund-select" onchange="fundLedgerSourceFilter=this.value;renderFundTab();">${sourceOptions}</select></label>
+        </div>
+    </div>`;
+}
 function renderFundLedger(){
     const month=getFundCurrentMonth();
-    const rows=(fundLedger||[])
+    const baseRows=(fundLedger||[])
         .filter(x=>!isFundLedgerDeleted(x))
         .filter(x=>!month||normalizeFundMonth(x.month)===normalizeFundMonth(month)||!x.month)
         .sort((a,b)=>new Date(b.date||b.created_at||0)-new Date(a.date||a.created_at||0));
-    return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div><div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody>${rows.map((r,index)=>{
+    const rows=baseRows.filter(r=>{
+        const nick=getFundLedgerNickname(r);
+        const direction=getFundLedgerDirection(r);
+        const typeText=String(r.type||r.category||r.source||r.memo||"");
+        if(fundLedgerPersonFilter==="__manual__"&&!isFundLedgerManual(r))return false;
+        if(fundLedgerPersonFilter&&fundLedgerPersonFilter!=="__manual__"&&nick!==fundLedgerPersonFilter)return false;
+        if(fundLedgerDirectionFilter&&direction!==fundLedgerDirectionFilter)return false;
+        if(fundLedgerSourceFilter==="직접기입"&&!isFundLedgerManual(r))return false;
+        if(fundLedgerSourceFilter==="공금 납부"&&!/공금|납부|fund/i.test(typeText))return false;
+        if(fundLedgerSourceFilter==="기타"&&(/공금|납부|fund/i.test(typeText)||isFundLedgerManual(r)))return false;
+        return true;
+    });
+    const filterSummary=[fundLedgerPersonFilter?fundLedgerPersonFilter==="__manual__"?"직접기입 내역":fundLedgerPersonFilter:"전체 이름",fundLedgerDirectionFilter||"수입/지출 전체",fundLedgerSourceFilter||"유형 전체"].join(" · ");
+    return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}${renderFundLedgerFilterSelects(baseRows)}<div class="fund-ledger-result-line">${safe(fundMonthLabel(month))} · ${safe(filterSummary)} · ${rows.length}건 표시</div><div id="fundLedgerForm"></div><div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody>${rows.map((r,index)=>{
         const ledgerId=getFundLedgerId(r,index);
         const ledgerKey=makeFundLedgerKey(r);
-        return `<tr><td>${formatDateOnly(r.date||r.created_at)}</td><td>${safe(r.type)}</td><td>${safe(r.category)}</td><td>${safe(r.nickname)}</td><td>${safe(fundMonthLabel(r.month))} ${r.week?safe(r.week)+'주차':''}</td><td class="money ${String(r.direction)==='지출'?'minus':String(r.direction)==='수입'?'plus':''}">${String(r.direction)==='지출'?'-':''}${fundMoney(r.amount)}</td><td>${safe(r.direction)}</td><td>${safe(r.account)}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.memo||"")}</td><td><button class="fund-btn danger" data-ledger-delete="${escapeAttr(ledgerId)}" onclick="deleteFundLedger('${escapeText(ledgerId)}',this,'${escapeText(ledgerKey)}')">삭제</button></td></tr>`;
-    }).join("")||`<tr><td colspan="11"><div class="fund-empty">공금내역이 없습니다.</div></td></tr>`}</tbody></table></div>`;
+        return `<tr><td>${formatDateOnly(r.date||r.created_at)}</td><td>${safe(r.type)}</td><td>${safe(r.category)}</td><td>${safe(getFundLedgerNickname(r)||"직접기입")}</td><td>${safe(fundMonthLabel(r.month))} ${r.week?safe(r.week)+'주차':''}</td><td class="money ${String(r.direction)==='지출'?'minus':String(r.direction)==='수입'?'plus':''}">${String(r.direction)==='지출'?'-':''}${fundMoney(r.amount)}</td><td>${safe(r.direction)}</td><td>${safe(r.account)}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.memo||"")}</td><td><button class="fund-btn danger" data-ledger-delete="${escapeAttr(ledgerId)}" onclick="deleteFundLedger('${escapeText(ledgerId)}',this,'${escapeText(ledgerKey)}')">삭제</button></td></tr>`;
+    }).join("")||`<tr><td colspan="11"><div class="fund-empty">조건에 맞는 공금내역이 없습니다.</div></td></tr>`}</tbody></table></div>`;
 }
 function deleteFundLedger(ledgerId,btn,ledgerKey){
     if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
