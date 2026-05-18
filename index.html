@@ -4118,6 +4118,30 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
     .fund-submit-status{font-size:12.5px;padding:12px}
 }
 </style>
+
+<style id="axe-current-refresh-style">
+/* AXE NET V15: 현재 화면 전용 새로고침 버튼 공통화 */
+.page-refresh-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-height:40px}
+.page-refresh-btn{height:38px;padding:0 13px;border-radius:13px;border:1px solid rgba(255,181,46,.24);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.014)),rgba(18,18,18,.92);color:#ddd;font-size:12.5px;font-weight:950;cursor:pointer;transition:.18s ease;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.page-refresh-btn:hover:not(:disabled){color:#ffcf75;border-color:rgba(255,181,46,.52);background:rgba(255,181,46,.075);transform:translateY(-1px);box-shadow:0 9px 22px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.04)}
+.page-refresh-btn:disabled{opacity:.62;cursor:wait;transform:none}
+.page-refresh-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;color:#ffb52e;font-size:15px;font-weight:950;line-height:1;transition:.18s ease}
+.page-refresh-btn.loading .page-refresh-icon{animation:pageRefreshSpin .72s linear infinite}
+@keyframes pageRefreshSpin{to{transform:rotate(360deg)}}
+.page-refresh-note{min-height:24px;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);color:#999;font-size:11.5px;font-weight:950;line-height:1;display:inline-flex;align-items:center;white-space:nowrap}
+.page-refresh-note.ok{color:#ffcf75;border-color:rgba(255,181,46,.22);background:rgba(255,181,46,.06)}
+.page-refresh-note.err{color:#ff8b8b;border-color:rgba(255,107,107,.22);background:rgba(255,80,80,.06)}
+.section-action .page-refresh-actions{display:inline-flex}
+.section-action .page-refresh-btn{height:40px}
+@media(max-width:768px){
+    .page-refresh-actions{gap:6px;min-height:36px}
+    .page-refresh-btn{width:36px;height:36px!important;min-width:36px;padding:0;border-radius:11px;font-size:0;gap:0}
+    .page-refresh-label{display:none}
+    .page-refresh-icon{font-size:16px;width:20px;height:20px}
+    .page-refresh-note{font-size:10.5px;min-height:22px;padding:4px 7px;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+}
+</style>
+
 </head>
 
 <body>
@@ -4997,6 +5021,131 @@ function applyCachedData(){
     }catch(e){
         return false;
     }
+}
+
+
+/* AXE NET V15: 현재 화면 전용 부분 새로고침 */
+const PAGE_REFRESH_USE_FULL_FALLBACK=false;
+let pageRefreshBusyMap={};
+let pageRefreshNoticeMap={};
+let pageRefreshNoticeTypeMap={};
+let pageRefreshTimerMap={};
+function getPartialRefreshPayload(scope){
+    const key=String(scope||currentMainSection||"home");
+    if(key==="fund")return {type:"fund_refresh",category:"fund"};
+    return {type:"category_refresh",category:key};
+}
+function mergeCachePartial(source){
+    try{
+        const raw=sessionStorage.getItem(DATA_CACHE_KEY);
+        const base=raw?JSON.parse(raw):{};
+        Object.keys(source||{}).forEach(function(k){
+            if(k==="result"||k==="message"||k==="success"||k==="data"||k==="payload")return;
+            base[k]=source[k];
+        });
+        sessionStorage.setItem(DATA_CACHE_KEY,JSON.stringify(base));
+    }catch(e){}
+}
+function applyPartialData(source,scope){
+    const data=(source&&source.data)||(source&&source.payload)||source||{};
+    const key=String(scope||"");
+    if(data.notices!==undefined)notices=data.notices||[];
+    if(data.operations!==undefined)operations=data.operations||[];
+    if(data.tubes!==undefined)tubes=data.tubes||[];
+    if(data.tubeComments!==undefined||data.tube_comments!==undefined)tubeComments=data.tubeComments||data.tube_comments||[];
+    if(data.boards!==undefined||data.boardPosts!==undefined||data.freeBoard!==undefined)boards=data.boards||data.boardPosts||data.freeBoard||[];
+    if(data.boardComments!==undefined||data.board_comments!==undefined||data.comments!==undefined)boardComments=data.boardComments||data.board_comments||data.comments||[];
+    if(data.galleries!==undefined||data.galleryPosts!==undefined)galleries=data.galleries||data.galleryPosts||[];
+    if(data.galleryComments!==undefined||data.gallery_comments!==undefined)galleryComments=data.galleryComments||data.gallery_comments||[];
+    if(data.rankings!==undefined)rankings=data.rankings||[];
+    if(data.foodMenus!==undefined||data.food_menus!==undefined)foodMenus=data.foodMenus||data.food_menus||[];
+    if(data.foodOrders!==undefined||data.food_orders!==undefined)foodOrders=data.foodOrders||data.food_orders||[];
+    if(data.fundMembers!==undefined||data.fund_members!==undefined)fundMembers=data.fundMembers||data.fund_members||[];
+    if(data.fundRequests!==undefined||data.fund_requests!==undefined)fundRequests=data.fundRequests||data.fund_requests||[];
+    if(data.fundLedger!==undefined||data.fund_ledger!==undefined)fundLedger=data.fundLedger||data.fund_ledger||[];
+    if(data.fundBalanceChecks!==undefined||data.fund_balance_checks!==undefined)fundBalanceChecks=data.fundBalanceChecks||data.fund_balance_checks||[];
+    if(data.fundSettings!==undefined||data.fund_settings!==undefined)fundSettings=data.fundSettings||data.fund_settings||[];
+    if(data.fundSummary!==undefined||data.fund_summary!==undefined)fundSummary=data.fundSummary||data.fund_summary||{};
+    mergeCachePartial(data);
+    return data;
+}
+function requestPartialRefresh(scope){
+    const payload=getPartialRefreshPayload(scope);
+    return fetch(API_URL,{method:"POST",cache:"no-store",body:JSON.stringify(payload)})
+        .then(function(res){return res.json();})
+        .then(function(data){
+            if(data&&data.result==="success"){
+                applyPartialData(data,scope);
+                return data;
+            }
+            const hasUsefulData=!!(data&&(data.fundRequests||data.fund_requests||data.boards||data.tubes||data.galleries||data.notices||data.foodOrders||data.food_orders||data.rankings));
+            if(hasUsefulData){applyPartialData(data,scope);return data;}
+            throw new Error((data&&data.message)||"partial refresh unsupported");
+        });
+}
+function rerenderCurrentPageScope(scope){
+    const key=String(scope||currentMainSection||"");
+    if(key==="fund"){showFund(currentFundTab||"status",false);return;}
+    if(key==="board"){if(selectedBoardId){openBoardDetail(selectedBoardId,false,false);}else{showBoard();}return;}
+    if(key==="tube"){if(selectedTubeId){openTubeDetail(selectedTubeId,false,false);}else{showTube();}return;}
+    if(key==="gallery"){if(selectedGalleryId){openGalleryDetail(selectedGalleryId,false,false);}else{showGallery();}return;}
+    if(key==="notice"){showNotice();return;}
+    if(key==="food"&&typeof window.showFoodOrder==="function"){window.showFoodOrder();return;}
+    if(key==="foodAdmin"&&typeof window.showFoodOrderAdmin==="function"){window.showFoodOrderAdmin(foodAdminMode||"pending");return;}
+    if(key==="ranking"){showRanking();return;}
+    if(key==="home"){showHome();return;}
+    const state=history.state||parseRouteFromHash();
+    if(typeof renderRouteState==="function")renderRouteState(state||{page:key||"home"});
+}
+function renderPageRefreshAction(scope){
+    const key=String(scope||currentMainSection||"home");
+    const busy=!!pageRefreshBusyMap[key];
+    const notice=pageRefreshNoticeMap[key]||"";
+    const type=pageRefreshNoticeTypeMap[key]||"";
+    const label=busy?"새로고침 중":"현재 화면 새로고침";
+    const note=notice?`<span id="pageRefreshNote_${escapeAttr(key)}" class="page-refresh-note ${escapeAttr(type)}">${escapeHtml(notice)}</span>`:"";
+    return `<span class="page-refresh-actions"><button id="pageRefreshBtn_${escapeAttr(key)}" class="page-refresh-btn ${busy?'loading':''}" onclick="refreshCurrentPageOnly('${escapeAttr(key)}')" ${busy?'disabled':''} title="현재 화면의 최신 자료만 다시 불러옵니다."><span class="page-refresh-icon">↻</span><span class="page-refresh-label">${label}</span></button>${note}</span>`;
+}
+function setPageRefreshButtonState(scope,loading){
+    const key=String(scope||currentMainSection||"home");
+    const btn=document.getElementById("pageRefreshBtn_"+key);
+    if(!btn)return;
+    btn.disabled=!!loading;
+    btn.classList.toggle("loading",!!loading);
+    const label=btn.querySelector(".page-refresh-label");
+    if(label)label.textContent=loading?"새로고침 중":"현재 화면 새로고침";
+}
+function finishPageRefresh(scope,message,type){
+    const key=String(scope||currentMainSection||"home");
+    pageRefreshBusyMap[key]=false;
+    pageRefreshNoticeMap[key]=message||"";
+    pageRefreshNoticeTypeMap[key]=type||"";
+    rerenderCurrentPageScope(key);
+    if(pageRefreshTimerMap[key])clearTimeout(pageRefreshTimerMap[key]);
+    pageRefreshTimerMap[key]=setTimeout(function(){
+        pageRefreshNoticeMap[key]="";
+        pageRefreshNoticeTypeMap[key]="";
+        const note=document.getElementById("pageRefreshNote_"+key);
+        if(note)note.remove();
+    },3200);
+}
+function refreshCurrentPageOnly(scope){
+    const key=String(scope||currentMainSection||"home");
+    if(pageRefreshBusyMap[key])return;
+    pageRefreshBusyMap[key]=true;
+    pageRefreshNoticeMap[key]="";
+    pageRefreshNoticeTypeMap[key]="";
+    setPageRefreshButtonState(key,true);
+    requestPartialRefresh(key)
+        .then(function(){finishPageRefresh(key,"최신 자료 반영됨","ok");})
+        .catch(function(){
+            if(PAGE_REFRESH_USE_FULL_FALLBACK){
+                refreshData().then(function(){finishPageRefresh(key,"전체 자료로 반영됨","ok");})
+                    .catch(function(){finishPageRefresh(key,"불러오기 실패","err");});
+                return;
+            }
+            finishPageRefresh(key,"전용 새로고침 미지원","err");
+        });
 }
 
 function getCurrentRouteSnapshot(){
@@ -6269,6 +6418,7 @@ function showBoard(){
                 <div class="section-desc">AXE 구성원들이 자유롭게 글을 남기는 공간입니다.</div>
             </div>
             <div class="section-action">
+                ${renderPageRefreshAction("board")}
                 <button class="tube-submit-open" onclick="openBoardForm()">글쓰기</button>
             </div>
         </div>
@@ -6854,6 +7004,7 @@ function showGallery(){
                 <div class="section-desc">AXE 활동 사진과 이미지를 공유하는 공간입니다.</div>
             </div>
             <div class="section-action">
+                ${renderPageRefreshAction("gallery")}
                 <button class="tube-submit-open" onclick="openGalleryForm()">사진 올리기</button>
             </div>
         </div>
@@ -7455,12 +7606,15 @@ function showNotice(){
     enterMainSection("notice");
     setMainActive(1);
     document.getElementById("content").innerHTML=`
-        <div class="section-head">
+        <div class="section-head with-action">
             <div>
                 <div class="section-title">공지사항</div>
                 <div class="section-desc">AXE의 주요 공지사항과 운영기준을 확인합니다.</div>
             </div>
-            <div class="count">NOTICE</div>
+            <div class="section-action">
+                ${renderPageRefreshAction("notice")}
+                <div class="count">NOTICE</div>
+            </div>
         </div>
         <div class="sub-filter">
             <button class="active" onclick="navigateSubTab('notice','noticeList')">일반공지</button>
@@ -7627,6 +7781,7 @@ function showTube(){
                 <div class="section-desc">AXE 활동 영상과 게임 플레이 게시글을 확인합니다.</div>
             </div>
             <div class="section-action">
+                ${renderPageRefreshAction("tube")}
                 <button class="tube-submit-open" onclick="openTubeForm()">글쓰기</button>
             </div>
         </div>
@@ -8304,7 +8459,8 @@ const MAIN_FAVORITE_LABELS={
     fund:"공금",
     my:"마이페이지",
     admin:"관리자",
-    food:"요리주문"
+    food:"요리주문",
+    fund:"공금"
 };
 
 const SUB_FAVORITE_LABELS={
@@ -11420,6 +11576,7 @@ function submitGalleryPostEdit(id,btn){
 }
 
 function deleteTubePost(id,btn){
+    if(isCurrentAdmin()){adminDeleteTubePost(id,btn);return;}
     const password=prompt("영상 게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
@@ -11439,6 +11596,7 @@ function deleteTubePost(id,btn){
 }
 
 function deleteBoardPost(id,btn){
+    if(isCurrentAdmin()){adminDeleteBoardPost(id,btn);return;}
     const password=prompt("게시글 삭제 비밀번호를 입력하세요. 삭제하면 댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
@@ -11458,6 +11616,7 @@ function deleteBoardPost(id,btn){
 }
 
 function deleteGalleryPost(id,btn){
+    if(isCurrentAdmin()){adminDeleteGalleryPost(id,btn);return;}
     const password=prompt("갤러리 게시물 삭제 비밀번호를 입력하세요. 삭제하면 댓글과 업로드 사진도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
@@ -11477,6 +11636,7 @@ function deleteGalleryPost(id,btn){
 }
 
 function deleteTubeComment(commentId,tubeId,btn){
+    if(isCurrentAdmin()){adminDeleteComment("tube",commentId,tubeId,btn);return;}
     const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
@@ -11497,6 +11657,7 @@ function deleteTubeComment(commentId,tubeId,btn){
 }
 
 function deleteBoardComment(commentId,postId,btn){
+    if(isCurrentAdmin()){adminDeleteComment("board",commentId,postId,btn);return;}
     const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
@@ -11517,6 +11678,7 @@ function deleteBoardComment(commentId,postId,btn){
 }
 
 function deleteGalleryComment(commentId,galleryId,btn){
+    if(isCurrentAdmin()){adminDeleteComment("gallery",commentId,galleryId,btn);return;}
     const password=prompt("댓글 삭제 비밀번호를 입력하세요. 원댓글을 삭제하면 대댓글도 함께 삭제됩니다.");
     if(password===null)return;
     if(!password.trim()){alert("비밀번호를 입력해야 삭제할 수 있습니다.");return;}
@@ -15830,13 +15992,13 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         document.getElementById("content").innerHTML=`
             <div class="section-head with-action">
                 <div><div class="section-title">요리주문 관리</div><div class="section-desc">미처리 주문은 날짜가 지나도 사라지지 않고 계속 표시됩니다.</div></div>
-                <div class="section-action"><button class="back-btn" onclick="showFoodOrder()">요리주문으로</button></div>
+                <div class="section-action">${renderPageRefreshAction("foodAdmin")}<button class="back-btn" onclick="showFoodOrder()">요리주문으로</button></div>
             </div>
             ${renderFoodAdminTabs()}
             <div class="food-admin-mode-desc">${foodAdminModeDesc(foodAdminMode)}</div>
             <div class="food-admin-page-grid">
                 <div class="food-box"><div class="food-box-title">${foodAdminMode==="today"?"오늘 제작 요약":foodAdminMode==="past"?"지난 주문 요약":"미처리 제작 요약"}</div>${renderFoodSummary(orders)}</div>
-                <div class="food-box"><div class="food-admin-page-head"><div><div class="food-admin-page-title">${foodAdminModeTitle(foodAdminMode)}</div><div class="food-admin-small-desc">총 ${orders.length}건</div></div><button class="food-status-btn" onclick="refreshData().then(()=>showFoodOrderAdmin('${foodAdminMode}'))">새로고침</button></div>${renderFoodAdminList(orders)}</div>
+                <div class="food-box"><div class="food-admin-page-head"><div><div class="food-admin-page-title">${foodAdminModeTitle(foodAdminMode)}</div><div class="food-admin-small-desc">총 ${orders.length}건</div></div>${renderPageRefreshAction("foodAdmin")}</div>${renderFoodAdminList(orders)}</div>
             </div>`;
     };
 
@@ -15851,7 +16013,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         document.getElementById("content").innerHTML=`
             <div class="section-head with-action">
                 <div><div class="section-title">요리주문</div><div class="section-desc">팀원용 간편 주문판입니다. 주문자는 로그인 닉네임으로 자동 기록됩니다.</div></div>
-                <div class="section-action food-top-actions">${isCurrentAdmin()?`<button class="food-admin-open-btn" onclick="showFoodOrderAdmin('pending')">주문 관리</button>`:""}<div class="count">FOOD</div></div>
+                <div class="section-action food-top-actions">${renderPageRefreshAction("food")}${isCurrentAdmin()?`<button class="food-admin-open-btn" onclick="showFoodOrderAdmin('pending')">주문 관리</button>`:""}<div class="count">FOOD</div></div>
             </div>
             <div class="food-layout">
                 <div>${menus.length?groupHtml:`<div class="food-empty">요리메뉴 시트에 표시할 메뉴가 없습니다.</div>`}</div>
@@ -16990,50 +17152,10 @@ let fundManualRefreshBusy=false;
 let fundManualRefreshNotice="";
 let fundManualRefreshNoticeType="";
 let fundManualRefreshTimer=null;
-function renderFundManualRefreshArea(){
-    const note=fundManualRefreshNotice?`<span id="fundRefreshNote" class="fund-refresh-note ${fundManualRefreshNoticeType||''}">${escapeHtml(fundManualRefreshNotice)}</span>`:"";
-    const label=fundManualRefreshBusy?"새로고침 중":"현재 화면 새로고침";
-    return `<div class="fund-page-actions"><button id="fundManualRefreshBtn" class="fund-refresh-btn ${fundManualRefreshBusy?'loading':''}" onclick="refreshFundCurrentScreen()" ${fundManualRefreshBusy?'disabled':''} title="공금관리의 현재 화면 자료만 다시 불러옵니다."><span class="fund-refresh-icon">↻</span><span class="fund-refresh-label">${label}</span></button>${note}</div>`;
-}
-function setFundManualRefreshButtonState(loading){
-    const btn=document.getElementById("fundManualRefreshBtn");
-    if(!btn)return;
-    btn.disabled=!!loading;
-    btn.classList.toggle("loading",!!loading);
-    const label=btn.querySelector(".fund-refresh-label");
-    if(label)label.textContent=loading?"새로고침 중":"현재 화면 새로고침";
-}
-function refreshFundCurrentScreen(){
-    if(fundManualRefreshBusy)return;
-    const targetTab=currentFundTab||"status";
-    fundManualRefreshBusy=true;
-    fundManualRefreshNotice="";
-    fundManualRefreshNoticeType="";
-    setFundManualRefreshButtonState(true);
-    refreshData().then(data=>{
-        fundManualRefreshBusy=false;
-        if(data){
-            fundManualRefreshNotice="최신 자료 반영됨";
-            fundManualRefreshNoticeType="ok";
-        }else{
-            fundManualRefreshNotice="불러오기 실패";
-            fundManualRefreshNoticeType="err";
-        }
-        showFund(targetTab,false);
-        if(fundManualRefreshTimer)clearTimeout(fundManualRefreshTimer);
-        fundManualRefreshTimer=setTimeout(()=>{
-            fundManualRefreshNotice="";
-            fundManualRefreshNoticeType="";
-            const note=document.getElementById("fundRefreshNote");
-            if(note)note.remove();
-        },3600);
-    }).catch(()=>{
-        fundManualRefreshBusy=false;
-        fundManualRefreshNotice="불러오기 실패";
-        fundManualRefreshNoticeType="err";
-        showFund(targetTab,false);
-    });
-}
+function renderFundManualRefreshArea(){return renderPageRefreshAction("fund");}
+function setFundManualRefreshButtonState(loading){setPageRefreshButtonState("fund",loading);}
+function refreshFundCurrentScreen(){refreshCurrentPageOnly("fund");}
+
 
 function getFundApprovedCountForMonth(month){
     const target=normalizeFundMonth(month);
