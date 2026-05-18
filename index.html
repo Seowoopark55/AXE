@@ -4405,7 +4405,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyqCf5KB8K4lU6Ay8HF7XS45Nc3MXMh2lXHLxXrRIPRX3D3nubp5Iute0WycvveQ0pj7A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw8z3uwUO_QwnI4KPBiHwm9jr_U52Zb89Pq8DtpC03upZ0XqGLCWdmK4QG-NGw34Fw7qQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -4533,11 +4533,15 @@ function isCurrentAdmin(){
 }
 
 function rememberAdminPasswordIfNeeded(user,password){
-    if(!user||!password)return;
+    if(!user)return;
     const role=String(user.role||"").toLowerCase();
     const badge=String(user.badge||"").toLowerCase();
     if(role==="admin"||badge==="admin"){
-        sessionStorage.setItem("axe_net_admin_password",String(password));
+        if(password){try{sessionStorage.setItem("axe_net_admin_password",String(password));}catch(e){}}
+        if(user.admin_token){
+            try{sessionStorage.setItem("axe_net_admin_token",String(user.admin_token));}catch(e){}
+            try{localStorage.setItem("axe_net_admin_token_persist",String(user.admin_token));}catch(e){}
+        }
     }
 }
 
@@ -10138,7 +10142,10 @@ function getAdminPassword(){
 }
 
 function clearAdminPassword(){
-    sessionStorage.removeItem("axe_net_admin_password");
+    try{sessionStorage.removeItem("axe_net_admin_password");}catch(e){}
+    try{localStorage.removeItem("axe_net_admin_password_persist");}catch(e){}
+    try{sessionStorage.removeItem("axe_net_admin_token");}catch(e){}
+    try{localStorage.removeItem("axe_net_admin_token_persist");}catch(e){}
 }
 
 function adminApi(payload){
@@ -10149,8 +10156,9 @@ function adminApi(payload){
         return Promise.reject(new Error("login required"));
     }
     const password=getAdminPassword();
-    if(!password){
-        alert("관리자 인증 정보가 없습니다. 다시 로그인해주세요.");
+    const token=(typeof getAdminToken==="function")?getAdminToken():"";
+    if(!password&&!token){
+        alert("관리자 인증 정보가 없습니다. 관리자 계정으로 다시 로그인해주세요.");
         openAuthModal("login");
         return Promise.reject(new Error("admin session required"));
     }
@@ -10158,7 +10166,8 @@ function adminApi(payload){
         method:"POST",
         body:JSON.stringify(Object.assign({},payload,{
             admin_nickname:user.nickname,
-            admin_password:password
+            admin_password:password,
+            admin_token:token
         }))
     }).then(res=>res.json()).then(data=>{
         if(data&&data.result==="fail"&&String(data.message||"").includes("비밀번호")){
@@ -17850,18 +17859,25 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 /* AXE NET 공금 검수 편의 개선 v2 */
 (function(){
     const ADMIN_PERSIST_KEY="axe_net_admin_password_persist";
+    const ADMIN_TOKEN_KEY="axe_net_admin_token_persist";
     const FUND_REVIEW_SELECTED_KEY="axe_net_fund_review_selected";
     const FUND_ACTION_TIMEOUT_MS=45000;
     let fundActionBusy=false;
     let fundActionHardTimer=null;
 
     window.rememberAdminPasswordIfNeeded=function(user,password){
-        if(!user||!password)return;
+        if(!user)return;
         const role=String(user.role||"").toLowerCase();
         const badge=String(user.badge||"").toLowerCase();
         if(role==="admin"||badge==="admin"){
-            try{sessionStorage.setItem("axe_net_admin_password",String(password));}catch(e){}
-            try{localStorage.setItem(ADMIN_PERSIST_KEY,String(password));}catch(e){}
+            if(password){
+                try{sessionStorage.setItem("axe_net_admin_password",String(password));}catch(e){}
+                try{localStorage.setItem(ADMIN_PERSIST_KEY,String(password));}catch(e){}
+            }
+            if(user.admin_token){
+                try{sessionStorage.setItem("axe_net_admin_token",String(user.admin_token));}catch(e){}
+                try{localStorage.setItem(ADMIN_TOKEN_KEY,String(user.admin_token));}catch(e){}
+            }
         }
     };
 
@@ -17873,9 +17889,21 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         return pw||"";
     };
 
+    window.getAdminToken=function(){
+        const user=(typeof getCurrentUser==="function")?getCurrentUser():null;
+        let token="";
+        if(user&&user.admin_token)token=String(user.admin_token);
+        if(!token){try{token=sessionStorage.getItem("axe_net_admin_token")||"";}catch(e){}}
+        if(!token){try{token=localStorage.getItem(ADMIN_TOKEN_KEY)||"";}catch(e){}}
+        if(token){try{sessionStorage.setItem("axe_net_admin_token",token);}catch(e){}}
+        return token||"";
+    };
+
     window.clearAdminPassword=function(){
         try{sessionStorage.removeItem("axe_net_admin_password");}catch(e){}
         try{localStorage.removeItem(ADMIN_PERSIST_KEY);}catch(e){}
+        try{sessionStorage.removeItem("axe_net_admin_token");}catch(e){}
+        try{localStorage.removeItem(ADMIN_TOKEN_KEY);}catch(e){}
     };
 
     function getAdminPayload(payload){
@@ -17890,12 +17918,13 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             throw new Error("admin required");
         }
         const password=window.getAdminPassword();
-        if(!password){
-            alert("관리자 인증 정보가 없습니다. 관리자 계정으로 다시 로그인해주세요.");
+        const token=(typeof window.getAdminToken==="function")?window.getAdminToken():"";
+        if(!password&&!token){
+            alert("관리자 인증 정보가 없습니다. 관리자 계정으로 다시 로그인해주세요. 이후 관리자 작업은 다시 묻지 않습니다.");
             if(typeof openAuthModal==="function")openAuthModal("login");
             throw new Error("admin session required");
         }
-        return Object.assign({},payload||{}, {admin_nickname:user.nickname, admin_password:password});
+        return Object.assign({},payload||{}, {admin_nickname:user.nickname, admin_password:password, admin_token:token});
     }
 
     function fetchJsonWithTimeout(body,timeoutMs){
@@ -18120,6 +18149,147 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             try{return originalSubmitFundRequest(btn);}catch(err){fundSetActionBusy(false,(err&&err.message)||"제출 중 오류가 발생했습니다.","error");throw err;}
         };
     }
+})();
+</script>
+
+
+
+<style>
+/* AXE NET V15.4: 공금내역 수입/지출 등록 날짜·처리중 보강 */
+.fund-ledger-helpbox{
+    margin:9px 0 0;
+    padding:9px 11px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.075);
+    background:rgba(255,255,255,.028);
+    color:#9b9b9b;
+    font-size:12px;
+    font-weight:850;
+    line-height:1.5;
+}
+.fund-ledger-helpbox strong{color:#ffcf75}
+.fund-ledger-submit-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.fund-ledger-submit-line .fund-btn{min-width:92px}
+.fund-ledger-mini-status{
+    display:none;
+    align-items:center;
+    gap:7px;
+    min-height:34px;
+    padding:0 11px;
+    border-radius:999px;
+    border:1px solid rgba(255,181,46,.24);
+    background:rgba(255,181,46,.075);
+    color:#ffcf75;
+    font-size:12px;
+    font-weight:950;
+}
+.fund-ledger-mini-status.active{display:inline-flex}
+.fund-ledger-mini-status::before{
+    content:"";
+    width:12px;
+    height:12px;
+    border-radius:999px;
+    border:2px solid rgba(255,181,46,.24);
+    border-top-color:#ffb52e;
+    animation:fundActionSpin .82s linear infinite;
+}
+.fund-ledger-mini-status.done{border-color:rgba(110,231,168,.28);background:rgba(110,231,168,.075);color:#8ff0ba}
+.fund-ledger-mini-status.done::before{display:none}
+.fund-ledger-mini-status.error{border-color:rgba(255,107,107,.32);background:rgba(255,80,80,.075);color:#ff9a9a}
+.fund-ledger-mini-status.error::before{display:none}
+@media(max-width:760px){
+    .fund-ledger-submit-line{display:grid;grid-template-columns:1fr;gap:8px}
+    .fund-ledger-submit-line .fund-btn{width:100%}
+    .fund-ledger-mini-status{justify-content:center;border-radius:12px}
+}
+</style>
+
+<script>
+/* AXE NET V15.4: 공금내역 날짜 정확화 + 수입/지출 처리중 액션 */
+(function(){
+    function todayInputValue(){
+        const d=new Date();
+        return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    }
+    function setLedgerInputsLocked(locked){
+        ["ledgerDate","ledgerDirection","ledgerAccount","ledgerAmount","ledgerCategory","ledgerMonth","ledgerFile","ledgerMemo"].forEach(id=>{
+            const el=document.getElementById(id);
+            if(el)el.disabled=!!locked;
+        });
+    }
+    function showLedgerStatus(text,type){
+        const el=document.getElementById("fundLedgerSubmitStatus");
+        if(!el)return;
+        el.classList.remove("active","done","error");
+        if(!text)return;
+        el.textContent=text;
+        el.classList.add("active");
+        if(type)el.classList.add(type);
+        if(type){setTimeout(()=>{try{el.classList.remove("active","done","error");}catch(e){}},2300);}
+    }
+    window.openFundLedgerForm=function(){
+        const box=document.getElementById("fundLedgerForm");
+        if(!box)return;
+        box.innerHTML=`<div class="fund-form-card" style="margin-bottom:12px">
+            <div class="fund-form-title">지출/수입 등록</div>
+            <div class="fund-form-grid">
+                <div><div class="fund-label">발생일</div><input class="fund-input" id="ledgerDate" type="date" value="${todayInputValue()}"></div>
+                <div><div class="fund-label">방향</div><select class="fund-select" id="ledgerDirection"><option value="지출">지출</option><option value="수입">수입</option><option value="조정">잔액조정(정정용)</option></select></div>
+                <div><div class="fund-label">계좌</div><select class="fund-select" id="ledgerAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
+                <div><div class="fund-label">금액</div><input class="fund-input" id="ledgerAmount" type="number" placeholder="20000"></div>
+                <div><div class="fund-label">항목</div><input class="fund-input" id="ledgerCategory" placeholder="의뢰비 / 회사상점 / 기타"></div>
+                <div><div class="fund-label">대상 월</div>${renderFundMonthSelect("ledgerMonth",getFundCurrentMonth())}</div>
+                <div><div class="fund-label">증빙</div><input class="fund-file" id="ledgerFile" type="file" accept="image/*"></div>
+            </div>
+            <div class="fund-label">메모</div>
+            <textarea class="fund-textarea" id="ledgerMemo" placeholder="수입·지출 사유를 남겨주세요."></textarea>
+            <div class="fund-ledger-helpbox"><strong>잔액조정</strong>은 실제 수입·지출이 아니라, 기존 잔액 이관이나 오차 보정처럼 계산잔액을 맞출 때만 쓰는 정정용 항목입니다. 일반 입금은 수입, 사용한 돈은 지출로 처리하세요.</div>
+            <div class="fund-ledger-submit-line"><button id="fundLedgerSubmitBtn" class="fund-btn primary" onclick="submitFundLedger(this)">등록</button><span id="fundLedgerSubmitStatus" class="fund-ledger-mini-status"></span></div>
+        </div>`;
+    };
+    window.submitFundLedger=function(btn){
+        if(btn&&btn.disabled)return;
+        if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){alert("관리자 권한이 필요합니다.");return;}
+        const date=document.getElementById("ledgerDate")?.value||"";
+        const direction=document.getElementById("ledgerDirection")?.value||"지출";
+        const account=document.getElementById("ledgerAccount")?.value||"공용계좌";
+        const amount=document.getElementById("ledgerAmount")?.value||"";
+        const category=document.getElementById("ledgerCategory")?.value||"기타";
+        const month=normalizeFundMonth(document.getElementById("ledgerMonth")?.value||getFundCurrentMonth());
+        const memo=document.getElementById("ledgerMemo")?.value||"";
+        const file=document.getElementById("ledgerFile")?.files?.[0];
+        if(!date){alert("발생일을 선택하세요.");return;}
+        if(!amount||Number(amount)===0){alert("금액을 입력하세요.");return;}
+        if(direction==="조정"&&!confirm("잔액조정은 실제 수입·지출이 아니라 잔액 정정용입니다. 계속 등록할까요?"))return;
+        if(file&&file.size>3*1024*1024){alert("증빙 이미지는 3MB 이하로 첨부해주세요.");return;}
+        const oldText=btn?btn.textContent:"";
+        if(btn){btn.disabled=true;btn.classList.add("processing");btn.textContent="처리중";}
+        setLedgerInputsLocked(true);
+        showLedgerStatus("공금내역을 등록 중입니다.","");
+        if(typeof fundSetActionBusy==="function")fundSetActionBusy(true,"공금내역을 등록 중입니다.");
+        const finish=function(ok,msg){
+            if(btn){btn.disabled=false;btn.classList.remove("processing");btn.textContent=oldText||"등록";}
+            setLedgerInputsLocked(false);
+            showLedgerStatus(msg,ok?"done":"error");
+            if(typeof fundSetActionBusy==="function")fundSetActionBusy(false,msg,ok?"done":"error");
+        };
+        fileToBase64(file)
+        .then(img=>{
+            const payload=Object.assign({type:"fund_ledger_create",date:date,direction:direction,account:account,amount:amount,category:category,month:month,memo:memo},img||{});
+            if(typeof fundAdminFastApi==="function")return fundAdminFastApi(payload);
+            return fundAdminApi(payload).then(data=>{if(!data||data.result!=="success")throw new Error((data&&data.message)||"등록 중 오류가 발생했습니다.");return data;});
+        })
+        .then(data=>{
+            const row={id:"local_"+Date.now(),date:date,type:direction==="지출"?"지출":direction==="조정"?"조정":"기타수입",category:category,nickname:"",month:month,week:"",amount:amount,direction:direction,account:account,memo:memo,evidence_url:"",created_at:new Date().toISOString()};
+            try{fundLedger.unshift(row);}catch(e){}
+            finish(true,(data&&data.message)||"공금내역이 등록되었습니다.");
+            try{renderFundTab();}catch(e){}
+            try{if(typeof requestPartialRefresh==="function")requestPartialRefresh("fund").then(()=>{try{if(currentFundTab==="ledger")renderFundTab();}catch(e){}}).catch(()=>{});}catch(e){}
+        })
+        .catch(err=>{
+            finish(false,(err&&err.message)||"공금내역 등록 중 오류가 발생했습니다.");
+        });
+    };
 })();
 </script>
 
