@@ -5135,15 +5135,32 @@ function hydrateData(data){
     rankings=data.rankings||[];
 }
 
-function refreshData(){
-    return fetch(API_URL,{cache:"no-store"})
+/* AXE NET STABILIZE V1: 전체 데이터 새로고침 중복 호출 방지 */
+let axeFullRefreshPromise=null;
+let axeFullRefreshStartedAt=0;
+let axeFullRefreshCount=0;
+function refreshData(options){
+    const opt=options||{};
+    if(axeFullRefreshPromise&&!opt.force){
+        return axeFullRefreshPromise;
+    }
+    axeFullRefreshStartedAt=Date.now();
+    axeFullRefreshCount++;
+    axeFullRefreshPromise=fetch(API_URL,{cache:"no-store"})
         .then(res=>res.json())
         .then(data=>{
             hydrateData(data);
             try{sessionStorage.setItem(DATA_CACHE_KEY,JSON.stringify(data));}catch(e){}
             return data;
         })
-        .catch(()=>{});
+        .catch((err)=>{
+            console.error("refreshData failed",err);
+            return undefined;
+        })
+        .finally(()=>{
+            axeFullRefreshPromise=null;
+        });
+    return axeFullRefreshPromise;
 }
 
 function applyCachedData(){
@@ -5204,14 +5221,25 @@ function applyPartialData(source,scope){
     mergeCachePartial(data);
     return data;
 }
-function requestPartialRefresh(scope){
+/* AXE NET STABILIZE V1: 부분 새로고침 중복 호출 방지 */
+let axePartialRefreshPromiseMap={};
+let axePartialRefreshCountMap={};
+let axePartialRefreshStartedAtMap={};
+function requestPartialRefresh(scope,options){
+    const opt=options||{};
+    const requestKey=String(scope||currentMainSection||"home");
+    if(axePartialRefreshPromiseMap[requestKey]&&!opt.force){
+        return axePartialRefreshPromiseMap[requestKey];
+    }
+    axePartialRefreshCountMap[requestKey]=(axePartialRefreshCountMap[requestKey]||0)+1;
+    axePartialRefreshStartedAtMap[requestKey]=Date.now();
     const payload=getPartialRefreshPayload(scope);
     const controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
     const timeoutId = controller ? setTimeout(function(){
         try{ controller.abort(); }catch(e){}
     }, 12000) : null;
 
-    return fetch(API_URL,{
+    const requestPromise=fetch(API_URL,{
         method:"POST",
         cache:"no-store",
         headers:{"Content-Type":"text/plain;charset=utf-8"},
@@ -5233,7 +5261,10 @@ function requestPartialRefresh(scope){
     })
     .finally(function(){
         if(timeoutId)clearTimeout(timeoutId);
+        delete axePartialRefreshPromiseMap[requestKey];
     });
+    axePartialRefreshPromiseMap[requestKey]=requestPromise;
+    return requestPromise;
 }
 function rerenderCurrentPageScope(scope){
     const key=String(scope||currentMainSection||"");
@@ -5336,18 +5367,55 @@ function shouldSkipBackgroundRouteRerender(route){
     return page==="admin"||page==="my";
 }
 
+/* AXE NET STABILIZE V1: 이동/배너 클릭 시 전체 새로고침 반복 방지 */
+const AXE_BACKGROUND_REFRESH_MIN_INTERVAL_MS=30000;
+let axeBackgroundRefreshLastAtMap={};
+function getBackgroundRefreshScope(){
+    const route=history.state||parseRouteFromHash();
+    const page=normalizeMainPage((route&&route.page)||currentMainSection||"home");
+
+    // 관리자/마이페이지는 작업 중 화면이 바뀌면 위험하므로 자동 갱신 제외
+    if(page==="admin"||page==="my")return "";
+
+    // 정적 정보 계열은 시트 수정 빈도가 낮고 데이터량이 커서 자동 갱신 제외
+    if(page==="info"||page==="outlaw"||page==="utility")return "";
+
+    // 홈/공지/튜브/요리/공금/게시판/갤러리/랭킹만 조용히 부분 갱신
+    if(page==="home"||page==="notice"||page==="tube"||page==="food"||page==="fund"||page==="board"||page==="gallery"||page==="ranking")return page;
+    return "";
+}
 function backgroundRefreshCurrentRoute(){
-    /*
-        자동 화면 재렌더링 제거 버전.
-        기존에는 최신 데이터를 받아온 뒤 renderRouteState()를 다시 실행해서
-        작성 중인 글, 상세 화면, 관리자 작업 화면이 갑자기 바뀌는 현상이 있었습니다.
-        이제는 데이터 배열과 캐시만 조용히 갱신하고 현재 화면은 건드리지 않습니다.
-        화면 갱신이 필요한 작업은 각 작성/수정/삭제/상태변경 함수에서 별도로 처리합니다.
-    */
-    refreshData().then(()=>{
-        setTimeout(afterRenderAuth,0);
-        if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
-    });
+    const scope=getBackgroundRefreshScope();
+    if(!scope)return Promise.resolve({skipped:true,reason:"no-auto-scope"});
+
+    const now=Date.now();
+    const last=axeBackgroundRefreshLastAtMap[scope]||0;
+    if(now-last<AXE_BACKGROUND_REFRESH_MIN_INTERVAL_MS){
+        return Promise.resolve({skipped:true,reason:"throttled",scope:scope});
+    }
+    axeBackgroundRefreshLastAtMap[scope]=now;
+
+    return requestPartialRefresh(scope)
+        .then(function(data){
+            setTimeout(afterRenderAuth,0);
+            if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+            return data;
+        })
+        .catch(function(err){
+            console.warn("background partial refresh skipped",scope,err);
+            return null;
+        });
+}
+function axeRefreshDebug(){
+    return {
+        fullRefreshCount:axeFullRefreshCount,
+        fullRefreshInFlight:!!axeFullRefreshPromise,
+        partialRefreshCount:Object.assign({},axePartialRefreshCountMap),
+        partialRefreshInFlight:Object.keys(axePartialRefreshPromiseMap),
+        backgroundLastAt:Object.assign({},axeBackgroundRefreshLastAtMap),
+        currentMainSection:currentMainSection,
+        currentHistoryPage:currentHistoryPage
+    };
 }
 
 const INITIAL_LOADING_MIN_MS=650;
