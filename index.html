@@ -5308,6 +5308,10 @@ function requestPartialRefresh(scope,options){
 }
 function rerenderCurrentPageScope(scope){
     const key=String(scope||currentMainSection||"");
+    if(key==="craft"){showCraft();return;}
+    if(key==="quest"){showQuest();return;}
+    if(key==="process"){showProcess();return;}
+    if(key==="skillrank"){showSkillRanks();return;}
     if(key==="fund"){showFund(currentFundTab||"status",false);return;}
     if(key==="board"){if(selectedBoardId){openBoardDetail(selectedBoardId,false,false);}else{showBoard();}return;}
     if(key==="tube"){if(selectedTubeId){openTubeDetail(selectedTubeId,false,false);}else{showTube();}return;}
@@ -5379,14 +5383,15 @@ function refreshCurrentPageOnly(scope){
         }
     },30000);
 
-    // AXE NET V13: 개조서는 정보형 데이터라 관리자가 직접 검수할 때만 갱신합니다.
-    // Apps Script 배포 지연/부분갱신 범위 미적용 상황에서도 실패하지 않도록,
-    // 개조서 화면 새로고침은 안정적으로 전체 데이터 재수신(refreshData) 후 현재 화면만 다시 표시합니다.
-    // 일반 이용자 자동갱신에는 영향이 없고, 관리자가 버튼을 눌렀을 때만 동작합니다.
-    const runRefresh=(key==="modbook") ? refreshData() : requestPartialRefresh(key);
+    // AXE NET V14: 정보형 데이터는 관리자가 시트 입력 후 검수할 때만 수동 갱신합니다.
+    // 제작/퀘스트/가공·재련/개조서/스킬랭크는 부분갱신 범위가 일정하지 않으므로,
+    // 버튼 클릭 시 전체 데이터를 안정적으로 재수신한 뒤 현재 정보 화면만 다시 표시합니다.
+    // 자동 백그라운드 갱신에는 영향이 없고, 관리자가 검수 버튼을 누를 때만 동작합니다.
+    const infoFullRefreshScopes={craft:true,quest:true,process:true,modbook:true,skillrank:true};
+    const runRefresh=infoFullRefreshScopes[key] ? refreshData() : requestPartialRefresh(key);
 
     runRefresh
-        .then(function(){finishPageRefresh(key,key==="modbook"?"개조서 최신 자료 반영됨":"최신 자료 반영됨","ok");})
+        .then(function(){finishPageRefresh(key,infoFullRefreshScopes[key]?"시트 자료 최신 반영됨":"최신 자료 반영됨","ok");})
         .catch(function(err){
             console.error("page refresh failed",err);
             if(key!=="modbook"&&PAGE_REFRESH_USE_FULL_FALLBACK){
@@ -8220,12 +8225,12 @@ function showQuest(){
     if(!questJobFilter&&jobs.length)questJobFilter=jobs[0];
 
     let html=`
-    <div class="section-head">
+    <div class="section-head with-action">
         <div>
             <div class="section-title">정보</div>
             <div class="section-desc">생활직 퀘스트 보상 정보를 확인합니다.</div>
         </div>
-        <div class="count" id="questCountBox">총 ${quests.length}개</div>
+        <div class="section-action">${renderPageRefreshAction("quest")}</div>
     </div>
 
     ${infoMenu("퀘스트")}
@@ -8330,12 +8335,12 @@ function showProcess(){
     if(!processJobFilter&&jobs.length)processJobFilter=jobs[0];
 
     let html=`
-    <div class="section-head">
+    <div class="section-head with-action">
         <div>
             <div class="section-title">정보</div>
             <div class="section-desc">생활직 가공/재련 재료와 퀘스트 보상을 확인합니다.</div>
         </div>
-        <div class="count" id="processCountBox">총 ${processes.length}개</div>
+        <div class="section-action">${renderPageRefreshAction("process")}</div>
     </div>
 
     ${infoMenu("가공/재련")}
@@ -8488,12 +8493,12 @@ function showSkillRanks(){
     if(!skillRankFilter&&skills.length)skillRankFilter=skills[0];
 
     let html=`
-    <div class="section-head">
+    <div class="section-head with-action">
         <div>
             <div class="section-title">정보</div>
             <div class="section-desc">스킬별 랭크업 필요 포인트를 확인합니다.</div>
         </div>
-        <div class="count">SKILL</div>
+        <div class="section-action">${renderPageRefreshAction("skillrank")}</div>
     </div>
 
     ${infoMenu("스킬랭크")}
@@ -9286,12 +9291,12 @@ function showCraft(){
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
     let html=`
-    <div class="section-head">
+    <div class="section-head with-action">
         <div>
             <div class="section-title">정보</div>
             <div class="section-desc">게임 플레이에 필요한 각종 정보를 확인합니다.</div>
         </div>
-        <div class="count" id="countBox">총 ${crafts.length}개</div>
+        <div class="section-action">${renderPageRefreshAction("craft")}</div>
     </div>
 
     ${infoMenu("제작")}
@@ -20823,6 +20828,24 @@ window.axeModBookRefreshDebug=function(){
         cacheKey:typeof DATA_CACHE_KEY!=="undefined"?DATA_CACHE_KEY:"",
         modbookRefreshBusy:!!(pageRefreshBusyMap&&pageRefreshBusyMap.modbook),
         lastPartialStartedAt:axePartialRefreshStartedAtMap&&axePartialRefreshStartedAtMap.modbook||null
+    };
+};
+
+
+/* AXE NET V14.0: 정보형 데이터 공통 검수 갱신 디버그 */
+window.axeInfoRefreshDebug=function(){
+    return {
+        version:"AXE_NET_STABILIZED_REFRESH_V14",
+        currentInfoSubTab:typeof currentInfoSubTab!=="undefined"?currentInfoSubTab:"",
+        counts:{
+            crafts:Array.isArray(crafts)?crafts.length:0,
+            quests:Array.isArray(quests)?quests.length:0,
+            processes:Array.isArray(processes)?processes.length:0,
+            modBooks:Array.isArray(modBooks)?modBooks.length:0,
+            skillRanks:Array.isArray(skillRanks)?skillRanks.length:0
+        },
+        visibleRefreshButtons:Array.from(document.querySelectorAll("[id^='pageRefreshBtn_']")).map(function(btn){return btn.id;}),
+        busyMap:Object.assign({},pageRefreshBusyMap||{})
     };
 };
 </script>
