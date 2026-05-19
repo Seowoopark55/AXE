@@ -20619,333 +20619,166 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 </script>
 
 
-
-<script id="axe-food-badge-v9-fix">
-/* AXE NET STABILIZED REFRESH V9
+<script id="axe-stabilized-refresh-v11-minimal-stable">
+/* AXE NET STABILIZED REFRESH V11
    - V6 안정본 기반
-   - 상단 요리 주문 배지 클릭만 최소 보강
-   - 요리 주문 취소/상태처리 원본 로직은 건드리지 않음
-   - 상태 버튼은 시각적 처리 중 표시만 추가하되 요청 흐름에는 개입하지 않음
+   - 상단 요리 주문 알림은 '표시 전용'으로 전환
+   - 요리관리 이동은 상단 배지 클릭 기능을 사용하지 않음
+   - 메인 화면에서 현재 화면 새로고침 버튼 잔상/중복 제거
+   - 요리 상태처리 원본 흐름은 건드리지 않음
 */
 (function(){
-    const V9_VERSION="AXE_NET_STABILIZED_REFRESH_V9";
+    const V11_VERSION="AXE_NET_STABILIZED_REFRESH_V11";
 
-    window.axeOpenFoodAdminBadge=function(ev){
-        try{
-            if(ev){
-                ev.preventDefault&&ev.preventDefault();
-                ev.stopPropagation&&ev.stopPropagation();
-            }
-        }catch(e){}
-        try{
-            if(typeof window.showFoodOrderAdmin==="function"){
-                window.showFoodOrderAdmin("pending");
-                return false;
-            }
-            if(typeof window.navigateMain==="function"){
-                window.navigateMain("food");
-                setTimeout(function(){
-                    try{ if(typeof window.showFoodOrderAdmin==="function")window.showFoodOrderAdmin("pending"); }catch(e){}
-                },80);
-                return false;
-            }
-        }catch(err){
-            console.warn("food badge open failed",err);
-        }
-        return false;
-    };
-
-    function getFoodStatusForBadgeV9(order){
-        try{
-            if(typeof getFoodOrderStatusForTopBar==="function")return getFoodOrderStatusForTopBar(order);
-        }catch(e){}
+    function getFoodStatusForBadgeV11(order){
         return String(order&&order.status||"접수").trim()||"접수";
     }
 
-    window.renderAdminFoodTopSummary=function(){
+    function renderFoodSummaryDisplayHtml(){
         try{
             if(typeof isCurrentAdmin==="function"&&!isCurrentAdmin())return "";
             const list=Array.isArray(window.foodOrders)?window.foodOrders:(typeof foodOrders!=="undefined"&&Array.isArray(foodOrders)?foodOrders:[]);
             const pending=list.filter(function(order){
-                const status=getFoodStatusForBadgeV9(order);
+                const status=getFoodStatusForBadgeV11(order);
                 return status==="접수"||status==="제작완료";
             });
-            const receive=pending.filter(function(order){return getFoodStatusForBadgeV9(order)==="접수";}).length;
-            const ready=pending.filter(function(order){return getFoodStatusForBadgeV9(order)==="제작완료";}).length;
+            const receive=pending.filter(function(order){return getFoodStatusForBadgeV11(order)==="접수";}).length;
+            const ready=pending.filter(function(order){return getFoodStatusForBadgeV11(order)==="제작완료";}).length;
             const text=pending.length?"주문 미처리 "+pending.length+" · 접수 "+receive+" · 제작완료 "+ready:"주문 처리 없음";
             const stateClass=pending.length?"pending":"clear";
-            return '<button type="button" class="auth-food-summary '+stateClass+'" data-food-admin-badge="1" onclick="return axeOpenFoodAdminBadge(event)" title="요리주문 관리로 이동">'+text+'</button><span class="auth-inline-sep auth-food-sep">|</span>';
+            return '<span class="auth-food-summary-display '+stateClass+'" data-food-summary-display="1" title="요리주문 현황 표시 전용">'+text+'</span><span class="auth-inline-sep auth-food-sep">|</span>';
         }catch(err){
-            console.warn("food badge render failed",err);
+            console.warn("food summary display render failed",err);
             return "";
         }
-    };
+    }
 
-    function bindFoodBadgesV9(){
+    function convertFoodSummaryButtons(){
         try{
             document.querySelectorAll(".auth-food-summary").forEach(function(btn){
-                btn.setAttribute("type","button");
-                btn.setAttribute("data-food-admin-badge","1");
-                btn.setAttribute("role","button");
-                btn.setAttribute("tabindex","0");
-                btn.onclick=function(ev){return window.axeOpenFoodAdminBadge(ev);};
+                if(btn.dataset&&btn.dataset.v11Converted==="1")return;
+                const span=document.createElement("span");
+                const isPending=btn.classList.contains("pending");
+                const isClear=btn.classList.contains("clear");
+                span.className="auth-food-summary-display"+(isPending?" pending":"")+(isClear?" clear":"");
+                span.setAttribute("data-food-summary-display","1");
+                span.setAttribute("title","요리주문 현황 표시 전용");
+                span.textContent=btn.textContent||"주문 현황";
+                btn.replaceWith(span);
             });
         }catch(e){}
     }
 
-    document.addEventListener("click",function(ev){
-        const btn=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-badge='1']"):null;
-        if(!btn)return;
-        return window.axeOpenFoodAdminBadge(ev);
-    },true);
-
-    document.addEventListener("keydown",function(ev){
-        const btn=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-badge='1']"):null;
-        if(!btn)return;
-        if(ev.key==="Enter"||ev.key===" ")return window.axeOpenFoodAdminBadge(ev);
-    },true);
-
-    // 상태처리 버튼은 원본 updateFoodOrderStatus 흐름에 개입하지 않고, 클릭 후 시각 표시만 합니다.
-    document.addEventListener("click",function(ev){
-        const btn=ev.target&&ev.target.closest?ev.target.closest(".food-status-btn"):null;
-        if(!btn)return;
-        try{
-            if(!btn.dataset.v9OriginalText)btn.dataset.v9OriginalText=btn.textContent;
-            setTimeout(function(){
-                try{
-                    btn.classList.add("v9-food-status-processing");
-                    btn.setAttribute("aria-busy","true");
-                    btn.textContent="처리 중...";
-                }catch(e){}
-            },0);
-            setTimeout(function(){
-                try{
-                    btn.classList.remove("v9-food-status-processing");
-                    btn.removeAttribute("aria-busy");
-                    if(btn.dataset.v9OriginalText)btn.textContent=btn.dataset.v9OriginalText;
-                    delete btn.dataset.v9OriginalText;
-                }catch(e){}
-            },9000);
-        }catch(e){}
-    },false);
-
-    const originalRenderAuthBarV9=window.renderAuthBar;
-    if(typeof originalRenderAuthBarV9==="function"&&!originalRenderAuthBarV9.__axeV9Wrapped){
-        window.renderAuthBar=function(){
-            const result=originalRenderAuthBarV9.apply(this,arguments);
-            setTimeout(bindFoodBadgesV9,0);
-            return result;
+    if(typeof window.renderAdminFoodTopSummary==="function"){
+        window.renderAdminFoodTopSummary=function(){
+            return renderFoodSummaryDisplayHtml();
         };
-        window.renderAuthBar.__axeV9Wrapped=true;
     }
 
-    try{
-        const observer=new MutationObserver(function(){bindFoodBadgesV9();});
-        observer.observe(document.body,{childList:true,subtree:true});
-    }catch(e){}
-
-    const style=document.createElement("style");
-    style.textContent=`
-        .auth-food-summary,[data-food-admin-badge="1"]{
-            cursor:pointer!important;
-            pointer-events:auto!important;
-            user-select:none!important;
-            -webkit-user-select:none!important;
-            touch-action:manipulation!important;
-            caret-color:transparent!important;
-        }
-        .auth-food-summary:hover,[data-food-admin-badge="1"]:hover{filter:brightness(1.06)!important;transform:translateY(-1px)!important}
-        .auth-food-summary:focus{outline:1px solid rgba(255,181,46,.42)!important;outline-offset:2px!important}
-        .food-status-btn.v9-food-status-processing{opacity:.72!important;cursor:wait!important;filter:saturate(.85)!important}
-    `;
-    document.head.appendChild(style);
-
-    window.axeFoodBadgeDebug=function(){
-        return {
-            version:V9_VERSION,
-            currentMainSection:window.currentMainSection,
-            currentHistoryPage:window.currentHistoryPage,
-            foodSummaryButtonCount:document.querySelectorAll(".auth-food-summary").length,
-            pendingText:(document.querySelector(".auth-food-summary")||{}).textContent||"",
-            hasShowFoodOrderAdmin:typeof window.showFoodOrderAdmin==="function",
-            hasUpdateFoodOrderStatus:typeof window.updateFoodOrderStatus==="function"
-        };
-    };
-
-    setTimeout(bindFoodBadgesV9,0);
-    setTimeout(bindFoodBadgesV9,300);
-})();
-</script>
-
-
-
-<script id="axe-stabilized-refresh-v10-final-fixes">
-/* AXE NET STABILIZED REFRESH V10
-   - V9 안정본 기반
-   - 상단 요리 배지 클릭 이동 보강
-   - 현재 화면 새로고침 버튼 중복 표시 제거
-   - 요리 주문 상태처리 원본 흐름은 건드리지 않음
-*/
-(function(){
-    const V10_VERSION="AXE_NET_STABILIZED_REFRESH_V10";
-
-    function isFoodBadgeTarget(target){
+    function removeNodeForRefreshButton(btn){
         try{
-            return !!(target&&target.closest&&target.closest(".auth-food-summary,[data-food-admin-badge='1']"));
-        }catch(e){return false;}
-    }
-
-    function markFoodBadgeButtons(){
-        try{
-            document.querySelectorAll(".auth-food-summary").forEach(function(btn){
-                btn.setAttribute("type","button");
-                btn.setAttribute("data-food-admin-badge","1");
-                btn.setAttribute("role","button");
-                btn.setAttribute("tabindex","0");
-                btn.style.cursor="pointer";
-                btn.onclick=function(ev){return window.axeOpenFoodAdminBadgeV10(ev);};
-            });
+            const wrap=btn.closest&&btn.closest(".page-refresh-actions");
+            if(wrap){wrap.remove();return;}
+            btn.remove();
         }catch(e){}
     }
 
-    function forceOpenFoodAdmin(){
+    function cleanupRefreshButtons(){
         try{
-            if(typeof window.showFoodOrderAdmin==="function"){
-                try{
-                    const state={page:"food",subTab:"admin",foodAdminMode:"pending"};
-                    if(location.hash!=="#food-admin") history.pushState(state,"","#food-admin");
-                    if(typeof currentHistoryPage!=="undefined") currentHistoryPage="food";
-                }catch(e){}
-                window.showFoodOrderAdmin("pending");
-                return true;
+            const content=document.getElementById("content");
+            if(!content)return;
+
+            const isHome=String(window.currentMainSection||"")==="home" || location.hash==="#home" || location.hash==="";
+            if(isHome){
+                content.querySelectorAll("[id^='pageRefreshBtn_']").forEach(removeNodeForRefreshButton);
+                content.querySelectorAll(".section-action").forEach(function(action){
+                    if(!action.textContent.trim()&&!action.children.length)action.remove();
+                });
+                return;
             }
-        }catch(e){}
-        return false;
-    }
 
-    window.axeOpenFoodAdminBadgeV10=function(ev){
-        try{
-            if(ev){
-                ev.preventDefault&&ev.preventDefault();
-                ev.stopPropagation&&ev.stopPropagation();
-            }
-        }catch(e){}
-
-        let opened=forceOpenFoodAdmin();
-
-        if(!opened&&typeof window.navigateMain==="function"){
-            try{ window.navigateMain("food",true); }catch(e){}
-            setTimeout(forceOpenFoodAdmin,80);
-            setTimeout(forceOpenFoodAdmin,240);
-            return false;
-        }
-
-        // 일부 기존 캡처 리스너가 먼저 실행되어 화면이 다시 그려지는 경우를 대비한 확인용 재실행.
-        setTimeout(function(){
-            try{
-                if(String(window.currentMainSection||"")!=="foodAdmin") forceOpenFoodAdmin();
-            }catch(e){forceOpenFoodAdmin();}
-        },120);
-        setTimeout(markFoodBadgeButtons,180);
-        return false;
-    };
-
-    // V9의 axeOpenFoodAdminBadge가 남아 있으면 V10 동작으로 덮습니다.
-    window.axeOpenFoodAdminBadge=window.axeOpenFoodAdminBadgeV10;
-
-    document.addEventListener("mousedown",function(ev){
-        if(!isFoodBadgeTarget(ev.target))return;
-        window.axeOpenFoodAdminBadgeV10(ev);
-    },true);
-
-    document.addEventListener("click",function(ev){
-        if(!isFoodBadgeTarget(ev.target))return;
-        window.axeOpenFoodAdminBadgeV10(ev);
-    },true);
-
-    document.addEventListener("keydown",function(ev){
-        if(!isFoodBadgeTarget(ev.target))return;
-        if(ev.key==="Enter"||ev.key===" ") window.axeOpenFoodAdminBadgeV10(ev);
-    },true);
-
-    function dedupePageRefreshButtons(){
-        try{
             const seen={};
-            document.querySelectorAll(".page-refresh-btn[id]").forEach(function(btn){
+            content.querySelectorAll("[id^='pageRefreshBtn_']").forEach(function(btn){
                 const id=btn.id||"";
-                if(!id)return;
-                const holder=btn.closest(".page-refresh-actions")||btn;
-                if(seen[id]){
-                    if(holder&&holder.parentNode) holder.parentNode.removeChild(holder);
-                    return;
-                }
-                seen[id]=true;
+                if(seen[id])removeNodeForRefreshButton(btn);
+                else seen[id]=true;
             });
         }catch(e){}
     }
 
-    function scheduleDedupe(){
-        setTimeout(dedupePageRefreshButtons,0);
-        setTimeout(dedupePageRefreshButtons,120);
-        setTimeout(dedupePageRefreshButtons,420);
+    function scheduleV11Cleanup(){
+        convertFoodSummaryButtons();
+        cleanupRefreshButtons();
+        setTimeout(function(){convertFoodSummaryButtons();cleanupRefreshButtons();},0);
+        setTimeout(function(){convertFoodSummaryButtons();cleanupRefreshButtons();},80);
+        setTimeout(function(){convertFoodSummaryButtons();cleanupRefreshButtons();},250);
     }
 
-    ["renderMainPage","navigateMain","showFoodOrder","showFoodOrderAdmin","showBoard","openBoardDetail","showGallery","openGalleryDetail","showTube","openTubeDetail"].forEach(function(name){
+    ["navigateMain","showHome","renderMainPage","finishPageRefresh"].forEach(function(name){
         const original=window[name];
-        if(typeof original!=="function"||original.__axeV10DedupeWrapped)return;
+        if(typeof original!=="function"||original.__axeV11Wrapped)return;
         const wrapped=function(){
             const result=original.apply(this,arguments);
-            scheduleDedupe();
-            markFoodBadgeButtons();
+            scheduleV11Cleanup();
             return result;
         };
-        wrapped.__axeV10DedupeWrapped=true;
+        wrapped.__axeV11Wrapped=true;
         window[name]=wrapped;
     });
 
     try{
-        const observer=new MutationObserver(function(){
-            markFoodBadgeButtons();
-            dedupePageRefreshButtons();
-        });
+        const observer=new MutationObserver(function(){scheduleV11Cleanup();});
         observer.observe(document.body,{childList:true,subtree:true});
     }catch(e){}
 
     const style=document.createElement("style");
     style.textContent=`
-        .auth-food-summary,[data-food-admin-badge="1"]{
-            cursor:pointer!important;
-            pointer-events:auto!important;
+        .auth-food-summary-display{
+            height:28px!important;
+            max-width:260px;
+            padding:0 10px!important;
+            border-radius:999px!important;
+            border:1px solid rgba(255,255,255,.1)!important;
+            background:rgba(255,255,255,.045)!important;
+            color:#cfcfcf!important;
+            font-size:12px!important;
+            font-weight:950!important;
+            cursor:default!important;
+            display:inline-flex!important;
+            align-items:center!important;
+            justify-content:center!important;
+            white-space:nowrap!important;
+            overflow:hidden!important;
+            text-overflow:ellipsis!important;
             user-select:none!important;
-            -webkit-user-select:none!important;
-            caret-color:transparent!important;
+            pointer-events:none!important;
+            transform:none!important;
+            filter:none!important;
         }
-        .auth-food-summary:focus,[data-food-admin-badge="1"]:focus{
-            outline:1px solid rgba(255,181,46,.42)!important;
-            outline-offset:2px!important;
-        }
+        .auth-food-summary-display.pending{color:#ffcf75!important;border-color:rgba(255,181,46,.36)!important;background:rgba(255,181,46,.09)!important;}
+        .auth-food-summary-display.clear{color:#8fd9aa!important;border-color:rgba(143,217,170,.24)!important;background:rgba(143,217,170,.055)!important;}
+        @media(max-width:620px){.auth-food-summary-display{order:-1;flex:1 1 100%;width:100%;max-width:none!important}.auth-food-sep{display:none!important}}
     `;
     document.head.appendChild(style);
 
-    window.axeV10Debug=function(){
+    window.axeV11Debug=function(){
         return {
-            version:V10_VERSION,
+            version:V11_VERSION,
             currentMainSection:window.currentMainSection,
             currentHistoryPage:window.currentHistoryPage,
-            foodBadgeCount:document.querySelectorAll(".auth-food-summary,[data-food-admin-badge='1']").length,
-            refreshButtonCount:document.querySelectorAll(".page-refresh-btn[id]").length,
-            duplicateRefreshIds:(function(){
-                const counts={};
-                document.querySelectorAll(".page-refresh-btn[id]").forEach(function(btn){counts[btn.id]=(counts[btn.id]||0)+1;});
-                return Object.keys(counts).filter(function(k){return counts[k]>1;}).map(function(k){return k+":"+counts[k];});
-            })(),
-            hasShowFoodOrderAdmin:typeof window.showFoodOrderAdmin==="function"
+            foodSummaryDisplayCount:document.querySelectorAll(".auth-food-summary-display").length,
+            foodSummaryButtonCount:document.querySelectorAll(".auth-food-summary").length,
+            pageRefreshButtonIds:Array.from(document.querySelectorAll("[id^='pageRefreshBtn_']")).map(function(btn){return btn.id;}),
+            isHome:String(window.currentMainSection||"")==="home"||location.hash==="#home"||location.hash===""
         };
     };
 
-    markFoodBadgeButtons();
-    scheduleDedupe();
+    document.addEventListener("DOMContentLoaded",scheduleV11Cleanup);
+    window.addEventListener("load",scheduleV11Cleanup);
+    setTimeout(scheduleV11Cleanup,100);
+    setTimeout(scheduleV11Cleanup,500);
 })();
 </script>
+
 </body>
 </html>
