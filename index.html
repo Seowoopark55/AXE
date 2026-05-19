@@ -20365,5 +20365,258 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 })();
 </script>
 
+
+
+<script>
+/* AXE NET STABILIZED REFRESH V6
+   - 상세화면(게시판/AXE TUBE/갤러리) 현재 화면 새로고침 버튼 유지
+   - 댓글 등록/삭제 처리 중 상태 가시성 보강
+   - 요리 주문 상태 배지 클릭 위임 보강
+   - 댓글 등록/삭제 후 해당 범위 부분갱신 보강
+   - Apps Script 및 시트 구조 변경 없음
+*/
+(function(){
+    const V6_VERSION="AXE_NET_STABILIZED_REFRESH_V6";
+
+    function v6SafeCall(fn){try{return fn&&fn();}catch(e){console.warn("v6 safe call skipped",e);}}
+    function v6DomSafe(value){return String(value||"").replace(/[^a-zA-Z0-9_\-]/g,"_");}
+
+    function v6FindButtonByOnclick(fnName,parts){
+        try{
+            const list=Array.from(document.querySelectorAll("button[onclick]"));
+            return list.find(function(btn){
+                const text=String(btn.getAttribute("onclick")||"");
+                if(text.indexOf(fnName+"(")<0)return false;
+                return (parts||[]).every(function(part){return !part || text.indexOf(String(part))>=0;});
+            })||null;
+        }catch(e){return null;}
+    }
+
+    function v6FindCommentSubmitButton(scope,ownerId,parentCommentId,inputPrefix){
+        if(inputPrefix){
+            const form=document.getElementById(inputPrefix+"Form");
+            if(form){
+                const btn=form.querySelector(".comment-submit");
+                if(btn)return btn;
+            }
+        }
+        const active=document.activeElement;
+        if(active&&active.closest){
+            const btn=active.closest(".comment-submit");
+            if(btn)return btn;
+        }
+        const fn=scope==="tube"?"addTubeComment":scope==="gallery"?"addGalleryComment":"addBoardComment";
+        return v6FindButtonByOnclick(fn,[ownerId,parentCommentId||""])||document.querySelector(".comment-form-grid .comment-submit");
+    }
+
+    function v6SetButtonLoading(btn,loading,text){
+        if(!btn)return;
+        if(loading){
+            if(!btn.dataset.v6OriginalHtml)btn.dataset.v6OriginalHtml=btn.innerHTML;
+            btn.disabled=true;
+            btn.classList.add("loading","v6-loading");
+            btn.setAttribute("aria-busy","true");
+            btn.innerHTML='<span class="v6-mini-spinner"></span>'+(text||"처리 중...");
+        }else{
+            btn.disabled=false;
+            btn.classList.remove("loading","v6-loading");
+            btn.removeAttribute("aria-busy");
+            if(btn.dataset.v6OriginalHtml){
+                btn.innerHTML=btn.dataset.v6OriginalHtml;
+                delete btn.dataset.v6OriginalHtml;
+            }
+        }
+    }
+
+    function v6ShowCommentNotice(scope,ownerId,message,type){
+        try{
+            const box=document.querySelector(".comment-section")||document.getElementById("commentListBox")||document.getElementById("tubeCommentListBox")||document.getElementById("galleryCommentListBox");
+            if(!box)return;
+            let notice=document.getElementById("v6CommentNotice_"+v6DomSafe(scope+"_"+ownerId));
+            if(!notice){
+                notice=document.createElement("div");
+                notice.id="v6CommentNotice_"+v6DomSafe(scope+"_"+ownerId);
+                notice.className="v6-comment-notice";
+                const title=box.querySelector(".comment-title");
+                if(title&&title.parentNode){title.parentNode.insertBefore(notice,title.nextSibling);}else{box.insertBefore(notice,box.firstChild);}
+            }
+            notice.className="v6-comment-notice "+(type||"");
+            notice.textContent=message||"";
+            notice.style.display=message?"block":"none";
+            if(message){
+                clearTimeout(notice.__v6Timer);
+                notice.__v6Timer=setTimeout(function(){notice.style.display="none";},3500);
+            }
+        }catch(e){}
+    }
+
+    function v6EnsureDetailRefreshButton(scope){
+        try{
+            const key=String(scope||currentMainSection||"");
+            if(!key)return;
+            if(typeof renderPageRefreshAction!=="function")return;
+            const content=document.getElementById("content");
+            if(!content)return;
+            const btnId="pageRefreshBtn_"+key;
+            if(content.querySelector("#"+CSS.escape(btnId)))return;
+            const detail=content.querySelector(".board-detail-card,.tube-detail-card,.tube-watch-card,.gallery-detail-card,.detail");
+            const head=content.querySelector(".section-head")||detail;
+            if(!head)return;
+            head.classList.add("with-action");
+            let action=head.querySelector(":scope > .section-action");
+            if(!action){
+                action=document.createElement("div");
+                action.className="section-action";
+                head.appendChild(action);
+            }
+            const holder=document.createElement("span");
+            holder.innerHTML=renderPageRefreshAction(key);
+            if(holder.firstElementChild)action.insertBefore(holder.firstElementChild,action.firstChild);
+        }catch(e){console.warn("v6 detail refresh button skipped",e);}
+    }
+
+    function v6WrapDetailRenderer(name,scope){
+        const original=window[name];
+        if(typeof original!=="function"||original.__v6Wrapped)return;
+        const wrapped=function(){
+            const result=original.apply(this,arguments);
+            setTimeout(function(){v6EnsureDetailRefreshButton(scope);},0);
+            setTimeout(function(){v6EnsureDetailRefreshButton(scope);},80);
+            return result;
+        };
+        wrapped.__v6Wrapped=true;
+        window[name]=wrapped;
+    }
+
+    v6WrapDetailRenderer("openBoardDetail","board");
+    v6WrapDetailRenderer("openTubeDetail","tube");
+    v6WrapDetailRenderer("openGalleryDetail","gallery");
+
+    const originalFinishPageRefresh=window.finishPageRefresh;
+    if(typeof originalFinishPageRefresh==="function"&&!originalFinishPageRefresh.__v6Wrapped){
+        window.finishPageRefresh=function(scope,message,type){
+            const result=originalFinishPageRefresh.apply(this,arguments);
+            setTimeout(function(){v6EnsureDetailRefreshButton(scope);},0);
+            setTimeout(function(){v6EnsureDetailRefreshButton(scope);},100);
+            return result;
+        };
+        window.finishPageRefresh.__v6Wrapped=true;
+    }
+
+    const originalAxeCurrentButton=window.axeCurrentButton;
+    window.axeCurrentButton=function(selector){
+        try{
+            if(typeof originalAxeCurrentButton==="function"){
+                const found=originalAxeCurrentButton(selector);
+                if(found)return found;
+            }
+            const active=document.activeElement;
+            if(active&&active.closest){
+                const btn=active.closest(selector||"button");
+                if(btn)return btn;
+            }
+        }catch(e){}
+        return null;
+    };
+
+    function v6OpenDetail(scope,ownerId){
+        if(scope==="board"&&typeof openBoardDetail==="function")return openBoardDetail(ownerId,false,false);
+        if(scope==="tube"&&typeof openTubeDetail==="function")return openTubeDetail(ownerId,false,false);
+        if(scope==="gallery"&&typeof openGalleryDetail==="function")return openGalleryDetail(ownerId,false,false);
+    }
+
+    function v6PartialRefreshAfterComment(scope,ownerId){
+        if(typeof requestPartialRefresh!=="function")return Promise.resolve(null);
+        return requestPartialRefresh(scope,{force:true}).then(function(){
+            v6OpenDetail(scope,ownerId);
+            return true;
+        }).catch(function(err){
+            console.warn("v6 comment partial refresh skipped",scope,err);
+            return null;
+        });
+    }
+
+    if(typeof window.axeAddComment==="function"&&!window.axeAddComment.__v6Wrapped){
+        const originalAddComment=window.axeAddComment;
+        window.axeAddComment=function(scope,ownerId,parentCommentId,inputPrefix){
+            const btn=v6FindCommentSubmitButton(scope,ownerId,parentCommentId,inputPrefix);
+            v6SetButtonLoading(btn,true,"등록 중...");
+            v6ShowCommentNotice(scope,ownerId,"댓글을 등록하는 중입니다.","loading");
+            const startAt=Date.now();
+            const result=originalAddComment.apply(this,arguments);
+            // originalAddComment가 Promise를 반환하지 않으므로 API 완료 예상 시점까지 버튼 상태를 유지합니다.
+            setTimeout(function(){
+                v6SetButtonLoading(btn,false);
+            },Math.max(2500,Math.min(9000,Date.now()-startAt+3500)));
+            setTimeout(function(){
+                v6PartialRefreshAfterComment(scope,ownerId).then(function(){
+                    v6ShowCommentNotice(scope,ownerId,"댓글 목록을 최신 상태로 확인했습니다.","ok");
+                });
+            },900);
+            return result;
+        };
+        window.axeAddComment.__v6Wrapped=true;
+        window.addBoardComment=function(postId,parentCommentId,inputPrefix){return window.axeAddComment("board",postId,parentCommentId||"",inputPrefix||"");};
+        window.addTubeComment=function(tubeId,parentCommentId,inputPrefix){return window.axeAddComment("tube",tubeId,parentCommentId||"",inputPrefix||"");};
+        window.addGalleryComment=function(galleryId,parentCommentId,inputPrefix){return window.axeAddComment("gallery",galleryId,parentCommentId||"",inputPrefix||"");};
+    }
+
+    function v6WrapDeleteComment(name,scope){
+        const original=window[name];
+        if(typeof original!=="function"||original.__v6Wrapped)return;
+        const wrapped=function(commentId,ownerId,btn){
+            btn=btn||v6FindButtonByOnclick(name,[commentId,ownerId]);
+            v6SetButtonLoading(btn,true,"삭제 중...");
+            v6ShowCommentNotice(scope,ownerId,"댓글을 삭제하는 중입니다.","loading");
+            const result=original.call(this,commentId,ownerId,btn);
+            setTimeout(function(){v6SetButtonLoading(btn,false);},5000);
+            setTimeout(function(){
+                v6PartialRefreshAfterComment(scope,ownerId).then(function(){
+                    v6ShowCommentNotice(scope,ownerId,"댓글 목록을 최신 상태로 확인했습니다.","ok");
+                });
+            },1000);
+            return result;
+        };
+        wrapped.__v6Wrapped=true;
+        window[name]=wrapped;
+    }
+    v6WrapDeleteComment("deleteBoardComment","board");
+    v6WrapDeleteComment("deleteTubeComment","tube");
+    v6WrapDeleteComment("deleteGalleryComment","gallery");
+
+    document.addEventListener("click",function(ev){
+        const btn=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary"):null;
+        if(!btn)return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(typeof window.showFoodOrderAdmin==="function")window.showFoodOrderAdmin("pending");
+    },true);
+
+    const style=document.createElement("style");
+    style.textContent=`
+        .v6-loading{opacity:.72!important;cursor:wait!important;pointer-events:none!important;filter:saturate(.82)!important}
+        .v6-mini-spinner{display:inline-block;width:12px;height:12px;margin-right:6px;border-radius:999px;border:2px solid rgba(255,255,255,.25);border-top-color:currentColor;vertical-align:-2px;animation:v6Spin .72s linear infinite}
+        @keyframes v6Spin{to{transform:rotate(360deg)}}
+        .v6-comment-notice{margin:8px 0 10px;padding:9px 11px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#aaa;font-size:12px;font-weight:900;line-height:1.45;display:none}
+        .v6-comment-notice.loading{display:block;color:#ffcf75;border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.075)}
+        .v6-comment-notice.ok{display:block;color:#8fd9aa;border-color:rgba(143,217,170,.28);background:rgba(143,217,170,.055)}
+        .v6-comment-notice.err{display:block;color:#ff8b8b;border-color:rgba(255,100,100,.3);background:rgba(255,100,100,.055)}
+        .section-head.with-action>.section-action{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+        @media(max-width:760px){.section-head.with-action>.section-action{justify-content:stretch}.section-head.with-action>.section-action .page-refresh-actions{flex:1 1 100%}.section-head.with-action>.section-action .page-refresh-btn{width:100%}}
+    `;
+    document.head.appendChild(style);
+
+    window.axeV6Status=function(){
+        return {version:V6_VERSION,currentMainSection:window.currentMainSection,currentHistoryPage:window.currentHistoryPage,hasDetailRefreshButton:!!document.querySelector('.board-detail-card #pageRefreshBtn_board,.tube-detail-card #pageRefreshBtn_tube,.gallery-detail-card #pageRefreshBtn_gallery,#pageRefreshBtn_board,#pageRefreshBtn_tube,#pageRefreshBtn_gallery')};
+    };
+
+    setTimeout(function(){
+        if(currentMainSection==="board")v6EnsureDetailRefreshButton("board");
+        if(currentMainSection==="tube")v6EnsureDetailRefreshButton("tube");
+        if(currentMainSection==="gallery")v6EnsureDetailRefreshButton("gallery");
+    },300);
+})();
+</script>
+
 </body>
 </html>
