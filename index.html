@@ -5374,8 +5374,12 @@ function shouldSkipBackgroundRouteRerender(route){
 const AXE_BACKGROUND_REFRESH_MIN_INTERVAL_MS=30000;
 let axeBackgroundRefreshLastAtMap={};
 function getBackgroundRefreshScope(){
+    // V3: 실제로 화면에 표시된 섹션(currentMainSection)을 우선 기준으로 삼습니다.
+    // history.state가 이전 페이지(fund 등)로 남아 있으면 배너로 홈을 눌러도 fund 갱신이 다시 도는 문제가 있었습니다.
+    const visualPage=normalizeMainPage(currentMainSection||"home");
     const route=history.state||parseRouteFromHash();
-    const page=normalizeMainPage((route&&route.page)||currentMainSection||"home");
+    const routePage=normalizeMainPage((route&&route.page)||"home");
+    const page=visualPage||routePage||"home";
 
     // 관리자/마이페이지는 작업 중 화면이 바뀌면 위험하므로 자동 갱신 제외
     if(page==="admin"||page==="my")return "";
@@ -5383,8 +5387,7 @@ function getBackgroundRefreshScope(){
     // 정적 정보 계열은 시트 수정 빈도가 낮고 데이터량이 커서 자동 갱신 제외
     if(page==="info"||page==="outlaw"||page==="utility")return "";
 
-    // V2: 홈/메인 배너 이동은 자동 갱신에서 제외
-    // 홈 category_refresh는 여러 주요 데이터를 함께 읽어 무겁고, 배너 클릭 때마다 exec를 추가 발생시킬 수 있음
+    // V3: 홈/메인 배너 이동은 자동 갱신에서 강제 제외합니다.
     if(page==="home")return "";
 
     // 공지/튜브/요리/공금/게시판/갤러리/랭킹만 조용히 부분 갱신
@@ -5423,7 +5426,8 @@ function axeRefreshDebug(){
         notificationBadgeLastAt:axeNotificationBadgeLastAt||0,
         notificationBadgeInFlight:!!axeNotificationBadgePromise,
         currentMainSection:currentMainSection,
-        currentHistoryPage:currentHistoryPage
+        currentHistoryPage:currentHistoryPage,
+        resolvedBackgroundScope:typeof getBackgroundRefreshScope==="function"?getBackgroundRefreshScope():""
     };
 }
 
@@ -5510,6 +5514,7 @@ function hideLoading(){
 
 function safe(v){return v===undefined||v===null||v===""?"-":v}
 function escapeText(v){return String(v||"").replace(/'/g,"\\'").replace(/`/g,"\\`")}
+function escapeHtml(v){return String(v===undefined||v===null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\'/g,"&#39;")}
 function escapeAttr(v){return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function escapeTextarea(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function domSafeId(v){return String(v||"").replace(/[^a-zA-Z0-9_\-]/g,"_")}
@@ -16127,7 +16132,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
                 foodCart=[];setSavedFoodMemo("");
                 alert("주문이 접수되었습니다.");
                 showFoodOrder();
-                return refreshData().then(()=>showFoodOrder());
+                return requestPartialRefresh("food",{force:true}).then(()=>showFoodOrder()).catch(()=>showFoodOrder());
             }
             alert(data.message||"주문 접수 중 오류가 발생했습니다.");
         })
@@ -16139,7 +16144,7 @@ html.axe-modal-open,body.axe-modal-open{overflow:hidden!important;touch-action:n
         if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
         adminApi({type:"food_order_status_update",id:id,status:status})
         .then(data=>{
-            if(data.result==="success")return refreshData().then(()=>currentMainSection==="foodAdmin"?showFoodOrderAdmin(foodAdminMode):showFoodOrder());
+            if(data.result==="success")return requestPartialRefresh("food",{force:true}).then(()=>currentMainSection==="foodAdmin"?showFoodOrderAdmin(foodAdminMode):showFoodOrder()).catch(()=>currentMainSection==="foodAdmin"?showFoodOrderAdmin(foodAdminMode):showFoodOrder());
             alert(data.message||"상태 변경 중 오류가 발생했습니다.");
         })
         .catch(()=>{});
@@ -17556,7 +17561,9 @@ function fundEvidenceLink(url,label){
 }
 function fundRefreshAfter(data){
     if(data&&data.result==="success"){
-        return refreshData().then(()=>{showFund(currentFundTab,false);return data;});
+        return requestPartialRefresh("fund",{force:true})
+            .then(()=>{showFund(currentFundTab,false);return data;})
+            .catch(()=>{showFund(currentFundTab,false);return data;});
     }
     return data;
 }
