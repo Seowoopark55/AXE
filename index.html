@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AXE NET</title>
 <script>
+/* AXE NET STABILIZE V5: early global guards for variables used by late-loaded patch blocks.
+   Prevents TDZ errors when UI handlers run before lower script sections finish initializing. */
+var MAIN_FAVORITE_LABELS = window.MAIN_FAVORITE_LABELS || {
+  home:"홈",notice:"공지사항",outlaw:"무법지대",tube:"AXE TUBE",board:"자유게시판",gallery:"갤러리",info:"정보",ranking:"랭킹",utility:"편의기능",food:"요리주문",fund:"공금",my:"마이페이지",admin:"관리자"
+};
+window.MAIN_FAVORITE_LABELS = MAIN_FAVORITE_LABELS;
+var AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS = window.AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS || 15000;
+window.AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS = AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS;
+var axeNotificationBadgeLastAt = window.axeNotificationBadgeLastAt || 0;
+var axeNotificationBadgePromise = window.axeNotificationBadgePromise || null;
+
 (function(){
     try{
         const nav=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];
@@ -4813,15 +4824,15 @@ function setupAuthObserver(){
     new MutationObserver(()=>applyLoginWriterFields()).observe(target,{childList:true,subtree:true});
 }
 
-/* AXE NET STABILIZE V4: 화면 이동/배너 클릭 때 알림 조회(fetch)까지 같이 발생하지 않도록 분리
-   - afterRenderAuth는 DOM 정리와 권한 UI 갱신만 담당
-   - 알림 배지는 로그인 직후, 알림창 조작, 60초 주기 갱신에서만 조회
-   - 배너/카테고리 이동 시 0.5KB notification_list 요청이 계속 생기던 현상 완화 */
+/* AXE NET STABILIZE V2: 로그인/화면 재렌더링 때 알림 조회가 반복되지 않도록 afterRenderAuth는 UI 정리만 수행 */
 function afterRenderAuth(){
     renderAuthBar();
     applyLoginWriterFields();
     setupAuthObserver();
     updateAdminMenu();
+    if(typeof axeRefreshNotificationBadgeThrottled==="function"){
+        axeRefreshNotificationBadgeThrottled();
+    }
 }
 
 
@@ -5427,9 +5438,7 @@ function axeRefreshDebug(){
         notificationBadgeInFlight:!!axeNotificationBadgePromise,
         currentMainSection:currentMainSection,
         currentHistoryPage:currentHistoryPage,
-        resolvedBackgroundScope:typeof getBackgroundRefreshScope==="function"?getBackgroundRefreshScope():"",
-        stabilizeVersion:"V4",
-        notificationMode:"login_or_interval_only"
+        resolvedBackgroundScope:typeof getBackgroundRefreshScope==="function"?getBackgroundRefreshScope():""
     };
 }
 
@@ -8708,7 +8717,7 @@ const INFO_FAVORITE_KEY="axe_net_global_favorites_v1";
 const INFO_FAVORITE_LEGACY_KEY="axe_net_info_favorites_v1";
 const INFO_FAVORITE_COLLAPSE_KEY="axe_net_info_favorites_collapsed_v1";
 
-const MAIN_FAVORITE_LABELS={
+MAIN_FAVORITE_LABELS=window.MAIN_FAVORITE_LABELS=MAIN_FAVORITE_LABELS||{
     home:"메인",
     notice:"공지사항",
     outlaw:"무법지대",
@@ -10066,9 +10075,12 @@ function notificationTypeLabel(type){
    - 화면 이동/렌더링 때마다 notification_list가 반복 호출되는 문제 완화
    - 기본 15초 이내 중복 조회 생략
    - force:true 또는 알림창 열기/전체읽음 처리 등 명시 상황은 기존 흐름 유지 가능 */
-const AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS=15000;
-let axeNotificationBadgeLastAt=0;
-let axeNotificationBadgePromise=null;
+AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS=window.AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS||AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS||15000;
+window.AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS=AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS;
+axeNotificationBadgeLastAt=window.axeNotificationBadgeLastAt||axeNotificationBadgeLastAt||0;
+window.axeNotificationBadgeLastAt=axeNotificationBadgeLastAt;
+axeNotificationBadgePromise=window.axeNotificationBadgePromise||axeNotificationBadgePromise||null;
+window.axeNotificationBadgePromise=axeNotificationBadgePromise;
 
 function axeRefreshNotificationBadgeThrottled(options){
     return refreshNotificationBadge(options||{});
@@ -10093,9 +10105,9 @@ function refreshNotificationBadge(options){
 
     if(notificationLoading&&!opt.force)return Promise.resolve({result:"skipped",reason:"notification-loading"});
     notificationLoading=true;
-    axeNotificationBadgeLastAt=now;
+    axeNotificationBadgeLastAt=window.axeNotificationBadgeLastAt=now;
 
-    axeNotificationBadgePromise=fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_list",nickname:user.nickname,limit:30})})
+    axeNotificationBadgePromise=window.axeNotificationBadgePromise=fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_list",nickname:user.nickname,limit:30})})
     .then(res=>res.json())
     .then(data=>{
         if(data&&data.result==="success"){
@@ -10113,6 +10125,7 @@ function refreshNotificationBadge(options){
     .finally(()=>{
         notificationLoading=false;
         axeNotificationBadgePromise=null;
+        window.axeNotificationBadgePromise=null;
     });
 
     return axeNotificationBadgePromise;
