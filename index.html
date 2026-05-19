@@ -4813,12 +4813,15 @@ function setupAuthObserver(){
     new MutationObserver(()=>applyLoginWriterFields()).observe(target,{childList:true,subtree:true});
 }
 
+/* AXE NET STABILIZE V2: 로그인/화면 재렌더링 때 알림 조회가 반복되지 않도록 afterRenderAuth는 UI 정리만 수행 */
 function afterRenderAuth(){
     renderAuthBar();
     applyLoginWriterFields();
     setupAuthObserver();
     updateAdminMenu();
-    refreshNotificationBadge();
+    if(typeof axeRefreshNotificationBadgeThrottled==="function"){
+        axeRefreshNotificationBadgeThrottled();
+    }
 }
 
 
@@ -5380,8 +5383,12 @@ function getBackgroundRefreshScope(){
     // 정적 정보 계열은 시트 수정 빈도가 낮고 데이터량이 커서 자동 갱신 제외
     if(page==="info"||page==="outlaw"||page==="utility")return "";
 
-    // 홈/공지/튜브/요리/공금/게시판/갤러리/랭킹만 조용히 부분 갱신
-    if(page==="home"||page==="notice"||page==="tube"||page==="food"||page==="fund"||page==="board"||page==="gallery"||page==="ranking")return page;
+    // V2: 홈/메인 배너 이동은 자동 갱신에서 제외
+    // 홈 category_refresh는 여러 주요 데이터를 함께 읽어 무겁고, 배너 클릭 때마다 exec를 추가 발생시킬 수 있음
+    if(page==="home")return "";
+
+    // 공지/튜브/요리/공금/게시판/갤러리/랭킹만 조용히 부분 갱신
+    if(page==="notice"||page==="tube"||page==="food"||page==="fund"||page==="board"||page==="gallery"||page==="ranking")return page;
     return "";
 }
 function backgroundRefreshCurrentRoute(){
@@ -5413,6 +5420,8 @@ function axeRefreshDebug(){
         partialRefreshCount:Object.assign({},axePartialRefreshCountMap),
         partialRefreshInFlight:Object.keys(axePartialRefreshPromiseMap),
         backgroundLastAt:Object.assign({},axeBackgroundRefreshLastAtMap),
+        notificationBadgeLastAt:axeNotificationBadgeLastAt||0,
+        notificationBadgeInFlight:!!axeNotificationBadgePromise,
         currentMainSection:currentMainSection,
         currentHistoryPage:currentHistoryPage
     };
@@ -10046,15 +10055,42 @@ function notificationTypeLabel(type){
     return "알림";
 }
 
-function refreshNotificationBadge(){
+/* AXE NET STABILIZE V2: 알림 배지 조회 중복 방지
+   - 화면 이동/렌더링 때마다 notification_list가 반복 호출되는 문제 완화
+   - 기본 15초 이내 중복 조회 생략
+   - force:true 또는 알림창 열기/전체읽음 처리 등 명시 상황은 기존 흐름 유지 가능 */
+const AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS=15000;
+let axeNotificationBadgeLastAt=0;
+let axeNotificationBadgePromise=null;
+
+function axeRefreshNotificationBadgeThrottled(options){
+    return refreshNotificationBadge(options||{});
+}
+
+function refreshNotificationBadge(options){
+    const opt=options||{};
     const user=getCurrentUser();
-    if(!user||!user.nickname){notificationUnreadCount=0;notificationCache=[];return Promise.resolve(null);}
-    if(notificationLoading)return Promise.resolve(null);
+    if(!user||!user.nickname){
+        notificationUnreadCount=0;
+        notificationCache=[];
+        return Promise.resolve(null);
+    }
+
+    const now=Date.now();
+    if(!opt.force){
+        if(axeNotificationBadgePromise)return axeNotificationBadgePromise;
+        if(now-axeNotificationBadgeLastAt<AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS){
+            return Promise.resolve({result:"skipped",reason:"notification-throttled"});
+        }
+    }
+
+    if(notificationLoading&&!opt.force)return Promise.resolve({result:"skipped",reason:"notification-loading"});
     notificationLoading=true;
-    return fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_list",nickname:user.nickname,limit:30})})
+    axeNotificationBadgeLastAt=now;
+
+    axeNotificationBadgePromise=fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_list",nickname:user.nickname,limit:30})})
     .then(res=>res.json())
     .then(data=>{
-        notificationLoading=false;
         if(data&&data.result==="success"){
             notificationUnreadCount=Number(data.unread_count||0);
             notificationCache=data.notifications||[];
@@ -10066,7 +10102,13 @@ function refreshNotificationBadge(){
         }
         return data;
     })
-    .catch(()=>{notificationLoading=false;return null;});
+    .catch(()=>null)
+    .finally(()=>{
+        notificationLoading=false;
+        axeNotificationBadgePromise=null;
+    });
+
+    return axeNotificationBadgePromise;
 }
 
 function openNotificationModal(){
@@ -10130,7 +10172,7 @@ function markNotificationRead(notificationId,all=false){
     return fetch(API_URL,{method:"POST",body:JSON.stringify({type:"notification_read",nickname:user.nickname,notification_id:notificationId||"",all:!!all})})
     .then(res=>res.json())
     .then(data=>{
-        refreshNotificationBadge();
+        refreshNotificationBadge({force:true});
         return data;
     })
     .catch(()=>null);
