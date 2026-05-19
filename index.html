@@ -5199,6 +5199,7 @@ let pageRefreshTimerMap={};
 function getPartialRefreshPayload(scope){
     const key=String(scope||currentMainSection||"home");
     if(key==="fund")return {type:"fund_refresh",category:"fund"};
+    if(key==="modbook")return {type:"category_refresh",category:"modbook"};
     return {type:"category_refresh",category:key};
 }
 function mergeCachePartial(source){
@@ -5224,6 +5225,13 @@ function applyPartialData(source,scope){
     if(data.galleries!==undefined||data.galleryPosts!==undefined)galleries=data.galleries||data.galleryPosts||[];
     if(data.galleryComments!==undefined||data.gallery_comments!==undefined)galleryComments=data.galleryComments||data.gallery_comments||[];
     if(data.rankings!==undefined)rankings=data.rankings||[];
+    if(data.modBooks!==undefined||data.mod_books!==undefined)modBooks=data.modBooks||data.mod_books||[];
+    if(data.crafts!==undefined)crafts=data.crafts||[];
+    if(data.materials!==undefined)materials=data.materials||[];
+    if(data.quests!==undefined)quests=data.quests||[];
+    if(data.processes!==undefined)processes=data.processes||[];
+    if(data.materialRecipes!==undefined||data.material_recipes!==undefined)materialRecipes=data.materialRecipes||data.material_recipes||[];
+    if(data.skillRanks!==undefined||data.skill_ranks!==undefined)skillRanks=data.skillRanks||data.skill_ranks||[];
     if(data.foodMenus!==undefined||data.food_menus!==undefined)foodMenus=data.foodMenus||data.food_menus||[];
     if(data.foodOrders!==undefined||data.food_orders!==undefined)foodOrders=data.foodOrders||data.food_orders||[];
     if(data.fundMembers!==undefined||data.fund_members!==undefined)fundMembers=data.fundMembers||data.fund_members||[];
@@ -5269,8 +5277,26 @@ function requestPartialRefresh(scope,options){
             applyPartialData(data,scope);
             return data;
         }
-        const hasUsefulData=!!(data&&(data.fundRequests||data.fund_requests||data.boards||data.tubes||data.galleries||data.notices||data.foodOrders||data.food_orders||data.rankings));
+        const hasUsefulData=!!(data&&(data.fundRequests||data.fund_requests||data.boards||data.tubes||data.galleries||data.notices||data.foodOrders||data.food_orders||data.rankings||data.modBooks||data.mod_books));
         if(hasUsefulData){applyPartialData(data,scope);return data;}
+        if(requestKey==="modbook"&&data&&/지원하지 않는 새로고침 범위/.test(String(data.message||""))){
+            return fetch(API_URL,{
+                method:"POST",
+                cache:"no-store",
+                headers:{"Content-Type":"text/plain;charset=utf-8"},
+                body:JSON.stringify({type:"category_refresh",category:"all"}),
+                signal:controller ? controller.signal : undefined
+            }).then(function(res){
+                if(!res.ok) throw new Error("HTTP "+res.status);
+                return res.json();
+            }).then(function(allData){
+                if(allData&&allData.result==="success"){
+                    applyPartialData(allData,"all");
+                    return allData;
+                }
+                throw new Error((allData&&allData.message)||"modbook fallback refresh failed");
+            });
+        }
         throw new Error((data&&data.message)||"partial refresh unsupported");
     })
     .finally(function(){
@@ -5287,6 +5313,7 @@ function rerenderCurrentPageScope(scope){
     if(key==="tube"){if(selectedTubeId){openTubeDetail(selectedTubeId,false,false);}else{showTube();}return;}
     if(key==="gallery"){if(selectedGalleryId){openGalleryDetail(selectedGalleryId,false,false);}else{showGallery();}return;}
     if(key==="notice"){showNotice();return;}
+    if(key==="modbook"){showModBooks();return;}
     if(key==="food"&&typeof window.showFoodOrder==="function"){window.showFoodOrder();return;}
     if(key==="foodAdmin"&&typeof window.showFoodOrderAdmin==="function"){window.showFoodOrderAdmin(foodAdminMode||"pending");return;}
     if(key==="ranking"){showRanking();return;}
@@ -9079,12 +9106,12 @@ function showModBooks(){
     if(!modBookCategoryFilter||!categories.includes(modBookCategoryFilter))modBookCategoryFilter=categories[0]||"";
 
     document.getElementById("content").innerHTML=`
-        <div class="section-head">
+        <div class="section-head with-action">
             <div>
                 <div class="section-title">정보</div>
                 <div class="section-desc">개조서의 접두·접미, 적용 부위와 옵션을 확인합니다.</div>
             </div>
-            <div class="count">개조서</div>
+            <div class="section-action">${renderPageRefreshAction("modbook")}</div>
         </div>
         ${infoMenu("개조서")}
         <div class="modbook-top-search">
@@ -20778,6 +20805,20 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     setTimeout(scheduleV11Cleanup,100);
     setTimeout(scheduleV11Cleanup,500);
 })();
+
+
+/* AXE NET V12.0: 정보형 데이터(개조서) 검수 갱신 보강 */
+window.axeModBookRefreshDebug=function(){
+    return {
+        modBookCount:Array.isArray(modBooks)?modBooks.length:0,
+        prefixMiningNames:(Array.isArray(modBooks)?modBooks:[]).filter(function(m){
+            return String(m.type||"").trim()==="접두"&&String(m.category||"").trim()==="채광";
+        }).map(function(m){return m.name||"";}),
+        cacheKey:typeof DATA_CACHE_KEY!=="undefined"?DATA_CACHE_KEY:"",
+        modbookRefreshBusy:!!(pageRefreshBusyMap&&pageRefreshBusyMap.modbook),
+        lastPartialStartedAt:axePartialRefreshStartedAtMap&&axePartialRefreshStartedAtMap.modbook||null
+    };
+};
 </script>
 
 </body>
