@@ -4813,15 +4813,15 @@ function setupAuthObserver(){
     new MutationObserver(()=>applyLoginWriterFields()).observe(target,{childList:true,subtree:true});
 }
 
-/* AXE NET STABILIZE V2: 로그인/화면 재렌더링 때 알림 조회가 반복되지 않도록 afterRenderAuth는 UI 정리만 수행 */
+/* AXE NET STABILIZE V4: 화면 이동/배너 클릭 때 알림 조회(fetch)까지 같이 발생하지 않도록 분리
+   - afterRenderAuth는 DOM 정리와 권한 UI 갱신만 담당
+   - 알림 배지는 로그인 직후, 알림창 조작, 60초 주기 갱신에서만 조회
+   - 배너/카테고리 이동 시 0.5KB notification_list 요청이 계속 생기던 현상 완화 */
 function afterRenderAuth(){
     renderAuthBar();
     applyLoginWriterFields();
     setupAuthObserver();
     updateAdminMenu();
-    if(typeof axeRefreshNotificationBadgeThrottled==="function"){
-        axeRefreshNotificationBadgeThrottled();
-    }
 }
 
 
@@ -5427,7 +5427,9 @@ function axeRefreshDebug(){
         notificationBadgeInFlight:!!axeNotificationBadgePromise,
         currentMainSection:currentMainSection,
         currentHistoryPage:currentHistoryPage,
-        resolvedBackgroundScope:typeof getBackgroundRefreshScope==="function"?getBackgroundRefreshScope():""
+        resolvedBackgroundScope:typeof getBackgroundRefreshScope==="function"?getBackgroundRefreshScope():"",
+        stabilizeVersion:"V4",
+        notificationMode:"login_or_interval_only"
     };
 }
 
