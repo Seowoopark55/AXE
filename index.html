@@ -5377,13 +5377,19 @@ function refreshCurrentPageOnly(scope){
         if(pageRefreshBusyMap[key]){
             finishPageRefresh(key,"응답 지연 · 다시 시도 가능","err");
         }
-    },15000);
+    },30000);
 
-    requestPartialRefresh(key)
-        .then(function(){finishPageRefresh(key,"최신 자료 반영됨","ok");})
+    // AXE NET V13: 개조서는 정보형 데이터라 관리자가 직접 검수할 때만 갱신합니다.
+    // Apps Script 배포 지연/부분갱신 범위 미적용 상황에서도 실패하지 않도록,
+    // 개조서 화면 새로고침은 안정적으로 전체 데이터 재수신(refreshData) 후 현재 화면만 다시 표시합니다.
+    // 일반 이용자 자동갱신에는 영향이 없고, 관리자가 버튼을 눌렀을 때만 동작합니다.
+    const runRefresh=(key==="modbook") ? refreshData() : requestPartialRefresh(key);
+
+    runRefresh
+        .then(function(){finishPageRefresh(key,key==="modbook"?"개조서 최신 자료 반영됨":"최신 자료 반영됨","ok");})
         .catch(function(err){
-            console.error("partial refresh failed",err);
-            if(PAGE_REFRESH_USE_FULL_FALLBACK){
+            console.error("page refresh failed",err);
+            if(key!=="modbook"&&PAGE_REFRESH_USE_FULL_FALLBACK){
                 refreshData()
                     .then(function(){finishPageRefresh(key,"전체 자료로 반영됨","ok");})
                     .catch(function(){finishPageRefresh(key,"불러오기 실패","err");});
