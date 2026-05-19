@@ -20618,5 +20618,167 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 })();
 </script>
 
+
+<script>
+/* AXE NET V7: 요리 미처리 배지 클릭 안정화 + 관리자 요리 알림 경량 자동 갱신 */
+(function(){
+    const V7_VERSION="AXE_NET_STABILIZED_REFRESH_V7";
+    const FOOD_BADGE_REFRESH_MS=12000;
+    const FOOD_BADGE_CLICK_GUARD_MS=450;
+    let lastFoodBadgeClickAt=0;
+    let lastFoodBadgeRefreshAt=0;
+    let foodBadgeRefreshTimer=null;
+
+    function v7IsAdmin(){
+        try{return typeof isCurrentAdmin==="function"&&isCurrentAdmin();}catch(e){return false;}
+    }
+
+    function v7CanUseFoodAdmin(){
+        return typeof window.showFoodOrderAdmin==="function";
+    }
+
+    function v7OpenFoodAdmin(ev){
+        try{
+            if(ev){
+                ev.preventDefault();
+                ev.stopPropagation();
+                if(typeof ev.stopImmediatePropagation==="function")ev.stopImmediatePropagation();
+            }
+        }catch(e){}
+        const now=Date.now();
+        if(now-lastFoodBadgeClickAt<FOOD_BADGE_CLICK_GUARD_MS)return false;
+        lastFoodBadgeClickAt=now;
+        if(v7CanUseFoodAdmin()){
+            window.showFoodOrderAdmin("pending");
+            return false;
+        }
+        if(typeof window.navigateMain==="function"){
+            window.navigateMain("food");
+            setTimeout(function(){if(v7CanUseFoodAdmin())window.showFoodOrderAdmin("pending");},120);
+        }
+        return false;
+    }
+
+    function v7BindFoodSummaryButton(){
+        const buttons=document.querySelectorAll(".auth-food-summary");
+        buttons.forEach(function(btn){
+            btn.setAttribute("data-food-admin-open","1");
+            btn.setAttribute("type","button");
+            btn.setAttribute("role","button");
+            btn.setAttribute("tabindex","0");
+            btn.style.pointerEvents="auto";
+            btn.style.position="relative";
+            btn.style.zIndex="80";
+            btn.onclick=v7OpenFoodAdmin;
+            if(!btn.__axeFoodV7KeyBound){
+                btn.addEventListener("keydown",function(ev){
+                    if(ev.key==="Enter"||ev.key===" ")v7OpenFoodAdmin(ev);
+                },true);
+                btn.__axeFoodV7KeyBound=true;
+            }
+        });
+    }
+
+    document.addEventListener("click",function(ev){
+        const target=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-open='1']"):null;
+        if(!target)return;
+        v7OpenFoodAdmin(ev);
+    },true);
+
+    document.addEventListener("pointerup",function(ev){
+        const target=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-open='1']"):null;
+        if(!target)return;
+        v7OpenFoodAdmin(ev);
+    },true);
+
+    function v7RefreshFoodBadge(force){
+        if(!v7IsAdmin())return Promise.resolve(null);
+        if(document.visibilityState&&document.visibilityState!=="visible")return Promise.resolve(null);
+        const now=Date.now();
+        if(!force&&now-lastFoodBadgeRefreshAt<FOOD_BADGE_REFRESH_MS)return Promise.resolve(null);
+        lastFoodBadgeRefreshAt=now;
+        const refreshFn=typeof window.requestPartialRefresh==="function"?window.requestPartialRefresh:null;
+        if(!refreshFn)return Promise.resolve(null);
+        return refreshFn("food",{force:!!force,quiet:true}).then(function(data){
+            try{if(typeof renderAuthBar==="function")renderAuthBar();}catch(e){}
+            setTimeout(v7BindFoodSummaryButton,0);
+            return data;
+        }).catch(function(){return null;});
+    }
+
+    function v7StartFoodBadgeTimer(){
+        if(foodBadgeRefreshTimer)return;
+        foodBadgeRefreshTimer=setInterval(function(){v7RefreshFoodBadge(false);},FOOD_BADGE_REFRESH_MS);
+    }
+
+    const oldRenderAuthBar=window.renderAuthBar;
+    if(typeof oldRenderAuthBar==="function"&&!oldRenderAuthBar.__axeV7Wrapped){
+        const wrapped=function(){
+            const result=oldRenderAuthBar.apply(this,arguments);
+            setTimeout(v7BindFoodSummaryButton,0);
+            return result;
+        };
+        wrapped.__axeV7Wrapped=true;
+        window.renderAuthBar=wrapped;
+    }
+
+    const oldAfterRenderAuth=window.afterRenderAuth;
+    if(typeof oldAfterRenderAuth==="function"&&!oldAfterRenderAuth.__axeV7Wrapped){
+        const wrapped=function(){
+            const result=oldAfterRenderAuth.apply(this,arguments);
+            setTimeout(v7BindFoodSummaryButton,0);
+            return result;
+        };
+        wrapped.__axeV7Wrapped=true;
+        window.afterRenderAuth=wrapped;
+    }
+
+    const oldUpdateFoodOrderStatus=window.updateFoodOrderStatus;
+    if(typeof oldUpdateFoodOrderStatus==="function"&&!oldUpdateFoodOrderStatus.__axeV7Wrapped){
+        const wrapped=function(){
+            const result=oldUpdateFoodOrderStatus.apply(this,arguments);
+            setTimeout(function(){v7RefreshFoodBadge(true);},700);
+            return result;
+        };
+        wrapped.__axeV7Wrapped=true;
+        window.updateFoodOrderStatus=wrapped;
+    }
+
+    const style=document.createElement("style");
+    style.textContent=`
+        .auth-food-summary,.top-status-bar .auth-food-summary{pointer-events:auto!important;position:relative!important;z-index:80!important;user-select:none!important}
+        .auth-food-summary.pending{box-shadow:0 0 0 1px rgba(255,181,46,.08),0 8px 18px rgba(0,0,0,.18)!important}
+        .auth-inline-shell,.top-status-bar .auth-inline-shell{pointer-events:auto!important}
+    `;
+    document.head.appendChild(style);
+
+    try{
+        const observer=new MutationObserver(function(){v7BindFoodSummaryButton();});
+        observer.observe(document.body,{childList:true,subtree:true});
+    }catch(e){}
+
+    window.axeFoodBadgeDebug=function(){
+        return {
+            version:V7_VERSION,
+            isAdmin:v7IsAdmin(),
+            currentMainSection:window.currentMainSection,
+            foodSummaryButtonCount:document.querySelectorAll(".auth-food-summary").length,
+            pendingText:(document.querySelector(".auth-food-summary")||{}).textContent||"",
+            lastFoodBadgeRefreshAt:lastFoodBadgeRefreshAt,
+            msSinceFoodBadgeRefresh:lastFoodBadgeRefreshAt?Date.now()-lastFoodBadgeRefreshAt:null
+        };
+    };
+
+    setTimeout(function(){
+        v7BindFoodSummaryButton();
+        v7StartFoodBadgeTimer();
+        v7RefreshFoodBadge(false);
+    },700);
+
+    window.addEventListener("focus",function(){v7RefreshFoodBadge(true);});
+    document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")v7RefreshFoodBadge(true);});
+})();
+</script>
+
 </body>
 </html>
