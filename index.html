@@ -20620,209 +20620,160 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 
 
 
-<script>
-/* AXE NET STABILIZED REFRESH V8
-   - V7 폐기 후 V6 안정 라인 기반
-   - 요리 상단 배지 클릭 안정화만 최소 보강
-   - foodAdmin 현재화면 새로고침 범위 오류 보정
-   - V7의 12초 자동 요리 갱신/강제 pointerup 이벤트 제거
-   - Apps Script 및 시트 구조 변경 없음
+<script id="axe-food-badge-v9-fix">
+/* AXE NET STABILIZED REFRESH V9
+   - V6 안정본 기반
+   - 상단 요리 주문 배지 클릭만 최소 보강
+   - 요리 주문 취소/상태처리 원본 로직은 건드리지 않음
+   - 상태 버튼은 시각적 처리 중 표시만 추가하되 요청 흐름에는 개입하지 않음
 */
 (function(){
-    const V8_VERSION="AXE_NET_STABILIZED_REFRESH_V8";
-    let lastFoodBadgeOpenAt=0;
+    const V9_VERSION="AXE_NET_STABILIZED_REFRESH_V9";
 
-    function v8IsFoodBadge(el){
-        return !!(el&&el.closest&&el.closest(".auth-food-summary,[data-food-admin-open='1']"));
-    }
-
-    function v8GetFoodAdminMode(){
-        try{
-            const active=document.querySelector(".food-admin-tabs button.active span");
-            const label=active?String(active.textContent||"").trim():"";
-            if(label.indexOf("오늘")>=0)return "today";
-            if(label.indexOf("지난")>=0)return "past";
-        }catch(e){}
-        return window.__axeFoodAdminMode||"pending";
-    }
-
-    function v8OpenFoodAdmin(ev){
+    window.axeOpenFoodAdminBadge=function(ev){
         try{
             if(ev){
-                ev.preventDefault();
-                ev.stopPropagation();
-                if(typeof ev.stopImmediatePropagation==="function")ev.stopImmediatePropagation();
+                ev.preventDefault&&ev.preventDefault();
+                ev.stopPropagation&&ev.stopPropagation();
             }
         }catch(e){}
-        const now=Date.now();
-        if(now-lastFoodBadgeOpenAt<350)return false;
-        lastFoodBadgeOpenAt=now;
-        window.__axeFoodAdminMode="pending";
-        if(typeof window.showFoodOrderAdmin==="function"){
-            window.showFoodOrderAdmin("pending");
-            return false;
-        }
-        if(typeof window.navigateMain==="function"){
-            window.navigateMain("food");
-            setTimeout(function(){
-                if(typeof window.showFoodOrderAdmin==="function")window.showFoodOrderAdmin("pending");
-            },120);
+        try{
+            if(typeof window.showFoodOrderAdmin==="function"){
+                window.showFoodOrderAdmin("pending");
+                return false;
+            }
+            if(typeof window.navigateMain==="function"){
+                window.navigateMain("food");
+                setTimeout(function(){
+                    try{ if(typeof window.showFoodOrderAdmin==="function")window.showFoodOrderAdmin("pending"); }catch(e){}
+                },80);
+                return false;
+            }
+        }catch(err){
+            console.warn("food badge open failed",err);
         }
         return false;
+    };
+
+    function getFoodStatusForBadgeV9(order){
+        try{
+            if(typeof getFoodOrderStatusForTopBar==="function")return getFoodOrderStatusForTopBar(order);
+        }catch(e){}
+        return String(order&&order.status||"접수").trim()||"접수";
     }
 
-    function v8BindFoodBadges(){
+    window.renderAdminFoodTopSummary=function(){
+        try{
+            if(typeof isCurrentAdmin==="function"&&!isCurrentAdmin())return "";
+            const list=Array.isArray(window.foodOrders)?window.foodOrders:(typeof foodOrders!=="undefined"&&Array.isArray(foodOrders)?foodOrders:[]);
+            const pending=list.filter(function(order){
+                const status=getFoodStatusForBadgeV9(order);
+                return status==="접수"||status==="제작완료";
+            });
+            const receive=pending.filter(function(order){return getFoodStatusForBadgeV9(order)==="접수";}).length;
+            const ready=pending.filter(function(order){return getFoodStatusForBadgeV9(order)==="제작완료";}).length;
+            const text=pending.length?"주문 미처리 "+pending.length+" · 접수 "+receive+" · 제작완료 "+ready:"주문 처리 없음";
+            const stateClass=pending.length?"pending":"clear";
+            return '<button type="button" class="auth-food-summary '+stateClass+'" data-food-admin-badge="1" onclick="return axeOpenFoodAdminBadge(event)" title="요리주문 관리로 이동">'+text+'</button><span class="auth-inline-sep auth-food-sep">|</span>';
+        }catch(err){
+            console.warn("food badge render failed",err);
+            return "";
+        }
+    };
+
+    function bindFoodBadgesV9(){
         try{
             document.querySelectorAll(".auth-food-summary").forEach(function(btn){
-                btn.setAttribute("data-food-admin-open","1");
+                btn.setAttribute("type","button");
+                btn.setAttribute("data-food-admin-badge","1");
                 btn.setAttribute("role","button");
                 btn.setAttribute("tabindex","0");
-                btn.style.pointerEvents="auto";
-                btn.style.cursor="pointer";
-                btn.onclick=v8OpenFoodAdmin;
-                if(!btn.__axeV8KeyBound){
-                    btn.addEventListener("keydown",function(ev){
-                        if(ev.key==="Enter"||ev.key===" ")v8OpenFoodAdmin(ev);
-                    },true);
-                    btn.__axeV8KeyBound=true;
-                }
+                btn.onclick=function(ev){return window.axeOpenFoodAdminBadge(ev);};
             });
         }catch(e){}
     }
 
     document.addEventListener("click",function(ev){
-        if(!v8IsFoodBadge(ev.target))return;
-        v8OpenFoodAdmin(ev);
+        const btn=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-badge='1']"):null;
+        if(!btn)return;
+        return window.axeOpenFoodAdminBadge(ev);
     },true);
 
-    const originalRenderAuthBar=window.renderAuthBar;
-    if(typeof originalRenderAuthBar==="function"&&!originalRenderAuthBar.__axeV8Wrapped){
-        const wrapped=function(){
-            const result=originalRenderAuthBar.apply(this,arguments);
-            setTimeout(v8BindFoodBadges,0);
-            return result;
-        };
-        wrapped.__axeV8Wrapped=true;
-        window.renderAuthBar=wrapped;
-    }
+    document.addEventListener("keydown",function(ev){
+        const btn=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-badge='1']"):null;
+        if(!btn)return;
+        if(ev.key==="Enter"||ev.key===" ")return window.axeOpenFoodAdminBadge(ev);
+    },true);
 
-    const originalAfterRenderAuth=window.afterRenderAuth;
-    if(typeof originalAfterRenderAuth==="function"&&!originalAfterRenderAuth.__axeV8Wrapped){
-        const wrapped=function(){
-            const result=originalAfterRenderAuth.apply(this,arguments);
-            setTimeout(v8BindFoodBadges,0);
-            return result;
-        };
-        wrapped.__axeV8Wrapped=true;
-        window.afterRenderAuth=wrapped;
-    }
-
-    const originalShowFoodOrderAdmin=window.showFoodOrderAdmin;
-    if(typeof originalShowFoodOrderAdmin==="function"&&!originalShowFoodOrderAdmin.__axeV8Wrapped){
-        const wrapped=function(mode){
-            window.__axeFoodAdminMode=["pending","today","past"].includes(mode)?mode:(window.__axeFoodAdminMode||"pending");
-            return originalShowFoodOrderAdmin.apply(this,arguments);
-        };
-        wrapped.__axeV8Wrapped=true;
-        window.showFoodOrderAdmin=wrapped;
-    }
-
-    const originalSetFoodAdminMode=window.setFoodAdminMode;
-    if(typeof originalSetFoodAdminMode==="function"&&!originalSetFoodAdminMode.__axeV8Wrapped){
-        const wrapped=function(mode){
-            window.__axeFoodAdminMode=["pending","today","past"].includes(mode)?mode:"pending";
-            return originalSetFoodAdminMode.apply(this,arguments);
-        };
-        wrapped.__axeV8Wrapped=true;
-        window.setFoodAdminMode=wrapped;
-    }
-
-    // foodAdmin은 Apps Script의 category_refresh 지원 범위가 아니므로 food 부분갱신으로 우회합니다.
-    if(typeof window.getPartialRefreshPayload==="function"){
-        const originalGetPartialRefreshPayload=window.getPartialRefreshPayload;
-        window.getPartialRefreshPayload=function(scope){
-            const key=String(scope||window.currentMainSection||"home");
-            if(key==="foodAdmin")return {type:"category_refresh",category:"food"};
-            return originalGetPartialRefreshPayload.apply(this,arguments);
-        };
-        try{getPartialRefreshPayload=window.getPartialRefreshPayload;}catch(e){}
-    }
-
-    // foodAdmin 새로고침 후 렌더링 시 IIFE 내부 변수(foodAdminMode)를 직접 참조하지 않도록 보정합니다.
-    if(typeof window.rerenderCurrentPageScope==="function"){
-        const originalRerenderCurrentPageScope=window.rerenderCurrentPageScope;
-        window.rerenderCurrentPageScope=function(scope){
-            const key=String(scope||window.currentMainSection||"");
-            if(key==="foodAdmin"&&typeof window.showFoodOrderAdmin==="function"){
-                window.showFoodOrderAdmin(v8GetFoodAdminMode());
-                return;
-            }
-            return originalRerenderCurrentPageScope.apply(this,arguments);
-        };
-        try{rerenderCurrentPageScope=window.rerenderCurrentPageScope;}catch(e){}
-    }
-
-    // 요리관리 상태 버튼은 처리 중 표시를 주되, 원래 함수의 상태변경 로직은 그대로 사용합니다.
-    const originalUpdateFoodOrderStatus=window.updateFoodOrderStatus;
-    if(typeof originalUpdateFoodOrderStatus==="function"&&!originalUpdateFoodOrderStatus.__axeV8Wrapped){
-        const wrapped=function(id,status){
-            let btn=null;
-            try{
-                btn=Array.from(document.querySelectorAll(".food-status-btn")).find(function(b){
-                    const txt=String(b.getAttribute("onclick")||"");
-                    return txt.indexOf(String(id))>=0&&txt.indexOf(String(status))>=0;
-                })||document.activeElement;
-                if(btn&&btn.classList&&btn.classList.contains("food-status-btn")){
-                    if(!btn.dataset.v8Text)btn.dataset.v8Text=btn.textContent;
-                    btn.disabled=true;
-                    btn.textContent="처리 중...";
-                    btn.classList.add("v8-food-status-loading");
-                }
-            }catch(e){}
-            const result=originalUpdateFoodOrderStatus.apply(this,arguments);
+    // 상태처리 버튼은 원본 updateFoodOrderStatus 흐름에 개입하지 않고, 클릭 후 시각 표시만 합니다.
+    document.addEventListener("click",function(ev){
+        const btn=ev.target&&ev.target.closest?ev.target.closest(".food-status-btn"):null;
+        if(!btn)return;
+        try{
+            if(!btn.dataset.v9OriginalText)btn.dataset.v9OriginalText=btn.textContent;
             setTimeout(function(){
                 try{
-                    if(btn&&btn.dataset){
-                        btn.disabled=false;
-                        btn.textContent=btn.dataset.v8Text||String(status||"처리");
-                        delete btn.dataset.v8Text;
-                        btn.classList.remove("v8-food-status-loading");
-                    }
+                    btn.classList.add("v9-food-status-processing");
+                    btn.setAttribute("aria-busy","true");
+                    btn.textContent="처리 중...";
                 }catch(e){}
-            },7000);
+            },0);
+            setTimeout(function(){
+                try{
+                    btn.classList.remove("v9-food-status-processing");
+                    btn.removeAttribute("aria-busy");
+                    if(btn.dataset.v9OriginalText)btn.textContent=btn.dataset.v9OriginalText;
+                    delete btn.dataset.v9OriginalText;
+                }catch(e){}
+            },9000);
+        }catch(e){}
+    },false);
+
+    const originalRenderAuthBarV9=window.renderAuthBar;
+    if(typeof originalRenderAuthBarV9==="function"&&!originalRenderAuthBarV9.__axeV9Wrapped){
+        window.renderAuthBar=function(){
+            const result=originalRenderAuthBarV9.apply(this,arguments);
+            setTimeout(bindFoodBadgesV9,0);
             return result;
         };
-        wrapped.__axeV8Wrapped=true;
-        window.updateFoodOrderStatus=wrapped;
+        window.renderAuthBar.__axeV9Wrapped=true;
     }
 
-    const style=document.createElement("style");
-    style.textContent=`
-        .auth-food-summary,[data-food-admin-open='1']{pointer-events:auto!important;cursor:pointer!important;outline:none!important;caret-color:transparent!important}
-        .auth-food-summary:focus{box-shadow:0 0 0 1px rgba(255,181,46,.22),0 6px 16px rgba(0,0,0,.18)!important}
-        .food-status-btn.v8-food-status-loading{opacity:.72!important;cursor:wait!important;filter:saturate(.85)!important}
-    `;
-    document.head.appendChild(style);
-
     try{
-        const observer=new MutationObserver(function(){v8BindFoodBadges();});
+        const observer=new MutationObserver(function(){bindFoodBadgesV9();});
         observer.observe(document.body,{childList:true,subtree:true});
     }catch(e){}
 
+    const style=document.createElement("style");
+    style.textContent=`
+        .auth-food-summary,[data-food-admin-badge="1"]{
+            cursor:pointer!important;
+            pointer-events:auto!important;
+            user-select:none!important;
+            -webkit-user-select:none!important;
+            touch-action:manipulation!important;
+            caret-color:transparent!important;
+        }
+        .auth-food-summary:hover,[data-food-admin-badge="1"]:hover{filter:brightness(1.06)!important;transform:translateY(-1px)!important}
+        .auth-food-summary:focus{outline:1px solid rgba(255,181,46,.42)!important;outline-offset:2px!important}
+        .food-status-btn.v9-food-status-processing{opacity:.72!important;cursor:wait!important;filter:saturate(.85)!important}
+    `;
+    document.head.appendChild(style);
+
     window.axeFoodBadgeDebug=function(){
         return {
-            version:V8_VERSION,
+            version:V9_VERSION,
             currentMainSection:window.currentMainSection,
             currentHistoryPage:window.currentHistoryPage,
             foodSummaryButtonCount:document.querySelectorAll(".auth-food-summary").length,
             pendingText:(document.querySelector(".auth-food-summary")||{}).textContent||"",
-            foodAdminMode:v8GetFoodAdminMode(),
-            hasShowFoodOrderAdmin:typeof window.showFoodOrderAdmin==="function"
+            hasShowFoodOrderAdmin:typeof window.showFoodOrderAdmin==="function",
+            hasUpdateFoodOrderStatus:typeof window.updateFoodOrderStatus==="function"
         };
     };
 
-    setTimeout(v8BindFoodBadges,0);
-    setTimeout(v8BindFoodBadges,500);
+    setTimeout(bindFoodBadgesV9,0);
+    setTimeout(bindFoodBadgesV9,300);
 })();
 </script>
 
