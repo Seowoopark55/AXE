@@ -20619,25 +20619,34 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 </script>
 
 
+
 <script>
-/* AXE NET V7: 요리 미처리 배지 클릭 안정화 + 관리자 요리 알림 경량 자동 갱신 */
+/* AXE NET STABILIZED REFRESH V8
+   - V7 폐기 후 V6 안정 라인 기반
+   - 요리 상단 배지 클릭 안정화만 최소 보강
+   - foodAdmin 현재화면 새로고침 범위 오류 보정
+   - V7의 12초 자동 요리 갱신/강제 pointerup 이벤트 제거
+   - Apps Script 및 시트 구조 변경 없음
+*/
 (function(){
-    const V7_VERSION="AXE_NET_STABILIZED_REFRESH_V7";
-    const FOOD_BADGE_REFRESH_MS=12000;
-    const FOOD_BADGE_CLICK_GUARD_MS=450;
-    let lastFoodBadgeClickAt=0;
-    let lastFoodBadgeRefreshAt=0;
-    let foodBadgeRefreshTimer=null;
+    const V8_VERSION="AXE_NET_STABILIZED_REFRESH_V8";
+    let lastFoodBadgeOpenAt=0;
 
-    function v7IsAdmin(){
-        try{return typeof isCurrentAdmin==="function"&&isCurrentAdmin();}catch(e){return false;}
+    function v8IsFoodBadge(el){
+        return !!(el&&el.closest&&el.closest(".auth-food-summary,[data-food-admin-open='1']"));
     }
 
-    function v7CanUseFoodAdmin(){
-        return typeof window.showFoodOrderAdmin==="function";
+    function v8GetFoodAdminMode(){
+        try{
+            const active=document.querySelector(".food-admin-tabs button.active span");
+            const label=active?String(active.textContent||"").trim():"";
+            if(label.indexOf("오늘")>=0)return "today";
+            if(label.indexOf("지난")>=0)return "past";
+        }catch(e){}
+        return window.__axeFoodAdminMode||"pending";
     }
 
-    function v7OpenFoodAdmin(ev){
+    function v8OpenFoodAdmin(ev){
         try{
             if(ev){
                 ev.preventDefault();
@@ -20646,137 +20655,174 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             }
         }catch(e){}
         const now=Date.now();
-        if(now-lastFoodBadgeClickAt<FOOD_BADGE_CLICK_GUARD_MS)return false;
-        lastFoodBadgeClickAt=now;
-        if(v7CanUseFoodAdmin()){
+        if(now-lastFoodBadgeOpenAt<350)return false;
+        lastFoodBadgeOpenAt=now;
+        window.__axeFoodAdminMode="pending";
+        if(typeof window.showFoodOrderAdmin==="function"){
             window.showFoodOrderAdmin("pending");
             return false;
         }
         if(typeof window.navigateMain==="function"){
             window.navigateMain("food");
-            setTimeout(function(){if(v7CanUseFoodAdmin())window.showFoodOrderAdmin("pending");},120);
+            setTimeout(function(){
+                if(typeof window.showFoodOrderAdmin==="function")window.showFoodOrderAdmin("pending");
+            },120);
         }
         return false;
     }
 
-    function v7BindFoodSummaryButton(){
-        const buttons=document.querySelectorAll(".auth-food-summary");
-        buttons.forEach(function(btn){
-            btn.setAttribute("data-food-admin-open","1");
-            btn.setAttribute("type","button");
-            btn.setAttribute("role","button");
-            btn.setAttribute("tabindex","0");
-            btn.style.pointerEvents="auto";
-            btn.style.position="relative";
-            btn.style.zIndex="80";
-            btn.onclick=v7OpenFoodAdmin;
-            if(!btn.__axeFoodV7KeyBound){
-                btn.addEventListener("keydown",function(ev){
-                    if(ev.key==="Enter"||ev.key===" ")v7OpenFoodAdmin(ev);
-                },true);
-                btn.__axeFoodV7KeyBound=true;
-            }
-        });
+    function v8BindFoodBadges(){
+        try{
+            document.querySelectorAll(".auth-food-summary").forEach(function(btn){
+                btn.setAttribute("data-food-admin-open","1");
+                btn.setAttribute("role","button");
+                btn.setAttribute("tabindex","0");
+                btn.style.pointerEvents="auto";
+                btn.style.cursor="pointer";
+                btn.onclick=v8OpenFoodAdmin;
+                if(!btn.__axeV8KeyBound){
+                    btn.addEventListener("keydown",function(ev){
+                        if(ev.key==="Enter"||ev.key===" ")v8OpenFoodAdmin(ev);
+                    },true);
+                    btn.__axeV8KeyBound=true;
+                }
+            });
+        }catch(e){}
     }
 
     document.addEventListener("click",function(ev){
-        const target=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-open='1']"):null;
-        if(!target)return;
-        v7OpenFoodAdmin(ev);
+        if(!v8IsFoodBadge(ev.target))return;
+        v8OpenFoodAdmin(ev);
     },true);
 
-    document.addEventListener("pointerup",function(ev){
-        const target=ev.target&&ev.target.closest?ev.target.closest(".auth-food-summary,[data-food-admin-open='1']"):null;
-        if(!target)return;
-        v7OpenFoodAdmin(ev);
-    },true);
-
-    function v7RefreshFoodBadge(force){
-        if(!v7IsAdmin())return Promise.resolve(null);
-        if(document.visibilityState&&document.visibilityState!=="visible")return Promise.resolve(null);
-        const now=Date.now();
-        if(!force&&now-lastFoodBadgeRefreshAt<FOOD_BADGE_REFRESH_MS)return Promise.resolve(null);
-        lastFoodBadgeRefreshAt=now;
-        const refreshFn=typeof window.requestPartialRefresh==="function"?window.requestPartialRefresh:null;
-        if(!refreshFn)return Promise.resolve(null);
-        return refreshFn("food",{force:!!force,quiet:true}).then(function(data){
-            try{if(typeof renderAuthBar==="function")renderAuthBar();}catch(e){}
-            setTimeout(v7BindFoodSummaryButton,0);
-            return data;
-        }).catch(function(){return null;});
-    }
-
-    function v7StartFoodBadgeTimer(){
-        if(foodBadgeRefreshTimer)return;
-        foodBadgeRefreshTimer=setInterval(function(){v7RefreshFoodBadge(false);},FOOD_BADGE_REFRESH_MS);
-    }
-
-    const oldRenderAuthBar=window.renderAuthBar;
-    if(typeof oldRenderAuthBar==="function"&&!oldRenderAuthBar.__axeV7Wrapped){
+    const originalRenderAuthBar=window.renderAuthBar;
+    if(typeof originalRenderAuthBar==="function"&&!originalRenderAuthBar.__axeV8Wrapped){
         const wrapped=function(){
-            const result=oldRenderAuthBar.apply(this,arguments);
-            setTimeout(v7BindFoodSummaryButton,0);
+            const result=originalRenderAuthBar.apply(this,arguments);
+            setTimeout(v8BindFoodBadges,0);
             return result;
         };
-        wrapped.__axeV7Wrapped=true;
+        wrapped.__axeV8Wrapped=true;
         window.renderAuthBar=wrapped;
     }
 
-    const oldAfterRenderAuth=window.afterRenderAuth;
-    if(typeof oldAfterRenderAuth==="function"&&!oldAfterRenderAuth.__axeV7Wrapped){
+    const originalAfterRenderAuth=window.afterRenderAuth;
+    if(typeof originalAfterRenderAuth==="function"&&!originalAfterRenderAuth.__axeV8Wrapped){
         const wrapped=function(){
-            const result=oldAfterRenderAuth.apply(this,arguments);
-            setTimeout(v7BindFoodSummaryButton,0);
+            const result=originalAfterRenderAuth.apply(this,arguments);
+            setTimeout(v8BindFoodBadges,0);
             return result;
         };
-        wrapped.__axeV7Wrapped=true;
+        wrapped.__axeV8Wrapped=true;
         window.afterRenderAuth=wrapped;
     }
 
-    const oldUpdateFoodOrderStatus=window.updateFoodOrderStatus;
-    if(typeof oldUpdateFoodOrderStatus==="function"&&!oldUpdateFoodOrderStatus.__axeV7Wrapped){
-        const wrapped=function(){
-            const result=oldUpdateFoodOrderStatus.apply(this,arguments);
-            setTimeout(function(){v7RefreshFoodBadge(true);},700);
+    const originalShowFoodOrderAdmin=window.showFoodOrderAdmin;
+    if(typeof originalShowFoodOrderAdmin==="function"&&!originalShowFoodOrderAdmin.__axeV8Wrapped){
+        const wrapped=function(mode){
+            window.__axeFoodAdminMode=["pending","today","past"].includes(mode)?mode:(window.__axeFoodAdminMode||"pending");
+            return originalShowFoodOrderAdmin.apply(this,arguments);
+        };
+        wrapped.__axeV8Wrapped=true;
+        window.showFoodOrderAdmin=wrapped;
+    }
+
+    const originalSetFoodAdminMode=window.setFoodAdminMode;
+    if(typeof originalSetFoodAdminMode==="function"&&!originalSetFoodAdminMode.__axeV8Wrapped){
+        const wrapped=function(mode){
+            window.__axeFoodAdminMode=["pending","today","past"].includes(mode)?mode:"pending";
+            return originalSetFoodAdminMode.apply(this,arguments);
+        };
+        wrapped.__axeV8Wrapped=true;
+        window.setFoodAdminMode=wrapped;
+    }
+
+    // foodAdmin은 Apps Script의 category_refresh 지원 범위가 아니므로 food 부분갱신으로 우회합니다.
+    if(typeof window.getPartialRefreshPayload==="function"){
+        const originalGetPartialRefreshPayload=window.getPartialRefreshPayload;
+        window.getPartialRefreshPayload=function(scope){
+            const key=String(scope||window.currentMainSection||"home");
+            if(key==="foodAdmin")return {type:"category_refresh",category:"food"};
+            return originalGetPartialRefreshPayload.apply(this,arguments);
+        };
+        try{getPartialRefreshPayload=window.getPartialRefreshPayload;}catch(e){}
+    }
+
+    // foodAdmin 새로고침 후 렌더링 시 IIFE 내부 변수(foodAdminMode)를 직접 참조하지 않도록 보정합니다.
+    if(typeof window.rerenderCurrentPageScope==="function"){
+        const originalRerenderCurrentPageScope=window.rerenderCurrentPageScope;
+        window.rerenderCurrentPageScope=function(scope){
+            const key=String(scope||window.currentMainSection||"");
+            if(key==="foodAdmin"&&typeof window.showFoodOrderAdmin==="function"){
+                window.showFoodOrderAdmin(v8GetFoodAdminMode());
+                return;
+            }
+            return originalRerenderCurrentPageScope.apply(this,arguments);
+        };
+        try{rerenderCurrentPageScope=window.rerenderCurrentPageScope;}catch(e){}
+    }
+
+    // 요리관리 상태 버튼은 처리 중 표시를 주되, 원래 함수의 상태변경 로직은 그대로 사용합니다.
+    const originalUpdateFoodOrderStatus=window.updateFoodOrderStatus;
+    if(typeof originalUpdateFoodOrderStatus==="function"&&!originalUpdateFoodOrderStatus.__axeV8Wrapped){
+        const wrapped=function(id,status){
+            let btn=null;
+            try{
+                btn=Array.from(document.querySelectorAll(".food-status-btn")).find(function(b){
+                    const txt=String(b.getAttribute("onclick")||"");
+                    return txt.indexOf(String(id))>=0&&txt.indexOf(String(status))>=0;
+                })||document.activeElement;
+                if(btn&&btn.classList&&btn.classList.contains("food-status-btn")){
+                    if(!btn.dataset.v8Text)btn.dataset.v8Text=btn.textContent;
+                    btn.disabled=true;
+                    btn.textContent="처리 중...";
+                    btn.classList.add("v8-food-status-loading");
+                }
+            }catch(e){}
+            const result=originalUpdateFoodOrderStatus.apply(this,arguments);
+            setTimeout(function(){
+                try{
+                    if(btn&&btn.dataset){
+                        btn.disabled=false;
+                        btn.textContent=btn.dataset.v8Text||String(status||"처리");
+                        delete btn.dataset.v8Text;
+                        btn.classList.remove("v8-food-status-loading");
+                    }
+                }catch(e){}
+            },7000);
             return result;
         };
-        wrapped.__axeV7Wrapped=true;
+        wrapped.__axeV8Wrapped=true;
         window.updateFoodOrderStatus=wrapped;
     }
 
     const style=document.createElement("style");
     style.textContent=`
-        .auth-food-summary,.top-status-bar .auth-food-summary{pointer-events:auto!important;position:relative!important;z-index:80!important;user-select:none!important}
-        .auth-food-summary.pending{box-shadow:0 0 0 1px rgba(255,181,46,.08),0 8px 18px rgba(0,0,0,.18)!important}
-        .auth-inline-shell,.top-status-bar .auth-inline-shell{pointer-events:auto!important}
+        .auth-food-summary,[data-food-admin-open='1']{pointer-events:auto!important;cursor:pointer!important;outline:none!important;caret-color:transparent!important}
+        .auth-food-summary:focus{box-shadow:0 0 0 1px rgba(255,181,46,.22),0 6px 16px rgba(0,0,0,.18)!important}
+        .food-status-btn.v8-food-status-loading{opacity:.72!important;cursor:wait!important;filter:saturate(.85)!important}
     `;
     document.head.appendChild(style);
 
     try{
-        const observer=new MutationObserver(function(){v7BindFoodSummaryButton();});
+        const observer=new MutationObserver(function(){v8BindFoodBadges();});
         observer.observe(document.body,{childList:true,subtree:true});
     }catch(e){}
 
     window.axeFoodBadgeDebug=function(){
         return {
-            version:V7_VERSION,
-            isAdmin:v7IsAdmin(),
+            version:V8_VERSION,
             currentMainSection:window.currentMainSection,
+            currentHistoryPage:window.currentHistoryPage,
             foodSummaryButtonCount:document.querySelectorAll(".auth-food-summary").length,
             pendingText:(document.querySelector(".auth-food-summary")||{}).textContent||"",
-            lastFoodBadgeRefreshAt:lastFoodBadgeRefreshAt,
-            msSinceFoodBadgeRefresh:lastFoodBadgeRefreshAt?Date.now()-lastFoodBadgeRefreshAt:null
+            foodAdminMode:v8GetFoodAdminMode(),
+            hasShowFoodOrderAdmin:typeof window.showFoodOrderAdmin==="function"
         };
     };
 
-    setTimeout(function(){
-        v7BindFoodSummaryButton();
-        v7StartFoodBadgeTimer();
-        v7RefreshFoodBadge(false);
-    },700);
-
-    window.addEventListener("focus",function(){v7RefreshFoodBadge(true);});
-    document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")v7RefreshFoodBadge(true);});
+    setTimeout(v8BindFoodBadges,0);
+    setTimeout(v8BindFoodBadges,500);
 })();
 </script>
 
