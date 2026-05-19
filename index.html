@@ -8637,8 +8637,7 @@ const MAIN_FAVORITE_LABELS={
     fund:"공금",
     my:"마이페이지",
     admin:"관리자",
-    food:"요리주문",
-    fund:"공금"
+    food:"요리주문"
 };
 
 const SUB_FAVORITE_LABELS={
@@ -17496,7 +17495,7 @@ function getFundCompanyRecognizedForMonth(month){
     return (fundRequests||[]).filter(x=>normalizeFundMonth(x.month)===target&&String(x.status||"")==="승인"&&String(x.deposit_account||"")==="회사잔고").reduce((sum,x)=>sum+Number(String(x.amount||0).replace(/[$,\s]/g,"")),0);
 }
 function showFund(tab,push){
-    document.title="공금";
+    document.title="AXE NET";
     currentFundTab=tab||currentFundTab||"status";
     if(!fundSelectedMonth)fundSelectedMonth=getFundCurrentMonth();
     setMainActive(10);
