@@ -20777,5 +20777,175 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 })();
 </script>
 
+
+
+<script id="axe-stabilized-refresh-v10-final-fixes">
+/* AXE NET STABILIZED REFRESH V10
+   - V9 안정본 기반
+   - 상단 요리 배지 클릭 이동 보강
+   - 현재 화면 새로고침 버튼 중복 표시 제거
+   - 요리 주문 상태처리 원본 흐름은 건드리지 않음
+*/
+(function(){
+    const V10_VERSION="AXE_NET_STABILIZED_REFRESH_V10";
+
+    function isFoodBadgeTarget(target){
+        try{
+            return !!(target&&target.closest&&target.closest(".auth-food-summary,[data-food-admin-badge='1']"));
+        }catch(e){return false;}
+    }
+
+    function markFoodBadgeButtons(){
+        try{
+            document.querySelectorAll(".auth-food-summary").forEach(function(btn){
+                btn.setAttribute("type","button");
+                btn.setAttribute("data-food-admin-badge","1");
+                btn.setAttribute("role","button");
+                btn.setAttribute("tabindex","0");
+                btn.style.cursor="pointer";
+                btn.onclick=function(ev){return window.axeOpenFoodAdminBadgeV10(ev);};
+            });
+        }catch(e){}
+    }
+
+    function forceOpenFoodAdmin(){
+        try{
+            if(typeof window.showFoodOrderAdmin==="function"){
+                try{
+                    const state={page:"food",subTab:"admin",foodAdminMode:"pending"};
+                    if(location.hash!=="#food-admin") history.pushState(state,"","#food-admin");
+                    if(typeof currentHistoryPage!=="undefined") currentHistoryPage="food";
+                }catch(e){}
+                window.showFoodOrderAdmin("pending");
+                return true;
+            }
+        }catch(e){}
+        return false;
+    }
+
+    window.axeOpenFoodAdminBadgeV10=function(ev){
+        try{
+            if(ev){
+                ev.preventDefault&&ev.preventDefault();
+                ev.stopPropagation&&ev.stopPropagation();
+            }
+        }catch(e){}
+
+        let opened=forceOpenFoodAdmin();
+
+        if(!opened&&typeof window.navigateMain==="function"){
+            try{ window.navigateMain("food",true); }catch(e){}
+            setTimeout(forceOpenFoodAdmin,80);
+            setTimeout(forceOpenFoodAdmin,240);
+            return false;
+        }
+
+        // 일부 기존 캡처 리스너가 먼저 실행되어 화면이 다시 그려지는 경우를 대비한 확인용 재실행.
+        setTimeout(function(){
+            try{
+                if(String(window.currentMainSection||"")!=="foodAdmin") forceOpenFoodAdmin();
+            }catch(e){forceOpenFoodAdmin();}
+        },120);
+        setTimeout(markFoodBadgeButtons,180);
+        return false;
+    };
+
+    // V9의 axeOpenFoodAdminBadge가 남아 있으면 V10 동작으로 덮습니다.
+    window.axeOpenFoodAdminBadge=window.axeOpenFoodAdminBadgeV10;
+
+    document.addEventListener("mousedown",function(ev){
+        if(!isFoodBadgeTarget(ev.target))return;
+        window.axeOpenFoodAdminBadgeV10(ev);
+    },true);
+
+    document.addEventListener("click",function(ev){
+        if(!isFoodBadgeTarget(ev.target))return;
+        window.axeOpenFoodAdminBadgeV10(ev);
+    },true);
+
+    document.addEventListener("keydown",function(ev){
+        if(!isFoodBadgeTarget(ev.target))return;
+        if(ev.key==="Enter"||ev.key===" ") window.axeOpenFoodAdminBadgeV10(ev);
+    },true);
+
+    function dedupePageRefreshButtons(){
+        try{
+            const seen={};
+            document.querySelectorAll(".page-refresh-btn[id]").forEach(function(btn){
+                const id=btn.id||"";
+                if(!id)return;
+                const holder=btn.closest(".page-refresh-actions")||btn;
+                if(seen[id]){
+                    if(holder&&holder.parentNode) holder.parentNode.removeChild(holder);
+                    return;
+                }
+                seen[id]=true;
+            });
+        }catch(e){}
+    }
+
+    function scheduleDedupe(){
+        setTimeout(dedupePageRefreshButtons,0);
+        setTimeout(dedupePageRefreshButtons,120);
+        setTimeout(dedupePageRefreshButtons,420);
+    }
+
+    ["renderMainPage","navigateMain","showFoodOrder","showFoodOrderAdmin","showBoard","openBoardDetail","showGallery","openGalleryDetail","showTube","openTubeDetail"].forEach(function(name){
+        const original=window[name];
+        if(typeof original!=="function"||original.__axeV10DedupeWrapped)return;
+        const wrapped=function(){
+            const result=original.apply(this,arguments);
+            scheduleDedupe();
+            markFoodBadgeButtons();
+            return result;
+        };
+        wrapped.__axeV10DedupeWrapped=true;
+        window[name]=wrapped;
+    });
+
+    try{
+        const observer=new MutationObserver(function(){
+            markFoodBadgeButtons();
+            dedupePageRefreshButtons();
+        });
+        observer.observe(document.body,{childList:true,subtree:true});
+    }catch(e){}
+
+    const style=document.createElement("style");
+    style.textContent=`
+        .auth-food-summary,[data-food-admin-badge="1"]{
+            cursor:pointer!important;
+            pointer-events:auto!important;
+            user-select:none!important;
+            -webkit-user-select:none!important;
+            caret-color:transparent!important;
+        }
+        .auth-food-summary:focus,[data-food-admin-badge="1"]:focus{
+            outline:1px solid rgba(255,181,46,.42)!important;
+            outline-offset:2px!important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    window.axeV10Debug=function(){
+        return {
+            version:V10_VERSION,
+            currentMainSection:window.currentMainSection,
+            currentHistoryPage:window.currentHistoryPage,
+            foodBadgeCount:document.querySelectorAll(".auth-food-summary,[data-food-admin-badge='1']").length,
+            refreshButtonCount:document.querySelectorAll(".page-refresh-btn[id]").length,
+            duplicateRefreshIds:(function(){
+                const counts={};
+                document.querySelectorAll(".page-refresh-btn[id]").forEach(function(btn){counts[btn.id]=(counts[btn.id]||0)+1;});
+                return Object.keys(counts).filter(function(k){return counts[k]>1;}).map(function(k){return k+":"+counts[k];});
+            })(),
+            hasShowFoodOrderAdmin:typeof window.showFoodOrderAdmin==="function"
+        };
+    };
+
+    markFoodBadgeButtons();
+    scheduleDedupe();
+})();
+</script>
 </body>
 </html>
