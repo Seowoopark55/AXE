@@ -21586,3 +21586,94 @@ window.axeAssetV23Debug=function(){
     };
 };
 </script>
+
+
+<style id="axe-net-asset-return-crud-v24-style">
+/* AXE NET V24: 퇴사자 반납 내역 CRUD */
+.asset-return-actionbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin:0 0 12px}
+.asset-return-table.asset-return-editable{min-width:940px}
+.asset-return-table.asset-return-editable th:last-child,.asset-return-table.asset-return-editable td:last-child{width:110px;text-align:center}
+.asset-return-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:14px;z-index:10000}
+.asset-return-modal.active{display:flex}
+.asset-return-modal-box{width:min(560px,100%);background:#0d0d0d;border:1px solid rgba(255,181,46,.25);border-radius:18px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+.asset-return-modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.asset-return-modal-title{font-weight:950;color:#ffb52e}
+.asset-return-modal-close{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:18px}
+.asset-return-modal-body{padding:16px}
+.asset-return-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.asset-return-form-full{grid-column:1/-1}
+.asset-return-form-label{font-size:12px;color:#aaa;margin:0 0 6px;font-weight:850}
+.asset-return-form-input,.asset-return-form-select{width:100%;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:12px;padding:11px;outline:none;font-family:Arial,sans-serif}
+.asset-return-form-input:focus,.asset-return-form-select:focus{border-color:rgba(255,181,46,.65)}
+.asset-return-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.asset-return-form-help{margin-top:10px;color:#888;font-size:12px;line-height:1.45}
+@media(max-width:760px){.asset-return-form-grid{grid-template-columns:1fr}.asset-return-form-actions{display:grid;grid-template-columns:1fr 1fr}.asset-return-modal{align-items:flex-start;overflow:auto}.asset-return-modal-box{margin:18px 0}}
+</style>
+
+<script id="axe-net-asset-return-crud-v24-script">
+/* AXE NET V24: 퇴사자 반납 내역 등록/수정/삭제 */
+(function(){
+    const V24_VERSION="AXE_NET_ASSET_RETURN_CRUD_V24";
+    window.__assetV24SubTab=window.__assetV24SubTab||"current";
+    let returnSearchKeywordV24="";
+    let returnStatusFilterV24="ALL";
+    let editingReturnNoV24="";
+
+    function t(v){return String(v===undefined||v===null?"":v).trim();}
+    function esc(v){return typeof escapeAttr==="function"?escapeAttr(v):String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    function s(v){return typeof safe==="function"?safe(v):String(v||"");}
+    function f(row,names){for(const name of names){if(row&&row[name]!==undefined&&row[name]!==null&&t(row[name])!=="")return row[name];}return "";}
+    function checked(v){const raw=t(v);const low=raw.toLowerCase();return v===true||low==="true"||low==="y"||low==="yes"||low==="1"||raw==="완료"||raw==="확인"||raw==="반납완료"||raw==="체크"||raw==="✓"||raw==="☑";}
+    function returnRowsV24(){return Array.isArray(companyAssetReturns)?companyAssetReturns.filter(function(row){return t(f(row,["번호","no","No","number"]))||t(f(row,["이름","name","퇴사자"]))||t(f(row,["자산명","asset_name","assetName","item"]));}):[];}
+    function filteredReturnRowsV24(){
+        const keyword=returnSearchKeywordV24.trim().toLowerCase();
+        return returnRowsV24().filter(function(row){
+            const done=checked(f(row,["반납 확인","반납확인","확인","returned","checked"]));
+            if(returnStatusFilterV24==="done"&&!done)return false;
+            if(returnStatusFilterV24==="wait"&&done)return false;
+            if(keyword){const hay=Object.keys(row||{}).map(function(k){return String(row[k]||"");}).join(" ").toLowerCase(); if(!hay.includes(keyword))return false;}
+            return true;
+        });
+    }
+    function rowByReturnNoV24(no){return returnRowsV24().find(function(row){return t(f(row,["번호","no","number"]))===t(no);})||null;}
+    function assetSubTabsV24(){return `<div class="asset-subtabs"><button class="${window.__assetV24SubTab==="current"?"active":""}" onclick="setAssetSubTabV18('current')">회사 자산 현황</button><button class="${window.__assetV24SubTab==="returns"?"active":""}" onclick="setAssetSubTabV18('returns')">퇴사자 반납 내역</button></div>`;}
+    function renderReturnRowV24(row){
+        const no=f(row,["번호","no","No","number"]);
+        const name=f(row,["이름","name","퇴사자"]);
+        const assetName=f(row,["자산명","asset_name","assetName","item"]);
+        const isDone=checked(f(row,["반납 확인","반납확인","확인","returned","checked"]));
+        const checker=f(row,["확인자","checker","checked_by"]);
+        const date=f(row,["처리일","date","processed_at"]);
+        const note=f(row,["비고","메모","note"]);
+        return `<tr><td>${s(no)}</td><td><span class="asset-name">${s(name)}</span></td><td>${s(assetName)}</td><td><span class="asset-pill ${isDone?"done":"wait"}">${isDone?"반납완료":"확인대기"}</span></td><td>${s(checker||"-")}</td><td>${s(date||"-")}</td><td>${s(note||"")}</td><td><button class="asset-action-btn" onclick="openAssetReturnEditModalV24('${esc(no)}')">수정</button> <button class="asset-action-btn danger" onclick="deleteAssetReturnV24('${esc(no)}')">삭제</button></td></tr>`;
+    }
+    window.renderAssetReturnsV24=function(){
+        window.__assetV24SubTab="returns";
+        const rows=returnRowsV24();
+        const shown=filteredReturnRowsV24();
+        const done=rows.filter(function(r){return checked(f(r,["반납 확인","반납확인","확인","returned","checked"]));}).length;
+        const wait=rows.length-done;
+        const content=document.getElementById("content"); if(!content)return;
+        content.innerHTML=`<div class="panel"><div class="section-head with-action"><div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산 현황과 퇴사자 반납 내역을 관리하는 관리자 전용 화면입니다.</div></div><div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div></div>${assetSubTabsV24()}<div class="asset-admin-only-note">퇴사자가 회사 자산을 반납했는지 기록하고 확인하는 화면입니다.</div><div class="asset-return-actionbar"><button class="asset-action-btn primary" onclick="openAssetReturnCreateModalV24()">+ 반납 기록 추가</button></div><div class="asset-summary-grid"><div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 기록</div></div><div class="asset-summary-card"><div class="asset-summary-value">${done}</div><div class="asset-summary-label">반납완료</div></div><div class="asset-summary-card"><div class="asset-summary-value">${wait}</div><div class="asset-summary-label">확인대기</div></div><div class="asset-summary-card"><div class="asset-summary-value">${shown.length}</div><div class="asset-summary-label">표시중</div></div></div><div class="asset-toolbar"><div class="search"><input id="assetReturnSearchInput" value="${esc(returnSearchKeywordV24)}" placeholder="이름, 자산명, 확인자, 비고 검색" oninput="returnSearchKeywordV24=this.value;renderAssetReturnsV24()"><span class="search-mark">⌕</span></div><div class="count">${shown.length} / ${rows.length}</div></div><div class="asset-filter-panel asset-return-filter-panel"><div class="asset-filter-box"><div class="asset-filter-label">반납 확인</div><div class="asset-filter-row"><select class="asset-filter-select" onchange="setAssetReturnStatusFilterV24(this.value)"><option value="ALL" ${returnStatusFilterV24==="ALL"?"selected":""}>전체</option><option value="done" ${returnStatusFilterV24==="done"?"selected":""}>반납완료</option><option value="wait" ${returnStatusFilterV24==="wait"?"selected":""}>확인대기</option></select></div></div><div class="asset-filter-reset-box"><button class="asset-filter-reset-btn" onclick="resetAssetReturnFiltersV24()">필터 초기화</button></div></div>${shown.length?`<div class="asset-table-wrap"><table class="asset-table asset-return-table asset-return-editable"><thead><tr><th>번호</th><th>이름</th><th>자산명</th><th>반납 확인</th><th>확인자</th><th>처리일</th><th>비고</th><th>관리</th></tr></thead><tbody>${shown.map(renderReturnRowV24).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 퇴사자 반납 내역이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}</div>`;
+    };
+    window.setAssetReturnStatusFilterV24=function(v){returnStatusFilterV24=String(v||"ALL");renderAssetReturnsV24();};
+    window.resetAssetReturnFiltersV24=function(){returnSearchKeywordV24="";returnStatusFilterV24="ALL";renderAssetReturnsV24();};
+
+    function ensureReturnModalV24(){
+        if(document.getElementById("assetReturnEditModal"))return;
+        document.body.insertAdjacentHTML("beforeend",`<div class="asset-return-modal" id="assetReturnEditModal"><div class="asset-return-modal-box"><div class="asset-return-modal-head"><div class="asset-return-modal-title" id="assetReturnModalTitle">퇴사자 반납 기록 등록</div><button class="asset-return-modal-close" onclick="closeAssetReturnModalV24()">×</button></div><div class="asset-return-modal-body"><div class="asset-return-form-grid"><input type="hidden" id="assetReturnFormNo"><div><div class="asset-return-form-label">이름</div><input class="asset-return-form-input" id="assetReturnFormName" placeholder="퇴사자 이름"></div><div><div class="asset-return-form-label">반납 확인</div><select class="asset-return-form-select" id="assetReturnFormChecked"><option value="TRUE">반납완료</option><option value="FALSE">확인대기</option></select></div><div class="asset-return-form-full"><div class="asset-return-form-label">자산명</div><input class="asset-return-form-input" id="assetReturnFormAssetName" placeholder="반납 자산명"></div><div><div class="asset-return-form-label">확인자</div><input class="asset-return-form-input" id="assetReturnFormChecker" placeholder="확인자"></div><div><div class="asset-return-form-label">처리일</div><input class="asset-return-form-input" id="assetReturnFormDate" placeholder="예: 05/20"></div><div class="asset-return-form-full"><div class="asset-return-form-label">비고</div><input class="asset-return-form-input" id="assetReturnFormNote" placeholder="비고"></div></div><div class="asset-return-form-help">번호는 신규 등록 시 자동 부여됩니다. 반납 확인은 시트의 체크박스 값으로 저장됩니다.</div><div class="asset-return-form-actions"><button class="asset-action-btn" onclick="closeAssetReturnModalV24()">취소</button><button class="asset-action-btn primary" id="assetReturnSaveBtn" onclick="saveAssetReturnFromModalV24()">저장</button></div></div></div></div>`);
+    }
+    window.closeAssetReturnModalV24=function(){const m=document.getElementById("assetReturnEditModal");if(m)m.classList.remove("active");};
+    window.openAssetReturnCreateModalV24=function(){ensureReturnModalV24();editingReturnNoV24="";document.getElementById("assetReturnModalTitle").textContent="퇴사자 반납 기록 등록";["No","Name","AssetName","Checker","Date","Note"].forEach(function(k){const el=document.getElementById("assetReturnForm"+k);if(el)el.value="";});document.getElementById("assetReturnFormChecked").value="TRUE";document.getElementById("assetReturnEditModal").classList.add("active");};
+    window.openAssetReturnEditModalV24=function(no){ensureReturnModalV24();const row=rowByReturnNoV24(no);if(!row){alert("수정할 반납 기록을 찾을 수 없습니다.");return;}editingReturnNoV24=t(no);document.getElementById("assetReturnModalTitle").textContent="퇴사자 반납 기록 수정";document.getElementById("assetReturnFormNo").value=editingReturnNoV24;document.getElementById("assetReturnFormName").value=t(f(row,["이름","name","퇴사자"]));document.getElementById("assetReturnFormAssetName").value=t(f(row,["자산명","asset_name","assetName","item"]));document.getElementById("assetReturnFormChecked").value=checked(f(row,["반납 확인","반납확인","확인","returned","checked"]))?"TRUE":"FALSE";document.getElementById("assetReturnFormChecker").value=t(f(row,["확인자","checker","checked_by"]));document.getElementById("assetReturnFormDate").value=t(f(row,["처리일","date","processed_at"]));document.getElementById("assetReturnFormNote").value=t(f(row,["비고","메모","note"]));document.getElementById("assetReturnEditModal").classList.add("active");};
+    function returnPayloadV24(){return {no:t(document.getElementById("assetReturnFormNo").value)||editingReturnNoV24,name:t(document.getElementById("assetReturnFormName").value),asset_name:t(document.getElementById("assetReturnFormAssetName").value),checked:document.getElementById("assetReturnFormChecked").value==="TRUE",checker:t(document.getElementById("assetReturnFormChecker").value),date:t(document.getElementById("assetReturnFormDate").value),note:t(document.getElementById("assetReturnFormNote").value)};}
+    window.saveAssetReturnFromModalV24=function(){const p=returnPayloadV24();if(!p.name){alert("이름을 입력하세요.");return;}if(!p.asset_name){alert("자산명을 입력하세요.");return;}const btn=document.getElementById("assetReturnSaveBtn");if(btn){btn.disabled=true;btn.textContent="저장 중...";}adminApi({type:"company_asset_return_save",return_item:p}).then(function(data){if(data&&data.result==="success"){companyAssetReturns=data.companyAssetReturns||companyAssetReturns||[];companyAssets=data.companyAssets||companyAssets||[];try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} closeAssetReturnModalV24();renderAssetReturnsV24(); if(typeof showToast==="function")showToast("퇴사자 반납 기록이 저장되었습니다.");}else{alert((data&&data.message)||"저장에 실패했습니다.");}}).catch(function(){alert("저장 중 오류가 발생했습니다.");}).finally(function(){const b=document.getElementById("assetReturnSaveBtn");if(b){b.disabled=false;b.textContent="저장";}});};
+    window.deleteAssetReturnV24=function(no){const row=rowByReturnNoV24(no);const name=row?t(f(row,["자산명","asset_name","assetName","item"])):String(no);if(!confirm("퇴사자 반납 기록 ["+name+"] 항목을 삭제할까요?"))return;adminApi({type:"company_asset_return_delete",no:no}).then(function(data){if(data&&data.result==="success"){companyAssetReturns=data.companyAssetReturns||companyAssetReturns||[];companyAssets=data.companyAssets||companyAssets||[];try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} renderAssetReturnsV24(); if(typeof showToast==="function")showToast("퇴사자 반납 기록이 삭제되었습니다.");}else{alert((data&&data.message)||"삭제에 실패했습니다.");}}).catch(function(){alert("삭제 중 오류가 발생했습니다.");});};
+
+    const oldSetAssetSubTab=window.setAssetSubTabV18;
+    window.setAssetSubTabV18=function(tab){window.__assetV24SubTab=tab==="returns"?"returns":"current"; if(window.__assetV24SubTab==="returns")return renderAssetReturnsV24(); if(typeof oldSetAssetSubTab==="function")return oldSetAssetSubTab("current"); if(typeof renderCompanyAssets==="function")return renderCompanyAssets(false);};
+    const oldRefresh=window.refreshCompanyAssets;
+    window.refreshCompanyAssets=function(){const btn=document.getElementById("assetRefreshBtn");if(btn){btn.disabled=true;btn.textContent="새로고침 중...";}const done=function(){if(window.__assetV24SubTab==="returns")renderAssetReturnsV24();else if(typeof renderCompanyAssets==="function")renderCompanyAssets(false);};const fallback=function(){return refreshData({force:true}).then(function(){done();return true;});};const partial=(typeof requestPartialRefresh==="function")?requestPartialRefresh("asset",{force:true}).then(function(data){done();return data;}).catch(function(){return fallback();}):fallback();return partial.then(function(){if(typeof showToast==="function")showToast("회사 자산 자료 최신 반영됨");}).catch(function(){alert("회사 자산 자료를 불러오지 못했습니다.");}).finally(function(){const b=document.getElementById("assetRefreshBtn");if(b){b.disabled=false;b.textContent="현재 화면 새로고침";}});};
+    window.axeAssetV24Debug=function(){return {version:V24_VERSION,subTab:window.__assetV24SubTab,assetReturnCount:returnRowsV24().length,filteredReturnCount:filteredReturnRowsV24().length,returnSaveButtonExists:!!document.querySelector('[onclick="openAssetReturnCreateModalV24()"]'),apiUrl:(typeof API_URL!=="undefined"?API_URL:"")};};
+})();
+</script>
