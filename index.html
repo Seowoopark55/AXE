@@ -21333,5 +21333,147 @@ function axeAssetDebug(){
 })();
 </script>
 
+
+
+<style id="axe-net-asset-v22-select-filter">
+/* AXE NET V22: 자산관리 필터를 공금내역형 select UI로 정리 */
+.asset-filter-panel{
+    display:grid!important;
+    grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) minmax(180px,1fr) auto!important;
+    gap:10px!important;
+    align-items:end!important;
+    margin:12px 0 14px!important;
+    padding:14px 0 12px!important;
+    border-top:1px solid rgba(255,255,255,.07)!important;
+    border-bottom:1px solid rgba(255,255,255,.07)!important;
+    background:transparent!important;
+}
+.asset-filter-box{
+    min-width:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+}
+.asset-filter-label{
+    margin:0 0 7px!important;
+    color:#9a9a9a!important;
+    font-size:12px!important;
+    font-weight:950!important;
+    letter-spacing:.15px!important;
+}
+.asset-filter-row{
+    margin:0!important;
+    display:block!important;
+}
+.asset-filter-select{
+    width:100%!important;
+    height:38px!important;
+    border-radius:12px!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    background:#151515!important;
+    color:#fff!important;
+    padding:0 34px 0 12px!important;
+    outline:none!important;
+    font-size:13px!important;
+    font-weight:950!important;
+    cursor:pointer!important;
+    appearance:auto!important;
+}
+.asset-filter-select:focus{
+    border-color:rgba(255,181,46,.62)!important;
+    box-shadow:0 0 0 2px rgba(255,181,46,.08)!important;
+}
+.asset-filter-reset-box{
+    display:flex!important;
+    align-items:flex-end!important;
+    justify-content:flex-end!important;
+    min-width:108px!important;
+}
+.asset-filter-reset-btn{
+    height:38px!important;
+    padding:0 14px!important;
+    border-radius:12px!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    background:rgba(20,20,20,.92)!important;
+    color:#ddd!important;
+    font-size:13px!important;
+    font-weight:950!important;
+    cursor:pointer!important;
+    transition:.16s ease!important;
+    white-space:nowrap!important;
+}
+.asset-filter-reset-btn:hover{
+    color:#ffb52e!important;
+    border-color:rgba(255,181,46,.45)!important;
+    transform:translateY(-1px)!important;
+}
+.asset-toolbar{margin-bottom:10px!important}
+@media(max-width:920px){
+    .asset-filter-panel{grid-template-columns:1fr 1fr!important;gap:10px!important}
+    .asset-filter-reset-box{justify-content:stretch!important;min-width:0!important}
+    .asset-filter-reset-btn{width:100%!important}
+}
+@media(max-width:620px){
+    .asset-filter-panel{grid-template-columns:1fr!important;padding:12px 0!important}
+}
+</style>
+
+<script id="axe-net-asset-v22-select-filter-script">
+/* AXE NET V22: 자산관리 필터를 select 방식으로 교체 */
+(function(){
+    function esc(v){
+        return typeof escapeAttr==="function"?escapeAttr(v):String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+    function text(v){return String(v===undefined||v===null?"":v);}
+    window.renderAssetFilterButtons=function(containerId,values,current,onClickName){
+        const el=document.getElementById(containerId);
+        if(!el)return;
+        const list=Array.isArray(values)?values:[];
+        const options=[`<option value="ALL" ${current==="ALL"?"selected":""}>전체</option>`].concat(list.map(function(v){
+            const value=text(v);
+            return `<option value="${esc(value)}" ${current===value?"selected":""}>${esc(value)}</option>`;
+        }));
+        el.innerHTML=`<select class="asset-filter-select" onchange="${onClickName}(this.value)">${options.join("")}</select>`;
+    };
+    window.resetAssetFiltersV22=function(){
+        try{assetStatusFilter="ALL";}catch(e){}
+        try{assetTypeFilter="ALL";}catch(e){}
+        try{assetAcquireFilter="ALL";}catch(e){}
+        if(typeof renderCompanyAssets==="function")renderCompanyAssets(false);
+    };
+    function addResetButton(){
+        const panel=document.querySelector(".asset-filter-panel");
+        if(!panel||panel.querySelector(".asset-filter-reset-box"))return;
+        panel.insertAdjacentHTML("beforeend",`<div class="asset-filter-reset-box"><button class="asset-filter-reset-btn" onclick="resetAssetFiltersV22()">필터 초기화</button></div>`);
+    }
+    const oldRender=window.renderCompanyAssets;
+    if(typeof oldRender==="function"){
+        window.renderCompanyAssets=function(reset){
+            const result=oldRender.call(this,reset);
+            addResetButton();
+            return result;
+        };
+    }
+    const oldShow=window.showCompanyAssets;
+    if(typeof oldShow==="function"){
+        window.showCompanyAssets=function(){
+            const result=oldShow.apply(this,arguments);
+            addResetButton();
+            return result;
+        };
+    }
+    window.axeAssetV22Debug=function(){
+        return {
+            version:"AXE_NET_ASSET_FILTER_V22",
+            filterPanelExists:!!document.querySelector(".asset-filter-panel"),
+            selectCount:document.querySelectorAll(".asset-filter-select").length,
+            resetButtonExists:!!document.querySelector(".asset-filter-reset-btn"),
+            apiUrl:(typeof API_URL!=="undefined"?API_URL:"")
+        };
+    };
+})();
+</script>
+
 </body>
 </html>
