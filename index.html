@@ -21477,3 +21477,112 @@ function axeAssetDebug(){
 
 </body>
 </html>
+
+<style id="axe-net-asset-v23-compact-filter">
+/* AXE NET V23: 자산관리 필터 select 길이 공금내역 필터 수준으로 축소 */
+.asset-filter-panel{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:flex-end!important;
+    justify-content:flex-start!important;
+    gap:10px!important;
+    margin:12px 0 14px!important;
+    padding:14px 0 12px!important;
+    border-top:1px solid rgba(255,255,255,.07)!important;
+    border-bottom:1px solid rgba(255,255,255,.07)!important;
+    background:transparent!important;
+}
+.asset-filter-box{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+}
+.asset-filter-label{
+    margin:0 0 7px!important;
+    color:#9a9a9a!important;
+    font-size:12px!important;
+    font-weight:950!important;
+    letter-spacing:.15px!important;
+}
+.asset-filter-row{
+    margin:0!important;
+    display:block!important;
+}
+.asset-filter-select{
+    width:150px!important;
+    min-width:150px!important;
+    max-width:150px!important;
+    height:38px!important;
+    border-radius:12px!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    background:#151515!important;
+    color:#fff!important;
+    padding:0 28px 0 12px!important;
+    outline:none!important;
+    font-size:13px!important;
+    font-weight:950!important;
+    cursor:pointer!important;
+    appearance:auto!important;
+}
+.asset-filter-box:nth-child(3) .asset-filter-select{
+    width:160px!important;
+    min-width:160px!important;
+    max-width:160px!important;
+}
+.asset-filter-reset-box{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    display:flex!important;
+    align-items:flex-end!important;
+    justify-content:flex-start!important;
+}
+.asset-filter-reset-btn{
+    width:auto!important;
+    min-width:106px!important;
+    height:38px!important;
+    padding:0 13px!important;
+    border-radius:12px!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    background:rgba(20,20,20,.92)!important;
+    color:#ddd!important;
+    font-size:13px!important;
+    font-weight:950!important;
+    cursor:pointer!important;
+    transition:.16s ease!important;
+    white-space:nowrap!important;
+}
+.asset-toolbar{margin-bottom:10px!important}
+@media(max-width:760px){
+    .asset-filter-panel{
+        display:grid!important;
+        grid-template-columns:1fr 1fr!important;
+        gap:10px!important;
+        padding:12px 0!important;
+    }
+    .asset-filter-box,.asset-filter-reset-box{width:100%!important}
+    .asset-filter-select,.asset-filter-box:nth-child(3) .asset-filter-select,.asset-filter-reset-btn{
+        width:100%!important;
+        min-width:0!important;
+        max-width:none!important;
+    }
+}
+@media(max-width:460px){
+    .asset-filter-panel{grid-template-columns:1fr!important}
+}
+</style>
+
+<script id="axe-net-asset-v23-filter-debug">
+window.axeAssetV23Debug=function(){
+    return {
+        version:"AXE_NET_ASSET_CRUD_V23",
+        selectCount:document.querySelectorAll(".asset-filter-select").length,
+        selectWidths:Array.from(document.querySelectorAll(".asset-filter-select")).map(function(el){return Math.round(el.getBoundingClientRect().width);}),
+        resetButtonWidth:(function(btn){return btn?Math.round(btn.getBoundingClientRect().width):0;})(document.querySelector(".asset-filter-reset-btn"))
+    };
+};
+</script>
