@@ -9369,8 +9369,9 @@ function renderList(){
     const list=getFilteredList();
     const modeText=searchKeyword?"전체 검색":catName(currentCategory);
 
-    resultInfo.textContent=`분류: ${modeText} · 검색 결과 ${list.length}개`;
-    countBox.textContent=`${list.length}개 표시`;
+    // AXE NET V16: 제작 화면에는 countBox가 없는 구조이므로 null 방어 처리
+    if(resultInfo) resultInfo.textContent=`분류: ${modeText} · 검색 결과 ${list.length}개`;
+    if(countBox) countBox.textContent=`${list.length}개 표시`;
 
     if(list.length===0){
         listBox.innerHTML=`<div class="ready">검색 결과가 없습니다.</div>`;
