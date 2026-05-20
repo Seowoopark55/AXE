@@ -4548,7 +4548,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyLsIHVJoHUlKmDz9GQgyfyRAGtP1DiIywhgHxuapBZjbiYkP04sk0wjLGKaDWKfn-3yw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzJ-P6cQMfJLkEsQFbU3vXHGEQNvFwUUKvCnOdF92E9rMhW9VHITNwFQROsMMcSJ1UuiQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -10496,7 +10496,8 @@ function adminApi(payload){
     });
 }
 
-let adminMembers=[];
+var adminMembers=Array.isArray(window.adminMembers)?window.adminMembers:[];
+try{window.adminMembers=adminMembers;}catch(e){}
 
 function showAdmin(){
     enterMainSection("admin");
@@ -21198,6 +21199,73 @@ function axeAssetDebug(){
         return {version:V18_VERSION,isAdmin:typeof isCurrentAdmin==="function"&&isCurrentAdmin(),subTab:assetSubTab,assetCount:(typeof getAssetRows==="function"?getAssetRows().length:0),assetReturnCount:getReturnRows().length,filteredAssetReturnCount:filteredReturnRows().length,assetMenuVisible:(document.getElementById("assetMenuButton")||{}).style?.display};
     };
     setTimeout(function(){try{window.updateAdminMenu();}catch(e){}},100);
+})();
+</script>
+
+
+
+<style id="axe-net-asset-v20-crud-style">
+.asset-actionbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin:0 0 12px}
+.asset-action-btn{height:32px;padding:0 10px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:11.5px;font-weight:950;cursor:pointer;transition:.16s ease;white-space:nowrap}
+.asset-action-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.asset-action-btn.primary{background:#ffb52e;color:#111;border-color:#ffb52e}.asset-action-btn.primary:hover{color:#111;filter:brightness(1.06)}
+.asset-action-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
+.asset-table.asset-editable{min-width:1110px}.asset-table.asset-editable th:last-child,.asset-table.asset-editable td:last-child{width:106px;text-align:center}
+.asset-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:14px;z-index:10000}
+.asset-modal.active{display:flex}.asset-modal-box{width:min(620px,100%);background:#0d0d0d;border:1px solid rgba(255,181,46,.25);border-radius:18px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+.asset-modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.08)}.asset-modal-title{font-weight:950;color:#ffb52e}.asset-modal-close{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:18px}
+.asset-modal-body{padding:16px}.asset-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.asset-form-full{grid-column:1/-1}.asset-form-label{font-size:12px;color:#aaa;margin:0 0 6px;font-weight:850}.asset-form-input{width:100%;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:12px;padding:11px;outline:none;font-family:Arial,sans-serif}.asset-form-input:focus{border-color:rgba(255,181,46,.65)}.asset-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.asset-form-help{margin-top:10px;color:#888;font-size:12px;line-height:1.45}
+@media(max-width:760px){.asset-form-grid{grid-template-columns:1fr}.asset-form-actions{display:grid;grid-template-columns:1fr 1fr}.asset-modal{align-items:flex-start;overflow:auto}.asset-modal-box{margin:18px 0}}
+</style>
+
+<script id="axe-net-asset-v20-crud-script">
+/* AXE NET V20: 공금관리 adminMembers 복구 + 회사자산 등록/수정/삭제 */
+(function(){
+    const V20_VERSION="AXE_NET_ASSET_CRUD_V20";
+    window.adminMembers=Array.isArray(window.adminMembers)?window.adminMembers:[];
+    try{if(typeof adminMembers==="undefined"||!Array.isArray(adminMembers))adminMembers=window.adminMembers;}catch(e){}
+
+    let editingAssetNo="";
+    function t(v){return String(v===undefined||v===null?"":v).trim();}
+    function f(row,names){for(const name of names){if(row&&row[name]!==undefined&&row[name]!==null&&t(row[name])!=="")return row[name];}return "";}
+    function moneyText(v){return t(typeof formatAssetMoney==="function"?formatAssetMoney(v):v);}
+    function localAssetRows(){return (typeof getAssetRows==="function")?getAssetRows():(Array.isArray(companyAssets)?companyAssets:[]);}
+    function rowByNo(no){return localAssetRows().find(function(row){return t(f(row,["번호","no","number"]))===t(no);})||null;}
+    function esc(v){return typeof escapeAttr==="function"?escapeAttr(v):String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    function s(v){return typeof safe==="function"?safe(v):String(v||"");}
+
+    function ensureAssetModal(){
+        if(document.getElementById("assetEditModal"))return;
+        document.body.insertAdjacentHTML("beforeend",`<div class="asset-modal" id="assetEditModal"><div class="asset-modal-box"><div class="asset-modal-head"><div class="asset-modal-title" id="assetEditModalTitle">회사 자산 등록</div><button class="asset-modal-close" onclick="closeAssetEditModalV20()">×</button></div><div class="asset-modal-body"><div class="asset-form-grid"><input type="hidden" id="assetFormNo"><div><div class="asset-form-label">이름</div><input class="asset-form-input" id="assetFormName" placeholder="보유자/담당자"></div><div><div class="asset-form-label">자산 분류</div><input class="asset-form-input" id="assetFormCategory" placeholder="예: 총기류"></div><div class="asset-form-full"><div class="asset-form-label">자산명</div><input class="asset-form-input" id="assetFormAssetName" placeholder="자산명"></div><div><div class="asset-form-label">획득 방식</div><input class="asset-form-input" id="assetFormMethod" placeholder="예: 보스 / 무법지대"></div><div><div class="asset-form-label">취득일</div><input class="asset-form-input" id="assetFormDate" placeholder="예: 26/05"></div><div><div class="asset-form-label">개인 부담 비용</div><input class="asset-form-input" id="assetFormCost" placeholder="예: $140,000"></div><div><div class="asset-form-label">현재 상태</div><input class="asset-form-input" id="assetFormStatus" placeholder="예: 보유중"></div><div class="asset-form-full"><div class="asset-form-label">비고</div><input class="asset-form-input" id="assetFormNote" placeholder="비고"></div></div><div class="asset-form-help">번호는 신규 등록 시 자동 부여됩니다. 수정 시 기존 번호를 기준으로 같은 행을 업데이트합니다.</div><div class="asset-form-actions"><button class="asset-action-btn" onclick="closeAssetEditModalV20()">취소</button><button class="asset-action-btn primary" id="assetSaveBtn" onclick="saveAssetFromModalV20()">저장</button></div></div></div></div>`);
+    }
+    window.closeAssetEditModalV20=function(){const m=document.getElementById("assetEditModal");if(m)m.classList.remove("active");};
+    window.openAssetCreateModalV20=function(){ensureAssetModal();editingAssetNo="";document.getElementById("assetEditModalTitle").textContent="회사 자산 등록";["No","Name","Category","AssetName","Method","Date","Cost","Status","Note"].forEach(function(k){const el=document.getElementById("assetForm"+k);if(el)el.value="";});const st=document.getElementById("assetFormStatus");if(st)st.value="보유중";document.getElementById("assetEditModal").classList.add("active");};
+    window.openAssetEditModalV20=function(no){ensureAssetModal();const row=rowByNo(no);if(!row){alert("수정할 자산을 찾을 수 없습니다.");return;}editingAssetNo=t(no);document.getElementById("assetEditModalTitle").textContent="회사 자산 수정";document.getElementById("assetFormNo").value=editingAssetNo;document.getElementById("assetFormName").value=t(f(row,["이름","보유자","담당자","owner","name"]));document.getElementById("assetFormCategory").value=t(f(row,["자산 분류","분류","category","type"]));document.getElementById("assetFormAssetName").value=t(f(row,["자산명","asset_name","assetName","item"]));document.getElementById("assetFormMethod").value=t(f(row,["획득 방식","획득방식","method","source"]));document.getElementById("assetFormDate").value=t(f(row,["취득일","date","acquired_at"]));document.getElementById("assetFormCost").value=t(f(row,["개인 부담 비용","개인부담비용","비용","cost"]));document.getElementById("assetFormStatus").value=t(f(row,["현재 상태","상태","status"]));document.getElementById("assetFormNote").value=t(f(row,["비고","메모","note"]));document.getElementById("assetEditModal").classList.add("active");};
+    function assetPayloadFromForm(){return {no:t(document.getElementById("assetFormNo").value)||editingAssetNo,name:t(document.getElementById("assetFormName").value),category:t(document.getElementById("assetFormCategory").value),asset_name:t(document.getElementById("assetFormAssetName").value),method:t(document.getElementById("assetFormMethod").value),date:t(document.getElementById("assetFormDate").value),cost:t(document.getElementById("assetFormCost").value),status:t(document.getElementById("assetFormStatus").value)||"보유중",note:t(document.getElementById("assetFormNote").value)};}
+    window.saveAssetFromModalV20=function(){const p=assetPayloadFromForm();if(!p.name){alert("이름을 입력하세요.");return;}if(!p.asset_name){alert("자산명을 입력하세요.");return;}const btn=document.getElementById("assetSaveBtn");if(btn){btn.disabled=true;btn.textContent="저장 중...";}adminApi({type:"company_asset_save",asset:p}).then(function(data){if(data&&data.result==="success"){companyAssets=data.companyAssets||companyAssets||[];companyAssetReturns=data.companyAssetReturns||companyAssetReturns||[];try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} closeAssetEditModalV20(); if(window.renderCompanyAssets)window.renderCompanyAssets(false); if(typeof showToast==="function")showToast("회사 자산 정보가 저장되었습니다.");}else{alert((data&&data.message)||"저장에 실패했습니다.");}}).catch(function(err){alert("저장 중 오류가 발생했습니다.");}).finally(function(){const b=document.getElementById("assetSaveBtn");if(b){b.disabled=false;b.textContent="저장";}});};
+    window.deleteAssetV20=function(no){const row=rowByNo(no);const name=row?t(f(row,["자산명","asset_name","assetName","item"])):String(no);if(!confirm("회사 자산 ["+name+"] 항목을 삭제할까요?"))return;adminApi({type:"company_asset_delete",no:no}).then(function(data){if(data&&data.result==="success"){companyAssets=data.companyAssets||companyAssets||[];companyAssetReturns=data.companyAssetReturns||companyAssetReturns||[];try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} if(window.renderCompanyAssets)window.renderCompanyAssets(false); if(typeof showToast==="function")showToast("회사 자산 정보가 삭제되었습니다.");}else{alert((data&&data.message)||"삭제에 실패했습니다.");}}).catch(function(){alert("삭제 중 오류가 발생했습니다.");});};
+
+    function renderCurrentAssetsV20(reset){
+        if(reset){try{assetSearchKeyword="";assetStatusFilter="ALL";assetTypeFilter="ALL";assetAcquireFilter="ALL";}catch(e){}}
+        const rows=localAssetRows();
+        const shown=(typeof filteredAssetRows==="function")?filteredAssetRows():rows;
+        const content=document.getElementById("content"); if(!content)return;
+        const owned=rows.filter(function(r){return t(f(r,["현재 상태","상태","status"])).indexOf("보유")>-1;}).length;
+        const totalCost=rows.reduce(function(sum,r){const raw=t(f(r,["개인 부담 비용","개인부담비용","비용","cost"]));const num=Number(raw.replace(/[$,\s]/g,""));return sum+(isFinite(num)?num:0);},0);
+        const typeCount=(typeof uniqueAssetValues==="function")?uniqueAssetValues(rows,["자산 분류","분류","category","type"]).length:0;
+        content.innerHTML=`<div class="panel"><div class="section-head with-action"><div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산의 보유자, 취득 방식, 비용, 현재 상태를 관리하는 관리자 전용 화면입니다.</div></div><div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div></div><div class="asset-subtabs"><button class="active" onclick="setAssetSubTabV18('current')">회사 자산 현황</button><button onclick="setAssetSubTabV18('returns')">퇴사자 반납 내역</button></div><div class="asset-admin-only-note">관리자에게만 표시되는 회사 내부 자산 관리 화면입니다.</div><div class="asset-actionbar"><button class="asset-action-btn primary" onclick="openAssetCreateModalV20()">+ 자산 추가</button></div><div class="asset-summary-grid"><div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 자산</div></div><div class="asset-summary-card"><div class="asset-summary-value">${owned}</div><div class="asset-summary-label">보유중</div></div><div class="asset-summary-card"><div class="asset-summary-value">${typeCount}</div><div class="asset-summary-label">분류</div></div><div class="asset-summary-card"><div class="asset-summary-value">$${totalCost.toLocaleString()}</div><div class="asset-summary-label">개인 부담 합계</div></div></div><div class="asset-toolbar"><div class="search"><input id="assetSearchInput" value="${esc(typeof assetSearchKeyword!=="undefined"?assetSearchKeyword:"")}" placeholder="이름, 자산명, 비고 검색" oninput="assetSearchKeyword=this.value;renderCompanyAssets(false)"><span class="search-mark">⌕</span></div><div class="count">${shown.length} / ${rows.length}</div></div><div class="result-info">상태</div><div class="asset-filter-row" id="assetStatusFilters"></div><div class="result-info">자산 분류</div><div class="asset-filter-row" id="assetTypeFilters"></div><div class="result-info">획득 방식</div><div class="asset-filter-row" id="assetAcquireFilters"></div>${shown.length?`<div class="asset-table-wrap"><table class="asset-table asset-editable"><thead><tr><th>번호</th><th>이름</th><th>분류</th><th>자산명</th><th>획득 방식</th><th>취득일</th><th>개인 부담</th><th>상태</th><th>비고</th><th>관리</th></tr></thead><tbody>${shown.map(function(row){const no=t(f(row,["번호","no","number"]));const owner=f(row,["이름","보유자","담당자","owner","name"]);const type=f(row,["자산 분류","분류","category","type"]);const name=f(row,["자산명","asset_name","assetName","item"]);const method=f(row,["획득 방식","획득방식","method","source"]);const date=f(row,["취득일","date","acquired_at"]);const cost=f(row,["개인 부담 비용","개인부담비용","비용","cost"]);const status=f(row,["현재 상태","상태","status"]);const note=f(row,["비고","메모","note"]);const statusClass=String(status).includes("보유")?"green":String(status).includes("반납")||String(status).includes("처분")?"gray":"gold";return `<tr><td>${s(no)}</td><td><span class="asset-name">${s(owner)}</span></td><td><span class="asset-pill gold">${s(type)}</span></td><td>${s(name)}</td><td><span class="asset-pill">${s(method)}</span></td><td>${s(date)}</td><td>${s(moneyText(cost))}</td><td><span class="asset-pill ${statusClass}">${s(status)}</span></td><td>${s(note)}</td><td><button class="asset-action-btn" onclick="openAssetEditModalV20('${esc(no)}')">수정</button> <button class="asset-action-btn danger" onclick="deleteAssetV20('${esc(no)}')">삭제</button></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 회사 자산이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}</div>`;
+        if(typeof renderAssetFilterButtons==="function"){
+            renderAssetFilterButtons("assetStatusFilters",uniqueAssetValues(rows,["현재 상태","상태","status"]),assetStatusFilter,"setAssetStatusFilter");
+            renderAssetFilterButtons("assetTypeFilters",uniqueAssetValues(rows,["자산 분류","분류","category","type"]),assetTypeFilter,"setAssetTypeFilter");
+            renderAssetFilterButtons("assetAcquireFilters",uniqueAssetValues(rows,["획득 방식","획득방식","method","source"]),assetAcquireFilter,"setAssetAcquireFilter");
+        }
+    }
+    const previousSetAssetSubTab=window.setAssetSubTabV18;
+    window.setAssetSubTabV18=function(tab){ if(tab==="returns"&&typeof previousSetAssetSubTab==="function")return previousSetAssetSubTab(tab); renderCurrentAssetsV20(false); };
+    window.renderCompanyAssets=function(reset){ renderCurrentAssetsV20(!!reset); };
+    const prevShow=window.showCompanyAssets;
+    window.showCompanyAssets=function(){ if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){alert("관리자 전용 메뉴입니다."); if(typeof navigateMain==="function")navigateMain("home"); return;} if(typeof enterMainSection==="function")enterMainSection("asset"); currentMainSection="asset"; document.title="AXE NET"; if(typeof setActiveMainMenu==="function")setActiveMainMenu("asset"); renderCurrentAssetsV20(false); };
+    window.axeAssetV20Debug=function(){return {version:V20_VERSION, adminMembersDefined:typeof adminMembers!=="undefined", adminMembersCount:Array.isArray(window.adminMembers)?window.adminMembers.length:(Array.isArray(adminMembers)?adminMembers.length:0), assetCount:localAssetRows().length, buttons:Array.from(document.querySelectorAll(".asset-action-btn")).map(function(b){return b.textContent.trim();}), apiUrl:(typeof API_URL!=="undefined"?API_URL:"")};};
 })();
 </script>
 
