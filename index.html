@@ -4548,7 +4548,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxmRWoR7Bfl43vtTWMp_5P9NupS9h862lGbSEg1lcCv_V7ZfC8MRj1Sx2IoMk9Txnv3/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyLsIHVJoHUlKmDz9GQgyfyRAGtP1DiIywhgHxuapBZjbiYkP04sk0wjLGKaDWKfn-3yw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -20903,6 +20903,31 @@ window.axeCraftRefreshDebug=function(){
 .asset-name{font-weight:950;color:#fff}.asset-sub{color:#aaa;font-size:12px}.asset-empty{padding:22px;color:#888;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.025)}
 @media(max-width:760px){.asset-summary-grid{grid-template-columns:repeat(2,1fr)}.asset-toolbar{display:block}.asset-toolbar .tube-submit-open{width:100%;margin-top:10px}.asset-table{min-width:920px}.asset-table th,.asset-table td{font-size:12px;padding:9px 8px}}
 </style>
+
+<script id="axe-asset-v19-active-menu-fix">
+/* AXE NET V19: 자산관리 진입 오류 보정 - setActiveMainMenu 누락 방어 */
+(function(){
+    if(typeof window.setActiveMainMenu!=="function"){
+        window.setActiveMainMenu=function(page){
+            const target=String(page||"");
+            document.querySelectorAll(".main-menu button").forEach(function(btn){
+                const attr=btn.getAttribute("onclick")||"";
+                const matched=attr.indexOf("navigateMain('"+target+"')")>-1||attr.indexOf('navigateMain("'+target+'")')>-1;
+                btn.classList.toggle("active",matched);
+            });
+        };
+    }
+    window.axeAssetV19MenuFixDebug=function(){
+        return {
+            version:"AXE_NET_ASSET_V19",
+            hasSetActiveMainMenu:typeof window.setActiveMainMenu==="function",
+            assetButtonExists:!!document.getElementById("assetMenuButton"),
+            apiUrl:(typeof API_URL!=="undefined"?API_URL:"")
+        };
+    };
+})();
+</script>
+
 <script>
 /* AXE NET V17: 회사 자산관리 */
 let assetSearchKeyword="";
