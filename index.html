@@ -8,7 +8,7 @@
 /* AXE NET STABILIZE V5: early global guards for variables used by late-loaded patch blocks.
    Prevents TDZ errors when UI handlers run before lower script sections finish initializing. */
 var MAIN_FAVORITE_LABELS = window.MAIN_FAVORITE_LABELS || {
-  home:"홈",notice:"공지사항",outlaw:"무법지대",tube:"AXE TUBE",board:"자유게시판",gallery:"갤러리",info:"정보",ranking:"랭킹",utility:"편의기능",food:"요리주문",fund:"공금",my:"마이페이지",admin:"관리자"
+  home:"홈",notice:"공지사항",outlaw:"무법지대",tube:"AXE TUBE",board:"자유게시판",gallery:"갤러리",info:"정보",ranking:"랭킹",utility:"편의기능",food:"요리주문",fund:"공금",asset:"자산관리",my:"마이페이지",admin:"관리자"
 };
 window.MAIN_FAVORITE_LABELS = MAIN_FAVORITE_LABELS;
 var AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS = window.AXE_NOTIFICATION_BADGE_MIN_INTERVAL_MS || 15000;
@@ -4353,6 +4353,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
         <button onclick="navigateMain('utility')">편의기능</button>
         <button onclick="navigateMain('food')">요리주문</button>
         <button onclick="navigateMain('fund')">공금관리</button>
+        <button id="assetMenuButton" onclick="navigateMain('asset')" style="display:none;">자산관리</button>
         <button onclick="navigateMain('my')">마이페이지</button>
         <button id="adminMenuButton" onclick="navigateMain('admin')" style="display:none;">관리자</button>
     </div>
@@ -4547,7 +4548,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwhZIeUpmpa6n-l2gIRaJUUuBk7vtj1pbjnVMDK7GSzgrY46UtD1fSuG32MzsGV4fexAw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxmRWoR7Bfl43vtTWMp_5P9NupS9h862lGbSEg1lcCv_V7ZfC8MRj1Sx2IoMk9Txnv3/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -4688,8 +4689,11 @@ function rememberAdminPasswordIfNeeded(user,password){
 }
 
 function updateAdminMenu(){
+    const isAdmin=isCurrentAdmin();
     const btn=document.getElementById("adminMenuButton");
-    if(btn)btn.style.display=isCurrentAdmin()?"":"none";
+    if(btn)btn.style.display=isAdmin?"":"none";
+    const assetBtn=document.getElementById("assetMenuButton");
+    if(assetBtn)assetBtn.style.display=isAdmin?"":"none";
 }
 
 function openAuthModal(mode){
@@ -4838,6 +4842,8 @@ function afterRenderAuth(){
 
 let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[],rankings=[],foodMenus=[],foodOrders=[],foodSummary=[];
 let fundMembers=[],fundRequests=[],fundLedger=[],fundBalanceChecks=[],fundSettings=[],fundSummary={};
+let companyAssets=[];
+let companyAssetReturns=[];
 let currentFundTab="status",fundSelectedMonth="";
 let foodCart=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
@@ -4859,7 +4865,7 @@ let gallerySearchKeyword="";
 let tubeSearchKeyword="";
 let boardCurrentPage=1;
 let galleryCurrentPage=1;
-const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","ranking","utility","food","fund","my","admin"];
+const mainPageKeys=["home","notice","outlaw","tube","board","gallery","info","ranking","utility","food","fund","asset","my","admin"];
 const DATA_CACHE_KEY="axe_net_cached_api_data_v1";
 
 function normalizeMainPage(page){
@@ -4885,6 +4891,7 @@ function renderMainPage(page){
         return;
     }
     if(target==="fund"){showFund();return;}
+    if(target==="asset"){showCompanyAssets();return;}
     if(target==="my"){showMyPage();return;}
     if(target==="board"){showBoard();return;}
     if(target==="gallery"){showGallery();return;}
@@ -5147,6 +5154,8 @@ function hydrateData(data){
     galleries=data.galleries||data.galleryPosts||[];
     galleryComments=data.galleryComments||data.gallery_comments||[];
     rankings=data.rankings||[];
+    companyAssets=data.companyAssets||data.company_assets||data.assets||[];
+    companyAssetReturns=data.companyAssetReturns||data.company_asset_returns||data.assetReturns||data.retiredAssetReturns||[];
 }
 
 /* AXE NET STABILIZE V1: 전체 데이터 새로고침 중복 호출 방지 */
@@ -20873,6 +20882,298 @@ window.axeCraftRefreshDebug=function(){
     };
 };
 
+</script>
+
+
+<style>
+/* AXE NET V17: 회사 자산관리 */
+.asset-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.asset-filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.asset-filter-row button{height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease}
+.asset-filter-row button:hover,.asset-filter-row button.active{color:#111;background:#ffb52e;border-color:#ffb52e;transform:translateY(-1px)}
+.asset-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.asset-summary-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:15px;padding:13px;text-align:center}
+.asset-summary-value{font-size:22px;font-weight:950;color:#fff;font-variant-numeric:tabular-nums}.asset-summary-label{margin-top:4px;color:#888;font-size:12px;font-weight:850}
+.asset-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22)}
+.asset-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.asset-table th,.asset-table td{padding:10px 9px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12.5px;text-align:left;vertical-align:middle;line-height:1.35}
+.asset-table th{color:#888;font-weight:950;background:rgba(255,255,255,.025);white-space:nowrap}.asset-table tr:last-child td{border-bottom:0}
+.asset-table th:nth-child(1),.asset-table td:nth-child(1){width:58px;text-align:center}.asset-table th:nth-child(2),.asset-table td:nth-child(2){width:100px}.asset-table th:nth-child(3),.asset-table td:nth-child(3){width:92px}.asset-table th:nth-child(4),.asset-table td:nth-child(4){width:190px}.asset-table th:nth-child(5),.asset-table td:nth-child(5){width:120px}.asset-table th:nth-child(6),.asset-table td:nth-child(6){width:90px}.asset-table th:nth-child(7),.asset-table td:nth-child(7){width:120px;text-align:right}.asset-table th:nth-child(8),.asset-table td:nth-child(8){width:96px;text-align:center}.asset-table th:nth-child(9),.asset-table td:nth-child(9){width:120px}
+.asset-pill{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.055);color:#ddd;font-size:11.5px;font-weight:950;white-space:nowrap}.asset-pill.gold{color:#ffcf75;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32)}.asset-pill.green{color:#6ee7a8;background:rgba(110,231,168,.08);border-color:rgba(110,231,168,.25)}.asset-pill.gray{color:#aaa}
+.asset-name{font-weight:950;color:#fff}.asset-sub{color:#aaa;font-size:12px}.asset-empty{padding:22px;color:#888;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.025)}
+@media(max-width:760px){.asset-summary-grid{grid-template-columns:repeat(2,1fr)}.asset-toolbar{display:block}.asset-toolbar .tube-submit-open{width:100%;margin-top:10px}.asset-table{min-width:920px}.asset-table th,.asset-table td{font-size:12px;padding:9px 8px}}
+</style>
+<script>
+/* AXE NET V17: 회사 자산관리 */
+let assetSearchKeyword="";
+let assetStatusFilter="ALL";
+let assetTypeFilter="ALL";
+let assetAcquireFilter="ALL";
+function assetField(row,names){
+    for(const name of names){
+        if(row&&row[name]!==undefined&&row[name]!==null&&String(row[name]).trim()!=="")return row[name];
+    }
+    return "";
+}
+function normalizeAssetText(v){return String(v===undefined||v===null?"":v).trim();}
+function formatAssetMoney(v){
+    const raw=normalizeAssetText(v);
+    if(!raw||raw==="-"||raw==="0")return raw||"-";
+    const num=Number(raw.replace(/[$,\s]/g,""));
+    if(isFinite(num))return "$"+num.toLocaleString();
+    return raw;
+}
+function getAssetRows(){
+    return Array.isArray(companyAssets)?companyAssets.filter(row=>{
+        const no=normalizeAssetText(assetField(row,["번호","no","No","number"]));
+        const owner=normalizeAssetText(assetField(row,["이름","보유자","담당자","owner","name"]));
+        const assetName=normalizeAssetText(assetField(row,["자산명","자산 이름","asset_name","assetName","item"]));
+        return no||owner||assetName;
+    }):[];
+}
+function uniqueAssetValues(rows,names){
+    const set=new Set();
+    rows.forEach(row=>{const v=normalizeAssetText(assetField(row,names)); if(v)set.add(v);});
+    return Array.from(set).sort((a,b)=>a.localeCompare(b,"ko"));
+}
+function filteredAssetRows(){
+    const keyword=assetSearchKeyword.trim().toLowerCase();
+    return getAssetRows().filter(row=>{
+        const status=normalizeAssetText(assetField(row,["현재 상태","상태","status"]));
+        const type=normalizeAssetText(assetField(row,["자산 분류","분류","category","type"]));
+        const acquire=normalizeAssetText(assetField(row,["획득 방식","획득방식","method","source"]));
+        if(assetStatusFilter!=="ALL"&&status!==assetStatusFilter)return false;
+        if(assetTypeFilter!=="ALL"&&type!==assetTypeFilter)return false;
+        if(assetAcquireFilter!=="ALL"&&acquire!==assetAcquireFilter)return false;
+        if(keyword){
+            const hay=Object.keys(row||{}).map(k=>String(row[k]||"")).join(" ").toLowerCase();
+            if(!hay.includes(keyword))return false;
+        }
+        return true;
+    });
+}
+function renderAssetFilterButtons(containerId,values,current,onClickName){
+    const el=document.getElementById(containerId); if(!el)return;
+    const buttons=[`<button class="${current==="ALL"?"active":""}" onclick="${onClickName}('ALL')">전체</button>`]
+        .concat(values.map(v=>`<button class="${current===v?"active":""}" onclick="${onClickName}('${escapeAttr(String(v))}')">${safe(v)}</button>`));
+    el.innerHTML=buttons.join("");
+}
+function setAssetStatusFilter(v){assetStatusFilter=v;renderCompanyAssets(false);}
+function setAssetTypeFilter(v){assetTypeFilter=v;renderCompanyAssets(false);}
+function setAssetAcquireFilter(v){assetAcquireFilter=v;renderCompanyAssets(false);}
+function renderCompanyAssets(reset){
+    const rows=getAssetRows();
+    if(reset){assetSearchKeyword="";assetStatusFilter="ALL";assetTypeFilter="ALL";assetAcquireFilter="ALL";}
+    const shown=filteredAssetRows();
+    const content=document.getElementById("content"); if(!content)return;
+    const owned=rows.filter(r=>normalizeAssetText(assetField(r,["현재 상태","상태","status"])).includes("보유")).length;
+    const totalCost=rows.reduce((sum,r)=>{const raw=normalizeAssetText(assetField(r,["개인 부담 비용","개인부담비용","비용","cost"])); const num=Number(raw.replace(/[$,\s]/g,"")); return sum+(isFinite(num)?num:0);},0);
+    const typeCount=uniqueAssetValues(rows,["자산 분류","분류","category","type"]).length;
+    const sourceCount=uniqueAssetValues(rows,["획득 방식","획득방식","method","source"]).length;
+    content.innerHTML=`
+        <div class="panel">
+            <div class="section-head with-action">
+                <div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산의 보유자, 취득 방식, 비용, 현재 상태를 확인하는 관리 화면입니다.</div></div>
+                <div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div>
+            </div>
+            <div class="asset-summary-grid">
+                <div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 자산</div></div>
+                <div class="asset-summary-card"><div class="asset-summary-value">${owned}</div><div class="asset-summary-label">보유중</div></div>
+                <div class="asset-summary-card"><div class="asset-summary-value">${typeCount}</div><div class="asset-summary-label">분류</div></div>
+                <div class="asset-summary-card"><div class="asset-summary-value">$${totalCost.toLocaleString()}</div><div class="asset-summary-label">개인 부담 합계</div></div>
+            </div>
+            <div class="asset-toolbar">
+                <div class="search"><input id="assetSearchInput" value="${escapeAttr(assetSearchKeyword)}" placeholder="이름, 자산명, 비고 검색" oninput="assetSearchKeyword=this.value;renderCompanyAssets(false)"><span class="search-mark">⌕</span></div>
+                <div class="count">${shown.length} / ${rows.length}</div>
+            </div>
+            <div class="result-info">상태</div><div class="asset-filter-row" id="assetStatusFilters"></div>
+            <div class="result-info">자산 분류</div><div class="asset-filter-row" id="assetTypeFilters"></div>
+            <div class="result-info">획득 방식</div><div class="asset-filter-row" id="assetAcquireFilters"></div>
+            ${shown.length?`<div class="asset-table-wrap"><table class="asset-table"><thead><tr><th>번호</th><th>이름</th><th>분류</th><th>자산명</th><th>획득 방식</th><th>취득일</th><th>개인 부담</th><th>상태</th><th>비고</th></tr></thead><tbody>${shown.map(renderAssetRow).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 회사 자산이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}
+        </div>`;
+    renderAssetFilterButtons("assetStatusFilters",uniqueAssetValues(rows,["현재 상태","상태","status"]),assetStatusFilter,"setAssetStatusFilter");
+    renderAssetFilterButtons("assetTypeFilters",uniqueAssetValues(rows,["자산 분류","분류","category","type"]),assetTypeFilter,"setAssetTypeFilter");
+    renderAssetFilterButtons("assetAcquireFilters",uniqueAssetValues(rows,["획득 방식","획득방식","method","source"]),assetAcquireFilter,"setAssetAcquireFilter");
+}
+function renderAssetRow(row){
+    const no=assetField(row,["번호","no","No","number"]);
+    const owner=assetField(row,["이름","보유자","담당자","owner","name"]);
+    const type=assetField(row,["자산 분류","분류","category","type"]);
+    const name=assetField(row,["자산명","자산 이름","asset_name","assetName","item"]);
+    const method=assetField(row,["획득 방식","획득방식","method","source"]);
+    const date=assetField(row,["취득일","date","acquired_at"]);
+    const cost=assetField(row,["개인 부담 비용","개인부담비용","비용","cost"]);
+    const status=assetField(row,["현재 상태","상태","status"]);
+    const note=assetField(row,["비고","메모","note"]);
+    const statusClass=String(status).includes("보유")?"green":String(status).includes("반납")||String(status).includes("처분")?"gray":"gold";
+    return `<tr><td>${safe(no)}</td><td><span class="asset-name">${safe(owner)}</span></td><td><span class="asset-pill gold">${safe(type)}</span></td><td>${safe(name)}</td><td><span class="asset-pill">${safe(method)}</span></td><td>${safe(date)}</td><td>${safe(formatAssetMoney(cost))}</td><td><span class="asset-pill ${statusClass}">${safe(status)}</span></td><td>${safe(note)}</td></tr>`;
+}
+function showCompanyAssets(){
+    enterMainSection("asset");
+    currentMainSection="asset";
+    document.title="AXE NET";
+    setActiveMainMenu("asset");
+    renderCompanyAssets(true);
+}
+function refreshCompanyAssets(){
+    const btn=document.getElementById("assetRefreshBtn");
+    if(btn){btn.disabled=true;btn.textContent="새로고침 중...";}
+    const fallback=function(){return refreshData({force:true}).then(()=>{renderCompanyAssets(false);return true;});};
+    const partial=(typeof requestPartialRefresh==="function")?requestPartialRefresh("asset",{force:true}).then(data=>{renderCompanyAssets(false);return data;}).catch(()=>fallback()):fallback();
+    return partial.then(()=>{showToast&&showToast("회사 자산 자료 최신 반영됨");}).catch(()=>{alert("회사 자산 자료를 불러오지 못했습니다.");}).finally(()=>{const b=document.getElementById("assetRefreshBtn");if(b){b.disabled=false;b.textContent="현재 화면 새로고침";}});
+}
+function axeAssetDebug(){
+    return {version:"AXE_NET_ASSET_V17", assetCount:getAssetRows().length, filteredCount:filteredAssetRows().length, statusFilter:assetStatusFilter, typeFilter:assetTypeFilter, acquireFilter:assetAcquireFilter, sample:getAssetRows().slice(0,3)};
+}
+</script>
+
+
+<style id="axe-net-asset-v18-style">
+.asset-subtabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.asset-subtabs button{height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease}
+.asset-subtabs button:hover,.asset-subtabs button.active{color:#111;background:#ffb52e;border-color:#ffb52e;transform:translateY(-1px)}
+.asset-admin-only-note{margin:0 0 12px;color:#888;font-size:12px;line-height:1.45}
+.asset-return-table{min-width:820px}
+.asset-return-table th:nth-child(1),.asset-return-table td:nth-child(1){width:58px;text-align:center}
+.asset-return-table th:nth-child(2),.asset-return-table td:nth-child(2){width:110px}
+.asset-return-table th:nth-child(3),.asset-return-table td:nth-child(3){width:250px}
+.asset-return-table th:nth-child(4),.asset-return-table td:nth-child(4){width:100px;text-align:center}
+.asset-return-table th:nth-child(5),.asset-return-table td:nth-child(5){width:110px}
+.asset-return-table th:nth-child(6),.asset-return-table td:nth-child(6){width:100px}
+.asset-return-table th:nth-child(7),.asset-return-table td:nth-child(7){width:180px}
+.asset-pill.wait{color:#ffcf75;background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.32)}
+.asset-pill.done{color:#6ee7a8;background:rgba(110,231,168,.08);border-color:rgba(110,231,168,.25)}
+@media(max-width:760px){.asset-subtabs{display:grid;grid-template-columns:1fr 1fr}.asset-subtabs button{width:100%}.asset-return-table{min-width:780px}}
+</style>
+
+
+<script id="axe-net-asset-v18-script">
+/* AXE NET V18: 관리자 전용 자산관리 + 퇴사자 반납내역 */
+(function(){
+    const V18_VERSION="AXE_NET_ASSET_V18";
+    let assetSubTab="current";
+    let assetReturnSearchKeyword="";
+    let assetReturnStatusFilter="ALL";
+
+    function n(v){return String(v===undefined||v===null?"":v).trim();}
+    function field(row,names){
+        for(const name of names){
+            if(row&&row[name]!==undefined&&row[name]!==null&&n(row[name])!=="")return row[name];
+        }
+        return "";
+    }
+    function checked(v){
+        const s=n(v).toLowerCase();
+        return v===true||s==="true"||s==="y"||s==="yes"||s==="1"||s==="완료"||s==="확인"||s==="반납완료"||s==="체크"||s==="✓"||s==="☑";
+    }
+    function getReturnRows(){
+        return Array.isArray(companyAssetReturns)?companyAssetReturns.filter(function(row){
+            return n(field(row,["번호","no","No","number"]))||n(field(row,["이름","name","퇴사자"]))||n(field(row,["자산명","asset_name","assetName","item"]));
+        }):[];
+    }
+    function filteredReturnRows(){
+        const keyword=assetReturnSearchKeyword.trim().toLowerCase();
+        return getReturnRows().filter(function(row){
+            const done=checked(field(row,["반납 확인","반납확인","확인","returned","checked"]));
+            if(assetReturnStatusFilter==="done"&&!done)return false;
+            if(assetReturnStatusFilter==="wait"&&done)return false;
+            if(keyword){
+                const hay=Object.keys(row||{}).map(function(k){return String(row[k]||"");}).join(" ").toLowerCase();
+                if(!hay.includes(keyword))return false;
+            }
+            return true;
+        });
+    }
+    function renderAssetSubTabs(){
+        return `<div class="asset-subtabs"><button class="${assetSubTab==="current"?"active":""}" onclick="setAssetSubTabV18('current')">회사 자산 현황</button><button class="${assetSubTab==="returns"?"active":""}" onclick="setAssetSubTabV18('returns')">퇴사자 반납 내역</button></div>`;
+    }
+    function renderReturnRow(row){
+        const no=field(row,["번호","no","No","number"]);
+        const name=field(row,["이름","name","퇴사자"]);
+        const assetName=field(row,["자산명","asset_name","assetName","item"]);
+        const isDone=checked(field(row,["반납 확인","반납확인","확인","returned","checked"]));
+        const checker=field(row,["확인자","checker","checked_by"]);
+        const date=field(row,["처리일","date","processed_at"]);
+        const note=field(row,["비고","메모","note"]);
+        return `<tr><td>${safe(no)}</td><td><span class="asset-name">${safe(name)}</span></td><td>${safe(assetName)}</td><td><span class="asset-pill ${isDone?"done":"wait"}">${isDone?"반납완료":"확인대기"}</span></td><td>${safe(checker||"-")}</td><td>${safe(date||"-")}</td><td>${safe(note||"")}</td></tr>`;
+    }
+    function renderAssetReturns(){
+        const rows=getReturnRows();
+        const shown=filteredReturnRows();
+        const done=rows.filter(function(r){return checked(field(r,["반납 확인","반납확인","확인","returned","checked"]));}).length;
+        const wait=rows.length-done;
+        const content=document.getElementById("content"); if(!content)return;
+        content.innerHTML=`
+        <div class="panel">
+            <div class="section-head with-action">
+                <div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산 현황과 퇴사자 반납 내역을 관리하는 관리자 전용 화면입니다.</div></div>
+                <div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div>
+            </div>
+            ${renderAssetSubTabs()}
+            <div class="asset-admin-only-note">퇴사자가 회사 자산을 반납했는지 확인하는 기록입니다. 반납 확인 체크값은 완료/대기로 표시됩니다.</div>
+            <div class="asset-summary-grid">
+                <div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 기록</div></div>
+                <div class="asset-summary-card"><div class="asset-summary-value">${done}</div><div class="asset-summary-label">반납완료</div></div>
+                <div class="asset-summary-card"><div class="asset-summary-value">${wait}</div><div class="asset-summary-label">확인대기</div></div>
+                <div class="asset-summary-card"><div class="asset-summary-value">${shown.length}</div><div class="asset-summary-label">표시중</div></div>
+            </div>
+            <div class="asset-toolbar">
+                <div class="search"><input id="assetReturnSearchInput" value="${escapeAttr(assetReturnSearchKeyword)}" placeholder="이름, 자산명, 확인자, 비고 검색" oninput="assetReturnSearchKeyword=this.value;renderAssetReturnsV18()"><span class="search-mark">⌕</span></div>
+                <div class="count">${shown.length} / ${rows.length}</div>
+            </div>
+            <div class="asset-filter-row">
+                <button class="${assetReturnStatusFilter==="ALL"?"active":""}" onclick="setAssetReturnStatusFilterV18('ALL')">전체</button>
+                <button class="${assetReturnStatusFilter==="done"?"active":""}" onclick="setAssetReturnStatusFilterV18('done')">반납완료</button>
+                <button class="${assetReturnStatusFilter==="wait"?"active":""}" onclick="setAssetReturnStatusFilterV18('wait')">확인대기</button>
+            </div>
+            ${shown.length?`<div class="asset-table-wrap"><table class="asset-table asset-return-table"><thead><tr><th>번호</th><th>이름</th><th>자산명</th><th>반납 확인</th><th>확인자</th><th>처리일</th><th>비고</th></tr></thead><tbody>${shown.map(renderReturnRow).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 퇴사자 반납 내역이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}
+        </div>`;
+    }
+    const originalRenderCompanyAssets=window.renderCompanyAssets||renderCompanyAssets;
+    window.renderCompanyAssets=function(reset){
+        if(assetSubTab==="returns"){renderAssetReturns();return;}
+        originalRenderCompanyAssets(reset);
+        const panel=document.querySelector("#content .panel");
+        if(panel&&!panel.querySelector(".asset-subtabs")){
+            const head=panel.querySelector(".section-head.with-action")||panel.firstElementChild;
+            if(head){head.insertAdjacentHTML("afterend",renderAssetSubTabs()+`<div class="asset-admin-only-note">관리자에게만 표시되는 회사 내부 자산 관리 화면입니다.</div>`);}
+        }
+    };
+    window.renderAssetReturnsV18=function(){renderAssetReturns();};
+    window.setAssetSubTabV18=function(tab){assetSubTab=tab==="returns"?"returns":"current"; if(assetSubTab==="returns")renderAssetReturns(); else window.renderCompanyAssets(false);};
+    window.setAssetReturnStatusFilterV18=function(v){assetReturnStatusFilter=String(v||"ALL");renderAssetReturns();};
+    const originalShowCompanyAssets=window.showCompanyAssets||showCompanyAssets;
+    window.showCompanyAssets=function(){
+        if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){
+            alert("관리자 전용 메뉴입니다.");
+            navigateMain("home");
+            return;
+        }
+        enterMainSection("asset");
+        currentMainSection="asset";
+        document.title="AXE NET";
+        setActiveMainMenu("asset");
+        window.renderCompanyAssets(false);
+    };
+    const originalRefreshCompanyAssets=window.refreshCompanyAssets||refreshCompanyAssets;
+    window.refreshCompanyAssets=function(){
+        const btn=document.getElementById("assetRefreshBtn");
+        if(btn){btn.disabled=true;btn.textContent="새로고침 중...";}
+        const fallback=function(){return refreshData({force:true}).then(function(){ if(assetSubTab==="returns")renderAssetReturns(); else window.renderCompanyAssets(false); return true;});};
+        const partial=(typeof requestPartialRefresh==="function")?requestPartialRefresh("asset",{force:true}).then(function(data){ if(assetSubTab==="returns")renderAssetReturns(); else window.renderCompanyAssets(false); return data;}).catch(function(){return fallback();}):fallback();
+        return partial.then(function(){if(typeof showToast==="function")showToast("회사 자산 자료 최신 반영됨");}).catch(function(){alert("회사 자산 자료를 불러오지 못했습니다.");}).finally(function(){const b=document.getElementById("assetRefreshBtn");if(b){b.disabled=false;b.textContent="현재 화면 새로고침";}});
+    };
+    const originalUpdateAdminMenu=window.updateAdminMenu||updateAdminMenu;
+    window.updateAdminMenu=function(){
+        const isAdmin=typeof isCurrentAdmin==="function"&&isCurrentAdmin();
+        const adminBtn=document.getElementById("adminMenuButton"); if(adminBtn)adminBtn.style.display=isAdmin?"":"none";
+        const assetBtn=document.getElementById("assetMenuButton"); if(assetBtn)assetBtn.style.display=isAdmin?"":"none";
+    };
+    window.axeAssetDebug=function(){
+        return {version:V18_VERSION,isAdmin:typeof isCurrentAdmin==="function"&&isCurrentAdmin(),subTab:assetSubTab,assetCount:(typeof getAssetRows==="function"?getAssetRows().length:0),assetReturnCount:getReturnRows().length,filteredAssetReturnCount:filteredReturnRows().length,assetMenuVisible:(document.getElementById("assetMenuButton")||{}).style?.display};
+    };
+    setTimeout(function(){try{window.updateAdminMenu();}catch(e){}},100);
+})();
 </script>
 
 </body>
