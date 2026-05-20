@@ -21253,7 +21253,7 @@ function axeAssetDebug(){
         const owned=rows.filter(function(r){return t(f(r,["현재 상태","상태","status"])).indexOf("보유")>-1;}).length;
         const totalCost=rows.reduce(function(sum,r){const raw=t(f(r,["개인 부담 비용","개인부담비용","비용","cost"]));const num=Number(raw.replace(/[$,\s]/g,""));return sum+(isFinite(num)?num:0);},0);
         const typeCount=(typeof uniqueAssetValues==="function")?uniqueAssetValues(rows,["자산 분류","분류","category","type"]).length:0;
-        content.innerHTML=`<div class="panel"><div class="section-head with-action"><div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산의 보유자, 취득 방식, 비용, 현재 상태를 관리하는 관리자 전용 화면입니다.</div></div><div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div></div><div class="asset-subtabs"><button class="active" onclick="setAssetSubTabV18('current')">회사 자산 현황</button><button onclick="setAssetSubTabV18('returns')">퇴사자 반납 내역</button></div><div class="asset-admin-only-note">관리자에게만 표시되는 회사 내부 자산 관리 화면입니다.</div><div class="asset-actionbar"><button class="asset-action-btn primary" onclick="openAssetCreateModalV20()">+ 자산 추가</button></div><div class="asset-summary-grid"><div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 자산</div></div><div class="asset-summary-card"><div class="asset-summary-value">${owned}</div><div class="asset-summary-label">보유중</div></div><div class="asset-summary-card"><div class="asset-summary-value">${typeCount}</div><div class="asset-summary-label">분류</div></div><div class="asset-summary-card"><div class="asset-summary-value">$${totalCost.toLocaleString()}</div><div class="asset-summary-label">개인 부담 합계</div></div></div><div class="asset-toolbar"><div class="search"><input id="assetSearchInput" value="${esc(typeof assetSearchKeyword!=="undefined"?assetSearchKeyword:"")}" placeholder="이름, 자산명, 비고 검색" oninput="assetSearchKeyword=this.value;renderCompanyAssets(false)"><span class="search-mark">⌕</span></div><div class="count">${shown.length} / ${rows.length}</div></div><div class="result-info">상태</div><div class="asset-filter-row" id="assetStatusFilters"></div><div class="result-info">자산 분류</div><div class="asset-filter-row" id="assetTypeFilters"></div><div class="result-info">획득 방식</div><div class="asset-filter-row" id="assetAcquireFilters"></div>${shown.length?`<div class="asset-table-wrap"><table class="asset-table asset-editable"><thead><tr><th>번호</th><th>이름</th><th>분류</th><th>자산명</th><th>획득 방식</th><th>취득일</th><th>개인 부담</th><th>상태</th><th>비고</th><th>관리</th></tr></thead><tbody>${shown.map(function(row){const no=t(f(row,["번호","no","number"]));const owner=f(row,["이름","보유자","담당자","owner","name"]);const type=f(row,["자산 분류","분류","category","type"]);const name=f(row,["자산명","asset_name","assetName","item"]);const method=f(row,["획득 방식","획득방식","method","source"]);const date=f(row,["취득일","date","acquired_at"]);const cost=f(row,["개인 부담 비용","개인부담비용","비용","cost"]);const status=f(row,["현재 상태","상태","status"]);const note=f(row,["비고","메모","note"]);const statusClass=String(status).includes("보유")?"green":String(status).includes("반납")||String(status).includes("처분")?"gray":"gold";return `<tr><td>${s(no)}</td><td><span class="asset-name">${s(owner)}</span></td><td><span class="asset-pill gold">${s(type)}</span></td><td>${s(name)}</td><td><span class="asset-pill">${s(method)}</span></td><td>${s(date)}</td><td>${s(moneyText(cost))}</td><td><span class="asset-pill ${statusClass}">${s(status)}</span></td><td>${s(note)}</td><td><button class="asset-action-btn" onclick="openAssetEditModalV20('${esc(no)}')">수정</button> <button class="asset-action-btn danger" onclick="deleteAssetV20('${esc(no)}')">삭제</button></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 회사 자산이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}</div>`;
+        content.innerHTML=`<div class="panel"><div class="section-head with-action"><div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산의 보유자, 취득 방식, 비용, 현재 상태를 관리하는 관리자 전용 화면입니다.</div></div><div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div></div><div class="asset-subtabs"><button class="active" onclick="setAssetSubTabV18('current')">회사 자산 현황</button><button onclick="setAssetSubTabV18('returns')">퇴사자 반납 내역</button></div><div class="asset-admin-only-note">관리자에게만 표시되는 회사 내부 자산 관리 화면입니다.</div><div class="asset-actionbar"><button class="asset-action-btn primary" onclick="openAssetCreateModalV20()">+ 자산 추가</button></div><div class="asset-summary-grid"><div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 자산</div></div><div class="asset-summary-card"><div class="asset-summary-value">${owned}</div><div class="asset-summary-label">보유중</div></div><div class="asset-summary-card"><div class="asset-summary-value">${typeCount}</div><div class="asset-summary-label">분류</div></div><div class="asset-summary-card"><div class="asset-summary-value">$${totalCost.toLocaleString()}</div><div class="asset-summary-label">개인 부담 합계</div></div></div><div class="asset-toolbar"><div class="search"><input id="assetSearchInput" value="${esc(typeof assetSearchKeyword!=="undefined"?assetSearchKeyword:"")}" placeholder="이름, 자산명, 비고 검색" oninput="assetSearchKeyword=this.value;renderCompanyAssets(false)"><span class="search-mark">⌕</span></div><div class="count">${shown.length} / ${rows.length}</div></div><div class="asset-filter-panel"><div class="asset-filter-box"><div class="asset-filter-label">상태</div><div class="asset-filter-row" id="assetStatusFilters"></div></div><div class="asset-filter-box"><div class="asset-filter-label">자산 분류</div><div class="asset-filter-row" id="assetTypeFilters"></div></div><div class="asset-filter-box"><div class="asset-filter-label">획득 방식</div><div class="asset-filter-row" id="assetAcquireFilters"></div></div></div>${shown.length?`<div class="asset-table-wrap"><table class="asset-table asset-editable"><thead><tr><th>번호</th><th>이름</th><th>분류</th><th>자산명</th><th>획득 방식</th><th>취득일</th><th>개인 부담</th><th>상태</th><th>비고</th><th>관리</th></tr></thead><tbody>${shown.map(function(row){const no=t(f(row,["번호","no","number"]));const owner=f(row,["이름","보유자","담당자","owner","name"]);const type=f(row,["자산 분류","분류","category","type"]);const name=f(row,["자산명","asset_name","assetName","item"]);const method=f(row,["획득 방식","획득방식","method","source"]);const date=f(row,["취득일","date","acquired_at"]);const cost=f(row,["개인 부담 비용","개인부담비용","비용","cost"]);const status=f(row,["현재 상태","상태","status"]);const note=f(row,["비고","메모","note"]);const statusClass=String(status).includes("보유")?"green":String(status).includes("반납")||String(status).includes("처분")?"gray":"gold";return `<tr><td>${s(no)}</td><td><span class="asset-name">${s(owner)}</span></td><td><span class="asset-pill gold">${s(type)}</span></td><td>${s(name)}</td><td><span class="asset-pill">${s(method)}</span></td><td>${s(date)}</td><td>${s(moneyText(cost))}</td><td><span class="asset-pill ${statusClass}">${s(status)}</span></td><td>${s(note)}</td><td><button class="asset-action-btn" onclick="openAssetEditModalV20('${esc(no)}')">수정</button> <button class="asset-action-btn danger" onclick="deleteAssetV20('${esc(no)}')">삭제</button></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 회사 자산이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}</div>`;
         if(typeof renderAssetFilterButtons==="function"){
             renderAssetFilterButtons("assetStatusFilters",uniqueAssetValues(rows,["현재 상태","상태","status"]),assetStatusFilter,"setAssetStatusFilter");
             renderAssetFilterButtons("assetTypeFilters",uniqueAssetValues(rows,["자산 분류","분류","category","type"]),assetTypeFilter,"setAssetTypeFilter");
@@ -21266,6 +21266,70 @@ function axeAssetDebug(){
     const prevShow=window.showCompanyAssets;
     window.showCompanyAssets=function(){ if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){alert("관리자 전용 메뉴입니다."); if(typeof navigateMain==="function")navigateMain("home"); return;} if(typeof enterMainSection==="function")enterMainSection("asset"); currentMainSection="asset"; document.title="AXE NET"; if(typeof setActiveMainMenu==="function")setActiveMainMenu("asset"); renderCurrentAssetsV20(false); };
     window.axeAssetV20Debug=function(){return {version:V20_VERSION, adminMembersDefined:typeof adminMembers!=="undefined", adminMembersCount:Array.isArray(window.adminMembers)?window.adminMembers.length:(Array.isArray(adminMembers)?adminMembers.length:0), assetCount:localAssetRows().length, buttons:Array.from(document.querySelectorAll(".asset-action-btn")).map(function(b){return b.textContent.trim();}), apiUrl:(typeof API_URL!=="undefined"?API_URL:"")};};
+})();
+</script>
+
+
+
+<style id="axe-net-asset-v21-filter-polish">
+/* AXE NET V21: 자산관리 필터 UI 정돈 */
+.asset-filter-panel{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin:12px 0 14px;
+}
+.asset-filter-box{
+    min-width:0;
+    padding:12px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:16px;
+    background:rgba(0,0,0,.20);
+}
+.asset-filter-label{
+    margin:0 0 8px;
+    color:#8f8f8f;
+    font-size:12px;
+    font-weight:950;
+    letter-spacing:.2px;
+}
+.asset-filter-box .asset-filter-row{
+    margin:0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+}
+.asset-filter-box .asset-filter-row button{
+    height:32px;
+    padding:0 11px;
+    border-radius:999px;
+    font-size:12px;
+    white-space:nowrap;
+}
+.asset-toolbar{
+    margin-bottom:10px;
+}
+@media(max-width:920px){
+    .asset-filter-panel{grid-template-columns:1fr;gap:8px}
+    .asset-filter-box{padding:10px 11px;border-radius:14px}
+    .asset-filter-box .asset-filter-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .asset-filter-box .asset-filter-row::-webkit-scrollbar{display:none}
+    .asset-filter-box .asset-filter-row button{flex:0 0 auto}
+}
+</style>
+
+
+<script id="axe-net-asset-v21-filter-debug">
+(function(){
+    window.axeAssetV21Debug=function(){
+        return {
+            version:"AXE_NET_ASSET_FILTER_V21",
+            filterPanelExists:!!document.querySelector(".asset-filter-panel"),
+            filterBoxCount:document.querySelectorAll(".asset-filter-box").length,
+            apiUrl:(typeof API_URL!=="undefined"?API_URL:""),
+            assetCount:(typeof getAssetRows==="function"?getAssetRows().length:null)
+        };
+    };
 })();
 </script>
 
