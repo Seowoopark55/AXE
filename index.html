@@ -9290,6 +9290,11 @@ function showCraft(){
     setMainActive(6);
     const categories=["ALL",...new Set(crafts.map(c=>c.category).filter(Boolean))];
 
+    // AXE NET V15: 제작 화면 진입 시 이전 화면의 분류값이 남아 목록이 비는 문제 방지
+    if(!currentCategory || categories.indexOf(currentCategory)<0){
+        currentCategory="ALL";
+    }
+
     let html=`
     <div class="section-head with-action">
         <div>
@@ -9338,7 +9343,10 @@ function onSearch(value){
 }
 
 function getFilteredList(){
-    let list=searchKeyword?crafts:(currentCategory==="ALL"?crafts:crafts.filter(c=>c.category===currentCategory));
+    const validCategories=["ALL",...new Set((Array.isArray(crafts)?crafts:[]).map(c=>c.category).filter(Boolean))];
+    const activeCategory=validCategories.indexOf(currentCategory)>=0?currentCategory:"ALL";
+    if(activeCategory!==currentCategory)currentCategory=activeCategory;
+    let list=searchKeyword?crafts:(activeCategory==="ALL"?crafts:crafts.filter(c=>c.category===activeCategory));
     const keyword=searchKeyword.toLowerCase();
 
     if(keyword){
@@ -20848,6 +20856,22 @@ window.axeInfoRefreshDebug=function(){
         busyMap:Object.assign({},pageRefreshBusyMap||{})
     };
 };
+
+/* AXE NET V15.0: 제작 화면 분류 잔상 보정 디버그 */
+window.axeCraftRefreshDebug=function(){
+    const categories=["ALL",...new Set((Array.isArray(crafts)?crafts:[]).map(function(c){return c.category;}).filter(Boolean))];
+    return {
+        version:"AXE_NET_STABILIZED_REFRESH_V15",
+        currentInfoSubTab:typeof currentInfoSubTab!=="undefined"?currentInfoSubTab:"",
+        currentCategory:typeof currentCategory!=="undefined"?currentCategory:"",
+        craftCount:Array.isArray(crafts)?crafts.length:0,
+        materialCount:Array.isArray(materials)?materials.length:0,
+        categories:categories,
+        visibleRows:document.querySelectorAll(".item-row").length,
+        refreshButtons:Array.from(document.querySelectorAll("[id^='pageRefreshBtn_']")).map(function(btn){return btn.id;})
+    };
+};
+
 </script>
 
 </body>
