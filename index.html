@@ -9192,7 +9192,9 @@ function renderModOption(v){
 }
 
 function getModBookTypeToneClass(){
-    const type=normalizeModType(modBookTypeFilter);
+    const raw=String(modBookTypeFilter||"").trim();
+    if(!raw)return "type-all";
+    const type=normalizeModType(raw);
     if(type==="접두")return "type-prefix";
     if(type==="접미")return "type-suffix";
     return "type-all";
@@ -21642,9 +21644,9 @@ function axeModBookPriceV25Debug(){
 </script>
 
 <script>
-function axeModBookFilterV30Debug(){
+function axeModBookFilterV32Debug(){
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V31",
+        version:"AXE_NET_MODBOOK_FILTER_V32",
         apiUrl:typeof API_URL!=="undefined"?API_URL:"",
         typeFilter:typeof modBookTypeFilter!=="undefined"?modBookTypeFilter:null,
         categoryFilter:typeof modBookCategoryFilter!=="undefined"?modBookCategoryFilter:null,
@@ -21661,7 +21663,7 @@ function axeModBookFilterV30Debug(){
 
 
 <script>
-try{window.axeModBookFilterV26Debug=window.axeModBookFilterV30Debug;}catch(e){}
+try{window.axeModBookFilterV26Debug=window.axeModBookFilterV32Debug;window.axeModBookFilterV30Debug=window.axeModBookFilterV32Debug;window.axeModBookFilterV31Debug=window.axeModBookFilterV32Debug;}catch(e){}
 </script>
 
 <script>
@@ -21671,7 +21673,7 @@ try{window.axeModBookFilterV26Debug=window.axeModBookFilterV30Debug;}catch(e){}
         const search=document.getElementById("modBookSearchInput");
         const labels=Array.from(document.querySelectorAll(".modbook-filter-label")).map(el=>el.textContent.trim());
         return {
-            version:"AXE_NET_MODBOOK_FILTER_V31",
+            version:"AXE_NET_MODBOOK_FILTER_V32",
             typeSelectClass:typeSelect?typeSelect.className:"",
             typeSelectValue:typeSelect?typeSelect.value:"",
             typeSelectColor:typeSelect?getComputedStyle(typeSelect).color:"",
@@ -21682,6 +21684,38 @@ try{window.axeModBookFilterV26Debug=window.axeModBookFilterV30Debug;}catch(e){}
     };
 })();
 </script>
+
+
+<style id="axe-net-modbook-filter-v32-type-fix">
+/* AXE NET V32: 개조위치 전체 선택 시 기본 흰색 유지 */
+.modbook-filter-select.type-all,
+#modBookTypeSelect.type-all{
+    color:#fff!important;
+    background:#151515!important;
+    border-color:rgba(255,255,255,.1)!important;
+    box-shadow:none!important;
+}
+#modBookTypeSelect.type-prefix{color:#8fbfff!important}
+#modBookTypeSelect.type-suffix{color:#ff9aa6!important}
+</style>
+
+<script>
+(function(){
+    window.axeModBookFilterV32Debug=function(){
+        const typeSelect=document.getElementById("modBookTypeSelect");
+        const search=document.getElementById("modBookSearchInput");
+        return {
+            version:"AXE_NET_MODBOOK_FILTER_V32",
+            typeSelectClass:typeSelect?typeSelect.className:"",
+            typeSelectValue:typeSelect?typeSelect.value:"",
+            typeSelectColor:typeSelect?getComputedStyle(typeSelect).color:"",
+            searchPlaceholder:search?search.getAttribute("placeholder"):"",
+            typeHintCount:document.querySelectorAll(".modbook-type-hint").length
+        };
+    };
+})();
+</script>
+
 </body>
 </html>
 
@@ -21890,7 +21924,7 @@ window.axeModBookFilterV29Debug=function(){
     const nameMatches=keyword?all.filter(m=>getModBookNameSearchText(m).includes(keyword)).map(m=>parseModName(m.name).text):[];
     const result=getFilteredModBooks().map(m=>parseModName(m.name).text);
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V31",
+        version:"AXE_NET_MODBOOK_FILTER_V32",
         keyword:modBookSearchKeyword||"",
         normalizedKeyword:keyword,
         nameMatchCount:nameMatches.length,
