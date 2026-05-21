@@ -4548,7 +4548,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzJ-P6cQMfJLkEsQFbU3vXHGEQNvFwUUKvCnOdF92E9rMhW9VHITNwFQROsMMcSJ1UuiQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzvPv79PGbRwIJYqiVrcqdB626N3SRSbbdVXBF3PgUiHFtRvHuT374nSTv31ztFON5RXg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -8698,24 +8698,29 @@ function hasRecentPrice(m){
     return m.recent_price!==undefined&&m.recent_price!==null&&String(m.recent_price).trim()!=="";
 }
 
+function canEditModBookPrice(){
+    const user=getCurrentUser();
+    return !!(user&&user.nickname);
+}
+
 function renderModRecentPrice(m,key){
-    const canEdit=isCurrentAdmin();
+    const canEdit=canEditModBookPrice();
     if(!hasRecentPrice(m)&&!canEdit)return "";
     const price=hasRecentPrice(m)?formatModPrice(m.recent_price):"미등록";
     const date=m.recent_date?formatDate(m.recent_date):"";
     const note=String(m.price_note||"").trim();
-    const adminBtn=canEdit?`<button class="modbook-price-admin-btn" onclick="event.stopPropagation();openModBookPriceEditor('${escapeText(key||"")}')">가격 설정</button>`:"";
+    const editBtn=canEdit?`<button class="modbook-price-admin-btn" onclick="event.stopPropagation();openModBookPriceEditor('${escapeText(key||"")}')">가격 설정</button>`:"";
     return `<div class="modbook-pricebox">
         <div class="modbook-price-head">
             <div class="modbook-price-head-left">
                 <div class="modbook-price-title">최근 거래가</div>
-                ${adminBtn}
+                ${editBtn}
             </div>
             ${date?`<div class="modbook-price-date">${safe(date)}</div>`:""}
         </div>
         <div class="modbook-price-value ${hasRecentPrice(m)?"":"modbook-price-empty"}">${safe(price)}</div>
         ${note?`<div class="modbook-price-note">${safe(note)}</div>`:""}
-        ${canEdit?`<div class="modbook-price-admin-hint">관리자 전용 · 가격 저장 시 거래일은 자동 갱신됩니다.</div>`:""}
+        ${canEdit?`<div class="modbook-price-admin-hint">팀원 공용 · 가격 저장 시 거래일은 자동 갱신됩니다.</div>`:""}
     </div>`;
 }
 
@@ -8725,7 +8730,7 @@ function findModBookByKey(key){
 }
 
 function openModBookPriceEditor(key){
-    if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+    if(!requireLogin("개조서 가격 설정은 로그인 후 이용해주세요."))return;
     const target=findModBookByKey(key);
     if(!target){alert("개조서 정보를 찾을 수 없습니다.");return;}
 
@@ -8739,7 +8744,7 @@ function openModBookPriceEditor(key){
         if(!confirm("최근 거래가격을 비우고 거래일도 삭제할까요?"))return;
     }
 
-    adminApi({
+    postUserApi({
         type:"admin_modbook_price_update",
         mod_type:target.type||"",
         category:target.category||"",
@@ -21475,6 +21480,19 @@ function axeAssetDebug(){
 })();
 </script>
 
+
+<script>
+/* AXE NET V25: 개조서 가격 설정 권한 팀원 공용화 디버그 */
+function axeModBookPriceV25Debug(){
+    return {
+        version:"AXE_NET_MODBOOK_PRICE_TEAM_V25",
+        currentUser:getCurrentUser(),
+        canEditModBookPrice:typeof canEditModBookPrice==="function"?canEditModBookPrice():false,
+        priceButtons:document.querySelectorAll(".modbook-price-admin-btn").length,
+        apiUrl:typeof API_URL!=="undefined"?API_URL:""
+    };
+}
+</script>
 </body>
 </html>
 
