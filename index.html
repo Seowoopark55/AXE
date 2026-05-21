@@ -9271,25 +9271,38 @@ function renderModBookCategories(){
     `).join(""):`<button class="active">분류 없음</button>`;
 }
 
+function normalizeModBookSearchText(value){
+    return String(value||"").toLowerCase().replace(/\s+/g,"").trim();
+}
+
+function getModBookNameSearchText(m){
+    return normalizeModBookSearchText(parseModName(m&&m.name).text||m&&m.name||"");
+}
+
+function getModBookBroadSearchText(m){
+    return normalizeModBookSearchText([
+        parseModName(m.name).text,
+        m.parts,
+        cleanModText(m.option1),
+        cleanModText(m.option2),
+        cleanModText(m.option3),
+        formatModSuccessRate(m.success_rate),
+        formatModPrice(m.recent_price),
+        formatDate(m.recent_date),
+        m.price_note,
+        m.note,
+        m.category,
+        m.type
+    ].join(" "));
+}
+
 function getFilteredModBooks(){
-    const keyword=String(modBookSearchKeyword||"").toLowerCase();
+    const keyword=normalizeModBookSearchText(modBookSearchKeyword);
     let list=(Array.isArray(modBooks)?modBooks:[]).slice();
 
     if(keyword){
-        list=list.filter(m=>[
-            parseModName(m.name).text,
-            m.parts,
-            cleanModText(m.option1),
-            cleanModText(m.option2),
-            cleanModText(m.option3),
-            formatModSuccessRate(m.success_rate),
-            formatModPrice(m.recent_price),
-            formatDate(m.recent_date),
-            m.price_note,
-            m.note,
-            m.category,
-            m.type
-        ].join(" ").toLowerCase().includes(keyword));
+        const nameMatched=list.filter(m=>getModBookNameSearchText(m).includes(keyword));
+        list=nameMatched.length?nameMatched:list.filter(m=>getModBookBroadSearchText(m).includes(keyword));
     }else{
         if(modBookTypeFilter)list=list.filter(m=>normalizeModType(m.type)===modBookTypeFilter);
         if(modBookCategoryFilter)list=list.filter(m=>String(m.category||"기타").trim()===modBookCategoryFilter);
@@ -21582,7 +21595,7 @@ function axeModBookPriceV25Debug(){
 <script>
 function axeModBookFilterV26Debug(){
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V27",
+        version:"AXE_NET_MODBOOK_FILTER_V28",
         apiUrl:typeof API_URL!=="undefined"?API_URL:"",
         typeFilter:typeof modBookTypeFilter!=="undefined"?modBookTypeFilter:null,
         categoryFilter:typeof modBookCategoryFilter!=="undefined"?modBookCategoryFilter:null,
@@ -21798,4 +21811,20 @@ window.axeAssetV23Debug=function(){
     window.refreshCompanyAssets=function(){const btn=document.getElementById("assetRefreshBtn");if(btn){btn.disabled=true;btn.textContent="새로고침 중...";}const done=function(){if(window.__assetV24SubTab==="returns")renderAssetReturnsV24();else if(typeof renderCompanyAssets==="function")renderCompanyAssets(false);};const fallback=function(){return refreshData({force:true}).then(function(){done();return true;});};const partial=(typeof requestPartialRefresh==="function")?requestPartialRefresh("asset",{force:true}).then(function(data){done();return data;}).catch(function(){return fallback();}):fallback();return partial.then(function(){if(typeof showToast==="function")showToast("회사 자산 자료 최신 반영됨");}).catch(function(){alert("회사 자산 자료를 불러오지 못했습니다.");}).finally(function(){const b=document.getElementById("assetRefreshBtn");if(b){b.disabled=false;b.textContent="현재 화면 새로고침";}});};
     window.axeAssetV24Debug=function(){return {version:V24_VERSION,subTab:window.__assetV24SubTab,assetReturnCount:returnRowsV24().length,filteredReturnCount:filteredReturnRowsV24().length,returnSaveButtonExists:!!document.querySelector('[onclick="openAssetReturnCreateModalV24()"]'),apiUrl:(typeof API_URL!=="undefined"?API_URL:"")};};
 })();
+
+window.axeModBookFilterV28Debug=function(){
+    const keyword=normalizeModBookSearchText(modBookSearchKeyword);
+    const all=Array.isArray(modBooks)?modBooks:[];
+    const nameMatches=keyword?all.filter(m=>getModBookNameSearchText(m).includes(keyword)).map(m=>parseModName(m.name).text):[];
+    const result=getFilteredModBooks().map(m=>parseModName(m.name).text);
+    return {
+        version:"AXE_NET_MODBOOK_FILTER_V28",
+        keyword:modBookSearchKeyword||"",
+        normalizedKeyword:keyword,
+        nameMatchCount:nameMatches.length,
+        nameMatches:nameMatches.slice(0,20),
+        resultCount:result.length,
+        results:result.slice(0,30)
+    };
+};
 </script>
