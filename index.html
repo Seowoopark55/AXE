@@ -4293,7 +4293,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .modbook-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0;flex:0 0 auto}
 .modbook-filter-label{font-size:12px;color:#888;font-weight:950;letter-spacing:.2px}
 .modbook-filter-select{width:150px;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 30px 0 11px;outline:none;font-size:13px;font-weight:900;cursor:pointer;appearance:auto}
-.modbook-filter-select:focus{border-color:rgba(255,181,46,.65)}
+ .modbook-filter-select:focus{border-color:rgba(255,181,46,.65)}
+.modbook-filter-select.type-prefix{border-color:rgba(76,154,255,.55)!important;background:linear-gradient(180deg,rgba(76,154,255,.18),rgba(76,154,255,.055)),#151515!important;color:#b9d6ff!important;box-shadow:0 0 0 1px rgba(76,154,255,.08) inset}
+.modbook-filter-select.type-suffix{border-color:rgba(255,93,110,.58)!important;background:linear-gradient(180deg,rgba(255,93,110,.18),rgba(255,93,110,.055)),#151515!important;color:#ffb8c0!important;box-shadow:0 0 0 1px rgba(255,93,110,.08) inset}
+.modbook-filter-select.type-all{border-color:rgba(255,255,255,.1);background:#151515;color:#fff}
+.modbook-type-hint{display:inline-flex;align-items:center;justify-content:center;height:20px;margin-left:6px;padding:0 7px;border-radius:999px;font-size:10.5px;font-weight:950;vertical-align:1px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#aaa}
+.modbook-type-hint.prefix{color:#9fc7ff;background:rgba(76,154,255,.12);border-color:rgba(76,154,255,.36)}
+.modbook-type-hint.suffix{color:#ff9eaa;background:rgba(255,93,110,.12);border-color:rgba(255,93,110,.36)}
+.modbook-filter-select option{background:#151515;color:#eee}
+.modbook-filter-select option[value="접두"]{color:#9fc7ff}
+.modbook-filter-select option[value="접미"]{color:#ff9eaa}
 .modbook-filter-search{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;width:310px;max-width:100%}
 .modbook-filter-search .search{width:100%}
 .modbook-filter-search .search input{height:38px;border-radius:11px;font-size:13px;padding-right:38px}
@@ -9184,6 +9193,20 @@ function renderModOption(v){
     </div>`;
 }
 
+function getModBookTypeToneClass(){
+    const type=normalizeModType(modBookTypeFilter);
+    if(type==="접두")return "type-prefix";
+    if(type==="접미")return "type-suffix";
+    return "type-all";
+}
+
+function getModBookTypeHintHtml(){
+    const type=normalizeModType(modBookTypeFilter);
+    if(type==="접두")return `<span class="modbook-type-hint prefix">접두</span>`;
+    if(type==="접미")return `<span class="modbook-type-hint suffix">접미</span>`;
+    return `<span class="modbook-type-hint">전체</span>`;
+}
+
 function showModBooks(){
     currentInfoSubTab="modbook";
     setMainActive(6);
@@ -9215,8 +9238,8 @@ function showModBooks(){
             </div>
             <div class="modbook-filter-bottom">
                 <div class="modbook-filter-field">
-                    <div class="modbook-filter-label">개조위치</div>
-                    <select class="modbook-filter-select" id="modBookTypeSelect" onchange="setModBookType(this.value)">
+                    <div class="modbook-filter-label">개조위치 ${getModBookTypeHintHtml()}</div>
+                    <select class="modbook-filter-select ${getModBookTypeToneClass()}" id="modBookTypeSelect" onchange="setModBookType(this.value)">
                         ${modBookSelectOptions(getModBookTypeOptions(),modBookTypeFilter,"전체")}
                     </select>
                 </div>
@@ -21621,9 +21644,9 @@ function axeModBookPriceV25Debug(){
 </script>
 
 <script>
-function axeModBookFilterV26Debug(){
+function axeModBookFilterV30Debug(){
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V29",
+        version:"AXE_NET_MODBOOK_FILTER_V30",
         apiUrl:typeof API_URL!=="undefined"?API_URL:"",
         typeFilter:typeof modBookTypeFilter!=="undefined"?modBookTypeFilter:null,
         categoryFilter:typeof modBookCategoryFilter!=="undefined"?modBookCategoryFilter:null,
@@ -21638,6 +21661,10 @@ function axeModBookFilterV26Debug(){
 }
 </script>
 
+
+<script>
+try{window.axeModBookFilterV26Debug=window.axeModBookFilterV30Debug;}catch(e){}
+</script>
 </body>
 </html>
 
@@ -21846,7 +21873,7 @@ window.axeModBookFilterV29Debug=function(){
     const nameMatches=keyword?all.filter(m=>getModBookNameSearchText(m).includes(keyword)).map(m=>parseModName(m.name).text):[];
     const result=getFilteredModBooks().map(m=>parseModName(m.name).text);
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V29",
+        version:"AXE_NET_MODBOOK_FILTER_V30",
         keyword:modBookSearchKeyword||"",
         normalizedKeyword:keyword,
         nameMatchCount:nameMatches.length,
