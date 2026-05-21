@@ -8649,8 +8649,24 @@ function normalizeModType(v){
 
 function isPrefixType(v){return normalizeModType(v)==="접두"}
 
+function getModBookFilterBase(options){
+    const opt=options||{};
+    let list=Array.isArray(modBooks)?modBooks:[];
+
+    if(opt.useType!==false && modBookTypeFilter){
+        list=list.filter(m=>normalizeModType(m.type)===modBookTypeFilter);
+    }
+    if(opt.useCategory!==false && modBookCategoryFilter){
+        list=list.filter(m=>String(m.category||"기타").trim()===modBookCategoryFilter);
+    }
+    if(opt.usePart!==false && modBookPartFilter){
+        list=list.filter(m=>splitModParts(m.parts).includes(modBookPartFilter));
+    }
+    return list;
+}
+
 function getModBookCategories(){
-    const list=Array.isArray(modBooks)?modBooks:[];
+    const list=getModBookFilterBase({useCategory:false,usePart:false});
     return [...new Set(list.map(m=>String(m.category||"기타").trim()||"기타"))].sort((a,b)=>a.localeCompare(b,"ko"));
 }
 
@@ -8670,7 +8686,7 @@ function splitModParts(value){
 
 function getModBookPartOptions(){
     const parts=[];
-    (Array.isArray(modBooks)?modBooks:[]).forEach(m=>splitModParts(m.parts).forEach(p=>parts.push(p)));
+    getModBookFilterBase({usePart:false}).forEach(m=>splitModParts(m.parts).forEach(p=>parts.push(p)));
     return [...new Set(parts)].sort((a,b)=>a.localeCompare(b,"ko"));
 }
 
@@ -9228,16 +9244,28 @@ function showModBooks(){
     renderModBookList();
 }
 
+function syncModBookDependentFilters(){
+    const categories=getModBookCategories();
+    if(modBookCategoryFilter&&categories.indexOf(modBookCategoryFilter)<0){
+        modBookCategoryFilter="";
+    }
+    const parts=getModBookPartOptions();
+    if(modBookPartFilter&&parts.indexOf(modBookPartFilter)<0){
+        modBookPartFilter="";
+    }
+}
+
 function setModBookType(type){
     modBookTypeFilter=String(type||"").trim();
-    renderModBookList();
-    renderEmptyModBookDetail();
+    syncModBookDependentFilters();
+    showModBooks();
 }
 
 function setModBookCategory(cat){
     modBookCategoryFilter=String(cat||"").trim();
-    renderModBookList();
-    renderEmptyModBookDetail();
+    const parts=getModBookPartOptions();
+    if(modBookPartFilter&&parts.indexOf(modBookPartFilter)<0)modBookPartFilter="";
+    showModBooks();
 }
 
 function setModBookPart(part){
@@ -21595,7 +21623,7 @@ function axeModBookPriceV25Debug(){
 <script>
 function axeModBookFilterV26Debug(){
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V28",
+        version:"AXE_NET_MODBOOK_FILTER_V29",
         apiUrl:typeof API_URL!=="undefined"?API_URL:"",
         typeFilter:typeof modBookTypeFilter!=="undefined"?modBookTypeFilter:null,
         categoryFilter:typeof modBookCategoryFilter!=="undefined"?modBookCategoryFilter:null,
@@ -21812,13 +21840,13 @@ window.axeAssetV23Debug=function(){
     window.axeAssetV24Debug=function(){return {version:V24_VERSION,subTab:window.__assetV24SubTab,assetReturnCount:returnRowsV24().length,filteredReturnCount:filteredReturnRowsV24().length,returnSaveButtonExists:!!document.querySelector('[onclick="openAssetReturnCreateModalV24()"]'),apiUrl:(typeof API_URL!=="undefined"?API_URL:"")};};
 })();
 
-window.axeModBookFilterV28Debug=function(){
+window.axeModBookFilterV29Debug=function(){
     const keyword=normalizeModBookSearchText(modBookSearchKeyword);
     const all=Array.isArray(modBooks)?modBooks:[];
     const nameMatches=keyword?all.filter(m=>getModBookNameSearchText(m).includes(keyword)).map(m=>parseModName(m.name).text):[];
     const result=getFilteredModBooks().map(m=>parseModName(m.name).text);
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V28",
+        version:"AXE_NET_MODBOOK_FILTER_V29",
         keyword:modBookSearchKeyword||"",
         normalizedKeyword:keyword,
         nameMatchCount:nameMatches.length,
@@ -21827,4 +21855,9 @@ window.axeModBookFilterV28Debug=function(){
         results:result.slice(0,30)
     };
 };
+</script>
+
+<script>
+/* AXE NET V29: 개조서 종속 필터 디버그 alias */
+window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBookFilterV28Debug;
 </script>
