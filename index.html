@@ -4294,12 +4294,10 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .modbook-filter-label{font-size:12px;color:#888;font-weight:950;letter-spacing:.2px}
 .modbook-filter-select{width:150px;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 30px 0 11px;outline:none;font-size:13px;font-weight:900;cursor:pointer;appearance:auto}
  .modbook-filter-select:focus{border-color:rgba(255,181,46,.65)}
-.modbook-filter-select.type-prefix{border-color:rgba(76,154,255,.55)!important;background:linear-gradient(180deg,rgba(76,154,255,.18),rgba(76,154,255,.055)),#151515!important;color:#b9d6ff!important;box-shadow:0 0 0 1px rgba(76,154,255,.08) inset}
-.modbook-filter-select.type-suffix{border-color:rgba(255,93,110,.58)!important;background:linear-gradient(180deg,rgba(255,93,110,.18),rgba(255,93,110,.055)),#151515!important;color:#ffb8c0!important;box-shadow:0 0 0 1px rgba(255,93,110,.08) inset}
+.modbook-filter-select.type-prefix{color:#8fbfff!important;border-color:rgba(255,255,255,.1)!important;background:#151515!important;box-shadow:none!important}
+.modbook-filter-select.type-suffix{color:#ff9aa6!important;border-color:rgba(255,255,255,.1)!important;background:#151515!important;box-shadow:none!important}
 .modbook-filter-select.type-all{border-color:rgba(255,255,255,.1);background:#151515;color:#fff}
-.modbook-type-hint{display:inline-flex;align-items:center;justify-content:center;height:20px;margin-left:6px;padding:0 7px;border-radius:999px;font-size:10.5px;font-weight:950;vertical-align:1px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#aaa}
-.modbook-type-hint.prefix{color:#9fc7ff;background:rgba(76,154,255,.12);border-color:rgba(76,154,255,.36)}
-.modbook-type-hint.suffix{color:#ff9eaa;background:rgba(255,93,110,.12);border-color:rgba(255,93,110,.36)}
+.modbook-type-hint{display:none!important}
 .modbook-filter-select option{background:#151515;color:#eee}
 .modbook-filter-select option[value="접두"]{color:#9fc7ff}
 .modbook-filter-select option[value="접미"]{color:#ff9eaa}
@@ -9238,7 +9236,7 @@ function showModBooks(){
             </div>
             <div class="modbook-filter-bottom">
                 <div class="modbook-filter-field">
-                    <div class="modbook-filter-label">개조위치 ${getModBookTypeHintHtml()}</div>
+                    <div class="modbook-filter-label">개조위치</div>
                     <select class="modbook-filter-select ${getModBookTypeToneClass()}" id="modBookTypeSelect" onchange="setModBookType(this.value)">
                         ${modBookSelectOptions(getModBookTypeOptions(),modBookTypeFilter,"전체")}
                     </select>
@@ -21646,7 +21644,7 @@ function axeModBookPriceV25Debug(){
 <script>
 function axeModBookFilterV30Debug(){
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V30",
+        version:"AXE_NET_MODBOOK_FILTER_V31",
         apiUrl:typeof API_URL!=="undefined"?API_URL:"",
         typeFilter:typeof modBookTypeFilter!=="undefined"?modBookTypeFilter:null,
         categoryFilter:typeof modBookCategoryFilter!=="undefined"?modBookCategoryFilter:null,
@@ -21664,6 +21662,25 @@ function axeModBookFilterV30Debug(){
 
 <script>
 try{window.axeModBookFilterV26Debug=window.axeModBookFilterV30Debug;}catch(e){}
+</script>
+
+<script>
+(function(){
+    window.axeModBookFilterV31Debug=function(){
+        const typeSelect=document.getElementById("modBookTypeSelect");
+        const search=document.getElementById("modBookSearchInput");
+        const labels=Array.from(document.querySelectorAll(".modbook-filter-label")).map(el=>el.textContent.trim());
+        return {
+            version:"AXE_NET_MODBOOK_FILTER_V31",
+            typeSelectClass:typeSelect?typeSelect.className:"",
+            typeSelectValue:typeSelect?typeSelect.value:"",
+            typeSelectColor:typeSelect?getComputedStyle(typeSelect).color:"",
+            searchPlaceholder:search?search.getAttribute("placeholder"):"",
+            typeHintCount:document.querySelectorAll(".modbook-type-hint").length,
+            labels:labels
+        };
+    };
+})();
 </script>
 </body>
 </html>
@@ -21873,7 +21890,7 @@ window.axeModBookFilterV29Debug=function(){
     const nameMatches=keyword?all.filter(m=>getModBookNameSearchText(m).includes(keyword)).map(m=>parseModName(m.name).text):[];
     const result=getFilteredModBooks().map(m=>parseModName(m.name).text);
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V30",
+        version:"AXE_NET_MODBOOK_FILTER_V31",
         keyword:modBookSearchKeyword||"",
         normalizedKeyword:keyword,
         nameMatchCount:nameMatches.length,
