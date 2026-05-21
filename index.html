@@ -4286,19 +4286,22 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 
 
 <style>
-/* AXE NET V26: 개조서 드롭다운 필터 정리 */
-.modbook-filter-panel{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:0 0 14px;padding:13px 14px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22)}
-.modbook-filter-field{display:flex;flex-direction:column;gap:6px;min-width:132px;flex:0 0 auto}
+/* AXE NET V27: 개조서 드롭다운 필터 정돈 */
+.modbook-filter-panel{display:grid;grid-template-columns:1fr;gap:10px;margin:0 0 14px;padding:13px 14px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.22)}
+.modbook-filter-top{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.modbook-filter-bottom{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.modbook-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0;flex:0 0 auto}
 .modbook-filter-label{font-size:12px;color:#888;font-weight:950;letter-spacing:.2px}
 .modbook-filter-select{width:150px;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 30px 0 11px;outline:none;font-size:13px;font-weight:900;cursor:pointer;appearance:auto}
 .modbook-filter-select:focus{border-color:rgba(255,181,46,.65)}
-.modbook-filter-search{flex:1 1 240px;min-width:220px;display:flex;flex-direction:column;gap:6px}
+.modbook-filter-search{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;width:310px;max-width:100%}
 .modbook-filter-search .search{width:100%}
-.modbook-filter-search .search input{height:38px;border-radius:11px;font-size:13px}
-.modbook-filter-reset{height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease;white-space:nowrap}
-.modbook-filter-reset:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
-.modbook-filter-help{flex:0 0 100%;font-size:12px;color:#777;line-height:1.45;margin-top:1px}
-@media(max-width:760px){.modbook-filter-panel{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:12px}.modbook-filter-field{min-width:0;width:100%}.modbook-filter-select{width:100%}.modbook-filter-search{grid-column:1/-1;min-width:0;width:100%}.modbook-filter-reset{width:100%;grid-column:1/-1}.modbook-filter-help{grid-column:1/-1}}
+.modbook-filter-search .search input{height:38px;border-radius:11px;font-size:13px;padding-right:38px}
+.modbook-filter-action{height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease;white-space:nowrap}
+.modbook-filter-action:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.modbook-filter-search-btn{background:rgba(255,181,46,.1);border-color:rgba(255,181,46,.28);color:#ffcf75}
+.modbook-filter-help{font-size:12px;color:#777;line-height:1.45;margin-top:1px}
+@media(max-width:760px){.modbook-filter-panel{gap:9px;padding:12px}.modbook-filter-top,.modbook-filter-bottom{display:grid;grid-template-columns:1fr 1fr;gap:8px}.modbook-filter-search{grid-column:1/-1;width:100%}.modbook-filter-field{width:100%}.modbook-filter-select{width:100%}.modbook-filter-action{width:100%}.modbook-filter-help{font-size:11.5px}}
 </style>
 
 </head>
@@ -8659,7 +8662,10 @@ function getModBookTypeOptions(){
 }
 
 function splitModParts(value){
-    return String(value||"").split(/[,\/·|\n]+/).map(v=>v.trim()).filter(Boolean);
+    const raw=String(value||"").trim();
+    if(!raw)return [];
+    const protectedText=raw.replace(/겉옷\s*\/\s*단독상의/g,"겉옷__단독상의");
+    return protectedText.split(/[,·|\n]+/).map(v=>v.trim().replace(/겉옷__단독상의/g,"겉옷/단독상의")).filter(Boolean);
 }
 
 function getModBookPartOptions(){
@@ -9180,33 +9186,38 @@ function showModBooks(){
         </div>
         ${infoMenu("개조서")}
         <div class="modbook-filter-panel">
-            <div class="modbook-filter-field">
-                <div class="modbook-filter-label">개조위치</div>
-                <select class="modbook-filter-select" id="modBookTypeSelect" onchange="setModBookType(this.value)">
-                    ${modBookSelectOptions(getModBookTypeOptions(),modBookTypeFilter,"전체")}
-                </select>
+            <div class="modbook-filter-top">
+                <div class="modbook-filter-search">
+                    <div class="modbook-filter-label">전체 검색</div>
+                    <div class="search">
+                        <input id="modBookSearchInput" type="text" placeholder="이름, 부위, 옵션 검색" value="${escapeText(modBookSearchKeyword)}" onfocus="this.select()" onkeydown="handleSearchKey(event,'modbook')" oninput="onModBookSearch(this.value)">
+                        <span class="search-mark">⌕</span>
+                    </div>
+                </div>
+                <button class="modbook-filter-action modbook-filter-search-btn" onclick="renderModBookList();renderEmptyModBookDetail();">검색</button>
+                <button class="modbook-filter-action" onclick="resetModBookFilters()">초기화</button>
             </div>
-            <div class="modbook-filter-field">
-                <div class="modbook-filter-label">분류</div>
-                <select class="modbook-filter-select" id="modBookCategorySelect" onchange="setModBookCategory(this.value)">
-                    ${modBookSelectOptions(categories,modBookCategoryFilter,"전체")}
-                </select>
-            </div>
-            <div class="modbook-filter-field">
-                <div class="modbook-filter-label">부위</div>
-                <select class="modbook-filter-select" id="modBookPartSelect" onchange="setModBookPart(this.value)">
-                    ${modBookSelectOptions(parts,modBookPartFilter,"전체")}
-                </select>
-            </div>
-            <div class="modbook-filter-search">
-                <div class="modbook-filter-label">전체 검색</div>
-                <div class="search">
-                    <input id="modBookSearchInput" type="text" placeholder="이름, 부위, 옵션 검색" value="${escapeText(modBookSearchKeyword)}" onfocus="this.select()" onkeydown="handleSearchKey(event,'modbook')" oninput="onModBookSearch(this.value)">
-                    <span class="search-mark">⌕</span>
+            <div class="modbook-filter-bottom">
+                <div class="modbook-filter-field">
+                    <div class="modbook-filter-label">개조위치</div>
+                    <select class="modbook-filter-select" id="modBookTypeSelect" onchange="setModBookType(this.value)">
+                        ${modBookSelectOptions(getModBookTypeOptions(),modBookTypeFilter,"전체")}
+                    </select>
+                </div>
+                <div class="modbook-filter-field">
+                    <div class="modbook-filter-label">분류</div>
+                    <select class="modbook-filter-select" id="modBookCategorySelect" onchange="setModBookCategory(this.value)">
+                        ${modBookSelectOptions(categories,modBookCategoryFilter,"전체")}
+                    </select>
+                </div>
+                <div class="modbook-filter-field">
+                    <div class="modbook-filter-label">부위</div>
+                    <select class="modbook-filter-select" id="modBookPartSelect" onchange="setModBookPart(this.value)">
+                        ${modBookSelectOptions(parts,modBookPartFilter,"전체")}
+                    </select>
                 </div>
             </div>
-            <button class="modbook-filter-reset" onclick="resetModBookFilters()">필터 초기화</button>
-            <div class="modbook-filter-help">드롭다운은 조건별 탐색용이고, 이름을 알고 있으면 전체 검색으로 바로 찾을 수 있습니다.</div>
+            <div class="modbook-filter-help">검색어를 입력하면 전체 검색, 검색어가 없으면 드롭다운 조건으로 필터링됩니다.</div>
         </div>
         <div class="result-info" id="modBookResultInfo"></div>
         <div class="modbook-layout">
@@ -21571,7 +21582,7 @@ function axeModBookPriceV25Debug(){
 <script>
 function axeModBookFilterV26Debug(){
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V26",
+        version:"AXE_NET_MODBOOK_FILTER_V27",
         apiUrl:typeof API_URL!=="undefined"?API_URL:"",
         typeFilter:typeof modBookTypeFilter!=="undefined"?modBookTypeFilter:null,
         categoryFilter:typeof modBookCategoryFilter!=="undefined"?modBookCategoryFilter:null,
