@@ -20280,7 +20280,20 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             const moneyClass=direction==="지출"?"minus":direction==="수입"?"plus":"";
             const signed=direction==="지출"?"-":"";
             const related=displayRelated(r);
-            return `<tr><td>${formatDateOnly(r.date||r.created_at)}</td><td>${safe(r.type)}${kindBadge(r)}</td><td>${safe(r.category)}</td><td>${safe(related)}</td><td>${safe(fundMonthLabel(r.month))} ${r&&r.week?safe(r.week)+'주차':''}</td><td class="money ${moneyClass}">${signed}${fundMoney(r.amount)}</td><td>${safe(direction)}</td><td>${safe(r.account)}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.memo||"")}</td><td><button class="fund-btn danger" data-ledger-delete="${escapeAttr(ledgerId)}" onclick="deleteFundLedger('${escapeText(ledgerId)}',this,'${escapeText(ledgerKey)}')">삭제</button></td></tr>`;
+            const weekText=r&&r.week?safe(r.week)+"주차":"";
+            return `<tr class="fund-ledger-row">
+                <td class="fund-ledger-date-cell">${formatDateOnly(r.date||r.created_at)}</td>
+                <td class="fund-ledger-type-cell"><span class="fund-ledger-type-main">${safe(r.type)}</span>${kindBadge(r)}</td>
+                <td class="fund-ledger-category-cell">${safe(r.category)}</td>
+                <td class="fund-ledger-person-cell">${safe(related)}</td>
+                <td class="fund-ledger-month-cell"><span>${safe(fundMonthLabel(r.month))}</span>${weekText?` <span>${weekText}</span>`:""}</td>
+                <td class="fund-ledger-money-cell money ${moneyClass}">${signed}${fundMoney(r.amount)}</td>
+                <td class="fund-ledger-direction-cell">${safe(direction)}</td>
+                <td class="fund-ledger-account-cell">${safe(r.account)}</td>
+                <td class="fund-ledger-evidence-cell">${fundEvidenceLink(r.evidence_url)}</td>
+                <td class="fund-ledger-memo-cell left"><div class="fund-ledger-memo-text">${safe(r.memo||"")}</div></td>
+                <td class="fund-ledger-action-cell"><button class="fund-btn danger fund-ledger-delete-btn" data-ledger-delete="${escapeAttr(ledgerId)}" onclick="deleteFundLedger('${escapeText(ledgerId)}',this,'${escapeText(ledgerKey)}')">삭제</button></td>
+            </tr>`;
         }).join("")||`<tr><td colspan="11"><div class="fund-empty">조건에 맞는 공금내역이 없습니다.</div></td></tr>`;
     }
     function renderFilterPanel(total,shown,base){
@@ -20308,7 +20321,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     window.renderFundLedger=function(){
         const base=getBaseRows();
         const rows=getFilteredRows();
-        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
+        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap fund-ledger-table-wrap"><table class="fund-table fund-ledger-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
     };
     window.renderFundLedgerFilteredOnly=function(){
         const body=document.getElementById("fundLedgerTableBody");
@@ -20339,6 +20352,134 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 .fund-ledger-filter-panel.v19 .fund-ledger-filter-field.account{max-width:140px}
 </style>
 
+<style id="axe-fund-ledger-clean-v42-style">
+/* AXE NET V42: 공금내역 렌더 기준 정리 - 데이터/신청 로직은 건드리지 않고 표 표시만 고정 */
+.fund-ledger-table-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+}
+.fund-table.fund-ledger-table{
+    width:100%!important;
+    min-width:1230px!important;
+    table-layout:fixed!important;
+    border-collapse:separate!important;
+    border-spacing:0!important;
+}
+.fund-ledger-table th,.fund-ledger-table td{
+    box-sizing:border-box!important;
+    vertical-align:middle!important;
+    overflow:hidden!important;
+}
+.fund-ledger-table th:nth-child(1),.fund-ledger-table td:nth-child(1){width:108px!important}
+.fund-ledger-table th:nth-child(2),.fund-ledger-table td:nth-child(2){width:104px!important}
+.fund-ledger-table th:nth-child(3),.fund-ledger-table td:nth-child(3){width:112px!important}
+.fund-ledger-table th:nth-child(4),.fund-ledger-table td:nth-child(4){width:104px!important}
+.fund-ledger-table th:nth-child(5),.fund-ledger-table td:nth-child(5){width:116px!important}
+.fund-ledger-table th:nth-child(6),.fund-ledger-table td:nth-child(6){width:106px!important}
+.fund-ledger-table th:nth-child(7),.fund-ledger-table td:nth-child(7){width:70px!important}
+.fund-ledger-table th:nth-child(8),.fund-ledger-table td:nth-child(8){width:94px!important}
+.fund-ledger-table th:nth-child(9),.fund-ledger-table td:nth-child(9){width:76px!important}
+.fund-ledger-table th:nth-child(11),.fund-ledger-table td:nth-child(11){width:88px!important}
+.fund-ledger-date-cell,
+.fund-ledger-category-cell,
+.fund-ledger-person-cell,
+.fund-ledger-month-cell,
+.fund-ledger-money-cell,
+.fund-ledger-direction-cell,
+.fund-ledger-account-cell,
+.fund-ledger-evidence-cell,
+.fund-ledger-action-cell{
+    white-space:nowrap!important;
+    word-break:keep-all!important;
+    text-align:center!important;
+}
+.fund-ledger-type-cell{
+    white-space:normal!important;
+    word-break:keep-all!important;
+    text-align:center!important;
+    line-height:1.35!important;
+}
+.fund-ledger-type-main{
+    display:block!important;
+    margin-bottom:4px!important;
+    color:#ddd!important;
+    font-weight:950!important;
+}
+.fund-ledger-type-cell .fund-ledger-kind-badge{
+    display:inline-flex!important;
+    margin:0!important;
+    max-width:100%!important;
+    white-space:nowrap!important;
+    word-break:keep-all!important;
+    vertical-align:middle!important;
+}
+.fund-ledger-direction-cell,
+.fund-ledger-account-cell,
+.fund-ledger-evidence-cell{
+    letter-spacing:0!important;
+    line-height:1.4!important;
+}
+.fund-ledger-evidence-cell .fund-btn,
+.fund-ledger-evidence-cell a,
+.fund-ledger-action-cell .fund-btn{
+    white-space:nowrap!important;
+    word-break:keep-all!important;
+    max-width:100%!important;
+}
+.fund-ledger-action-cell{
+    padding-left:8px!important;
+    padding-right:8px!important;
+}
+.fund-ledger-action-cell .fund-ledger-delete-btn{
+    min-width:54px!important;
+    width:auto!important;
+    height:38px!important;
+    padding:0 12px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:hidden!important;
+}
+.fund-ledger-memo-cell{
+    text-align:left!important;
+    white-space:normal!important;
+    word-break:break-word!important;
+    overflow:hidden!important;
+    padding-left:12px!important;
+    padding-right:12px!important;
+}
+.fund-ledger-memo-text{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    white-space:normal!important;
+    word-break:break-word!important;
+    overflow-wrap:anywhere!important;
+    line-height:1.55!important;
+    color:#ddd!important;
+}
+@media(max-width:920px){
+    .fund-table.fund-ledger-table{min-width:1230px!important}
+}
+</style>
+
+<script id="axe-fund-ledger-clean-v42-debug">
+window.axeFundLedgerCleanV42Debug=function(){
+    const table=document.querySelector('.fund-ledger-table');
+    const rows=[...document.querySelectorAll('#fundLedgerTableBody tr')];
+    return {
+        version:'AXE_NET_FUND_LEDGER_CLEAN_V42',
+        tableExists:!!table,
+        rowCount:rows.length,
+        memoCells:document.querySelectorAll('.fund-ledger-memo-cell').length,
+        actionCells:document.querySelectorAll('.fund-ledger-action-cell').length,
+        apiUrl:typeof API_URL!=='undefined'?API_URL:''
+    };
+};
+</script>
 
 
 <script id="axe-net-duplicate-click-guard-v11">
@@ -21729,220 +21870,6 @@ function axeModBookFilterV34Debug(){
         resetButtonInSearchRow:!!document.querySelector(".modbook-filter-top .modbook-filter-action:not(.modbook-filter-search-btn)")
     };
 }
-</script>
-
-
-<!-- AXE NET V40 FUND LEDGER SAFE UI PATCH START -->
-<style>
-/* V40: 공금내역 표 표시 전용 보정. 데이터/갱신/Apps Script 호출은 건드리지 않음. */
-.fund-table:has(#fundLedgerTableBody){
-  min-width:1180px!important;
-  table-layout:fixed!important;
-}
-.fund-table:has(#fundLedgerTableBody) th,
-.fund-table:has(#fundLedgerTableBody) td{
-  white-space:nowrap!important;
-  word-break:keep-all!important;
-  overflow-wrap:normal!important;
-  vertical-align:middle!important;
-}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(1),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(1){width:105px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(2),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(2){width:96px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(3),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(3){width:105px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(4),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(4){width:92px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(5),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(5){width:112px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(6),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(6){width:95px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(7),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(7){width:58px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(8),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(8){width:82px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(9),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(9){width:66px!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(10),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(10){width:auto!important;min-width:250px!important;white-space:normal!important;word-break:keep-all!important;line-height:1.45!important;}
-.fund-table:has(#fundLedgerTableBody) th:nth-child(11),
-.fund-table:has(#fundLedgerTableBody) td:nth-child(11){width:82px!important;}
-
-/* 구분: 지출/수입 텍스트 위, 직접기입/공금납부 뱃지 아래 */
-#fundLedgerTableBody td:nth-child(2){
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:4px!important;
-  min-height:52px!important;
-  line-height:1.25!important;
-  white-space:normal!important;
-}
-#fundLedgerTableBody td:nth-child(2) .fund-ledger-kind,
-#fundLedgerTableBody td:nth-child(2) .fund-badge,
-#fundLedgerTableBody td:nth-child(2) .board-badge,
-#fundLedgerTableBody td:nth-child(2) .badge{
-  display:inline-flex!important;
-  width:max-content!important;
-  max-width:90px!important;
-  align-self:center!important;
-  margin:0!important;
-  white-space:nowrap!important;
-  word-break:keep-all!important;
-}
-
-/* 방향/계좌/증빙/관리 버튼 세로 깨짐 방지 */
-#fundLedgerTableBody td:nth-child(7),
-#fundLedgerTableBody td:nth-child(8),
-#fundLedgerTableBody td:nth-child(9),
-#fundLedgerTableBody td:nth-child(11){
-  white-space:nowrap!important;
-  word-break:keep-all!important;
-  overflow-wrap:normal!important;
-  text-align:center!important;
-}
-#fundLedgerTableBody td:nth-child(8){letter-spacing:-.2px!important;}
-#fundLedgerTableBody td:nth-child(9) a,
-#fundLedgerTableBody td:nth-child(9) button,
-#fundLedgerTableBody td:nth-child(11) button,
-#fundLedgerTableBody .fund-btn{
-  white-space:nowrap!important;
-  word-break:keep-all!important;
-  overflow-wrap:normal!important;
-  min-width:max-content!important;
-}
-#fundLedgerTableBody td:nth-child(11) .fund-btn{
-  min-width:52px!important;
-  padding:0 12px!important;
-}
-</style>
-<script>
-window.axeFundLedgerLayoutV40Debug=function(){
-  const tbody=document.getElementById('fundLedgerTableBody');
-  const table=tbody?tbody.closest('table'):null;
-  return {
-    version:'AXE_NET_FUND_LEDGER_LAYOUT_V40_SAFE',
-    tableExists:!!table,
-    rowCount:tbody?tbody.querySelectorAll('tr').length:0,
-    apiUrl:typeof API_URL!=='undefined'?API_URL:''
-  };
-};
-</script>
-<!-- AXE NET V40 FUND LEDGER SAFE UI PATCH END -->
-
-
-
-<style id="axe-fund-ledger-cellfix-v41">
-/* AXE NET V41: 공금내역 표 셀 겹침/줄바꿈 안전 보정
-   - 데이터/요청 로직은 건드리지 않고 표 레이아웃만 정리합니다. */
-.fund-table-wrap{
-    width:100%!important;
-    max-width:100%!important;
-    overflow-x:auto!important;
-    overflow-y:visible!important;
-    -webkit-overflow-scrolling:touch!important;
-}
-.fund-table-wrap .fund-table{
-    min-width:1320px!important;
-    width:100%!important;
-    table-layout:fixed!important;
-    border-collapse:collapse!important;
-}
-.fund-table-wrap .fund-table th,
-.fund-table-wrap .fund-table td{
-    box-sizing:border-box!important;
-    vertical-align:middle!important;
-    word-break:keep-all!important;
-    overflow-wrap:normal!important;
-}
-.fund-table-wrap .fund-table th:nth-child(1),
-.fund-table-wrap .fund-table td:nth-child(1){width:108px!important;white-space:nowrap!important;}
-.fund-table-wrap .fund-table th:nth-child(2),
-.fund-table-wrap .fund-table td:nth-child(2){width:94px!important;text-align:center!important;white-space:normal!important;}
-.fund-table-wrap .fund-table th:nth-child(3),
-.fund-table-wrap .fund-table td:nth-child(3){width:100px!important;text-align:center!important;white-space:normal!important;}
-.fund-table-wrap .fund-table th:nth-child(4),
-.fund-table-wrap .fund-table td:nth-child(4){width:86px!important;text-align:center!important;white-space:normal!important;}
-.fund-table-wrap .fund-table th:nth-child(5),
-.fund-table-wrap .fund-table td:nth-child(5){width:112px!important;text-align:center!important;white-space:normal!important;}
-.fund-table-wrap .fund-table th:nth-child(6),
-.fund-table-wrap .fund-table td:nth-child(6){width:110px!important;text-align:right!important;white-space:nowrap!important;}
-.fund-table-wrap .fund-table th:nth-child(7),
-.fund-table-wrap .fund-table td:nth-child(7){width:62px!important;text-align:center!important;white-space:nowrap!important;}
-.fund-table-wrap .fund-table th:nth-child(8),
-.fund-table-wrap .fund-table td:nth-child(8){width:86px!important;text-align:center!important;white-space:nowrap!important;}
-.fund-table-wrap .fund-table th:nth-child(9),
-.fund-table-wrap .fund-table td:nth-child(9){width:70px!important;text-align:center!important;white-space:nowrap!important;}
-.fund-table-wrap .fund-table th:nth-child(10),
-.fund-table-wrap .fund-table td:nth-child(10){
-    width:auto!important;
-    min-width:330px!important;
-    text-align:left!important;
-    white-space:normal!important;
-    word-break:break-word!important;
-    overflow-wrap:anywhere!important;
-    line-height:1.45!important;
-    overflow:hidden!important;
-}
-.fund-table-wrap .fund-table th:nth-child(11),
-.fund-table-wrap .fund-table td:nth-child(11){
-    width:96px!important;
-    min-width:96px!important;
-    max-width:96px!important;
-    text-align:center!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-}
-.fund-table-wrap .fund-table td:nth-child(2) .fund-ledger-kind-badge{
-    display:inline-flex!important;
-    margin:5px auto 0!important;
-    width:max-content!important;
-    max-width:76px!important;
-}
-.fund-table-wrap .fund-table td:nth-child(7),
-.fund-table-wrap .fund-table td:nth-child(8),
-.fund-table-wrap .fund-table td:nth-child(9),
-.fund-table-wrap .fund-table td:nth-child(11){
-    line-height:1.2!important;
-}
-.fund-table-wrap .fund-table td:nth-child(11) .fund-btn,
-.fund-table-wrap .fund-table td:nth-child(11) button{
-    width:auto!important;
-    min-width:54px!important;
-    max-width:72px!important;
-    height:36px!important;
-    padding:0 11px!important;
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:clip!important;
-    line-height:1!important;
-}
-.fund-table-wrap .fund-table td:nth-child(9) a,
-.fund-table-wrap .fund-table td:nth-child(9) button,
-.fund-table-wrap .fund-table td:nth-child(9) .fund-btn{
-    white-space:nowrap!important;
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-}
-@media(max-width:760px){
-    .fund-table-wrap .fund-table{min-width:1180px!important;}
-    .fund-table-wrap .fund-table th:nth-child(10),
-    .fund-table-wrap .fund-table td:nth-child(10){min-width:280px!important;}
-}
-</style>
-<script id="axe-fund-ledger-cellfix-v41-debug">
-window.axeFundLedgerLayoutV41Debug=function(){
-    const table=document.querySelector('.fund-table-wrap .fund-table');
-    const rows=table?table.querySelectorAll('tbody tr').length:0;
-    const deleteButtons=[...document.querySelectorAll('.fund-table-wrap .fund-table td:nth-child(11) button')].map(b=>({text:b.textContent, width:Math.round(b.getBoundingClientRect().width)}));
-    return {version:'AXE_NET_FUND_LEDGER_CELLFIX_V41', tableExists:!!table, rowCount:rows, deleteButtons:deleteButtons.slice(0,10), apiUrl:typeof API_URL!=='undefined'?API_URL:''};
-};
 </script>
 
 </body>
