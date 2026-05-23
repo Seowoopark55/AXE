@@ -22617,9 +22617,34 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   .modbook-request-row-v59.four,.modbook-request-row-v59.name{grid-template-columns:1fr}
 }
 </style>
+<style id="axe-net-modbook-request-v60-style">
+/* AXE NET V60: 개조서 등록신청 폼 균형 재배치 */
+#modBookRequestModalV59 .modbook-request-box{width:min(660px,96vw)!important}
+#modBookRequestModalV59 .modbook-request-body{padding:14px 16px 15px!important}
+#modBookRequestModalV59 .modbook-request-row-v59{gap:10px 12px!important;margin-bottom:10px!important}
+#modBookRequestModalV59 .modbook-request-row-v59.four{grid-template-columns:repeat(2,minmax(180px,240px))!important;justify-content:start!important}
+#modBookRequestModalV59 .modbook-request-row-v59.name{grid-template-columns:240px 110px!important;justify-content:start!important;align-items:end!important}
+#modBookRequestModalV59 .modbook-request-row-v59.option{grid-template-columns:minmax(0,1fr)!important;max-width:560px!important}
+#modBookRequestModalV59 .modbook-request-row-v59.success{grid-template-columns:180px!important;justify-content:start!important}
+#modBookRequestModalV59 .modbook-request-row-v59.note{grid-template-columns:minmax(0,1fr)!important;max-width:560px!important}
+#modBookRequestModalV59 .modbook-request-input,#modBookRequestModalV59 .modbook-request-select{height:34px!important;font-size:13px!important}
+#modBookRequestModalV59 .modbook-request-option-row{grid-template-columns:minmax(0,1fr) 84px!important;max-width:560px!important}
+#modBookRequestModalV59 .modbook-request-checkline{height:34px!important}
+#modBookRequestModalV59 .modbook-request-textarea{min-height:66px!important;max-height:110px!important}
+#modBookRequestModalV59 .modbook-request-v59-note{font-size:11px!important;color:#777!important;margin-top:4px!important}
+@media(max-width:720px){
+  #modBookRequestModalV59 .modbook-request-row-v59.four{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #modBookRequestModalV59 .modbook-request-row-v59.name{grid-template-columns:minmax(0,1fr) 104px!important}
+  #modBookRequestModalV59 .modbook-request-row-v59.option,#modBookRequestModalV59 .modbook-request-row-v59.note{max-width:none!important}
+}
+@media(max-width:460px){
+  #modBookRequestModalV59 .modbook-request-row-v59.four,#modBookRequestModalV59 .modbook-request-row-v59.name{grid-template-columns:1fr!important}
+}
+</style>
+
 <script id="axe-net-modbook-request-v59-script">
 (function(){
-  const V59_VERSION='AXE_NET_MODBOOK_REQUEST_V59_LAYOUT_AUTO_ORDER';
+  const V59_VERSION='AXE_NET_MODBOOK_REQUEST_V60_BALANCED_FORM';
   const GUN_PART_KEYWORDS=['권총','SMG','S.M.G','기관단총','라이플','소총','샷건','저격총','스나이퍼','리볼버','피스톨','PISTOL','REVOLVER','총','총기'];
   const DEFAULT_CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발','장갑','모자'];
   const DEFAULT_GUN_PARTS=['권총','SMG','라이플','샷건','저격총','리볼버'];
@@ -22664,11 +22689,11 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
         <div><div class="modbook-request-label">개조서 이름</div><input class="modbook-request-input" id="modReqNameV59" placeholder="예: 전력질주의"></div>
         <div><div class="modbook-request-label">표시</div><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqTier1V59">1티어</label></div></div>
       </div>
-      <div class="modbook-request-row-v59"><div><div class="modbook-request-label">옵션 1</div><div class="modbook-request-option-row"><input class="modbook-request-input" id="modReqOption1V59" placeholder="필수: 옵션을 1개 이상 입력"><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption1DebuffV59">디버프</label></div></div></div></div>
-      <div class="modbook-request-row-v59"><div><div class="modbook-request-label">옵션 2</div><div class="modbook-request-option-row"><input class="modbook-request-input" id="modReqOption2V59"><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption2DebuffV59">디버프</label></div></div></div></div>
-      <div class="modbook-request-row-v59"><div><div class="modbook-request-label">옵션 3</div><div class="modbook-request-option-row"><input class="modbook-request-input" id="modReqOption3V59"><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption3DebuffV59">디버프</label></div></div></div></div>
-      <div class="modbook-request-row-v59"><div><div class="modbook-request-label">성공률</div><input class="modbook-request-input" id="modReqSuccessV59" placeholder="예: 20%"></div></div>
-      <div class="modbook-request-row-v59"><div><div class="modbook-request-label">비고</div><textarea class="modbook-request-textarea" id="modReqNoteV59" placeholder="출처, 확인 내용, 특이사항 등"></textarea></div></div>
+      <div class="modbook-request-row-v59 option"><div><div class="modbook-request-label">옵션 1</div><div class="modbook-request-option-row"><input class="modbook-request-input" id="modReqOption1V59" placeholder="필수: 옵션을 1개 이상 입력"><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption1DebuffV59">디버프</label></div></div></div></div>
+      <div class="modbook-request-row-v59 option"><div><div class="modbook-request-label">옵션 2</div><div class="modbook-request-option-row"><input class="modbook-request-input" id="modReqOption2V59"><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption2DebuffV59">디버프</label></div></div></div></div>
+      <div class="modbook-request-row-v59 option"><div><div class="modbook-request-label">옵션 3</div><div class="modbook-request-option-row"><input class="modbook-request-input" id="modReqOption3V59"><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption3DebuffV59">디버프</label></div></div></div></div>
+      <div class="modbook-request-row-v59 success"><div><div class="modbook-request-label">성공률</div><input class="modbook-request-input" id="modReqSuccessV59" placeholder="예: 20%"></div></div>
+      <div class="modbook-request-row-v59 note"><div><div class="modbook-request-label">비고</div><textarea class="modbook-request-textarea" id="modReqNoteV59" placeholder="출처, 확인 내용, 특이사항 등"></textarea></div></div>
       <div class="modbook-request-v59-note">정렬순서(order)는 입력하지 않습니다. 승인 또는 바로 등록 시 같은 개조위치·분류의 마지막 순서 다음 번호로 자동 등록됩니다.</div>
       <div class="modbook-request-help" id="modReqHelpV59">일반 팀원은 신청으로 접수되고, 관리자 검수 후 정식 개조서에 반영됩니다.</div>
       <div class="modbook-request-actions-bottom"><button class="modbook-request-btn secondary" onclick="closeModBookRequestModalV59()">닫기</button><button class="modbook-request-btn danger" id="modReqRejectBtnV59" onclick="rejectModBookRequestFromFormV59()" style="display:none">반려</button><button class="modbook-request-btn" id="modReqSubmitBtnV59" onclick="submitModBookRequestV59()">신청 접수</button><button class="modbook-request-btn" id="modReqDirectBtnV59" onclick="directAddModBookV59()" style="display:none">관리자 바로 등록</button><button class="modbook-request-btn" id="modReqApproveBtnV59" onclick="approveModBookRequestV59()" style="display:none">수정 후 승인</button></div>
@@ -22685,6 +22710,6 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   window.rejectModBookRequestFromFormV59=function(){const requestId=val('modReqRequestIdV59');if(!requestId){alert('신청 ID가 없습니다.');return}if(typeof rejectModBookRequestV54==='function')rejectModBookRequestV54(requestId)};
   window.openModBookRequestFormV54=window.openModBookRequestFormV59;window.openModBookRequestFormV53=window.openModBookRequestFormV59;window.closeModBookRequestModalV54=window.closeModBookRequestModalV59;window.closeModBookRequestModalV53=window.closeModBookRequestModalV59;window.submitModBookRequestV54=window.submitModBookRequestV59;window.submitModBookRequestV53=window.submitModBookRequestV59;window.directAddModBookV54=window.directAddModBookV59;window.directAddModBookV53=window.directAddModBookV59;window.approveModBookRequestV54=window.approveModBookRequestV59;window.approveModBookRequestV53=window.approveModBookRequestV59;window.rejectModBookRequestFromFormV54=window.rejectModBookRequestFromFormV59;window.rejectModBookRequestFromFormV53=window.rejectModBookRequestFromFormV59;
   window.axeModBookRequestV59Debug=function(){return {version:V59_VERSION,apiUrl:typeof API_URL!=='undefined'?API_URL:'',hasV59Modal:!!q('modBookRequestModalV59'),parts1Select:!!q('modReqParts1SelectV59'),parts2Select:!!q('modReqParts2SelectV59'),orderInputExists:!!q('modReqOrderV59'),selectedCategory:selectedCategory(),partsOptions:partOptionsFor(selectedCategory())}};
-  window.axeModBookRequestV58Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV59Debug;
+  window.axeModBookRequestV60Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV58Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV59Debug;
 })();
 </script>
