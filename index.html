@@ -4576,7 +4576,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyR9NMZciKfduGqf-9bFtiCR_8ZjfMWDkc3SUS83CTYioAQuNKGXQEsLXYOLgsoLnmz9Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxskyrDxAlT5_m_tbypxale4Od9-ZnWX53PfxVRplIZqvDKYahxw8OwkKCyJBDHVLeW2w/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -22546,5 +22546,157 @@ function axeModBookFilterV34Debug(){
     };
   };
   setTimeout(rebuildAllOptionSelects,300);
+})();
+</script>
+
+
+<!-- AXE NET V77: 개조서 등록신청 옵션분류 종속 드롭다운 정리 -->
+<style id="axe-net-modbook-request-v77-option-category-style">
+#modBookRequestModalV70 .modbook-request-option-grid{
+  grid-template-columns:120px 220px 70px 70px 58px 80px!important;
+  max-width:690px!important;
+}
+#modBookRequestModalV70 .modbook-request-option-grid .modbook-option-group-field{min-width:0}
+#modBookRequestModalV70 .modbook-request-option-grid .modbook-option-name-field{min-width:0}
+@media(max-width:760px){
+  #modBookRequestModalV70 .modbook-request-option-grid{grid-template-columns:1fr 1fr!important;max-width:none!important}
+  #modBookRequestModalV70 .modbook-request-option-grid .modbook-option-group-field,
+  #modBookRequestModalV70 .modbook-request-option-grid .modbook-option-name-field{grid-column:1/-1}
+}
+</style>
+<script id="axe-net-modbook-request-v77-option-category-script">
+(function(){
+  if(window.__axeModBookRequestV77Applied)return;
+  window.__axeModBookRequestV77Applied=true;
+  const VERSION='AXE_NET_MODBOOK_REQUEST_V77_OPTION_CATEGORY';
+  const LATEST_OPTIONS=[
+    {group:'이동속도',name:'이동 속도 증가',unit:'%',min:'0.5',max:'20'},
+    {group:'스태미나',name:'최대 스태미나 증가',unit:'',min:'10',max:'500'},
+    {group:'이동속도',name:'전력질주 스킬 경험치 증가',unit:'',min:'1',max:'5'},
+    {group:'체력',name:'최대 체력 증가',unit:'',min:'1',max:'30'},
+    {group:'체력',name:'체력 재생 증가',unit:'',min:'0.5',max:'2'},
+    {group:'감정',name:'감정 성공 확률',unit:'%',min:'0.1',max:'10'},
+    {group:'감정',name:'감정 시 파괴 확률 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'절도 속도 증가',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'절도 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'빈집털이 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'절도 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'낚시',name:'입질 대기 시간 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'낚시',name:'낚시 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {group:'낚시',name:'낚시 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'낚시',name:'낚시 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 스태미나 증가',unit:'',min:'10',max:'500'},
+    {group:'채집',name:'채집 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'제작',name:'제작 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'제작',name:'제작 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'요리',name:'요리 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'요리',name:'요리 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'재련',name:'재련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'재련',name:'재련 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'무기',name:'무기 데미지 증가',unit:'',min:'0.5',max:'10'},
+    {group:'총기',name:'총기 반동 감소',unit:'%',min:'0.5',max:'30'},
+    {group:'총기',name:'탄창 크기 증가',unit:'',min:'0.5',max:'10'},
+    {group:'총기',name:'크리티컬 확률',unit:'%',min:'0.5',max:'10'}
+  ];
+  const ORDER=LATEST_OPTIONS.map(r=>r.name);
+  const q=id=>document.getElementById(id);
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const clean=v=>String(v==null?'':v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/^\s*\*/,'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim();
+  const active=v=>{const s=String(v==null?'TRUE':v).normalize('NFKC').replace(/\u00A0/g,' ').trim().toUpperCase();return !['FALSE','N','NO','0','미사용','OFF'].includes(s)};
+  function rawOptions(){try{if(Array.isArray(window.modBookOptions))return window.modBookOptions}catch(e){} try{if(Array.isArray(modBookOptions))return modBookOptions}catch(e){} return []}
+  function normalizeRow(row){
+    row=row||{};
+    const name=clean(row['옵션명']??row.optionName??row.option_name??row.name??row['name']??'');
+    if(!name)return null;
+    const fallback=LATEST_OPTIONS.find(r=>r.name===name)||{};
+    return {
+      group:clean(row['옵션분류']??row.optionGroup??row.option_group??row.group??row.category??row['분류']??fallback.group??'기타'),
+      name,
+      unit:String(row['기본단위']??row.default_unit??row.unit??fallback.unit??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      min:String(row['최소값']??row.min_value??row.min??fallback.min??'1').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      max:String(row['최대값']??row.max_value??row.max??fallback.max??'20').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      enabled:row['사용여부']??row.enabled??row.active??row.use??'TRUE'
+    };
+  }
+  function optionRowsV77(){
+    const map=new Map();
+    LATEST_OPTIONS.forEach(r=>map.set(r.name,Object.assign({},r)));
+    rawOptions().forEach(row=>{const r=normalizeRow(row); if(!r||!active(r.enabled))return; const prev=map.get(r.name)||{}; map.set(r.name,{group:r.group||prev.group||'기타',name:r.name,unit:r.unit||prev.unit||'',min:r.min||prev.min||'1',max:r.max||prev.max||'20'});});
+    const rows=Array.from(map.values()).filter(r=>r.name);
+    rows.sort((a,b)=>{const ga=String(a.group||''),gb=String(b.group||''); if(ga!==gb)return ga.localeCompare(gb,'ko'); const ia=ORDER.indexOf(a.name),ib=ORDER.indexOf(b.name); if(ia>=0&&ib>=0)return ia-ib; if(ia>=0)return -1; if(ib>=0)return 1; return a.name.localeCompare(b.name,'ko')});
+    rows.push({group:'직접입력',name:'직접입력',unit:'%',min:'1',max:'20'});
+    return rows;
+  }
+  function groupList(){const preferred=['이동속도','스태미나','체력','감정','절도','낚시','벌목','채광','채집','제작','요리','재련','무기','총기']; const groups=Array.from(new Set(optionRowsV77().map(r=>r.group).filter(g=>g&&g!=='직접입력'))); groups.sort((a,b)=>{const ia=preferred.indexOf(a),ib=preferred.indexOf(b); if(ia>=0&&ib>=0)return ia-ib; if(ia>=0)return -1; if(ib>=0)return 1; return a.localeCompare(b,'ko')}); return groups;}
+  function numberHtml(min,max,current){
+    let a=Number(min), b=Number(max); if(!isFinite(a))a=1; if(!isFinite(b))b=20; if(b<a){const t=a;a=b;b=t}
+    const hasDecimal=String(min).includes('.')||String(max).includes('.')||!Number.isInteger(a)||!Number.isInteger(b); let step=hasDecimal?0.1:1; if(!hasDecimal&&b-a>100)step=10;
+    const cur=String(current||'').replace(/^[-+]/,'').trim(); let html='<option value="">선택</option>'; let n=a, guard=0;
+    while(n<=b+1e-9&&guard<1000){const s=hasDecimal?String(Math.round(n*10)/10):String(Math.round(n)); html+='<option value="'+esc(s)+'" '+(s===cur?'selected':'')+'>'+esc(s)+'</option>'; n+=step; guard++;}
+    if(cur&&!html.includes('value="'+esc(cur)+'"'))html+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+    return html;
+  }
+  function ensureOptionCategorySelect(idx){
+    const grid=q('modReqOption'+idx+'NameV70')?.closest('.modbook-request-option-grid');
+    if(!grid||q('modReqOption'+idx+'GroupV77'))return;
+    const div=document.createElement('div');
+    div.className='modbook-option-group-field';
+    div.innerHTML='<div class="modbook-request-mini-label">옵션분류</div><select class="modbook-request-select" id="modReqOption'+idx+'GroupV77" onchange="handleModBookOptionGroupChangeV77('+idx+')"></select>';
+    grid.insertBefore(div,grid.firstChild);
+    const nameWrap=q('modReqOption'+idx+'NameV70')?.parentElement;
+    if(nameWrap)nameWrap.classList.add('modbook-option-name-field');
+  }
+  function fillGroupSelect(idx,current){
+    const el=q('modReqOption'+idx+'GroupV77'); if(!el)return;
+    const cur=current??el.value;
+    el.innerHTML='<option value="">전체</option>'+groupList().map(g=>'<option value="'+esc(g)+'" '+(g===cur?'selected':'')+'>'+esc(g)+'</option>').join('')+'<option value="직접입력" '+(cur==='직접입력'?'selected':'')+'>직접입력</option>';
+  }
+  function fillNameSelect(idx,keepName){
+    const group=q('modReqOption'+idx+'GroupV77')?.value||'';
+    const nameSel=q('modReqOption'+idx+'NameV70'); if(!nameSel)return;
+    const cur=keepName??nameSel.value;
+    let rows=optionRowsV77().filter(r=>r.name!=='직접입력');
+    if(group&&group!=='직접입력')rows=rows.filter(r=>r.group===group);
+    const names=rows.map(r=>r.name);
+    let html='<option value="">선택</option>'+names.map(n=>'<option value="'+esc(n)+'" '+(n===cur?'selected':'')+'>'+esc(n)+'</option>').join('')+'<option value="직접입력" '+(cur==='직접입력'?'selected':'')+'>직접입력</option>';
+    if(cur&&cur!=='직접입력'&&!names.includes(cur))html+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+    nameSel.innerHTML=html;
+  }
+  function selectedRow(idx){
+    const nameSel=q('modReqOption'+idx+'NameV70');
+    let name=clean(nameSel?nameSel.value:'');
+    if(name==='직접입력')name=clean(q('modReqOption'+idx+'CustomV70')?.value||'');
+    return optionRowsV77().find(r=>r.name===name)||{group:q('modReqOption'+idx+'GroupV77')?.value||'',name,unit:'%',min:'1',max:'20'};
+  }
+  function refreshRow(idx,keep){
+    ensureOptionCategorySelect(idx);
+    fillGroupSelect(idx);
+    fillNameSelect(idx);
+    const nameSel=q('modReqOption'+idx+'NameV70'); const custom=q('modReqOption'+idx+'CustomV70'); const min=q('modReqOption'+idx+'MinV70'); const max=q('modReqOption'+idx+'MaxV70'); const unit=q('modReqOption'+idx+'UnitV70');
+    const row=selectedRow(idx);
+    if(custom)custom.classList.toggle('active',nameSel&&nameSel.value==='직접입력');
+    if(unit)unit.value=row.unit||'';
+    if(min)min.innerHTML=numberHtml(row.min,row.max,keep?min.value:'');
+    if(max)max.innerHTML=numberHtml(row.min,row.max,keep?max.value:'');
+  }
+  function rebuildAll(){[1,2,3].forEach(i=>refreshRow(i,true));}
+  window.handleModBookOptionGroupChangeV77=function(idx){fillNameSelect(idx,''); refreshRow(idx,false)};
+  window.handleModBookOptionChangeV70=function(idx){refreshRow(idx,false)};
+  const prevOpen=window.openModBookRequestFormV70;
+  window.openModBookRequestFormV70=function(){const r=typeof prevOpen==='function'?prevOpen.apply(this,arguments):undefined; setTimeout(rebuildAll,0); setTimeout(rebuildAll,80); setTimeout(rebuildAll,250); return r;};
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72','73','74','75','76'].forEach(v=>{window['openModBookRequestFormV'+v]=window.openModBookRequestFormV70; window['axeModBookRequestV'+v+'Debug']=window.axeModBookRequestV77Debug});
+  window.axeModBookRequestV77Debug=function(){rebuildAll(); const rows=optionRowsV77(); return {version:VERSION,rawOptionRows:rawOptions().length,optionRows:rows.length,groups:groupList(),hasGatheringStamina:rows.some(r=>r.name==='채집 스태미나 증가'),gatheringStaminaRow:rows.find(r=>r.name==='채집 스태미나 증가')||null,option1Group:!!q('modReqOption1GroupV77'),option2Group:!!q('modReqOption2GroupV77'),option3Group:!!q('modReqOption3GroupV77'),option1Names:q('modReqOption1NameV70')?Array.from(q('modReqOption1NameV70').options).map(o=>o.value).slice(0,20):[]};};
+  setTimeout(rebuildAll,300);
 })();
 </script>
