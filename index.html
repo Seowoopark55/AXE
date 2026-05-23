@@ -23199,3 +23199,163 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   window.axeModBookRequestV66Debug=window.axeModBookRequestV68Debug;
 })();
 </script>
+
+<style id="axe-net-modbook-request-v69-balanced-ui">
+/* AXE NET V69: 개조서 등록신청 폼 균형 재정렬 */
+#modBookRequestModalV67 .modbook-request-box{
+  width:min(720px,calc(100vw - 28px))!important;
+  max-height:92vh!important;
+  overflow:hidden!important;
+}
+#modBookRequestModalV67 .modbook-request-body{
+  padding:14px 16px 15px!important;
+  max-height:calc(92vh - 62px)!important;
+  overflow:auto!important;
+}
+#modBookRequestModalV67 .modbook-request-label{
+  margin:0 0 5px!important;
+  color:#a8a8a8!important;
+  font-size:11px!important;
+  line-height:1.2!important;
+  font-weight:950!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67{
+  margin-bottom:10px!important;
+  gap:10px 12px!important;
+  align-items:end!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67.type{
+  grid-template-columns:220px!important;
+  max-width:220px!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67.two{
+  grid-template-columns:repeat(2, minmax(190px, 240px))!important;
+  justify-content:start!important;
+  max-width:492px!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67.name{
+  grid-template-columns:260px 110px!important;
+  max-width:382px!important;
+  justify-content:start!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67.success{
+  grid-template-columns:160px!important;
+  max-width:160px!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67.note{
+  max-width:620px!important;
+}
+#modBookRequestModalV67 .modbook-request-input,
+#modBookRequestModalV67 .modbook-request-select{
+  width:100%!important;
+  height:34px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  padding:0 10px!important;
+}
+#modBookRequestModalV67 .modbook-request-textarea{
+  min-height:64px!important;
+  max-height:104px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  line-height:1.45!important;
+  padding:9px 10px!important;
+}
+#modBookRequestModalV67 .modbook-request-checkline{
+  height:34px!important;
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:10px!important;
+  background:rgba(255,255,255,.035)!important;
+}
+#modBookRequestModalV67 .modbook-request-check{
+  font-size:12px!important;
+  color:#ddd!important;
+  font-weight:900!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  white-space:nowrap!important;
+}
+#modBookRequestModalV67 .modbook-request-option-grid{
+  display:grid!important;
+  grid-template-columns:260px 68px 68px 66px 86px!important;
+  gap:8px!important;
+  align-items:end!important;
+  max-width:580px!important;
+}
+#modBookRequestModalV67 .modbook-request-row-v67.option{
+  max-width:600px!important;
+  margin-top:2px!important;
+}
+#modBookRequestModalV67 .modbook-request-mini-label{
+  margin:0 0 4px!important;
+  color:#777!important;
+  font-size:10px!important;
+  line-height:1.1!important;
+  font-weight:950!important;
+}
+#modBookRequestModalV67 .modbook-request-option-custom{
+  width:260px!important;
+  max-width:260px!important;
+  margin-top:6px!important;
+}
+#modBookRequestModalV67 .modbook-request-v67-note,
+#modBookRequestModalV67 .modbook-request-help{
+  max-width:620px!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+}
+#modBookRequestModalV67 .modbook-request-actions-bottom{
+  max-width:620px!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  padding-top:12px!important;
+  border-top:1px solid rgba(255,255,255,.07)!important;
+}
+#modBookRequestModalV67 .modbook-request-btn{
+  height:36px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  padding:0 14px!important;
+  white-space:nowrap!important;
+}
+@media(max-width:760px){
+  #modBookRequestModalV67 .modbook-request-box{width:calc(100vw - 20px)!important;max-height:92vh!important}
+  #modBookRequestModalV67 .modbook-request-row-v67.type,
+  #modBookRequestModalV67 .modbook-request-row-v67.two,
+  #modBookRequestModalV67 .modbook-request-row-v67.name,
+  #modBookRequestModalV67 .modbook-request-row-v67.success,
+  #modBookRequestModalV67 .modbook-request-row-v67.note{
+    grid-template-columns:1fr!important;
+    max-width:none!important;
+  }
+  #modBookRequestModalV67 .modbook-request-option-grid{
+    grid-template-columns:1fr 1fr!important;
+    max-width:none!important;
+  }
+  #modBookRequestModalV67 .modbook-request-option-grid>div:first-child{grid-column:1/-1!important}
+  #modBookRequestModalV67 .modbook-request-option-custom{width:100%!important;max-width:none!important}
+  #modBookRequestModalV67 .modbook-request-actions-bottom{display:grid!important;grid-template-columns:1fr!important;max-width:none!important}
+  #modBookRequestModalV67 .modbook-request-btn{width:100%!important}
+}
+</style>
+<script id="axe-net-modbook-request-v69-debug">
+(function(){
+  const OLD_DEBUG = window.axeModBookRequestV67Debug;
+  window.axeModBookRequestV69Debug = function(){
+    const base = typeof OLD_DEBUG === 'function' ? OLD_DEBUG() : {};
+    base.version = 'AXE_NET_MODBOOK_REQUEST_V69_BALANCED_UI';
+    const modal = document.getElementById('modBookRequestModalV67');
+    base.modalExists = !!modal;
+    base.optionGridCount = document.querySelectorAll('#modBookRequestModalV67 .modbook-request-option-grid').length;
+    base.boxWidth = modal ? getComputedStyle(modal.querySelector('.modbook-request-box')).width : '';
+    return base;
+  };
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68'].forEach(function(v){window['axeModBookRequestV'+v+'Debug']=window.axeModBookRequestV69Debug;});
+})();
+</script>
