@@ -21832,6 +21832,119 @@ window.axeFundLedgerLayoutV40Debug=function(){
 </script>
 <!-- AXE NET V40 FUND LEDGER SAFE UI PATCH END -->
 
+
+
+<style id="axe-fund-ledger-cellfix-v41">
+/* AXE NET V41: 공금내역 표 셀 겹침/줄바꿈 안전 보정
+   - 데이터/요청 로직은 건드리지 않고 표 레이아웃만 정리합니다. */
+.fund-table-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    -webkit-overflow-scrolling:touch!important;
+}
+.fund-table-wrap .fund-table{
+    min-width:1320px!important;
+    width:100%!important;
+    table-layout:fixed!important;
+    border-collapse:collapse!important;
+}
+.fund-table-wrap .fund-table th,
+.fund-table-wrap .fund-table td{
+    box-sizing:border-box!important;
+    vertical-align:middle!important;
+    word-break:keep-all!important;
+    overflow-wrap:normal!important;
+}
+.fund-table-wrap .fund-table th:nth-child(1),
+.fund-table-wrap .fund-table td:nth-child(1){width:108px!important;white-space:nowrap!important;}
+.fund-table-wrap .fund-table th:nth-child(2),
+.fund-table-wrap .fund-table td:nth-child(2){width:94px!important;text-align:center!important;white-space:normal!important;}
+.fund-table-wrap .fund-table th:nth-child(3),
+.fund-table-wrap .fund-table td:nth-child(3){width:100px!important;text-align:center!important;white-space:normal!important;}
+.fund-table-wrap .fund-table th:nth-child(4),
+.fund-table-wrap .fund-table td:nth-child(4){width:86px!important;text-align:center!important;white-space:normal!important;}
+.fund-table-wrap .fund-table th:nth-child(5),
+.fund-table-wrap .fund-table td:nth-child(5){width:112px!important;text-align:center!important;white-space:normal!important;}
+.fund-table-wrap .fund-table th:nth-child(6),
+.fund-table-wrap .fund-table td:nth-child(6){width:110px!important;text-align:right!important;white-space:nowrap!important;}
+.fund-table-wrap .fund-table th:nth-child(7),
+.fund-table-wrap .fund-table td:nth-child(7){width:62px!important;text-align:center!important;white-space:nowrap!important;}
+.fund-table-wrap .fund-table th:nth-child(8),
+.fund-table-wrap .fund-table td:nth-child(8){width:86px!important;text-align:center!important;white-space:nowrap!important;}
+.fund-table-wrap .fund-table th:nth-child(9),
+.fund-table-wrap .fund-table td:nth-child(9){width:70px!important;text-align:center!important;white-space:nowrap!important;}
+.fund-table-wrap .fund-table th:nth-child(10),
+.fund-table-wrap .fund-table td:nth-child(10){
+    width:auto!important;
+    min-width:330px!important;
+    text-align:left!important;
+    white-space:normal!important;
+    word-break:break-word!important;
+    overflow-wrap:anywhere!important;
+    line-height:1.45!important;
+    overflow:hidden!important;
+}
+.fund-table-wrap .fund-table th:nth-child(11),
+.fund-table-wrap .fund-table td:nth-child(11){
+    width:96px!important;
+    min-width:96px!important;
+    max-width:96px!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+}
+.fund-table-wrap .fund-table td:nth-child(2) .fund-ledger-kind-badge{
+    display:inline-flex!important;
+    margin:5px auto 0!important;
+    width:max-content!important;
+    max-width:76px!important;
+}
+.fund-table-wrap .fund-table td:nth-child(7),
+.fund-table-wrap .fund-table td:nth-child(8),
+.fund-table-wrap .fund-table td:nth-child(9),
+.fund-table-wrap .fund-table td:nth-child(11){
+    line-height:1.2!important;
+}
+.fund-table-wrap .fund-table td:nth-child(11) .fund-btn,
+.fund-table-wrap .fund-table td:nth-child(11) button{
+    width:auto!important;
+    min-width:54px!important;
+    max-width:72px!important;
+    height:36px!important;
+    padding:0 11px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    line-height:1!important;
+}
+.fund-table-wrap .fund-table td:nth-child(9) a,
+.fund-table-wrap .fund-table td:nth-child(9) button,
+.fund-table-wrap .fund-table td:nth-child(9) .fund-btn{
+    white-space:nowrap!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+}
+@media(max-width:760px){
+    .fund-table-wrap .fund-table{min-width:1180px!important;}
+    .fund-table-wrap .fund-table th:nth-child(10),
+    .fund-table-wrap .fund-table td:nth-child(10){min-width:280px!important;}
+}
+</style>
+<script id="axe-fund-ledger-cellfix-v41-debug">
+window.axeFundLedgerLayoutV41Debug=function(){
+    const table=document.querySelector('.fund-table-wrap .fund-table');
+    const rows=table?table.querySelectorAll('tbody tr').length:0;
+    const deleteButtons=[...document.querySelectorAll('.fund-table-wrap .fund-table td:nth-child(11) button')].map(b=>({text:b.textContent, width:Math.round(b.getBoundingClientRect().width)}));
+    return {version:'AXE_NET_FUND_LEDGER_CELLFIX_V41', tableExists:!!table, rowCount:rows, deleteButtons:deleteButtons.slice(0,10), apiUrl:typeof API_URL!=='undefined'?API_URL:''};
+};
+</script>
+
 </body>
 </html>
 
