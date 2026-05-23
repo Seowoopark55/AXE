@@ -22368,3 +22368,183 @@ function axeModBookFilterV34Debug(){
   window.axeModBookRequestV70Debug=window.axeModBookRequestV75Debug;
 })();
 </script>
+
+<!-- AXE NET V76: 개조서 등록신청 옵션목록 근본 보정 - DOM/핸들러 단일화 -->
+<script id="axe-net-modbook-request-v76-option-rootfix-script">
+(function(){
+  if(window.__axeModBookRequestV76Applied)return;
+  window.__axeModBookRequestV76Applied=true;
+  const VERSION='AXE_NET_MODBOOK_REQUEST_V76_OPTION_ROOTFIX';
+
+  const CANONICAL_OPTIONS=[
+    {name:'이동 속도 증가',unit:'%',min:'0.5',max:'20'},
+    {name:'최대 스태미나 증가',unit:'',min:'10',max:'500'},
+    {name:'전력질주 스킬 경험치 증가',unit:'',min:'1',max:'5'},
+    {name:'최대 체력 증가',unit:'',min:'1',max:'30'},
+    {name:'체력 재생 증가',unit:'',min:'0.5',max:'2'},
+    {name:'감정 성공 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'감정 시 파괴 확률 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 속도 증가',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'빈집털이 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'입질 대기 시간 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'낚시 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 스태미나 감소',unit:'%',min:'0.5',max:'20'},
+    {name:'제작 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'요리 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'요리 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'재련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'제련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'무기 데미지 증가',unit:'',min:'0.5',max:'10'},
+    {name:'총기 반동 감소',unit:'%',min:'0.5',max:'30'},
+    {name:'탄창 크기 증가',unit:'',min:'0.5',max:'10'},
+    {name:'크리티컬 확률',unit:'%',min:'0.5',max:'10'}
+  ];
+  const ORDER=CANONICAL_OPTIONS.map(function(r){return r.name});
+  const q=function(id){return document.getElementById(id)};
+  const clean=function(v){return String(v==null?'':v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/^\s*\*/,'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim()};
+  const esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')};
+  const active=function(v){const s=String(v==null?'TRUE':v).normalize('NFKC').replace(/\u00A0/g,' ').trim().toUpperCase();return !['FALSE','N','NO','0','미사용','OFF'].includes(s)};
+  function normalizeRow(row){
+    row=row||{};
+    const name=clean(row['옵션명']??row.optionName??row.option_name??row.name??row['name']??'');
+    if(!name)return null;
+    return {
+      name:name,
+      unit:String(row['기본단위']??row.default_unit??row.unit??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      min:String(row['최소값']??row.min_value??row.min??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      max:String(row['최대값']??row.max_value??row.max??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      enabled:row['사용여부']??row.enabled??row.active??row.use??'TRUE'
+    };
+  }
+  function rawOptions(){
+    try{if(Array.isArray(window.modBookOptions))return window.modBookOptions}catch(e){}
+    try{if(Array.isArray(modBookOptions))return modBookOptions}catch(e){}
+    return [];
+  }
+  function canonicalOptions(){
+    const map=new Map();
+    CANONICAL_OPTIONS.forEach(function(r){map.set(clean(r.name),Object.assign({},r,{name:clean(r.name)}))});
+    rawOptions().forEach(function(row){
+      const r=normalizeRow(row);
+      if(!r||!active(r.enabled))return;
+      const prev=map.get(r.name)||{};
+      map.set(r.name,{name:r.name,unit:r.unit||prev.unit||'%',min:r.min||prev.min||'1',max:r.max||prev.max||'20'});
+    });
+    const rows=Array.from(map.values()).filter(function(r){return r.name});
+    rows.sort(function(a,b){
+      const ia=ORDER.indexOf(a.name), ib=ORDER.indexOf(b.name);
+      if(ia>=0&&ib>=0)return ia-ib;
+      if(ia>=0)return -1;
+      if(ib>=0)return 1;
+      return a.name.localeCompare(b.name,'ko');
+    });
+    rows.push({name:'직접입력',unit:'%',min:'1',max:'20'});
+    return rows;
+  }
+  function optionHtml(current){
+    const cur=clean(current||'');
+    return '<option value="">선택</option>'+canonicalOptions().map(function(r){return '<option value="'+esc(r.name)+'" '+(r.name===cur?'selected':'')+'>'+esc(r.name)+'</option>'}).join('');
+  }
+  function numberHtml(min,max,current){
+    let a=Number(min), b=Number(max);
+    if(!isFinite(a))a=1;
+    if(!isFinite(b))b=20;
+    if(b<a){const t=a;a=b;b=t;}
+    const hasDecimal=String(min).includes('.')||String(max).includes('.')||!Number.isInteger(a)||!Number.isInteger(b);
+    let step=hasDecimal?0.1:1;
+    if(!hasDecimal && b-a>100)step=10;
+    const cur=String(current||'').replace(/^[-+]/,'').trim();
+    let html='<option value="">선택</option>';
+    let n=a, guard=0;
+    while(n<=b+1e-9&&guard<1000){
+      const s=hasDecimal?String(Math.round(n*10)/10):String(Math.round(n));
+      html+='<option value="'+esc(s)+'" '+(s===cur?'selected':'')+'>'+esc(s)+'</option>';
+      n+=step; guard++;
+    }
+    if(cur&&!html.includes('value="'+esc(cur)+'"'))html+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+    return html;
+  }
+  function getSelectedOption(idx){
+    const sel=q('modReqOption'+idx+'NameV70');
+    let name=clean(sel?sel.value:'');
+    if(name==='직접입력')name=clean((q('modReqOption'+idx+'CustomV70')||{}).value||'');
+    return canonicalOptions().find(function(r){return r.name===name})||{name:name,unit:'%',min:'1',max:'20'};
+  }
+  function refreshOptionRow(idx,keep){
+    const sel=q('modReqOption'+idx+'NameV70');
+    if(!sel)return;
+    const custom=q('modReqOption'+idx+'CustomV70');
+    const min=q('modReqOption'+idx+'MinV70');
+    const max=q('modReqOption'+idx+'MaxV70');
+    const unit=q('modReqOption'+idx+'UnitV70');
+    const beforeMin=keep&&min?min.value:'';
+    const beforeMax=keep&&max?max.value:'';
+    const data=getSelectedOption(idx);
+    if(custom)custom.classList.toggle('active',sel.value==='직접입력');
+    if(unit)unit.value=data.unit||'';
+    if(min)min.innerHTML=numberHtml(data.min,data.max,beforeMin);
+    if(max)max.innerHTML=numberHtml(data.min,data.max,beforeMax);
+  }
+  function rebuildAllOptionSelects(){
+    [1,2,3].forEach(function(idx){
+      const sel=q('modReqOption'+idx+'NameV70');
+      if(!sel)return;
+      const cur=sel.value;
+      sel.innerHTML=optionHtml(cur);
+      if(cur && !Array.from(sel.options).some(function(o){return o.value===cur})){
+        sel.insertAdjacentHTML('beforeend','<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>');
+      }
+      refreshOptionRow(idx,true);
+    });
+  }
+  window.handleModBookOptionChangeV70=function(idx){refreshOptionRow(idx,false)};
+  window.axeRebuildModBookOptionDropdownsV76=rebuildAllOptionSelects;
+  const previousOpen=window.openModBookRequestFormV70;
+  window.openModBookRequestFormV70=function(){
+    const result=typeof previousOpen==='function'?previousOpen.apply(this,arguments):undefined;
+    setTimeout(rebuildAllOptionSelects,0);
+    setTimeout(rebuildAllOptionSelects,80);
+    setTimeout(rebuildAllOptionSelects,250);
+    return result;
+  };
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72','73','74','75'].forEach(function(v){
+    window['openModBookRequestFormV'+v]=window.openModBookRequestFormV70;
+    window['axeModBookRequestV'+v+'Debug']=window.axeModBookRequestV76Debug;
+  });
+  window.axeModBookRequestV76Debug=function(){
+    rebuildAllOptionSelects();
+    const rows=canonicalOptions();
+    const selectRows=[1,2,3].map(function(i){const el=q('modReqOption'+i+'NameV70');return el?Array.from(el.options).map(function(o){return o.value}):[]});
+    return {
+      version:VERSION,
+      rawOptionRows:rawOptions().length,
+      canonicalCount:rows.length,
+      hasGatheringStamina:rows.some(function(r){return r.name==='채집 스태미나 감소'}),
+      gatheringStaminaRow:rows.find(function(r){return r.name==='채집 스태미나 감소'})||null,
+      firstOptions:rows.slice(0,12).map(function(r){return r.name}),
+      lastOptions:rows.slice(-12).map(function(r){return r.name}),
+      select1HasGatheringStamina:selectRows[0].includes('채집 스태미나 감소'),
+      select2HasGatheringStamina:selectRows[1].includes('채집 스태미나 감소'),
+      select3HasGatheringStamina:selectRows[2].includes('채집 스태미나 감소'),
+      option1Count:selectRows[0].length,
+      option2Count:selectRows[1].length,
+      option3Count:selectRows[2].length
+    };
+  };
+  setTimeout(rebuildAllOptionSelects,300);
+})();
+</script>
