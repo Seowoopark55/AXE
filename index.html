@@ -4602,7 +4602,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxJ9N-ERzl6v0tCopK9RdWDD1luBzNLaIqxA2XiJ9QoHo0b1Amkz7KZieKBCqL8YKpEmQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwIsa_-fXkAapCJ39Av63nPuUYP__Q79E8N66ASesuiIujTBr3LQmyppg-kPORz1cY3/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -21879,6 +21879,117 @@ function axeModBookFilterV34Debug(){
             return result;
         };
     }
+})();
+</script>
+
+
+
+<script id="axe-fund-duplicate-guard-v36">
+/* AXE NET V36: 공금 납부 중복신청 방지 보강
+   - month/week 표기 차이(1, 1주차, 2026. 5, 2026-05) 정규화
+   - 공금신청 + 공금내역 둘 다 확인
+   - 승인/납부완료/검수대기/보류 상태 차단
+*/
+(function(){
+    function txt(v){return String(v==null?"":v).trim();}
+    function flat(v){return txt(v).replace(/\s+/g,"");}
+    function normalizeNick(v){return flat(v).toLowerCase();}
+    function normalizeMonthV36(v){
+        var s=txt(v);
+        if(!s)return "";
+        try{
+            if(typeof normalizeFundMonth==="function"){
+                var nm=normalizeFundMonth(s);
+                if(nm)return txt(nm);
+            }
+        }catch(e){}
+        s=s.replace(/[년\.\/]/g,"-").replace(/월/g,"").replace(/--+/g,"-").replace(/\s+/g,"").replace(/-$/g,"");
+        var m=s.match(/(20\d{2})-?(\d{1,2})/);
+        if(m)return m[1]+"-"+String(m[2]).padStart(2,"0");
+        return txt(v);
+    }
+    function normalizeWeekV36(v){
+        var s=txt(v);
+        if(!s)return "";
+        var m=s.match(/\d+/);
+        return m?String(parseInt(m[0],10)):s.replace(/주차|주/g,"");
+    }
+    function normalizeStatusV36(v){
+        var s=flat(v);
+        if(!s)return "";
+        if(/삭제|취소|반려|거절|실패/.test(s))return "ignore";
+        if(/승인|납부완료|완료|처리완료|입금완료/.test(s))return "paid";
+        if(/검수대기|대기|보류|신청|접수|pending/i.test(s))return "pending";
+        return "";
+    }
+    function rowVal(row, keys){
+        row=row||{};
+        for(var i=0;i<keys.length;i++){
+            if(row[keys[i]]!=null&&txt(row[keys[i]])!=="")return row[keys[i]];
+        }
+        return "";
+    }
+    function isMatchingFundWeek(row,nickname,month,week){
+        var rNick=normalizeNick(rowVal(row,["nickname","name","writer","member","member_name"]));
+        if(rNick!==normalizeNick(nickname))return false;
+        if(normalizeMonthV36(rowVal(row,["month","target_month","월","대상월"]))!==normalizeMonthV36(month))return false;
+        if(normalizeWeekV36(rowVal(row,["week","target_week","주차","대상주차"]))!==normalizeWeekV36(week))return false;
+        return true;
+    }
+    function ledgerLooksPaid(row){
+        row=row||{};
+        if(normalizeStatusV36(rowVal(row,["status","delete_status","deleted"]))==="ignore")return false;
+        var type=flat(rowVal(row,["type","category","memo"]));
+        var account=flat(rowVal(row,["account","deposit_account"]));
+        if(type&&/공금납부|납부/.test(type))return true;
+        if(account&&/회사잔고|공용계좌/.test(account))return true;
+        return true;
+    }
+    window.findFundDuplicateSubmission=function(nickname,month,week){
+        var nick=txt(nickname), m=normalizeMonthV36(month), w=normalizeWeekV36(week);
+        if(!nick||!m||!w)return null;
+        var reqs=Array.isArray(window.fundRequests)?window.fundRequests:[];
+        var pending=null;
+        for(var i=0;i<reqs.length;i++){
+            var r=reqs[i];
+            if(!isMatchingFundWeek(r,nick,m,w))continue;
+            var st=normalizeStatusV36(rowVal(r,["status","review_status"]));
+            if(st==="paid")return {type:"paid",source:"fundRequests",row:r,message:"이미 납부한 주차입니다. "+(typeof getFundCurrentWeekMessage==="function"?getFundCurrentWeekMessage():"현재 주차를 확인해주세요.")+" 대상 주차를 다시 확인해주세요."};
+            if(st==="pending")pending={type:"pending",source:"fundRequests",row:r,message:"이미 신청한 주차입니다. 현재 검수대기 중입니다. "+(typeof getFundCurrentWeekMessage==="function"?getFundCurrentWeekMessage():"현재 주차를 확인해주세요.")+" 대상 주차를 다시 확인해주세요."};
+        }
+        if(pending)return pending;
+        var ledger=Array.isArray(window.fundLedger)?window.fundLedger:[];
+        for(var j=0;j<ledger.length;j++){
+            var l=ledger[j];
+            if(!isMatchingFundWeek(l,nick,m,w))continue;
+            if(!ledgerLooksPaid(l))continue;
+            return {type:"paid",source:"fundLedger",row:l,message:"이미 납부한 주차입니다. "+(typeof getFundCurrentWeekMessage==="function"?getFundCurrentWeekMessage():"현재 주차를 확인해주세요.")+" 대상 주차를 다시 확인해주세요."};
+        }
+        return null;
+    };
+    window.axeFundDuplicateV36Debug=function(){
+        var nickname=(typeof getFundSelectedSubmitter==="function"?getFundSelectedSubmitter():"");
+        var month=document.getElementById("fundSubmitMonth")&&document.getElementById("fundSubmitMonth").value;
+        var week=document.getElementById("fundSubmitWeek")&&document.getElementById("fundSubmitWeek").value;
+        var dup=window.findFundDuplicateSubmission(nickname,month,week);
+        try{if(typeof updateFundDuplicateNotice==="function")updateFundDuplicateNotice();}catch(e){}
+        return {
+            version:"AXE_NET_FUND_DUPLICATE_GUARD_V36",
+            submitter:nickname,
+            rawMonth:month,
+            rawWeek:week,
+            normalizedMonth:normalizeMonthV36(month),
+            normalizedWeek:normalizeWeekV36(week),
+            duplicate:dup,
+            fundRequestsCount:Array.isArray(window.fundRequests)?window.fundRequests.length:0,
+            fundLedgerCount:Array.isArray(window.fundLedger)?window.fundLedger.length:0,
+            apiUrl:typeof API_URL!=="undefined"?API_URL:""
+        };
+    };
+    document.addEventListener("change",function(e){
+        var id=e&&e.target&&e.target.id;
+        if(id==="fundSubmitWeek"||id==="fundSubmitMonth"||id==="fundSubmitter")setTimeout(function(){try{if(typeof updateFundDuplicateNotice==="function")updateFundDuplicateNotice();}catch(err){}},0);
+    },true);
 })();
 </script>
 
