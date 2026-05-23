@@ -22289,7 +22289,7 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
 <script>
 /* AXE NET V54: 개조서 등록 신청 / 관리자 검수 - compact dropdown form */
 (function(){
-  const V54_VERSION='AXE_NET_MODBOOK_REQUEST_V54';
+  const V54_VERSION='AXE_NET_MODBOOK_REQUEST_V55';
   function h(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function q(id){return document.getElementById(id);}
   function val(id){const el=q(id);return el?String(el.value||'').trim():'';}
@@ -22299,8 +22299,17 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   function post(payload){return fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json());}
   function uniq(arr){return Array.from(new Set((arr||[]).map(v=>String(v||'').trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'ko'));}
   function categoryOptions(){return uniq((Array.isArray(modBooks)?modBooks:[]).map(m=>m.category||''));}
-  function partOptions(){const out=[];(Array.isArray(modBooks)?modBooks:[]).forEach(m=>{try{(typeof splitModParts==='function'?splitModParts(m.parts):String(m.parts||'').split(/[,·|
-]+/)).forEach(p=>{p=String(p||'').trim(); if(p)out.push(p);});}catch(e){}});return uniq(out);}
+  function partOptions(){
+    const out=[];
+    (Array.isArray(modBooks)?modBooks:[]).forEach(m=>{
+      try{
+        const raw=String(m.parts||'');
+        const parts=(typeof splitModParts==='function') ? splitModParts(raw) : raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/[,.·|\/\n]+/);
+        parts.forEach(p=>{p=String(p||'').trim(); if(p)out.push(p);});
+      }catch(e){}
+    });
+    return uniq(out);
+  }
   function selectHtml(list,current,label){const cur=String(current||'').trim();const has=!cur||list.indexOf(cur)>=0;return `<option value="">${h(label||'선택')}</option>`+list.map(v=>`<option value="${h(v)}" ${v===cur?'selected':''}>${h(v)}</option>`).join('')+`<option value="__custom__" ${cur&&!has?'selected':''}>직접입력</option>`;}
   function parseNameMark(v){let text=String(v||'').trim(),tier=false,debuff=false;while(text.startsWith('!')||text.startsWith('*')){if(text.startsWith('!'))tier=true;if(text.startsWith('*'))debuff=true;text=text.slice(1).trim();}return {text,tier,debuff};}
   function parseOptMark(v){let text=String(v||'').trim(),tier=false,debuff=false;while(text.startsWith('!')||text.startsWith('*')){if(text.startsWith('!'))tier=true;if(text.startsWith('*'))debuff=true;text=text.slice(1).trim();}return {text,tier,debuff};}
