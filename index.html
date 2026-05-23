@@ -22644,7 +22644,7 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
 
 <script id="axe-net-modbook-request-v59-script">
 (function(){
-  const V59_VERSION='AXE_NET_MODBOOK_REQUEST_V61_LABEL_SUCCESS_RATE';
+  const V59_VERSION='AXE_NET_MODBOOK_REQUEST_V62_CATEGORY_PARTS_FIX';
   const GUN_PART_KEYWORDS=['권총','SMG','S.M.G','기관단총','라이플','소총','샷건','저격총','스나이퍼','리볼버','피스톨','PISTOL','REVOLVER','총','총기'];
   const DEFAULT_CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발','장갑','모자'];
   const DEFAULT_GUN_PARTS=['권총','SMG','라이플','샷건','저격총','리볼버'];
@@ -22663,10 +22663,26 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   }
   function isGunPart(part){const t=String(part||'').trim().toLowerCase();return !!t&&GUN_PART_KEYWORDS.some(k=>{const kk=String(k).toLowerCase();return t===kk||t.indexOf(kk)!==-1})}
   function isGunCategory(category){const c=String(category||'').trim();return c==='총기류'||c.indexOf('총기')!==-1||c==='총'}
-  function categoryOptions(){return uniq((Array.isArray(window.modBooks)?window.modBooks:[]).map(m=>m.category||''))}
+  function getModBookDataV62(){
+    try{if(Array.isArray(modBooks))return modBooks}catch(e){}
+    try{if(Array.isArray(window.modBooks))return window.modBooks}catch(e){}
+    return [];
+  }
+  function normalizeCategoryNameV62(v){return String(v||'').trim()}
+  function categoryOptions(){
+    const data=getModBookDataV62();
+    const fromData=data.map(m=>normalizeCategoryNameV62(m.category||m['category']||m['분류']||''));
+    const defaults=['벌목','채광','감정','이동속도','체력','총기류','전투','방어','제작','기타'];
+    return uniq([...defaults,...fromData]);
+  }
   function selectedCategory(){const s=q('modReqCategorySelectV59');return s?(s.value==='__custom__'?val('modReqCategoryCustomV59'):String(s.value||'').trim()):''}
-  function allPartsFromData(){const parts=[];(Array.isArray(window.modBooks)?window.modBooks:[]).forEach(m=>splitPartText(m.parts||'').forEach(p=>parts.push(p)));return uniq(parts)}
-  function partOptionsFor(category){const all=allPartsFromData();return isGunCategory(category)?uniq([...DEFAULT_GUN_PARTS,...all.filter(isGunPart)]):uniq([...DEFAULT_CLOTH_PARTS,...all.filter(p=>!isGunPart(p))])}
+  function allPartsFromData(){const parts=[];getModBookDataV62().forEach(m=>splitPartText(m.parts||m['parts']||m['부위']||'').forEach(p=>parts.push(p)));return uniq(parts)}
+  function partOptionsFor(category){
+    const all=allPartsFromData();
+    const gun=uniq([...DEFAULT_GUN_PARTS,...all.filter(isGunPart)]);
+    const cloth=uniq([...DEFAULT_CLOTH_PARTS,...all.filter(p=>!isGunPart(p))]);
+    return isGunCategory(category)?gun:cloth;
+  }
   function selectHtml(list,current,label){const cur=String(current||'').trim();const has=!cur||list.indexOf(cur)>=0;return `<option value="">${h(label||'선택')}</option>`+list.map(v=>`<option value="${h(v)}" ${v===cur?'selected':''}>${h(v)}</option>`).join('')+`<option value="__custom__" ${cur&&!has?'selected':''}>직접입력</option>`}
   function showCustom(selectId,customId){const s=q(selectId),c=q(customId);if(!s||!c)return;c.classList.toggle('active',s.value==='__custom__')}
   function getSelectOrCustom(selectId,customId){const s=q(selectId);return s?(s.value==='__custom__'?val(customId):String(s.value||'').trim()):''}
@@ -22718,6 +22734,6 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   window.rejectModBookRequestFromFormV59=function(){const requestId=val('modReqRequestIdV59');if(!requestId){alert('신청 ID가 없습니다.');return}if(typeof rejectModBookRequestV54==='function')rejectModBookRequestV54(requestId)};
   window.openModBookRequestFormV54=window.openModBookRequestFormV59;window.openModBookRequestFormV53=window.openModBookRequestFormV59;window.closeModBookRequestModalV54=window.closeModBookRequestModalV59;window.closeModBookRequestModalV53=window.closeModBookRequestModalV59;window.submitModBookRequestV54=window.submitModBookRequestV59;window.submitModBookRequestV53=window.submitModBookRequestV59;window.directAddModBookV54=window.directAddModBookV59;window.directAddModBookV53=window.directAddModBookV59;window.approveModBookRequestV54=window.approveModBookRequestV59;window.approveModBookRequestV53=window.approveModBookRequestV59;window.rejectModBookRequestFromFormV54=window.rejectModBookRequestFromFormV59;window.rejectModBookRequestFromFormV53=window.rejectModBookRequestFromFormV59;
   window.axeModBookRequestV59Debug=function(){return {version:V59_VERSION,apiUrl:typeof API_URL!=='undefined'?API_URL:'',hasV59Modal:!!q('modBookRequestModalV59'),parts1Select:!!q('modReqParts1SelectV59'),parts2Select:!!q('modReqParts2SelectV59'),orderInputExists:!!q('modReqOrderV59'),selectedCategory:selectedCategory(),partsOptions:partOptionsFor(selectedCategory())}};
-  window.axeModBookRequestV61Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV60Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV58Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV59Debug;
+  window.axeModBookRequestV62Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV61Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV60Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV58Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV59Debug;
 })();
 </script>
