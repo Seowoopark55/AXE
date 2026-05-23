@@ -4576,7 +4576,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbx55lEmjIeV1e3mGsJwYJRDcnT0ykobj7OrlrKhQstyvifS8v2jMtcq3Rm8lE5b_B1Cvw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbz5YAARQuaxF0ogxDocU7clVc-zzJ6MhM4zjruuOl1ZedUpOpgf42K2HfJ6qVTfTZ7VOg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -23077,5 +23077,125 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   window.rejectModBookRequestFromFormV54=window.rejectModBookRequestFromFormV66;window.rejectModBookRequestFromFormV53=window.rejectModBookRequestFromFormV66;window.rejectModBookRequestFromFormV59=window.rejectModBookRequestFromFormV66;window.rejectModBookRequestFromFormV65=window.rejectModBookRequestFromFormV66;
   window.axeModBookRequestV66Debug=function(){return {version:V66_VERSION,apiUrl:typeof API_URL!=='undefined'?API_URL:'',optionListCount:getOptionRows().length,optionSheetRows:Array.isArray(window.modBookOptions)?window.modBookOptions.length:0,hasModal:!!q('modBookRequestModalV66'),category1:!!q('modReqCategory1V66'),category2:!!q('modReqCategory2V66'),parts1:!!q('modReqParts1V66'),parts2:!!q('modReqParts2V66'),sampleOptions:getOptionRows().slice(0,5).map(r=>r.name)}};
   window.axeModBookRequestV65Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV64Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV63Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV62Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV61Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV60Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV59Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV58Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV66Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV66Debug;
+})();
+</script>
+
+
+<script>
+/* AXE NET V68: 개조서 등록신청 옵션 드롭다운/디버프 처리 보정 */
+(function(){
+  const V68_VERSION='AXE_NET_MODBOOK_REQUEST_V68_OPTION_SOURCE_FIX';
+  const CATEGORY_OPTIONS=['이동속도','체력','감정','절도','낚시','벌목','채광','근접무기','피스톨','SMG','라이플','저격소총','머신건'];
+  const WEAPON_CATEGORY_OPTIONS=['근접무기','피스톨','SMG','라이플','저격소총','머신건'];
+  const CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발'];
+  const FALLBACK_OPTIONS=[
+    {name:'이동 속도 증가',unit:'%',min:'1',max:'20'},
+    {name:'최대 스태미나 증가',unit:'',min:'10',max:'500'},
+    {name:'전력질주 스킬 경험치 증가',unit:'',min:'1',max:'5'},
+    {name:'최대 체력 증가',unit:'',min:'1',max:'30'},
+    {name:'체력 재생 증가',unit:'',min:'0.5',max:'2'},
+    {name:'감정 성공 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'감정 시 파괴 확률 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 속도 증가',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'빈집털이 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'입질 대기 시간 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 배고픔 감소',unit:'%',min:'1',max:'10'},
+    {name:'낚시 목마름 감소',unit:'%',min:'1',max:'10'},
+    {name:'벌목 시간 감소',unit:'%',min:'1',max:'10'},
+    {name:'벌목 2배 획득 확률',unit:'%',min:'1',max:'10'},
+    {name:'벌목 목마름 감소',unit:'%',min:'1',max:'10'},
+    {name:'채광 시간 감소',unit:'%',min:'1',max:'10'},
+    {name:'채광 2배 획득 확률',unit:'%',min:'1',max:'10'},
+    {name:'채광 목마름 감소',unit:'%',min:'1',max:'10'},
+    {name:'채광 배고픔 감소',unit:'%',min:'1',max:'10'},
+    {name:'벌목 배고픔 감소',unit:'%',min:'1',max:'10'},
+    {name:'무기 데미지 증가',unit:'',min:'1',max:'10'},
+    {name:'총기 반동 감소',unit:'%',min:'1',max:'30'},
+    {name:'탄창 크기 증가',unit:'',min:'1',max:'10'},
+    {name:'크리티컬 확률',unit:'%',min:'1',max:'10'}
+  ];
+  function q(id){return document.getElementById(id)}
+  function h(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+  function val(id){const el=q(id);return el?String(el.value||'').trim():''}
+  function checked(id){const el=q(id);return !!(el&&el.checked)}
+  function setCheck(id,on){const el=q(id);if(el)el.checked=!!on}
+  function currentUser(){try{return (typeof getCurrentUser==='function'?getCurrentUser():null)||{}}catch(e){return {}}}
+  function isAdmin(){try{return typeof isCurrentAdmin==='function'&&isCurrentAdmin()}catch(e){return false}}
+  function post(payload){return fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json())}
+  function uniq(arr){return Array.from(new Set((arr||[]).map(v=>String(v||'').trim()).filter(Boolean)))}
+  function stripStar(name){return String(name||'').replace(/^\*+\s*/,'').trim()}
+  function truthy(v){const s=String(v==null?'TRUE':v).trim().toLowerCase();return !['false','n','no','0','미사용','사용안함','off'].includes(s)}
+  function normalizeOptionRow(row){
+    row=row||{};
+    const rawName=String(row.name||row['옵션명']||row.option_name||row.optionName||row['option_name']||'').trim();
+    const name=stripStar(rawName);
+    if(!name)return null;
+    if(!truthy(row.enabled!==undefined?row.enabled:(row['사용여부']!==undefined?row['사용여부']:'TRUE')))return null;
+    let min=String(row.min!==undefined?row.min:(row['최소값']!==undefined?row['최소값']:'')).trim();
+    let max=String(row.max!==undefined?row.max:(row['최대값']!==undefined?row['최대값']:'')).trim();
+    if(!min)min='1';
+    if(!max)max='20';
+    return {name:name,unit:String(row.unit!==undefined?row.unit:(row['기본단위']||'')).trim(),min:min,max:max,note:String(row.note!==undefined?row.note:(row['비고']||'')).trim()};
+  }
+  function rawOptionRows(){
+    try{ if(Array.isArray(window.modBookOptions)&&window.modBookOptions.length) return window.modBookOptions; }catch(e){}
+    try{ if(typeof modBookOptions!=='undefined'&&Array.isArray(modBookOptions)&&modBookOptions.length) return modBookOptions; }catch(e){}
+    return [];
+  }
+  function getOptionRows(){
+    const map=new Map();
+    rawOptionRows().map(normalizeOptionRow).filter(Boolean).forEach(r=>{if(!map.has(r.name))map.set(r.name,r)});
+    if(!map.size) FALLBACK_OPTIONS.map(normalizeOptionRow).filter(Boolean).forEach(r=>map.set(r.name,r));
+    if(!map.has('직접입력'))map.set('직접입력',{name:'직접입력',unit:'%',min:'1',max:'20'});
+    return Array.from(map.values());
+  }
+  function isWeaponCategory(cat){return WEAPON_CATEGORY_OPTIONS.includes(String(cat||'').trim())}
+  function selectedCategories(){return uniq([val('modReqCategory1V68'),val('modReqCategory2V68')])}
+  function partsForCategories(cats){cats=cats||[];const weaponCats=cats.filter(isWeaponCategory);if(weaponCats.length)return weaponCats;return CLOTH_PARTS.slice()}
+  function optionList(list,current,label){const cur=String(current||'').trim();return `<option value="">${h(label||'선택')}</option>`+list.map(v=>`<option value="${h(v)}" ${String(v)===cur?'selected':''}>${h(v)}</option>`).join('')}
+  function fmtNum(n){let s=(Math.round(Number(n)*1000)/1000).toString();return s.replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1')}
+  function decimalPlaces(s){const m=String(s).match(/\.(\d+)/);return m?m[1].length:0}
+  function numberOptions(min,max,current){
+    let a=Number(String(min||'1').replace(/[^0-9.-]/g,''));let b=Number(String(max||'20').replace(/[^0-9.-]/g,''));
+    if(!isFinite(a))a=1;if(!isFinite(b))b=20;if(a>b){const t=a;a=b;b=t}
+    const dp=Math.max(decimalPlaces(min),decimalPlaces(max));
+    let step=1;if(dp>0)step=0.1;
+    const cur=String(current||'');let html='<option value="">선택</option>';
+    for(let n=a;n<=b+1e-9;n+=step){const v=fmtNum(n);html+=`<option value="${v}" ${v===cur?'selected':''}>${v}</option>`}
+    return html;
+  }
+  function refreshParts(){const list=partsForCategories(selectedCategories());const p1=val('modReqParts1V68'),p2=val('modReqParts2V68');if(q('modReqParts1V68'))q('modReqParts1V68').innerHTML=optionList(list,list.includes(p1)?p1:'','선택');if(q('modReqParts2V68'))q('modReqParts2V68').innerHTML=optionList(list,list.includes(p2)?p2:'','선택')}
+  window.handleModBookRequestCategoryChangeV68=refreshParts;
+  function parseMark(v){let text=String(v||'').trim(),tier=false,debuff=false;while(text.startsWith('!')||text.startsWith('*')){if(text.startsWith('!'))tier=true;if(text.startsWith('*'))debuff=true;text=text.slice(1).trim()}return {text,tier,debuff}}
+  function normalizeSuccessRateValue(v){let t=String(v||'').trim();if(!t)return '';t=t.replace(/％/g,'%').replace(/\s+/g,'');if(/^\d+(?:\.\d+)?$/.test(t))return t+'%';return t}
+  window.normalizeModBookRequestSuccessV68=function(){const el=q('modReqSuccessV68');if(el)el.value=normalizeSuccessRateValue(el.value)};
+  function optionSelectHtml(idx){const rows=getOptionRows();return `<select class="modbook-request-select" id="modReqOption${idx}NameV68" onchange="handleModBookRequestOptionChangeV68(${idx})"><option value="">옵션명 선택</option>`+rows.map(r=>`<option value="${h(r.name)}">${h(r.name)}</option>`).join('')+`</select><input class="modbook-request-input modbook-request-option-custom" id="modReqOption${idx}CustomV68" placeholder="옵션명 직접입력">`}
+  function optionRowHtml(idx){return `<div class="modbook-request-row-v68 option"><div><div class="modbook-request-label">옵션 ${idx}</div><div class="modbook-request-option-grid"><div>${optionSelectHtml(idx)}</div><div><div class="modbook-request-mini-label">최소</div><select class="modbook-request-select" id="modReqOption${idx}MinV68"></select></div><div><div class="modbook-request-mini-label">최대</div><select class="modbook-request-select" id="modReqOption${idx}MaxV68"></select></div><div><div class="modbook-request-mini-label">단위</div><select class="modbook-request-select" id="modReqOption${idx}UnitV68"><option value="%">%</option><option value="">없음</option><option value="초">초</option><option value="개">개</option></select></div><div><div class="modbook-request-mini-label">표시</div><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption${idx}DebuffV68">디버프</label></div></div></div></div></div>`}
+  function optionMeta(name){return getOptionRows().find(r=>r.name===name)||{name:name,unit:'%',min:'1',max:'20'}}
+  window.handleModBookRequestOptionChangeV68=function(idx){const name=val(`modReqOption${idx}NameV68`);const meta=optionMeta(name);const custom=q(`modReqOption${idx}CustomV68`);if(custom){custom.classList.toggle('active',name==='직접입력');if(name!=='직접입력')custom.value=''}const mn=q(`modReqOption${idx}MinV68`),mx=q(`modReqOption${idx}MaxV68`),un=q(`modReqOption${idx}UnitV68`);if(mn)mn.innerHTML=numberOptions(meta.min,meta.max,mn.value);if(mx)mx.innerHTML=numberOptions(meta.min,meta.max,mx.value);if(un)un.value=meta.unit!==undefined?String(meta.unit):'%'};
+  function initOptionRow(idx){const mn=q(`modReqOption${idx}MinV68`),mx=q(`modReqOption${idx}MaxV68`);if(mn)mn.innerHTML=numberOptions(1,20,'');if(mx)mx.innerHTML=numberOptions(1,20,'')}
+  function splitCategoryText(raw){return String(raw||'').split(/[,·|\n]+/).map(v=>String(v||'').trim()).filter(Boolean)}
+  function splitPartText(raw){try{if(typeof splitModParts==='function')return splitModParts(raw||'')}catch(e){}return String(raw||'').replace(/겉옷\s*,\s*단독상의/g,'겉옷/단독상의').replace(/겉옷\s*\/\s*단독상의/g,'겉옷/단독상의').split(/[,·|\n]+/).map(v=>String(v||'').trim()).filter(Boolean)}
+  function signed(v,debuff){let s=String(v||'').trim();if(!s)return '';s=s.replace(/^[-+]/,'');return debuff?('-'+s):s}
+  function parseExistingOptionText(v){const p=parseMark(v||'');let text=p.text,name=text,min='',max='',unit='%';const m=text.match(/^(.*?)\s*\(([-+]?\d+(?:\.\d+)?)([^\d~)]*)\s*~\s*([-+]?\d+(?:\.\d+)?)([^\d)]*)\)$/);if(m){name=m[1].trim();min=String(Math.abs(Number(m[2])));unit=(m[3]||m[5]||'').trim();max=String(Math.abs(Number(m[4])))}else{const s=text.match(/^(.*?)\s*\(([-+]?\d+(?:\.\d+)?)([^\d)]*)\)$/);if(s){name=s[1].trim();min=String(Math.abs(Number(s[2])));max=min;unit=(s[3]||'').trim()}}return {name, min, max, unit, debuff:p.debuff}}
+  function setOptionFromText(idx,raw){const parsed=parseExistingOptionText(raw||'');const rows=getOptionRows();const exists=rows.some(r=>r.name===parsed.name);const sel=q(`modReqOption${idx}NameV68`);if(sel)sel.value=parsed.name?(exists?parsed.name:'직접입력'):'';handleModBookRequestOptionChangeV68(idx);if(!exists&&parsed.name){const c=q(`modReqOption${idx}CustomV68`);if(c){c.value=parsed.name;c.classList.add('active')}}const mn=q(`modReqOption${idx}MinV68`),mx=q(`modReqOption${idx}MaxV68`),un=q(`modReqOption${idx}UnitV68`);if(mn&&parsed.min)mn.value=parsed.min;if(mx&&parsed.max)mx.value=parsed.max;if(un)un.value=parsed.unit;setCheck(`modReqOption${idx}DebuffV68`,parsed.debuff)}
+  function buildOptionText(idx){let name=val(`modReqOption${idx}NameV68`);if(name==='직접입력')name=val(`modReqOption${idx}CustomV68`);name=stripStar(name);const min0=val(`modReqOption${idx}MinV68`),max0=val(`modReqOption${idx}MaxV68`),unit=val(`modReqOption${idx}UnitV68`);if(!name)return '';const deb=checked(`modReqOption${idx}DebuffV68`);const min=signed(min0,deb),max=signed(max0,deb);let range='';if(min&&max){range=min===max?` (${min}${unit})`:` (${min}${unit} ~ ${max}${unit})`}else if(min){range=` (${min}${unit})`}return (deb?'*':'')+name+range}
+  function ensureModal(){if(q('modBookRequestModalV68'))return;document.body.insertAdjacentHTML('beforeend',`<div class="modbook-request-modal" id="modBookRequestModalV68"><div class="modbook-request-box"><div class="modbook-request-head"><div class="modbook-request-title" id="modBookRequestModalTitleV68">개조서 등록 신청</div><button class="modbook-request-close" onclick="closeModBookRequestModalV68()">×</button></div><div class="modbook-request-body"><input type="hidden" id="modReqRequestIdV68"><div class="modbook-request-row-v66 type"><div><div class="modbook-request-label">개조위치</div><select class="modbook-request-select" id="modReqTypeV68"><option value="접두">접두</option><option value="접미">접미</option></select></div></div><div class="modbook-request-row-v66 two"><div><div class="modbook-request-label">분류1</div><select class="modbook-request-select" id="modReqCategory1V68" onchange="handleModBookRequestCategoryChangeV68()">${optionList(CATEGORY_OPTIONS,'','선택')}</select></div><div><div class="modbook-request-label">분류2</div><select class="modbook-request-select" id="modReqCategory2V68" onchange="handleModBookRequestCategoryChangeV68()">${optionList(CATEGORY_OPTIONS,'','선택')}</select></div></div><div class="modbook-request-row-v66 two"><div><div class="modbook-request-label">부위1</div><select class="modbook-request-select" id="modReqParts1V68"></select></div><div><div class="modbook-request-label">부위2</div><select class="modbook-request-select" id="modReqParts2V68"></select></div></div><div class="modbook-request-row-v66 name"><div><div class="modbook-request-label">개조서 이름</div><input class="modbook-request-input" id="modReqNameV68" placeholder="예: 전력질주의"></div><div><div class="modbook-request-label">표시</div><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqTier1V68">1티어</label></div></div></div>${optionRowHtml(1)}${optionRowHtml(2)}${optionRowHtml(3)}<div class="modbook-request-row-v66 success"><div><div class="modbook-request-label">성공률</div><input class="modbook-request-input" id="modReqSuccessV68" placeholder="예: 20 또는 20%" onblur="normalizeModBookRequestSuccessV68()"></div></div><div class="modbook-request-row-v66 note"><div><div class="modbook-request-label">비고</div><textarea class="modbook-request-textarea" id="modReqNoteV68" placeholder="출처, 확인 내용, 특이사항 등"></textarea></div></div><div class="modbook-request-v66-note">옵션명은 개조서옵션목록 시트에서 불러옵니다. 디버프 체크 시 *표시와 음수 수치가 자동 적용됩니다.</div><div class="modbook-request-help" id="modReqHelpV68">일반 팀원은 신청으로 접수되고, 관리자 검수 후 정식 개조서에 반영됩니다.</div><div class="modbook-request-actions-bottom"><button class="modbook-request-btn secondary" onclick="closeModBookRequestModalV68()">닫기</button><button class="modbook-request-btn danger" id="modReqRejectBtnV68" onclick="rejectModBookRequestFromFormV68()" style="display:none">반려</button><button class="modbook-request-btn" id="modReqSubmitBtnV68" onclick="submitModBookRequestV68()">신청 접수</button><button class="modbook-request-btn" id="modReqDirectBtnV68" onclick="directAddModBookV68()" style="display:none">관리자 바로 등록</button><button class="modbook-request-btn" id="modReqApproveBtnV68" onclick="approveModBookRequestV68()" style="display:none">수정 후 승인</button></div></div></div></div>`);refreshParts();[1,2,3].forEach(initOptionRow)}
+  function fillForm(item){item=item||{};if(q('modReqTypeV68'))q('modReqTypeV68').value=item.type||'접두';const cats=splitCategoryText(item.category||'');if(q('modReqCategory1V68'))q('modReqCategory1V68').value=CATEGORY_OPTIONS.includes(cats[0])?cats[0]:'';if(q('modReqCategory2V68'))q('modReqCategory2V68').value=CATEGORY_OPTIONS.includes(cats[1])?cats[1]:'';refreshParts();const parts=splitPartText(item.parts||'');if(q('modReqParts1V68'))q('modReqParts1V68').value=parts[0]||'';if(q('modReqParts2V68'))q('modReqParts2V68').value=parts[1]||'';const nm=parseMark(item.name||'');if(q('modReqNameV68'))q('modReqNameV68').value=nm.text||'';setCheck('modReqTier1V68',nm.tier);setOptionFromText(1,item.option1||'');setOptionFromText(2,item.option2||'');setOptionFromText(3,item.option3||'');if(q('modReqSuccessV68'))q('modReqSuccessV68').value=item.success_rate||'';if(q('modReqNoteV68'))q('modReqNoteV68').value=item.note||''}
+  function itemFromForm(){const cats=uniq([val('modReqCategory1V68'),val('modReqCategory2V68')]);const parts=uniq([val('modReqParts1V68'),val('modReqParts2V68')]);return {type:val('modReqTypeV68'),category:cats.join(', '),name:(checked('modReqTier1V68')?'!':'')+val('modReqNameV68'),parts:parts.join(', '),option1:buildOptionText(1),option2:buildOptionText(2),option3:buildOptionText(3),success_rate:normalizeSuccessRateValue(val('modReqSuccessV68')),order:'',note:val('modReqNoteV68')}}
+  function validate(item){const cleanName=String(item.name||'').replace(/^!/,'').trim();if(!item.type)return '개조위치를 선택하세요.';if(!item.category)return '분류1을 선택하세요.';if(!cleanName)return '개조서 이름을 입력하세요.';if(!item.parts)return '부위를 1개 이상 선택하세요.';if(!item.option1&&!item.option2&&!item.option3)return '옵션을 1개 이상 선택하세요.';return ''}
+  window.closeModBookRequestModalV68=function(){const m=q('modBookRequestModalV68');if(m)m.classList.remove('active')};
+  window.openModBookRequestFormV68=function(request){const u=currentUser();if(!u.nickname){alert('로그인 후 이용 가능합니다.');if(typeof openAuthModal==='function')openAuthModal('login');return}ensureModal();request=request||null;q('modReqRequestIdV68').value=request?String(request.id||''):'';q('modBookRequestModalTitleV68').textContent=request?'개조서 등록 신청 검수':'개조서 등록 신청';fillForm(request||{});const reviewing=!!request;q('modReqSubmitBtnV68').style.display=reviewing?'none':'';q('modReqDirectBtnV68').style.display=(!reviewing&&isAdmin())?'':'none';q('modReqApproveBtnV68').style.display=reviewing?'':'none';q('modReqRejectBtnV68').style.display=reviewing?'':'none';q('modReqHelpV68').textContent=reviewing?'내용을 수정한 뒤 승인하거나 반려할 수 있습니다. 승인 시 정렬순서는 분류1 기준으로 자동 부여됩니다.':'일반 팀원은 신청으로 접수되고, 관리자 검수 후 정식 개조서에 반영됩니다.';q('modBookRequestModalV68').classList.add('active')};
+  window.submitModBookRequestV68=function(){const u=currentUser();if(!u.nickname){alert('로그인 후 이용 가능합니다.');return}const item=itemFromForm(),err=validate(item);if(err){alert(err);return}const btn=q('modReqSubmitBtnV68');if(btn){btn.disabled=true;btn.textContent='접수 중...'}post({type:'modbook_request_submit',nickname:u.nickname,item:item}).then(data=>{if(data&&data.result==='success'){alert(data.message||'개조서 등록 신청이 접수되었습니다.');closeModBookRequestModalV68()}else alert((data&&data.message)||'신청 접수에 실패했습니다.')}).catch(()=>alert('신청 접수 중 오류가 발생했습니다.')).finally(()=>{const b=q('modReqSubmitBtnV68');if(b){b.disabled=false;b.textContent='신청 접수'}})};
+  window.directAddModBookV68=function(){if(!isAdmin()){alert('관리자 권한이 필요합니다.');return}const item=itemFromForm(),err=validate(item);if(err){alert(err);return}if(!confirm('이 개조서를 신청 절차 없이 바로 정식 등록할까요?\n정렬순서는 분류1 기준으로 자동 부여됩니다.'))return;const btn=q('modReqDirectBtnV68');if(btn){btn.disabled=true;btn.textContent='등록 중...'}adminApi({type:'modbook_direct_add',item:item}).then(data=>{if(data&&data.result==='success'){if(data.modBooks)modBooks=data.modBooks;try{sessionStorage.removeItem(DATA_CACHE_KEY)}catch(e){}alert(data.message||'개조서가 등록되었습니다.');closeModBookRequestModalV68();if(currentInfoSubTab==='modbook')showModBooks()}else alert((data&&data.message)||'등록에 실패했습니다.')}).catch(()=>alert('등록 중 오류가 발생했습니다.')).finally(()=>{const b=q('modReqDirectBtnV68');if(b){b.disabled=false;b.textContent='관리자 바로 등록'}})};
+  window.approveModBookRequestV68=function(){if(!isAdmin()){alert('관리자 권한이 필요합니다.');return}const requestId=val('modReqRequestIdV68'),item=itemFromForm(),err=validate(item);if(err){alert(err);return}if(!requestId){alert('신청 ID가 없습니다.');return}if(!confirm('이 신청을 승인하고 정식 개조서로 등록할까요?\n정렬순서는 분류1 기준으로 자동 부여됩니다.'))return;const btn=q('modReqApproveBtnV68');if(btn){btn.disabled=true;btn.textContent='승인 중...'}adminApi({type:'modbook_request_approve',request_id:requestId,item:item}).then(data=>{if(data&&data.result==='success'){if(data.modBooks)modBooks=data.modBooks;try{sessionStorage.removeItem(DATA_CACHE_KEY)}catch(e){}alert(data.message||'승인되었습니다.');closeModBookRequestModalV68();if(typeof openModBookRequestAdminV54==='function')openModBookRequestAdminV54();if(currentInfoSubTab==='modbook')showModBooks()}else alert((data&&data.message)||'승인에 실패했습니다.')}).catch(()=>alert('승인 중 오류가 발생했습니다.')).finally(()=>{const b=q('modReqApproveBtnV68');if(b){b.disabled=false;b.textContent='수정 후 승인'}})};
+  window.rejectModBookRequestFromFormV68=function(){const requestId=val('modReqRequestIdV68');if(!requestId){alert('신청 ID가 없습니다.');return}if(typeof rejectModBookRequestV54==='function')rejectModBookRequestV54(requestId)};
+  ['V53','V54','V58','V59','V60','V61','V62','V63','V64','V65','V66','V67'].forEach(v=>{window['openModBookRequestForm'+v]=window.openModBookRequestFormV68;window['closeModBookRequestModal'+v]=window.closeModBookRequestModalV68;window['submitModBookRequest'+v]=window.submitModBookRequestV68;window['directAddModBook'+v]=window.directAddModBookV68;window['approveModBookRequest'+v]=window.approveModBookRequestV68;window['rejectModBookRequestFromForm'+v]=window.rejectModBookRequestFromFormV68;});
+  window.axeModBookRequestV68Debug=function(){return {version:V68_VERSION,apiUrl:typeof API_URL!=='undefined'?API_URL:'',sheetOptionRows:rawOptionRows().length,optionListCount:getOptionRows().length,sampleOptions:getOptionRows().slice(0,8).map(r=>r.name),hasModal:!!q('modBookRequestModalV68'),category1:!!q('modReqCategory1V68'),category2:!!q('modReqCategory2V68'),parts1:!!q('modReqParts1V68'),parts2:!!q('modReqParts2V68')}};
+  window.axeModBookRequestV67Debug=window.axeModBookRequestV68Debug;
+  window.axeModBookRequestV66Debug=window.axeModBookRequestV68Debug;
 })();
 </script>
