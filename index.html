@@ -22028,8 +22028,8 @@ function axeModBookFilterV34Debug(){
 (function(){
   const V58_VERSION='AXE_NET_MODBOOK_REQUEST_V58_FORCED_PARTS';
   const GUN_PART_KEYWORDS=['권총','SMG','S.M.G','기관단총','라이플','소총','샷건','저격총','스나이퍼','리볼버','피스톨','PISTOL','REVOLVER','총','총기'];
-  const DEFAULT_CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발','장갑','모자'];
   const DEFAULT_GUN_PARTS=['권총','SMG','라이플','샷건','저격총','리볼버'];
+  const KNOWN_CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발'];
   function q(id){return document.getElementById(id)}
   function h(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
   function val(id){const el=q(id);return el?String(el.value||'').trim():''}
@@ -22644,10 +22644,10 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
 
 <script id="axe-net-modbook-request-v59-script">
 (function(){
-  const V59_VERSION='AXE_NET_MODBOOK_REQUEST_V62_CATEGORY_PARTS_FIX';
+  const V59_VERSION='AXE_NET_MODBOOK_REQUEST_V63_REAL_PARTS_FILTER';
   const GUN_PART_KEYWORDS=['권총','SMG','S.M.G','기관단총','라이플','소총','샷건','저격총','스나이퍼','리볼버','피스톨','PISTOL','REVOLVER','총','총기'];
-  const DEFAULT_CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발','장갑','모자'];
   const DEFAULT_GUN_PARTS=['권총','SMG','라이플','샷건','저격총','리볼버'];
+  const KNOWN_CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발'];
   function q(id){return document.getElementById(id)}
   function h(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
   function val(id){const el=q(id);return el?String(el.value||'').trim():''}
@@ -22676,12 +22676,32 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
     return uniq([...defaults,...fromData]);
   }
   function selectedCategory(){const s=q('modReqCategorySelectV59');return s?(s.value==='__custom__'?val('modReqCategoryCustomV59'):String(s.value||'').trim()):''}
-  function allPartsFromData(){const parts=[];getModBookDataV62().forEach(m=>splitPartText(m.parts||m['parts']||m['부위']||'').forEach(p=>parts.push(p)));return uniq(parts)}
+  function rowCategory(m){return normalizeCategoryNameV62(m.category||m['category']||m['분류']||'')}
+  function rowParts(m){return splitPartText(m.parts||m['parts']||m['부위']||'')}
+  function allPartsFromData(){const parts=[];getModBookDataV62().forEach(m=>rowParts(m).forEach(p=>parts.push(p)));return uniq(parts)}
+  function partsFromCategory(category){
+    const cat=String(category||'').trim();
+    const data=getModBookDataV62();
+    const parts=[];
+    data.forEach(m=>{
+      const mc=rowCategory(m);
+      if(cat && mc!==cat)return;
+      rowParts(m).forEach(p=>parts.push(p));
+    });
+    return uniq(parts);
+  }
   function partOptionsFor(category){
+    const cat=String(category||'').trim();
+    const categoryParts=partsFromCategory(cat);
     const all=allPartsFromData();
-    const gun=uniq([...DEFAULT_GUN_PARTS,...all.filter(isGunPart)]);
-    const cloth=uniq([...DEFAULT_CLOTH_PARTS,...all.filter(p=>!isGunPart(p))]);
-    return isGunCategory(category)?gun:cloth;
+    if(isGunCategory(cat)){
+      const fromCategory=categoryParts.filter(isGunPart);
+      const fromAll=all.filter(isGunPart);
+      return uniq([...(fromCategory.length?fromCategory:fromAll),...DEFAULT_GUN_PARTS]);
+    }
+    const clothingCandidates=(categoryParts.length?categoryParts:all).filter(p=>!isGunPart(p));
+    const normalized=uniq(clothingCandidates).filter(p=>KNOWN_CLOTH_PARTS.includes(p));
+    return normalized.length?normalized:KNOWN_CLOTH_PARTS.slice();
   }
   function selectHtml(list,current,label){const cur=String(current||'').trim();const has=!cur||list.indexOf(cur)>=0;return `<option value="">${h(label||'선택')}</option>`+list.map(v=>`<option value="${h(v)}" ${v===cur?'selected':''}>${h(v)}</option>`).join('')+`<option value="__custom__" ${cur&&!has?'selected':''}>직접입력</option>`}
   function showCustom(selectId,customId){const s=q(selectId),c=q(customId);if(!s||!c)return;c.classList.toggle('active',s.value==='__custom__')}
@@ -22734,6 +22754,6 @@ window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBo
   window.rejectModBookRequestFromFormV59=function(){const requestId=val('modReqRequestIdV59');if(!requestId){alert('신청 ID가 없습니다.');return}if(typeof rejectModBookRequestV54==='function')rejectModBookRequestV54(requestId)};
   window.openModBookRequestFormV54=window.openModBookRequestFormV59;window.openModBookRequestFormV53=window.openModBookRequestFormV59;window.closeModBookRequestModalV54=window.closeModBookRequestModalV59;window.closeModBookRequestModalV53=window.closeModBookRequestModalV59;window.submitModBookRequestV54=window.submitModBookRequestV59;window.submitModBookRequestV53=window.submitModBookRequestV59;window.directAddModBookV54=window.directAddModBookV59;window.directAddModBookV53=window.directAddModBookV59;window.approveModBookRequestV54=window.approveModBookRequestV59;window.approveModBookRequestV53=window.approveModBookRequestV59;window.rejectModBookRequestFromFormV54=window.rejectModBookRequestFromFormV59;window.rejectModBookRequestFromFormV53=window.rejectModBookRequestFromFormV59;
   window.axeModBookRequestV59Debug=function(){return {version:V59_VERSION,apiUrl:typeof API_URL!=='undefined'?API_URL:'',hasV59Modal:!!q('modBookRequestModalV59'),parts1Select:!!q('modReqParts1SelectV59'),parts2Select:!!q('modReqParts2SelectV59'),orderInputExists:!!q('modReqOrderV59'),selectedCategory:selectedCategory(),partsOptions:partOptionsFor(selectedCategory())}};
-  window.axeModBookRequestV62Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV61Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV60Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV58Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV59Debug;
+  window.axeModBookRequestV63Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV62Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV61Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV60Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV58Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV54Debug=window.axeModBookRequestV59Debug;window.axeModBookRequestV53Debug=window.axeModBookRequestV59Debug;
 })();
 </script>
