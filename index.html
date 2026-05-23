@@ -4576,7 +4576,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxAW2RePbdb2T-qGTCs_TMy92N0qQJvj0lK53dR0QXWGNjoe74kWf4yoITqqzX9VzlF0Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzYm0GGLzFA0AKOyDff27Wm8DH_j3NRMk4vziCN-N-FfT9jMu2zT1sQWLqEMoXHtZodSw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -20280,6 +20280,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     }
     function renderRows(rows){
         window.__fundLedgerMemoStoreV51={};
+        window.__fundLedgerEditStoreV52={};
         return rows.map((r,index)=>{
             const ledgerId=typeof getFundLedgerId==="function"?getFundLedgerId(r,index):String(index);
             const ledgerKey=typeof makeFundLedgerKey==="function"?makeFundLedgerKey(r):"";
@@ -20296,8 +20297,10 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
                 title:[formatDateOnly(r.date||r.created_at),r.category,related].filter(Boolean).join(" · ")||"공금내역 메모",
                 memo:rawMemo
             };
+            window.__fundLedgerEditStoreV52=window.__fundLedgerEditStoreV52||{};
+            window.__fundLedgerEditStoreV52[String(ledgerId)]=Object.assign({},r,{__ledger_id:ledgerId,__ledger_key:ledgerKey});
             const memoCell=hasMemo?`<button class="fund-btn fund-ledger-memo-view-btn" type="button" onclick="openFundLedgerMemoV51('${memoKey}')">메모보기</button>`:`<span class="fund-ledger-empty-text">-</span>`;
-            return `<tr class="fund-ledger-row"><td class="fund-ledger-date-cell">${fundLedgerText(formatDateOnly(r.date||r.created_at))}</td><td class="fund-ledger-type-cell">${fundLedgerKindOnly(r)}</td><td class="fund-ledger-category-cell">${fundLedgerText(r.category)}</td><td class="fund-ledger-related-cell">${fundLedgerText(related)}</td><td class="fund-ledger-month-cell">${monthWeek}</td><td class="money ${moneyClass} fund-ledger-money-cell">${signed}${fundMoney(r.amount)}</td><td class="fund-ledger-direction-cell">${fundLedgerText(direction)}</td><td class="fund-ledger-account-cell">${fundLedgerText(r.account)}</td><td class="fund-ledger-evidence-cell">${fundEvidenceLink(r.evidence_url)}</td><td class="fund-ledger-memo-cell">${memoCell}</td><td class="fund-ledger-action-cell"><button class="fund-btn danger fund-ledger-delete-btn" data-ledger-delete="${escapeAttr(ledgerId)}" onclick="deleteFundLedger('${escapeText(ledgerId)}',this,'${escapeText(ledgerKey)}')">삭제</button></td></tr>`;
+            return `<tr class="fund-ledger-row"><td class="fund-ledger-date-cell">${fundLedgerText(formatDateOnly(r.date||r.created_at))}</td><td class="fund-ledger-type-cell">${fundLedgerKindOnly(r)}</td><td class="fund-ledger-category-cell">${fundLedgerText(r.category)}</td><td class="fund-ledger-related-cell">${fundLedgerText(related)}</td><td class="fund-ledger-month-cell">${monthWeek}</td><td class="money ${moneyClass} fund-ledger-money-cell">${signed}${fundMoney(r.amount)}</td><td class="fund-ledger-direction-cell">${fundLedgerText(direction)}</td><td class="fund-ledger-account-cell">${fundLedgerText(r.account)}</td><td class="fund-ledger-evidence-cell">${fundEvidenceLink(r.evidence_url)}</td><td class="fund-ledger-memo-cell">${memoCell}</td><td class="fund-ledger-action-cell"><button class="fund-btn fund-ledger-edit-btn" data-ledger-edit="${escapeAttr(ledgerId)}" onclick="openFundLedgerEditV52('${escapeText(ledgerId)}')">편집</button></td></tr>`;
         }).join("")||`<tr><td colspan="11"><div class="fund-empty">조건에 맞는 공금내역이 없습니다.</div></td></tr>`;
     }
     function renderFilterPanel(total,shown,base){
@@ -20467,6 +20470,160 @@ window.axeFundLedgerSemanticV47Debug=window.axeFundLedgerV50Debug;
 .fund-ledger-memo-close-v51:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);}
 .fund-ledger-memo-body-v51{padding:17px 18px;max-height:64vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.65;color:#ddd;font-size:14px;background:rgba(0,0,0,.22);}
 @media(max-width:760px){.fund-ledger-table{min-width:1080px!important}.fund-ledger-memo-box-v51{width:96vw}.fund-ledger-memo-body-v51{font-size:13px;line-height:1.6;padding:15px}}
+</style>
+
+
+<script id="axe-fund-ledger-edit-v52-script">
+/* AXE NET V52: 공금내역 관리 칸은 편집 버튼으로 통합, 편집 모달에서 수정/삭제 처리 */
+(function(){
+  const V52_VERSION='AXE_NET_FUND_LEDGER_EDIT_MODAL_V52';
+  function t(v){return String(v===undefined||v===null?'':v);}
+  function trim(v){return t(v).trim();}
+  function setVal(id,value){const el=document.getElementById(id); if(el)el.value=t(value);}
+  function getVal(id){const el=document.getElementById(id); return el?el.value:'';}
+  function moneyNum(v){return String(v||'').replace(/[$,\s]/g,'');}
+  function dateInputValue(value){
+    const raw=trim(value);
+    if(!raw)return '';
+    const d=new Date(raw);
+    if(!isNaN(d.getTime())){
+      const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+    const m=raw.match(/^(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
+    if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+    return raw;
+  }
+  function findRow(id){
+    id=String(id||'');
+    if(window.__fundLedgerEditStoreV52&&window.__fundLedgerEditStoreV52[id])return window.__fundLedgerEditStoreV52[id];
+    if(Array.isArray(window.fundLedger)){
+      for(let i=0;i<window.fundLedger.length;i++){
+        const r=window.fundLedger[i];
+        const rid=(typeof getFundLedgerId==='function')?String(getFundLedgerId(r,i)):String(r&&r.id||i);
+        if(rid===id)return Object.assign({},r,{__ledger_id:rid,__ledger_key:(typeof makeFundLedgerKey==='function'?makeFundLedgerKey(r):'')});
+      }
+    }
+    return null;
+  }
+  function ensureModal(){
+    let modal=document.getElementById('fundLedgerEditModalV52');
+    if(modal)return modal;
+    modal=document.createElement('div');
+    modal.id='fundLedgerEditModalV52';
+    modal.className='fund-ledger-edit-modal-v52';
+    modal.innerHTML=`<div class="fund-ledger-edit-box-v52">
+      <div class="fund-ledger-edit-head-v52"><div class="fund-ledger-edit-title-v52">공금내역 편집</div><button class="fund-ledger-edit-close-v52" type="button" onclick="closeFundLedgerEditV52()">×</button></div>
+      <div class="fund-ledger-edit-body-v52">
+        <input type="hidden" id="fundLedgerEditIdV52">
+        <div class="fund-ledger-edit-grid-v52">
+          <label><span>날짜</span><input class="fund-input" id="fundLedgerEditDateV52" type="date"></label>
+          <label><span>유형</span><input class="fund-input" id="fundLedgerEditTypeV52" placeholder="예: 지출, 기타수입, 공금납부"></label>
+          <label><span>항목</span><input class="fund-input" id="fundLedgerEditCategoryV52" placeholder="예: 의뢰비"></label>
+          <label><span>관련자</span><input class="fund-input" id="fundLedgerEditNicknameV52" placeholder="없으면 비워두세요"></label>
+          <label><span>대상 월</span><input class="fund-input" id="fundLedgerEditMonthV52" placeholder="예: 2026-05"></label>
+          <label><span>주차</span><input class="fund-input" id="fundLedgerEditWeekV52" placeholder="예: 3"></label>
+          <label><span>금액</span><input class="fund-input" id="fundLedgerEditAmountV52" type="number" placeholder="숫자만 입력"></label>
+          <label><span>수입/지출</span><select class="fund-select" id="fundLedgerEditDirectionV52"><option value="수입">수입</option><option value="지출">지출</option><option value="조정">조정</option></select></label>
+          <label><span>계좌</span><select class="fund-select" id="fundLedgerEditAccountV52"><option value="공용계좌">공용계좌</option><option value="회사잔고">회사잔고</option><option value="분할납부">분할납부</option></select></label>
+          <label><span>증빙 URL</span><input class="fund-input" id="fundLedgerEditEvidenceUrlV52" placeholder="증빙 이미지 URL"></label>
+          <label class="full"><span>메모</span><textarea class="fund-textarea" id="fundLedgerEditMemoV52" placeholder="메모를 입력하세요"></textarea></label>
+        </div>
+        <div class="fund-ledger-edit-help-v52">관리 칸은 표에서 간단히 보이도록 편집 버튼만 표시합니다. 삭제는 이 창 안에서 처리합니다.</div>
+        <div class="fund-ledger-edit-actions-v52"><button class="fund-btn" type="button" onclick="closeFundLedgerEditV52()">닫기</button><button class="fund-btn danger" type="button" onclick="deleteFundLedgerFromEditV52()">삭제</button><button class="fund-btn primary" id="fundLedgerEditSaveBtnV52" type="button" onclick="saveFundLedgerEditV52()">수정 저장</button></div>
+      </div>
+    </div>`;
+    modal.addEventListener('click',function(e){if(e.target===modal)closeFundLedgerEditV52();});
+    document.body.appendChild(modal);
+    return modal;
+  }
+  window.openFundLedgerEditV52=function(id){
+    const row=findRow(id);
+    if(!row){alert('편집할 공금내역을 찾을 수 없습니다.');return;}
+    const modal=ensureModal();
+    setVal('fundLedgerEditIdV52',id);
+    setVal('fundLedgerEditDateV52',dateInputValue(row.date||row.created_at));
+    setVal('fundLedgerEditTypeV52',row.type||'');
+    setVal('fundLedgerEditCategoryV52',row.category||'');
+    setVal('fundLedgerEditNicknameV52',row.nickname||'');
+    setVal('fundLedgerEditMonthV52',row.month||'');
+    setVal('fundLedgerEditWeekV52',row.week||'');
+    setVal('fundLedgerEditAmountV52',moneyNum(row.amount));
+    setVal('fundLedgerEditDirectionV52',row.direction||'수입');
+    setVal('fundLedgerEditAccountV52',row.account||'공용계좌');
+    setVal('fundLedgerEditEvidenceUrlV52',row.evidence_url||'');
+    setVal('fundLedgerEditMemoV52',row.memo||'');
+    modal.classList.add('active');
+  };
+  window.closeFundLedgerEditV52=function(){const modal=document.getElementById('fundLedgerEditModalV52'); if(modal)modal.classList.remove('active');};
+  function applyFundLedgerResponse(data){
+    if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
+    if(data&&data.summary)window.fundSummary=data.summary;
+    try{if(typeof DATA_CACHE_KEY!=='undefined')sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){}
+    if(typeof renderFundTab==='function')renderFundTab();
+    else if(typeof renderFundLedgerFilteredOnly==='function')renderFundLedgerFilteredOnly();
+  }
+  window.saveFundLedgerEditV52=function(){
+    const id=trim(getVal('fundLedgerEditIdV52'));
+    if(!id){alert('공금내역 정보가 없습니다.');return;}
+    const amount=trim(getVal('fundLedgerEditAmountV52'));
+    if(!amount||Number(amount)===0){alert('금액을 입력하세요.');return;}
+    const btn=document.getElementById('fundLedgerEditSaveBtnV52');
+    if(btn){btn.disabled=true;btn.textContent='저장 중...';}
+    const payload={
+      type:'fund_ledger_update',
+      ledger_id:id,
+      date:getVal('fundLedgerEditDateV52'),
+      log_type:getVal('fundLedgerEditTypeV52'),
+      category:getVal('fundLedgerEditCategoryV52'),
+      nickname:getVal('fundLedgerEditNicknameV52'),
+      month:getVal('fundLedgerEditMonthV52'),
+      week:getVal('fundLedgerEditWeekV52'),
+      amount:amount,
+      direction:getVal('fundLedgerEditDirectionV52'),
+      account:getVal('fundLedgerEditAccountV52'),
+      memo:getVal('fundLedgerEditMemoV52'),
+      evidence_url:getVal('fundLedgerEditEvidenceUrlV52')
+    };
+    (typeof fundAdminApi==='function'?fundAdminApi(payload):adminApi(payload)).then(function(data){
+      if(data&&data.result==='success'){closeFundLedgerEditV52();applyFundLedgerResponse(data); if(typeof showToast==='function')showToast('공금내역이 수정되었습니다.'); else alert(data.message||'수정되었습니다.');}
+      else alert((data&&data.message)||'수정에 실패했습니다.');
+    }).catch(function(){alert('수정 중 오류가 발생했습니다.');}).finally(function(){const b=document.getElementById('fundLedgerEditSaveBtnV52'); if(b){b.disabled=false;b.textContent='수정 저장';}});
+  };
+  window.deleteFundLedgerFromEditV52=function(){
+    const id=trim(getVal('fundLedgerEditIdV52'));
+    if(!id){alert('공금내역 정보가 없습니다.');return;}
+    const reason=prompt('삭제 사유를 입력해주세요.');
+    if(!reason||!String(reason).trim())return;
+    if(!confirm('이 공금내역을 삭제 처리할까요?'))return;
+    (typeof fundAdminApi==='function'?fundAdminApi({type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()}):adminApi({type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()})).then(function(data){
+      if(data&&data.result==='success'){closeFundLedgerEditV52();applyFundLedgerResponse(data); if(typeof showToast==='function')showToast('공금내역이 삭제 처리되었습니다.'); else alert(data.message||'삭제되었습니다.');}
+      else alert((data&&data.message)||'삭제에 실패했습니다.');
+    }).catch(function(){alert('삭제 중 오류가 발생했습니다.');});
+  };
+  window.addEventListener('keydown',function(e){if(e.key==='Escape')closeFundLedgerEditV52();});
+  window.axeFundLedgerEditV52Debug=function(){return {version:V52_VERSION, editButtons:document.querySelectorAll('.fund-ledger-edit-btn').length, memoButtons:document.querySelectorAll('.fund-ledger-memo-view-btn').length, modalExists:!!document.getElementById('fundLedgerEditModalV52'), apiUrl:typeof API_URL!=='undefined'?API_URL:''};};
+})();
+</script>
+<style id="axe-fund-ledger-edit-v52-style">
+.fund-ledger-edit-btn{min-width:58px!important;height:32px!important;padding:0 10px!important;white-space:nowrap!important;color:#ddd!important;border-color:rgba(255,255,255,.16)!important;background:rgba(255,255,255,.055)!important;}
+.fund-ledger-edit-btn:hover{color:#ffb52e!important;border-color:rgba(255,181,46,.48)!important;background:rgba(255,181,46,.075)!important;}
+.fund-ledger-edit-modal-v52{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.78);z-index:10030;}
+.fund-ledger-edit-modal-v52.active{display:flex;}
+.fund-ledger-edit-box-v52{width:min(760px,96vw);max-height:88vh;border-radius:18px;border:1px solid rgba(255,181,46,.26);background:#0d0d0d;box-shadow:0 22px 70px rgba(0,0,0,.55);overflow:hidden;}
+.fund-ledger-edit-head-v52{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.fund-ledger-edit-title-v52{font-size:15px;font-weight:950;color:#ffb52e;}
+.fund-ledger-edit-close-v52{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:20px;font-weight:950;cursor:pointer;}
+.fund-ledger-edit-body-v52{padding:16px;max-height:76vh;overflow:auto;background:rgba(0,0,0,.16);}
+.fund-ledger-edit-grid-v52{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.fund-ledger-edit-grid-v52 label{display:block;min-width:0;}
+.fund-ledger-edit-grid-v52 label.full{grid-column:1/-1;}
+.fund-ledger-edit-grid-v52 span{display:block;margin:0 0 5px 2px;color:#aaa;font-size:12px;font-weight:950;}
+.fund-ledger-edit-grid-v52 .fund-input,.fund-ledger-edit-grid-v52 .fund-select,.fund-ledger-edit-grid-v52 .fund-textarea{width:100%;}
+.fund-ledger-edit-grid-v52 .fund-textarea{min-height:120px;white-space:pre-wrap;}
+.fund-ledger-edit-help-v52{margin-top:10px;color:#888;font-size:12px;line-height:1.5;}
+.fund-ledger-edit-actions-v52{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+@media(max-width:760px){.fund-ledger-edit-grid-v52{grid-template-columns:1fr}.fund-ledger-edit-actions-v52{display:grid;grid-template-columns:1fr;}.fund-ledger-edit-box-v52{width:96vw}}
 </style>
 
 <script id="axe-net-duplicate-click-guard-v11">
