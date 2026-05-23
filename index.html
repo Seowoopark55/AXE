@@ -4154,6 +4154,32 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </style>
 
 
+
+
+<style id="axe-fund-duplicate-guard-style">
+/* AXE NET V35: 공금 납부 중복신청 방지 안내 */
+.fund-duplicate-notice{
+    display:none;
+    margin-top:6px;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid rgba(255,107,107,.32);
+    background:rgba(255,80,80,.075);
+    color:#ff9b9b;
+    font-size:11.5px;
+    font-weight:900;
+    line-height:1.45;
+}
+.fund-duplicate-notice.active{display:block}
+.fund-duplicate-notice.pending{
+    border-color:rgba(255,181,46,.34);
+    background:rgba(255,181,46,.075);
+    color:#ffcf75;
+}
+.fund-week-option-paid{color:#ff8d8d!important}
+.fund-week-option-pending{color:#ffcf75!important}
+</style>
+
 <style id="axe-fund-filter-submit-polish">
 /* AXE NET 공금관리: 필터/월별현황/공금납부 UI 개선 */
 .fund-summary-grid-premium{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
@@ -4576,7 +4602,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzvPv79PGbRwIJYqiVrcqdB626N3SRSbbdVXBF3PgUiHFtRvHuT374nSTv31ztFON5RXg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxJ9N-ERzl6v0tCopK9RdWDD1luBzNLaIqxA2XiJ9QoHo0b1Amkz7KZieKBCqL8YKpEmQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -17955,8 +17981,8 @@ function renderFundSubmit(){
                 <div class="fund-submit-section-title">납부 정보</div>
                 <div class="fund-submit-compact-grid">
                     <div class="fund-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
-                    <div class="fund-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}</div>
-                    <div class="fund-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
+                    <div class="fund-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value);setTimeout(updateFundDuplicateNotice,0)"`)}</div>
+                    <div class="fund-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek" onchange="updateFundDuplicateNotice()">${renderFundWeekOptions(month,typeof getFundCurrentWeekNumber==="function"?getFundCurrentWeekNumber(month):"1")}</select><div id="fundDuplicateNotice" class="fund-duplicate-notice"></div></div>
                     <div class="fund-field"><div class="fund-label">입금 위치</div><select class="fund-select" id="fundSubmitAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
                     <div class="fund-field fund-field-amount"><div class="fund-label">금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${getFundWeeklyFee()}"></div>
                 </div>
@@ -19074,7 +19100,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         return `<div class="fund-form-card"><div class="fund-form-title">공금 납부 증빙 제출</div>
             <div class="fund-form-grid fund-submit-grid">
                 <div class="fund-submit-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
-                <div class="fund-submit-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}<div class="fund-mini-help fund-submit-help-compact">주차별 날짜 범위를 확인하세요.</div></div>
+                <div class="fund-submit-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value);setTimeout(updateFundDuplicateNotice,0)"`)}<div class="fund-mini-help fund-submit-help-compact">주차별 날짜 범위를 확인하세요.</div></div>
                 <div class="fund-submit-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select><div class="fund-mini-help fund-submit-help-compact">납부할 주차를 선택하세요.</div></div>
                 <div class="fund-submit-field"><div class="fund-label">납부 방식</div><select class="fund-select" id="fundSubmitPaymentMode" onchange="updateFundPaymentModeUI()"><option value="공용계좌">공용계좌 전액</option><option value="회사잔고">회사잔고 전액</option><option value="분할납부">분할납부</option></select></div>
                 <div class="fund-submit-field"><div class="fund-label">총 납부금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
@@ -19140,6 +19166,13 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             return;
         }
         if(amount<=0){releaseSubmitLock();setFundSubmitStatus("error","납부금액을 입력해주세요.");return;}
+        const duplicateInfo=typeof findFundDuplicateSubmission==="function"?findFundDuplicateSubmission(submitter,month,week):null;
+        if(duplicateInfo){
+            releaseSubmitLock();
+            if(typeof updateFundDuplicateNotice==="function")updateFundDuplicateNotice();
+            setFundSubmitStatus("error",duplicateInfo.message||"이미 신청 또는 납부한 주차입니다. 대상 주차를 다시 확인해주세요.");
+            return;
+        }
         const splitMemo=paymentMode==="분할납부"?`[분할납부: 공용 ${publicAmount}원 + 잔고 ${companyAmount}원] `:"";
         const memo=(isProxySubmit?(`[관리자 대리제출: ${user.nickname}] `):"")+splitMemo+rawMemo;
         const payload={type:"fund_submit",submitter_nickname:submitter,proxy_admin_nickname:isProxySubmit?user.nickname:"",admin_proxy:isProxySubmit?"Y":"N",month:month,week:week,amount:amount,deposit_account:paymentMode,payment_mode:paymentMode,public_amount:publicAmount,company_amount:companyAmount,memo:memo.trim()};
@@ -19544,6 +19577,107 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 }
 </style>
 
+
+<script>
+/* AXE NET V35: 공금 납부 중복신청 방지 */
+(function(){
+    function norm(v){return String(v==null?"":v).trim();}
+    function normMonthSafe(v){try{return normalizeFundMonth(v);}catch(e){return norm(v);}}
+    function statusOf(row){
+        const s=norm(row&&row.status);
+        if(s==="납부완료"||s==="승인")return "paid";
+        if(s==="검수대기"||s==="대기"||s==="보류")return "pending";
+        return "";
+    }
+    window.getFundCurrentWeekNumber=function(month){
+        try{
+            const today=new Date();
+            const todayMonth=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0");
+            const target=normMonthSafe(month)||todayMonth;
+            if(target!==todayMonth)return 1;
+            const first=getFundFirstSunday(todayMonth);
+            let week=Math.floor((today-first)/(7*24*60*60*1000))+1;
+            if(!isFinite(week)||week<1)week=1;
+            const max=typeof getFundWeekCount==="function"?getFundWeekCount():4;
+            return Math.max(1,Math.min(max,week));
+        }catch(e){return 1;}
+    };
+    window.getFundCurrentWeekMessage=function(){
+        try{return "현재 기준은 "+fundMonthLabel(getFundTodayMonth())+" "+getFundCurrentWeekNumber(getFundTodayMonth())+"주차입니다.";}catch(e){return "현재 주차를 다시 확인해주세요.";}
+    };
+    window.findFundDuplicateSubmission=function(nickname,month,week){
+        const nick=norm(nickname);
+        const m=normMonthSafe(month);
+        const w=norm(week);
+        if(!nick||!m||!w)return null;
+        const rows=Array.isArray(window.fundRequests)?window.fundRequests:[];
+        const matched=rows.filter(r=>{
+            if(norm(r&&r.nickname)!==nick)return false;
+            if(normMonthSafe(r&&r.month)!==m)return false;
+            if(norm(r&&r.week)!==w)return false;
+            return !!statusOf(r);
+        });
+        if(!matched.length)return null;
+        const paid=matched.find(r=>statusOf(r)==="paid");
+        if(paid)return {type:"paid",row:paid,message:"이미 납부한 주차입니다. "+getFundCurrentWeekMessage()+" 대상 주차를 다시 확인해주세요."};
+        const pending=matched.find(r=>statusOf(r)==="pending");
+        if(pending)return {type:"pending",row:pending,message:"이미 신청한 주차입니다. 현재 검수대기 중입니다. "+getFundCurrentWeekMessage()+" 대상 주차를 다시 확인해주세요."};
+        return null;
+    };
+    window.getFundSelectedSubmitter=function(){
+        try{
+            const user=typeof getCurrentUser==="function"?getCurrentUser():null;
+            return norm(document.getElementById("fundSubmitter")&&document.getElementById("fundSubmitter").value)||norm(user&&user.nickname);
+        }catch(e){return "";}
+    };
+    window.updateFundDuplicateNotice=function(){
+        const notice=document.getElementById("fundDuplicateNotice");
+        const btn=document.getElementById("fundSubmitBtn");
+        const form=document.querySelector(".fund-submit-card-compact")||document.querySelector(".fund-form-card");
+        if(!notice&&!btn)return null;
+        const nickname=getFundSelectedSubmitter();
+        const month=normMonthSafe(document.getElementById("fundSubmitMonth")&&document.getElementById("fundSubmitMonth").value);
+        const week=norm(document.getElementById("fundSubmitWeek")&&document.getElementById("fundSubmitWeek").value);
+        const dup=findFundDuplicateSubmission(nickname,month,week);
+        if(notice){
+            notice.classList.remove("active","pending");
+            notice.textContent="";
+            if(dup){
+                notice.textContent=dup.message;
+                notice.classList.add("active");
+                if(dup.type==="pending")notice.classList.add("pending");
+            }
+        }
+        if(btn){
+            const isSubmitting=!!(form&&form.classList.contains("submitting"));
+            if(dup){btn.disabled=true;btn.dataset.fundDuplicateBlocked="1";}
+            else if(btn.dataset.fundDuplicateBlocked&&!isSubmitting){btn.disabled=false;delete btn.dataset.fundDuplicateBlocked;}
+        }
+        return dup;
+    };
+    const oldRefreshWeek=window.refreshFundSubmitWeekOptions;
+    window.refreshFundSubmitWeekOptions=function(month){
+        if(typeof oldRefreshWeek==="function")oldRefreshWeek(month);
+        setTimeout(function(){try{updateFundDuplicateNotice();}catch(e){}},0);
+    };
+    document.addEventListener("change",function(e){
+        const id=e&&e.target&&e.target.id;
+        if(id==="fundSubmitWeek"||id==="fundSubmitMonth"||id==="fundSubmitter")setTimeout(function(){try{updateFundDuplicateNotice();}catch(err){}},0);
+    },true);
+    window.axeFundDuplicateV35Debug=function(){
+        return {
+            version:"AXE_NET_FUND_DUPLICATE_GUARD_V35",
+            submitter:getFundSelectedSubmitter(),
+            month:normMonthSafe(document.getElementById("fundSubmitMonth")&&document.getElementById("fundSubmitMonth").value),
+            week:norm(document.getElementById("fundSubmitWeek")&&document.getElementById("fundSubmitWeek").value),
+            duplicate:updateFundDuplicateNotice(),
+            currentWeek:getFundCurrentWeekNumber(getFundTodayMonth()),
+            requestCount:Array.isArray(window.fundRequests)?window.fundRequests.length:0
+        };
+    };
+})();
+</script>
+
 <script>
 /* AXE NET V16.3 FINAL: 납부제출 컴팩트 폼 + 공금내역 필터 강제 적용 */
 (function(){
@@ -19557,8 +19691,8 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         return `<div class="fund-form-card fund-submit-card-compact"><div class="fund-form-title">공금 납부 증빙 제출</div>
             <div class="fund-submit-compact-grid">
                 <div class="fund-submit-compact-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
-                <div class="fund-submit-compact-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}</div>
-                <div class="fund-submit-compact-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
+                <div class="fund-submit-compact-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value);setTimeout(updateFundDuplicateNotice,0)"`)}</div>
+                <div class="fund-submit-compact-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek" onchange="updateFundDuplicateNotice()">${renderFundWeekOptions(month,typeof getFundCurrentWeekNumber==="function"?getFundCurrentWeekNumber(month):"1")}</select><div id="fundDuplicateNotice" class="fund-duplicate-notice"></div></div>
                 <div class="fund-submit-compact-field"><div class="fund-label">납부 방식</div><select class="fund-select" id="fundSubmitPaymentMode" onchange="updateFundPaymentModeUI()"><option value="공용계좌">공용계좌 전액</option><option value="회사잔고">회사잔고 전액</option><option value="분할납부">분할납부</option></select></div>
                 <div class="fund-submit-compact-field"><div class="fund-label">총 납부금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
                 <div class="fund-submit-compact-field"><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
@@ -21729,6 +21863,23 @@ function axeModBookFilterV34Debug(){
         resetButtonInSearchRow:!!document.querySelector(".modbook-filter-top .modbook-filter-action:not(.modbook-filter-search-btn)")
     };
 }
+</script>
+
+
+<script>
+/* AXE NET V35: 공금 납부 화면 진입 시 중복 상태 자동 표시 */
+(function(){
+    const oldShowFund=window.showFund;
+    if(typeof oldShowFund==="function"){
+        window.showFund=function(tab,push){
+            const result=oldShowFund.apply(this,arguments);
+            if(String(tab||window.currentFundTab||"")==="submit"){
+                setTimeout(function(){try{updateFundDuplicateNotice();}catch(e){}},80);
+            }
+            return result;
+        };
+    }
+})();
 </script>
 
 </body>
