@@ -4576,7 +4576,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwhvED29ZxUU4ivENSEw6Ip3fTQYN7E6E7CyBt6rVXAzadIacym0RzIlcIegA9MftYkZw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzD4jZacCRtBHIHAnHIP2wI2W-RQ9zjxnqjMOFtpw2IXLeB4dOtnuvkGIhkLBLJcsIWgw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -22831,14 +22831,32 @@ function axeModBookFilterV34Debug(){
 @media(max-width:760px){.axe-plika-quick-v81{left:10px;right:10px;bottom:12px;width:auto;max-width:none}.axe-plika-row-v81{grid-template-columns:82px minmax(0,1fr) 48px}.axe-plika-list-v81{max-height:280px}}
 </style>
 <script>
-/* AXE NET V81: 플리카 계좌 빠른도구 안정화 */
+/* AXE NET V82: 플리카 계좌 초기조회/번호보존 안정화 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V81_STABLE';
+  const VERSION='AXE_NET_PLIKA_QUICK_V82_NUMBER_PRESERVE';
   const STORE_KEY='axe_plika_quick_collapsed_v81';
-  const LATEST_API='https://script.google.com/macros/s/AKfycbxf9zcOqecCRgdyy_L3wZG_mqobgAGlJAwPR-ueX7b97Amwh8FWCXNgP2tEXgZ6goUdtw/exec';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbwhvED29ZxUU4ivENSEw6Ip3fTQYN7E6E7CyBt6rVXAzadIacym0RzIlcIegA9MftYkZw/exec';
   function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function txt(v){return String(v==null?'':v).trim();}
   function rawRows(){return Array.isArray(window.plikaAccounts)?window.plikaAccounts:(typeof plikaAccounts!=='undefined'&&Array.isArray(plikaAccounts)?plikaAccounts:[]);}
+  let didForceFetch=false;
+  function syncRowsFromData(data){
+    const next=(data&&data.plikaAccounts)||(data&&data.plika_accounts)||(data&&data.plikaAccountRows)||[];
+    if(Array.isArray(next)){
+      window.plikaAccounts=next;
+      try{ if(typeof plikaAccounts!=='undefined') plikaAccounts=next; }catch(e){}
+    }
+  }
+  function forceFetchIfEmpty(){
+    if(didForceFetch) return;
+    if(rawRows().length>0) return;
+    didForceFetch=true;
+    if(typeof API_URL==='undefined') return;
+    fetch(API_URL+(String(API_URL).includes('?')?'&':'?')+'_plika_ts='+Date.now(),{cache:'no-store'})
+      .then(res=>res.json())
+      .then(data=>{ syncRowsFromData(data); render(); })
+      .catch(()=>{});
+  }
   function normalizeAccount(v){
     let s=String(v==null?'':v).trim().replace(/[^0-9]/g,'');
     if(s && s.length<12) s=s.padStart(12,'0');
@@ -22900,12 +22918,13 @@ function axeModBookFilterV34Debug(){
   window.renderPlikaQuickV81=render;
   window.axeTogglePlikaQuickV81=function(){const now=localStorage.getItem(STORE_KEY)==='1';localStorage.setItem(STORE_KEY,now?'0':'1');render();};
   window.axeCopyPlikaAccountV81=function(account,name){copyText(account,name);};
-  function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){window.plikaAccounts=data.plikaAccounts||data.plika_accounts||window.plikaAccounts||[]; if(typeof plikaAccounts!=='undefined')plikaAccounts=window.plikaAccounts; try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
+  function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
   window.axeAddPlikaAccountV81=function(){const name=prompt('멤버명을 입력하세요.'); if(!name)return; const acc=prompt('계좌번호를 입력하세요. 빈칸도 가능합니다.',''); if(acc===null)return; savePayload({account:{member:name,account:acc,enabled:'TRUE'}});};
   window.axeEditPlikaAccountV81=function(){const name=prompt('수정할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); const acc=prompt('계좌번호를 입력하세요.',r?r.account:''); if(acc===null)return; savePayload({account:{number:r?r.no:'',member:name,account:acc,enabled:'TRUE'}});};
-  window.axeDeletePlikaAccountV81=function(){const name=prompt('삭제할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); if(!r){alert('대상을 찾을 수 없습니다.');return;} if(!confirm(name+' 계좌 정보를 삭제할까요?'))return; adminApi({type:'plika_account_delete',number:r.no,member:name}).then(data=>{if(data&&data.result==='success'){window.plikaAccounts=data.plikaAccounts||data.plika_accounts||[]; if(typeof plikaAccounts!=='undefined')plikaAccounts=window.plikaAccounts; try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('삭제되었습니다.');}else alert((data&&data.message)||'삭제에 실패했습니다.');});};
-  window.axePlikaQuickV81Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81')};};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true}); else render();
-  setTimeout(render,600);
+  window.axeDeletePlikaAccountV81=function(){const name=prompt('삭제할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); if(!r){alert('대상을 찾을 수 없습니다.');return;} if(!confirm(name+' 계좌 정보를 삭제할까요?'))return; adminApi({type:'plika_account_delete',number:r.no,member:name}).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('삭제되었습니다.');}else alert((data&&data.message)||'삭제에 실패했습니다.');});};
+  window.axePlikaQuickV82Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch};};
+  window.axePlikaQuickV81Debug=window.axePlikaQuickV82Debug;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setTimeout(forceFetchIfEmpty,250);},{once:true}); else {render();setTimeout(forceFetchIfEmpty,250);}
+  setTimeout(()=>{render();forceFetchIfEmpty();},600);
 })();
 </script>
