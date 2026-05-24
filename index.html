@@ -22722,7 +22722,10 @@ function axeModBookFilterV34Debug(){
     'input[type="button"]',
     'input[type="submit"]',
     'input[type="reset"]',
-    'input[type="hidden"]'
+    'input[type="hidden"]',
+    '#axePlikaSearchV81',
+    '.axe-plika-search-v81',
+    '[data-axe-ime-safe="1"]'
   ].join(',');
   const TEXT_TYPES = new Set(['','text','search','email','tel','url','number']);
   function shouldPatch(el){
@@ -22834,15 +22837,18 @@ function axeModBookFilterV34Debug(){
 @media(max-width:760px){.axe-plika-row-v81{grid-template-columns:82px minmax(0,1fr) 48px}.axe-plika-list-v81{max-height:280px}.axe-plika-quick-head-v81{height:28px;padding:0 9px!important}.axe-plika-quick-title-v81{font-size:11px}.axe-plika-toggle-v81{width:20px;height:20px;font-size:10px}}
 </style>
 <script>
-/* AXE NET V83: 플리카 계좌 기본 접힘 + AXE TODAY 옆 정돈 */
+/* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V83_TOPBAR_COLLAPSED';
+  const VERSION='AXE_NET_PLIKA_QUICK_V84_IME_SAFE';
   const LATEST_API='https://script.google.com/macros/s/AKfycbzD4jZacCRtBHIHAnHIP2wI2W-RQ9zjxnqjMOFtpw2IXLeB4dOtnuvkGIhkLBLJcsIWgw/exec';
   let collapsedState=true;
+  let didForceFetch=false;
+  let plikaSearchKeyword='';
+  let plikaImeComposing=false;
+
   function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function txt(v){return String(v==null?'':v).trim();}
   function rawRows(){return Array.isArray(window.plikaAccounts)?window.plikaAccounts:(typeof plikaAccounts!=='undefined'&&Array.isArray(plikaAccounts)?plikaAccounts:[]);}
-  let didForceFetch=false;
   function syncRowsFromData(data){
     const next=(data&&data.plikaAccounts)||(data&&data.plika_accounts)||(data&&data.plikaAccountRows)||[];
     if(Array.isArray(next)){
@@ -22873,6 +22879,10 @@ function axeModBookFilterV34Debug(){
     return !['false','n','no','0','사용안함','비활성'].includes(v);
   }
   function rows(){return rawRows().filter(rowEnabled).map((r,i)=>({raw:r,no:rowNo(r,i),name:rowName(r),account:rowAccount(r),note:txt(r['비고']||r.note||r.memo)})).filter(r=>r.name||r.account);}
+  function filteredRows(){
+    const q=txt(plikaSearchKeyword).toLowerCase();
+    return rows().filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
+  }
   function toast(msg){
     if(typeof showToast==='function'){showToast(msg);return;}
     const old=document.getElementById('axePlikaToastV81'); if(old) old.remove();
@@ -22895,41 +22905,59 @@ function axeModBookFilterV34Debug(){
     if(box.parentNode!==mount) mount.appendChild(box);
     return box;
   }
+  function rowHtml(r){
+    const safeAccount=esc(r.account);
+    const safeName=esc(r.name);
+    return `<div class="axe-plika-row-v81">
+      <div class="axe-plika-name-v81" title="${safeName}">${safeName||'-'}</div>
+      <div class="axe-plika-account-v81 ${r.account?'':'empty'}" title="${esc(r.account||'미등록')}" onclick="${r.account?`axeCopyPlikaAccountV81('${safeAccount}','${safeName}')`:''}">${r.account?safeAccount:'미등록'}</div>
+      <button class="axe-plika-copy-v81" ${r.account?'':'disabled'} onclick="axeCopyPlikaAccountV81('${safeAccount}','${safeName}')">복사</button>
+    </div>`;
+  }
+  function renderListOnly(){
+    const listEl=document.querySelector('#axePlikaQuickV81 .axe-plika-list-v81');
+    if(!listEl) return;
+    const filtered=filteredRows();
+    listEl.innerHTML=filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`;
+  }
   function render(){
     const box=ensure();
     const collapsed=collapsedState!==false;
     box.classList.toggle('collapsed',collapsed);
-    const list=rows();
-    const q=txt((document.getElementById('axePlikaSearchV81')||{}).value).toLowerCase();
-    const filtered=list.filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
+    const filtered=filteredRows();
     box.innerHTML=`
       <div class="axe-plika-quick-head-v81" onclick="axeTogglePlikaQuickV81()">
         <div><div class="axe-plika-quick-title-v81">💳 플리카 계좌</div><div class="axe-plika-quick-sub-v81">계좌 클릭 또는 복사</div></div>
         <button class="axe-plika-toggle-v81" onclick="event.stopPropagation();axeTogglePlikaQuickV81()">${collapsed?'▾':'▴'}</button>
       </div>
       <div class="axe-plika-quick-body-v81">
-        <input id="axePlikaSearchV81" class="axe-plika-search-v81" placeholder="멤버명/계좌 검색" value="${esc(q)}" oninput="renderPlikaQuickV81()" autocomplete="new-password">
+        <input id="axePlikaSearchV81" class="axe-plika-search-v81" data-axe-ime-safe="1" placeholder="멤버명/계좌 검색" value="${esc(plikaSearchKeyword)}" oncompositionstart="axePlikaSearchCompositionV84(true)" oncompositionend="axePlikaSearchCompositionV84(false,this)" oninput="axePlikaSearchInputV84(this)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="axe-plika-list-v81">
-          ${filtered.length?filtered.map(r=>`<div class="axe-plika-row-v81">
-            <div class="axe-plika-name-v81" title="${esc(r.name)}">${esc(r.name||'-')}</div>
-            <div class="axe-plika-account-v81 ${r.account?'':'empty'}" title="${esc(r.account||'미등록')}" onclick="${r.account?`axeCopyPlikaAccountV81('${esc(r.account)}','${esc(r.name)}')`:''}">${r.account?esc(r.account):'미등록'}</div>
-            <button class="axe-plika-copy-v81" ${r.account?'':'disabled'} onclick="axeCopyPlikaAccountV81('${esc(r.account)}','${esc(r.name)}')">복사</button>
-          </div>`).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
+          ${filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
         </div>
         ${typeof isCurrentAdmin==='function'&&isCurrentAdmin()?`<div class="axe-plika-admin-v81"><button class="axe-plika-admin-btn-v81" onclick="axeAddPlikaAccountV81()">추가</button><button class="axe-plika-admin-btn-v81" onclick="axeEditPlikaAccountV81()">수정</button><button class="axe-plika-admin-btn-v81" onclick="axeDeletePlikaAccountV81()">삭제</button></div>`:''}
       </div>`;
-    setTimeout(()=>{const input=document.getElementById('axePlikaSearchV81'); if(input && !collapsed && q){input.focus(); input.setSelectionRange(input.value.length,input.value.length);}},0);
   }
   window.renderPlikaQuickV81=render;
   window.axeTogglePlikaQuickV81=function(){collapsedState=!collapsedState;render();};
   window.axeCopyPlikaAccountV81=function(account,name){copyText(account,name);};
+  window.axePlikaSearchCompositionV84=function(isStart,el){
+    plikaImeComposing=!!isStart;
+    if(!isStart && el){plikaSearchKeyword=el.value||'';renderListOnly();}
+  };
+  window.axePlikaSearchInputV84=function(el){
+    plikaSearchKeyword=(el&&el.value)||'';
+    if(plikaImeComposing) return;
+    renderListOnly();
+  };
   function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
   window.axeAddPlikaAccountV81=function(){const name=prompt('멤버명을 입력하세요.'); if(!name)return; const acc=prompt('계좌번호를 입력하세요. 빈칸도 가능합니다.',''); if(acc===null)return; savePayload({account:{member:name,account:acc,enabled:'TRUE'}});};
   window.axeEditPlikaAccountV81=function(){const name=prompt('수정할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); const acc=prompt('계좌번호를 입력하세요.',r?r.account:''); if(acc===null)return; savePayload({account:{number:r?r.no:'',member:name,account:acc,enabled:'TRUE'}});};
   window.axeDeletePlikaAccountV81=function(){const name=prompt('삭제할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); if(!r){alert('대상을 찾을 수 없습니다.');return;} if(!confirm(name+' 계좌 정보를 삭제할까요?'))return; adminApi({type:'plika_account_delete',number:r.no,member:name}).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('삭제되었습니다.');}else alert((data&&data.message)||'삭제에 실패했습니다.');});};
-  window.axePlikaQuickV83Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch};};
-  window.axePlikaQuickV82Debug=window.axePlikaQuickV83Debug;
-  window.axePlikaQuickV81Debug=window.axePlikaQuickV83Debug;
+  window.axePlikaQuickV84Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch};};
+  window.axePlikaQuickV83Debug=window.axePlikaQuickV84Debug;
+  window.axePlikaQuickV82Debug=window.axePlikaQuickV84Debug;
+  window.axePlikaQuickV81Debug=window.axePlikaQuickV84Debug;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setTimeout(forceFetchIfEmpty,250);},{once:true}); else {render();setTimeout(forceFetchIfEmpty,250);}
   setTimeout(()=>{render();forceFetchIfEmpty();},600);
 })();
