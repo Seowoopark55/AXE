@@ -22700,3 +22700,100 @@ function axeModBookFilterV34Debug(){
   setTimeout(rebuildAll,300);
 })();
 </script>
+
+
+<script>
+/* AXE NET V79: stronger browser autocomplete suppression for search/input fields.
+   It does not change saved site data or Apps Script calls. Login/password fields are excluded. */
+(function(){
+  const VERSION='AXE_NET_AUTOCOMPLETE_STRONG_V79';
+  const EXCLUDE_SELECTOR = [
+    '#authModal input',
+    '.auth-bar input',
+    'input[type="password"]',
+    'input[type="file"]',
+    'input[type="checkbox"]',
+    'input[type="radio"]',
+    'input[type="button"]',
+    'input[type="submit"]',
+    'input[type="reset"]',
+    'input[type="hidden"]'
+  ].join(',');
+  const TEXT_TYPES = new Set(['','text','search','email','tel','url','number']);
+  function shouldPatch(el){
+    if(!el || !el.matches) return false;
+    if(!(el.matches('input') || el.matches('textarea'))) return false;
+    if(el.matches(EXCLUDE_SELECTOR)) return false;
+    if(el.matches('input')){
+      const type=String(el.getAttribute('type')||'text').toLowerCase();
+      if(!TEXT_TYPES.has(type)) return false;
+    }
+    return true;
+  }
+  function unlock(el){
+    if(!el || !el.dataset) return;
+    if(el.dataset.axeNoAutocompleteReadonly === '1'){
+      el.removeAttribute('readonly');
+    }
+  }
+  function patchField(el, index){
+    if(!shouldPatch(el)) return;
+    if(!el.dataset.axeAutocompleteOriginalName){
+      el.dataset.axeAutocompleteOriginalName = el.getAttribute('name') || '';
+    }
+    const key = 'axe_no_auto_' + (el.id || 'field') + '_' + index + '_' + Math.random().toString(36).slice(2,8);
+    el.setAttribute('autocomplete','new-password');
+    el.setAttribute('autocorrect','off');
+    el.setAttribute('autocapitalize','off');
+    el.setAttribute('spellcheck','false');
+    el.setAttribute('name', key);
+    el.setAttribute('data-axe-autocomplete-v79','1');
+    if(!el.dataset.axeNoAutocompleteBound){
+      el.dataset.axeNoAutocompleteBound='1';
+      el.addEventListener('pointerdown',()=>unlock(el),{passive:true});
+      el.addEventListener('mousedown',()=>unlock(el),{passive:true});
+      el.addEventListener('touchstart',()=>unlock(el),{passive:true});
+      el.addEventListener('focus',()=>setTimeout(()=>unlock(el),30),{passive:true});
+    }
+    if(!el.value && document.activeElement !== el){
+      el.setAttribute('readonly','readonly');
+      el.dataset.axeNoAutocompleteReadonly='1';
+    }
+    const form=el.closest('form');
+    if(form) form.setAttribute('autocomplete','off');
+  }
+  function applyStrongAutocompleteOff(root){
+    const base=root && root.querySelectorAll ? root : document;
+    Array.from(base.querySelectorAll('input, textarea')).forEach((el, idx)=>patchField(el, idx));
+  }
+  window.axeDisableAutocompleteStrongV79 = function(){ applyStrongAutocompleteOff(document); };
+  window.axeAutocompleteV79Debug = function(){
+    applyStrongAutocompleteOff(document);
+    const fields=Array.from(document.querySelectorAll('input, textarea')).filter(shouldPatch);
+    return {
+      version: VERSION,
+      patched: fields.filter(el=>el.getAttribute('data-axe-autocomplete-v79')==='1').length,
+      candidates: fields.length,
+      sample: fields.slice(0,12).map(el=>({id:el.id||'', type:el.getAttribute('type')||'textarea', autocomplete:el.getAttribute('autocomplete'), name:el.getAttribute('name')||'', readonly:el.hasAttribute('readonly')}))
+    };
+  };
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>applyStrongAutocompleteOff(document),{once:true});
+  }else{
+    applyStrongAutocompleteOff(document);
+  }
+  try{
+    const observer=new MutationObserver(muts=>{
+      for(const m of muts){
+        m.addedNodes && m.addedNodes.forEach(node=>{
+          if(node && node.nodeType===1){
+            if(node.matches && (node.matches('input') || node.matches('textarea'))) patchField(node,0);
+            applyStrongAutocompleteOff(node);
+          }
+        });
+      }
+    });
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+  }catch(e){}
+})();
+</script>
