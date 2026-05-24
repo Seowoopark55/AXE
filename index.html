@@ -2618,6 +2618,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 /* AXE NET 공금: 관리자 대리 제출자 선택 */
 .fund-submitter-select{width:100%;min-width:0}
 .fund-form-card.submitting .fund-submitter-select{opacity:.7;cursor:wait}
+
+/* V88 공지사항 분류: 일반공지/패치노트 */
+.admin-notice-form{grid-template-columns:1fr 150px 120px;}
+.admin-notice-form .form-textarea{grid-column:1 / -1;}
+.admin-notice-table th:nth-child(1),.admin-notice-table td:nth-child(1){width:auto;}
+.admin-notice-table th:nth-child(2),.admin-notice-table td:nth-child(2){width:110px;}
+.admin-notice-table th:nth-child(3),.admin-notice-table td:nth-child(3){width:150px;}
+.admin-notice-table th:nth-child(4),.admin-notice-table td:nth-child(4){width:72px;text-align:center;}
+.admin-notice-table th:nth-child(5),.admin-notice-table td:nth-child(5){width:132px;}
+@media(max-width:768px){.admin-notice-form{grid-template-columns:1fr;}.admin-notice-table{min-width:720px!important;}}
 </style>
 
 <style>
@@ -4872,6 +4882,8 @@ let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],o
 let fundMembers=[],fundRequests=[],fundLedger=[],fundBalanceChecks=[],fundSettings=[],fundSummary={};
 let companyAssets=[];
 let companyAssetReturns=[];
+let plikaAccounts=[];
+window.plikaAccounts=plikaAccounts;
 let currentFundTab="status",fundSelectedMonth="";
 let foodCart=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
@@ -4942,9 +4954,9 @@ function navigateMain(page,push=true){
 }
 
 function normalizeSubTab(page,subTab){
-    const defaults={notice:"noticeList",outlaw:"briefing",info:"craft",utility:"plica"};
+    const defaults={notice:"noticeGeneral",outlaw:"briefing",info:"craft",utility:"plica"};
     const allowed={
-        notice:["noticeList","operations"],
+        notice:["noticeGeneral","noticePatch","noticeList","operations"],
         outlaw:["briefing","guide"],
         info:["craft","quest","process","modbook","skillrank"],
         utility:["plica"]
@@ -4960,7 +4972,8 @@ function renderSubTab(page,subTab){
 
     if(target==="notice"){
         if(tab==="operations"){showOperationList();return;}
-        showNoticeList();return;
+        if(tab==="noticePatch"){showNoticeList("패치노트");return;}
+        showNoticeList("일반공지");return;
     }
 
     if(target==="outlaw"){
@@ -5039,7 +5052,9 @@ function parseRouteFromHash(){
     if(raw.startsWith("gallery-gallery-"))return {page:"gallery",detailType:"gallery",id:raw.substring("gallery-gallery-".length)};
 
     const subMap={
-        "notice-noticeList":{page:"notice",subTab:"noticeList"},
+        "notice-noticeList":{page:"notice",subTab:"noticeGeneral"},
+        "notice-noticeGeneral":{page:"notice",subTab:"noticeGeneral"},
+        "notice-noticePatch":{page:"notice",subTab:"noticePatch"},
         "notice-operations":{page:"notice",subTab:"operations"},
         "outlaw-briefing":{page:"outlaw",subTab:"briefing"},
         "outlaw-guide":{page:"outlaw",subTab:"guide"},
@@ -5189,6 +5204,9 @@ function hydrateData(data){
     rankings=data.rankings||[];
     companyAssets=data.companyAssets||data.company_assets||data.assets||[];
     companyAssetReturns=data.companyAssetReturns||data.company_asset_returns||data.assetReturns||data.retiredAssetReturns||[];
+    plikaAccounts=data.plikaAccounts||data.plika_accounts||data.plikaAccountRows||[];
+    window.plikaAccounts=plikaAccounts;
+    if(typeof window.renderPlikaQuickV81==="function") setTimeout(window.renderPlikaQuickV81,0);
 }
 
 /* AXE NET STABILIZE V1: 전체 데이터 새로고침 중복 호출 방지 */
@@ -7955,6 +7973,24 @@ function showHome(){
             </div>
         </div>`;
 }
+function normalizeNoticeType(type){
+    const value=String(type||"").trim();
+    if(value==="패치노트")return "패치노트";
+    return "일반공지";
+}
+function noticeSubTabByType(type){
+    return normalizeNoticeType(type)==="패치노트"?"noticePatch":"noticeGeneral";
+}
+function setNoticeTabActive(category){
+    const target=category==="패치노트"?"noticePatch":category==="운영기준"?"operations":"noticeGeneral";
+    document.querySelectorAll(".sub-filter button").forEach(btn=>{
+        btn.classList.toggle("active",btn.dataset.noticeTab===target);
+    });
+}
+function getNoticeIdStable(notice,index){
+    return String((notice&&notice.id)!==undefined&&notice.id!==""?notice.id:index);
+}
+
 function showNotice(){
     enterMainSection("notice");
     setMainActive(1);
@@ -7970,20 +8006,18 @@ function showNotice(){
             </div>
         </div>
         <div class="sub-filter">
-            <button class="active" onclick="navigateSubTab('notice','noticeList')">일반공지</button>
-            <button onclick="navigateSubTab('notice','operations')">운영기준</button>
+            <button class="active" data-notice-tab="noticeGeneral" onclick="navigateSubTab('notice','noticeGeneral')">일반공지</button>
+            <button data-notice-tab="noticePatch" onclick="navigateSubTab('notice','noticePatch')">패치노트</button>
+            <button data-notice-tab="operations" onclick="navigateSubTab('notice','operations')">운영기준</button>
         </div>
         <div id="noticeContent"></div>`;
-    showNoticeList();
+    showNoticeList("일반공지");
 }
 
-function showNoticeList(){
-    const list=notices.slice().reverse();
-    const buttons=document.querySelectorAll(".sub-filter button");
-    if(buttons.length>=2){
-        buttons[0].classList.add("active");
-        buttons[1].classList.remove("active");
-    }
+function showNoticeList(category="일반공지"){
+    const noticeCategory=normalizeNoticeType(category);
+    const list=notices.slice().reverse().filter(n=>normalizeNoticeType(n.type)===noticeCategory);
+    setNoticeTabActive(noticeCategory);
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="item-list">
@@ -7995,13 +8029,13 @@ function showNoticeList(){
             ${
                 list.length
                 ? list.map((n,i)=>`
-                    <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
+                    <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeIdStable(n,i))}',true)">
                         <div class="notice-row-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
                         <div class="notice-row-date">${formatDate(n.date)}</div>
-                        <div class="notice-row-type">일반공지</div>
+                        <div class="notice-row-type">${safe(noticeCategory)}</div>
                     </div>
                 `).join("")
-                : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+                : `<div class="ready">등록된 ${safe(noticeCategory)}가 없습니다.</div>`
             }
         </div>
     `;
@@ -8026,21 +8060,24 @@ function openNoticeDetail(id,addHistory=false){
         return;
     }
 
+    const noticeType=normalizeNoticeType(target.type);
+    const noticeBackTab=noticeSubTabByType(noticeType);
+
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">일반공지</div>
+                <div class="section-title">${safe(noticeType)}</div>
                 <div class="section-desc">공지 상세 내용을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
         </div>
 
-        <button class="back-btn" onclick="goBackToList('notice')">목록으로</button>
+        <button class="back-btn" onclick="navigateSubTab('notice','${noticeBackTab}')">목록으로</button>
 
         <div class="detail" style="margin-top:14px;">
             <div class="detail-title">${safe(target.title)}</div>
             <div class="notice-detail-meta">
-                <span class="badge gold">일반공지</span>
+                <span class="badge gold">${safe(noticeType)}</span>
                 <span class="badge">작성일 ${formatDate(target.date)}</span>
                 ${isImportant(target.important)?'<span class="badge">중요</span>':''}
             </div>
@@ -8065,11 +8102,7 @@ function getValidOperations(){
 
 function showOperationList(){
     selectedOperationId="";
-    const buttons=document.querySelectorAll(".sub-filter button");
-    if(buttons.length>=2){
-        buttons[0].classList.remove("active");
-        buttons[1].classList.add("active");
-    }
+    setNoticeTabActive("운영기준");
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="db-layout">
@@ -8861,7 +8894,9 @@ MAIN_FAVORITE_LABELS=window.MAIN_FAVORITE_LABELS=MAIN_FAVORITE_LABELS||{
 };
 
 const SUB_FAVORITE_LABELS={
-    "notice|noticeList":"공지사항 · 공지",
+    "notice|noticeList":"공지사항 · 일반공지",
+    "notice|noticeGeneral":"공지사항 · 일반공지",
+    "notice|noticePatch":"공지사항 · 패치노트",
     "notice|operations":"공지사항 · 운영기준",
     "outlaw|briefing":"무법지대 · 브리핑맵",
     "outlaw|guide":"무법지대 · 공략",
@@ -8927,7 +8962,7 @@ function getCurrentRouteForFavorite(){
     }
 
     if(page==="notice"){
-        const sub=state.subTab||"noticeList";
+        const sub=state.subTab||"noticeGeneral";
         route.subTab=normalizeSubTab("notice",sub);
         if(route.subTab==="operations")route.category=operationCategory||"ALL";
         return route;
@@ -10240,7 +10275,7 @@ function showRanking(){
         <div class="section-head">
             <div>
                 <div class="section-title">포인트 랭킹</div>
-                <div class="section-desc">회원 활동 포인트 기준 순위입니다. 글 작성, 댓글 작성, 출석체크, 추천 받은 활동이 반영됩니다.</div>
+                <div class="section-desc">회원 및 관리자 활동 포인트 기준 순위입니다. 글 작성, 댓글 작성, 출석체크, 추천 받은 활동이 반영됩니다.</div>
             </div>
         </div>
         <div class="ranking-grid">
@@ -10701,6 +10736,10 @@ function showAdmin(){
                 <input type="hidden" id="adminNoticeId" value="">
                 <div class="admin-notice-form">
                     <input class="form-input" id="adminNoticeTitle" placeholder="공지 제목">
+                    <select class="form-input" id="adminNoticeType">
+                        <option value="일반공지">일반공지</option>
+                        <option value="패치노트">패치노트</option>
+                    </select>
                     <label class="admin-notice-options">
                         <input type="checkbox" id="adminNoticeImportant">
                         중요공지
@@ -10753,6 +10792,7 @@ function renderAdminNotices(){
                 <thead>
                     <tr>
                         <th>제목</th>
+                        <th>구분</th>
                         <th>작성일</th>
                         <th>중요</th>
                         <th>관리</th>
@@ -10776,6 +10816,7 @@ function renderAdminNoticeRow(notice,index){
                 </div>
                 <div style="color:#777;font-size:11px;margin-top:4px;">${safe(id)}</div>
             </td>
+            <td>${safe(normalizeNoticeType(notice.type))}</td>
             <td>${formatDate(notice.date)}</td>
             <td>${important?"TRUE":"FALSE"}</td>
             <td>
@@ -10800,10 +10841,12 @@ function resetAdminNoticeForm(){
     const title=document.getElementById("adminNoticeTitle");
     const content=document.getElementById("adminNoticeContent");
     const important=document.getElementById("adminNoticeImportant");
+    const type=document.getElementById("adminNoticeType");
 
     if(id)id.value="";
     if(title)title.value="";
     if(content)content.value="";
+    if(type)type.value="일반공지";
     if(important)important.checked=false;
     updateAdminNoticeFormMode();
 }
@@ -10822,6 +10865,7 @@ function editAdminNotice(id){
 
     document.getElementById("adminNoticeId").value=id;
     document.getElementById("adminNoticeTitle").value=notice.title||"";
+    document.getElementById("adminNoticeType").value=normalizeNoticeType(notice.type);
     document.getElementById("adminNoticeContent").value=notice.content||"";
     document.getElementById("adminNoticeImportant").checked=isImportant(notice.important);
     updateAdminNoticeFormMode();
@@ -10835,6 +10879,7 @@ function submitAdminNotice(){
     const id=document.getElementById("adminNoticeId")?.value.trim()||"";
     const title=document.getElementById("adminNoticeTitle")?.value.trim()||"";
     const content=document.getElementById("adminNoticeContent")?.value.trim()||"";
+    const noticeType=normalizeNoticeType(document.getElementById("adminNoticeType")?.value||"일반공지");
     const important=document.getElementById("adminNoticeImportant")?.checked||false;
 
     if(!title){alert("공지 제목을 입력하세요.");return;}
@@ -10845,6 +10890,8 @@ function submitAdminNotice(){
         id:id,
         title:title,
         content:content,
+        type_name:noticeType,
+        notice_type:noticeType,
         important:important
     };
 
@@ -10887,7 +10934,8 @@ function deleteAdminNotice(id){
 
 function showNoticeListIfVisible(){
     if(currentHistoryPage==="notice"&&document.getElementById("noticeContent")){
-        showNoticeList();
+        const state=history.state||{};
+        showNoticeList(state.subTab==="noticePatch"?"패치노트":"일반공지");
     }
 }
 
@@ -12420,6 +12468,7 @@ function renderAdminNoticeRow(notice,index){
                 </div>
                 <div style="color:#777;font-size:11px;margin-top:4px;">${safe(id)}</div>
             </td>
+            <td>${safe(normalizeNoticeType(notice.type))}</td>
             <td>${formatDate(notice.date)}</td>
             <td>${important?"TRUE":"FALSE"}</td>
             <td>
@@ -12488,6 +12537,7 @@ function submitAdminNotice(btn){
     const id=document.getElementById("adminNoticeId")?.value.trim()||"";
     const title=document.getElementById("adminNoticeTitle")?.value.trim()||"";
     const content=document.getElementById("adminNoticeContent")?.value.trim()||"";
+    const noticeType=normalizeNoticeType(document.getElementById("adminNoticeType")?.value||"일반공지");
     const important=document.getElementById("adminNoticeImportant")?.checked||false;
 
     if(!title){alert("공지 제목을 입력하세요.");return;}
@@ -12502,6 +12552,8 @@ function submitAdminNotice(btn){
         id:id,
         title:title,
         content:content,
+        type_name:noticeType,
+        notice_type:noticeType,
         important:important
     })
     .then(function(data){
@@ -22717,7 +22769,10 @@ function axeModBookFilterV34Debug(){
     'input[type="button"]',
     'input[type="submit"]',
     'input[type="reset"]',
-    'input[type="hidden"]'
+    'input[type="hidden"]',
+    '#axePlikaSearchV81',
+    '.axe-plika-search-v81',
+    '[data-axe-ime-safe="1"]'
   ].join(',');
   const TEXT_TYPES = new Set(['','text','search','email','tel','url','number']);
   function shouldPatch(el){
@@ -22799,6 +22854,379 @@ function axeModBookFilterV34Debug(){
 </script>
 
 
+<!-- AXE NET V83: 플리카 계좌 AXE TODAY 옆 배치 + 기본 접힘 -->
+<style>
+.top-status-left{gap:8px!important;overflow:visible!important}
+.axe-plika-quick-v81{position:relative;z-index:70;width:auto;max-width:none;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible;color:#fff;flex:0 0 auto}
+.axe-plika-quick-v81.collapsed{width:auto;border-radius:0}
+.axe-plika-quick-head-v81{height:32px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 10px 0 12px;border:1px solid rgba(255,181,46,.28);border-radius:999px;background:linear-gradient(135deg,rgba(255,181,46,.115),rgba(255,255,255,.025));box-shadow:0 8px 20px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05);cursor:pointer;user-select:none;white-space:nowrap;transition:.18s ease}
+.axe-plika-quick-head-v81:hover{transform:translateY(-1px);border-color:rgba(255,181,46,.55);background:linear-gradient(135deg,rgba(255,181,46,.18),rgba(255,255,255,.035))}
+.axe-plika-quick-v81.collapsed .axe-plika-quick-head-v81{border-bottom:1px solid rgba(255,181,46,.28);padding:0 10px 0 12px}
+.axe-plika-quick-title-v81{font-weight:950;color:#ffb52e;font-size:12px;white-space:nowrap;letter-spacing:-.15px}
+.axe-plika-quick-sub-v81{display:none}
+.axe-plika-toggle-v81{width:22px;height:22px;border-radius:999px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.045);color:#ddd;font-weight:950;cursor:pointer;font-size:11px;line-height:1;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.axe-plika-quick-body-v81{position:absolute;left:0;top:calc(100% + 8px);width:330px;max-width:calc(100vw - 24px);padding:12px;display:block;border:1px solid rgba(255,181,46,.28);border-radius:16px;background:linear-gradient(145deg,rgba(18,18,18,.985),rgba(7,7,7,.97));box-shadow:0 18px 46px rgba(0,0,0,.45);z-index:10030}
+.axe-plika-quick-v81.collapsed .axe-plika-quick-body-v81{display:none}
+.axe-plika-search-v81{width:100%;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 11px;outline:none;font-size:13px;margin-bottom:10px}
+.axe-plika-search-v81:focus{border-color:rgba(255,181,46,.65)}
+.axe-plika-list-v81{display:grid;gap:7px;max-height:330px;overflow:auto;padding-right:2px}
+.axe-plika-row-v81{display:grid;grid-template-columns:88px minmax(0,1fr) 54px;gap:8px;align-items:center;min-height:38px;padding:8px 9px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:rgba(0,0,0,.22)}
+.axe-plika-name-v81{font-size:13px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.axe-plika-account-v81{font-size:13px;font-weight:950;color:#ffcf75;font-variant-numeric:tabular-nums;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.axe-plika-account-v81.empty{color:#777;cursor:default}
+.axe-plika-copy-v81,.axe-plika-admin-btn-v81{height:30px;padding:0 9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.94);color:#ddd;font-size:12px;font-weight:950;cursor:pointer;transition:.15s ease;white-space:nowrap}
+.axe-plika-copy-v81:hover,.axe-plika-admin-btn-v81:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.axe-plika-copy-v81:disabled{opacity:.35;cursor:default;transform:none;color:#777;border-color:rgba(255,255,255,.08)}
+.axe-plika-admin-v81{display:flex;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.axe-plika-admin-v81 .axe-plika-admin-btn-v81{flex:1;height:34px}
+.axe-plika-empty-v81{padding:18px 8px;text-align:center;color:#888;font-size:13px;line-height:1.5;border:1px dashed rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.025)}
+@media(max-width:900px){.top-status-left{justify-content:center!important;flex-wrap:wrap!important}.axe-plika-quick-body-v81{left:50%;transform:translateX(-50%);width:min(330px,calc(100vw - 20px))}}
+@media(max-width:760px){.axe-plika-row-v81{grid-template-columns:82px minmax(0,1fr) 48px}.axe-plika-list-v81{max-height:280px}.axe-plika-quick-head-v81{height:28px;padding:0 9px!important}.axe-plika-quick-title-v81{font-size:11px}.axe-plika-toggle-v81{width:20px;height:20px;font-size:10px}}
+
+/* AXE NET V85: 플리카 계좌 닫기/등록신청/신청관리 */
+.axe-plika-action-row-v85{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.axe-plika-action-row-v85 .axe-plika-admin-btn-v81{height:34px;width:100%}
+.axe-plika-close-v85{color:#aaa!important;background:rgba(255,255,255,.045)!important}
+.axe-plika-request-v85{color:#ffcf75!important;background:rgba(255,181,46,.09)!important;border-color:rgba(255,181,46,.28)!important}
+.axe-plika-request-modal-v85{position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:14px}
+.axe-plika-request-box-v85{width:min(620px,100%);max-height:86vh;overflow:auto;border:1px solid rgba(255,181,46,.28);border-radius:18px;background:#0d0d0d;box-shadow:0 22px 70px rgba(0,0,0,.55)}
+.axe-plika-request-head-v85{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border-bottom:1px solid rgba(255,255,255,.08)}
+.axe-plika-request-title-v85{font-size:16px;font-weight:950;color:#ffb52e}
+.axe-plika-request-close-v85{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font-size:18px;font-weight:950}
+.axe-plika-request-body-v85{padding:14px;display:grid;gap:9px}
+.axe-plika-request-card-v85{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.035);padding:12px;display:grid;gap:8px}
+.axe-plika-request-meta-v85{display:flex;flex-wrap:wrap;gap:6px;color:#888;font-size:12px;font-weight:850}
+.axe-plika-request-main-v85{display:grid;grid-template-columns:92px 1fr;gap:8px;align-items:center;color:#ddd;font-size:13px;line-height:1.45}
+.axe-plika-request-main-v85 strong{color:#ffcf75;font-variant-numeric:tabular-nums}
+.axe-plika-request-actions-v85{display:flex;gap:7px;justify-content:flex-end;margin-top:4px}
+.axe-plika-request-actions-v85 button{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#ddd;font-size:12px;font-weight:950;cursor:pointer}
+.axe-plika-request-actions-v85 button:hover{color:#ffb52e;border-color:rgba(255,181,46,.42)}
+.axe-plika-request-actions-v85 button.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.52)}
+@media(max-width:760px){.axe-plika-action-row-v85{grid-template-columns:1fr}.axe-plika-request-main-v85{grid-template-columns:1fr}.axe-plika-request-actions-v85{display:grid;grid-template-columns:1fr 1fr}}
+
+/* AXE NET V89: 플리카 계좌 우측 상단 X + 바깥 클릭 닫기 */
+.axe-plika-body-head-v89{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;padding:1px 1px 0}
+.axe-plika-body-title-v89{font-size:13px;font-weight:950;color:#ffb52e;letter-spacing:-.1px}
+.axe-plika-body-close-v89{width:28px;height:28px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055);color:#ddd;font-size:17px;font-weight:950;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.16s ease}
+.axe-plika-body-close-v89:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.08);transform:translateY(-1px)}
+
+/* AXE NET V87: 플리카 계좌 전용 모달 UI */
+.axe-plika-modal-v87{position:fixed;inset:0;z-index:10080;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:14px}
+.axe-plika-modal-box-v87{width:min(560px,100%);max-height:88vh;overflow:auto;border:1px solid rgba(255,181,46,.3);border-radius:20px;background:linear-gradient(180deg,rgba(255,181,46,.045),rgba(255,255,255,.015)),#0d0d0d;box-shadow:0 24px 80px rgba(0,0,0,.62)}
+.axe-plika-modal-head-v87{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 17px;border-bottom:1px solid rgba(255,255,255,.08)}
+.axe-plika-modal-title-v87{font-size:17px;font-weight:950;color:#ffb52e;letter-spacing:-.1px}
+.axe-plika-modal-desc-v87{margin-top:4px;color:#8f8f8f;font-size:12px;font-weight:850;line-height:1.45}
+.axe-plika-modal-close-v87{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#fff;font-size:18px;font-weight:950;cursor:pointer}
+.axe-plika-modal-body-v87{padding:16px 17px 17px;display:grid;gap:12px}
+.axe-plika-field-grid-v87{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.axe-plika-field-v87{display:grid;gap:6px}
+.axe-plika-field-v87.full{grid-column:1 / -1}
+.axe-plika-label-v87{color:#aaa;font-size:12px;font-weight:950}
+.axe-plika-input-v87,.axe-plika-select-v87,.axe-plika-textarea-v87{width:100%;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:12px;padding:11px 12px;outline:none;font-family:Arial,sans-serif;font-size:14px}
+.axe-plika-input-v87:focus,.axe-plika-select-v87:focus,.axe-plika-textarea-v87:focus{border-color:rgba(255,181,46,.65);box-shadow:0 0 0 2px rgba(255,181,46,.08)}
+.axe-plika-textarea-v87{min-height:86px;resize:vertical;line-height:1.55}
+.axe-plika-checkline-v87{display:flex;align-items:center;gap:8px;color:#ddd;font-size:13px;font-weight:900;min-height:42px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035)}
+.axe-plika-checkline-v87 input{width:16px;height:16px;accent-color:#ffb52e}
+.axe-plika-preview-v87{padding:12px 13px;border-radius:14px;border:1px solid rgba(255,181,46,.18);background:rgba(255,181,46,.055);color:#ddd;font-size:13px;line-height:1.55}
+.axe-plika-preview-v87 strong{color:#ffcf75;font-variant-numeric:tabular-nums}
+.axe-plika-modal-actions-v87{display:flex;justify-content:flex-end;gap:8px;padding-top:4px}
+.axe-plika-modal-btn-v87{height:38px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.11);background:rgba(20,20,20,.94);color:#ddd;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease}
+.axe-plika-modal-btn-v87:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.axe-plika-modal-btn-v87.primary{background:#ffb52e;border-color:#ffb52e;color:#111}
+.axe-plika-modal-btn-v87.primary:hover{color:#111;filter:brightness(1.06)}
+.axe-plika-modal-btn-v87.danger{background:rgba(255,80,80,.09);border-color:rgba(255,80,80,.3);color:#ff8f8f}
+.axe-plika-modal-btn-v87.danger:hover{color:#fff;border-color:rgba(255,107,107,.58);background:rgba(255,80,80,.16)}
+.axe-plika-confirm-text-v87{color:#ddd;font-size:14px;line-height:1.65;padding:4px 0}
+@media(max-width:760px){.axe-plika-field-grid-v87{grid-template-columns:1fr}.axe-plika-modal-actions-v87{display:grid;grid-template-columns:1fr 1fr}.axe-plika-modal-btn-v87{width:100%}}
+
+</style>
+<script>
+
+/* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
+(function(){
+  const VERSION='AXE_NET_PLIKA_QUICK_V89_CLOSE_X_OUTSIDE';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbycjSMBLecdEscAiSz9akXY8cpEdvHSdPp66OJ06gYUa4i613y306O9Z-BGCyNzxWw-_g/exec';
+  let collapsedState=true;
+  let didForceFetch=false;
+  let plikaSearchKeyword='';
+  let plikaImeComposing=false;
+
+  function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+  function txt(v){return String(v==null?'':v).trim();}
+  function rawRows(){return Array.isArray(window.plikaAccounts)?window.plikaAccounts:(typeof plikaAccounts!=='undefined'&&Array.isArray(plikaAccounts)?plikaAccounts:[]);}
+  function syncRowsFromData(data){
+    const next=(data&&data.plikaAccounts)||(data&&data.plika_accounts)||(data&&data.plikaAccountRows)||[];
+    if(Array.isArray(next)){
+      window.plikaAccounts=next;
+      try{ if(typeof plikaAccounts!=='undefined') plikaAccounts=next; }catch(e){}
+    }
+  }
+  function forceFetchIfEmpty(){
+    if(didForceFetch) return;
+    if(rawRows().length>0) return;
+    didForceFetch=true;
+    if(typeof API_URL==='undefined') return;
+    fetch(API_URL+(String(API_URL).includes('?')?'&':'?')+'_plika_ts='+Date.now(),{cache:'no-store'})
+      .then(res=>res.json())
+      .then(data=>{ syncRowsFromData(data); render(); })
+      .catch(()=>{});
+  }
+  function normalizeAccount(v){
+    let s=String(v==null?'':v).trim().replace(/[^0-9]/g,'');
+    if(s && s.length<12) s=s.padStart(12,'0');
+    return s;
+  }
+  function rowNo(r,i){return txt(r['번호']||r.no||r.number||(i+1));}
+  function rowName(r){return txt(r['멤버명']||r.member||r.name||r.nickname||r['이름']);}
+  function rowAccount(r){return normalizeAccount(r['계좌']||r.account||r.plika_account||r['계좌번호']);}
+  function rowEnabled(r){
+    const v=txt(r['사용여부']!==undefined?r['사용여부']:(r.enabled!==undefined?r.enabled:'TRUE')).toLowerCase();
+    return !['false','n','no','0','사용안함','비활성'].includes(v);
+  }
+  function rows(){return rawRows().filter(rowEnabled).map((r,i)=>({raw:r,no:rowNo(r,i),name:rowName(r),account:rowAccount(r),note:txt(r['비고']||r.note||r.memo)})).filter(r=>r.name||r.account);}
+  function filteredRows(){
+    const q=txt(plikaSearchKeyword).toLowerCase();
+    return rows().filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
+  }
+  function toast(msg){
+    if(typeof showToast==='function'){showToast(msg);return;}
+    const old=document.getElementById('axePlikaToastV81'); if(old) old.remove();
+    const el=document.createElement('div'); el.id='axePlikaToastV81'; el.textContent=msg;
+    el.style.cssText='position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:10000;background:rgba(0,0,0,.86);border:1px solid rgba(255,181,46,.45);color:#ffcf75;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:950;box-shadow:0 10px 28px rgba(0,0,0,.4)';
+    document.body.appendChild(el); setTimeout(()=>el.remove(),1600);
+  }
+  function copyText(value,name){
+    const text=normalizeAccount(value); if(!text){toast('등록된 계좌가 없습니다.');return;}
+    const done=()=>toast((name?name+' ':'')+'계좌번호가 복사되었습니다.');
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));}
+    else fallbackCopy(text,done);
+  }
+  function fallbackCopy(text,done){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done&&done();}catch(e){alert(text);}ta.remove();}
+  function mountTarget(){return document.querySelector('.top-status-left')||document.querySelector('.top-status-bar')||document.body;}
+  function ensure(){
+    let box=document.getElementById('axePlikaQuickV81');
+    if(!box){box=document.createElement('div'); box.id='axePlikaQuickV81'; box.className='axe-plika-quick-v81';}
+    const mount=mountTarget();
+    if(box.parentNode!==mount) mount.appendChild(box);
+    return box;
+  }
+  function rowHtml(r){
+    const safeAccount=esc(r.account);
+    const safeName=esc(r.name);
+    return `<div class="axe-plika-row-v81">
+      <div class="axe-plika-name-v81" title="${safeName}">${safeName||'-'}</div>
+      <div class="axe-plika-account-v81 ${r.account?'':'empty'}" title="${esc(r.account||'미등록')}" onclick="${r.account?`axeCopyPlikaAccountV81('${safeAccount}','${safeName}')`:''}">${r.account?safeAccount:'미등록'}</div>
+      <button class="axe-plika-copy-v81" ${r.account?'':'disabled'} onclick="axeCopyPlikaAccountV81('${safeAccount}','${safeName}')">복사</button>
+    </div>`;
+  }
+  function renderListOnly(){
+    const listEl=document.querySelector('#axePlikaQuickV81 .axe-plika-list-v81');
+    if(!listEl) return;
+    const filtered=filteredRows();
+    listEl.innerHTML=filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`;
+  }
+  function render(){
+    const box=ensure();
+    const collapsed=collapsedState!==false;
+    box.classList.toggle('collapsed',collapsed);
+    const filtered=filteredRows();
+    box.innerHTML=`
+      <div class="axe-plika-quick-head-v81" onclick="axeTogglePlikaQuickV81()">
+        <div><div class="axe-plika-quick-title-v81">💳 플리카 계좌</div><div class="axe-plika-quick-sub-v81">계좌 클릭 또는 복사</div></div>
+        <button class="axe-plika-toggle-v81" onclick="event.stopPropagation();axeTogglePlikaQuickV81()">${collapsed?'▾':'▴'}</button>
+      </div>
+      <div class="axe-plika-quick-body-v81">
+        <div class="axe-plika-body-head-v89">
+          <div class="axe-plika-body-title-v89">플리카 계좌</div>
+          <button type="button" class="axe-plika-body-close-v89" onclick="event.stopPropagation();axeClosePlikaQuickV85()" aria-label="플리카 계좌 닫기">×</button>
+        </div>
+        <input id="axePlikaSearchV81" class="axe-plika-search-v81" data-axe-ime-safe="1" placeholder="멤버명/계좌 검색" value="${esc(plikaSearchKeyword)}" oncompositionstart="axePlikaSearchCompositionV84(true)" oncompositionend="axePlikaSearchCompositionV84(false,this)" oninput="axePlikaSearchInputV84(this)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="axe-plika-list-v81">
+          ${filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
+        </div>
+        <div class="axe-plika-action-row-v85">
+          <button class="axe-plika-admin-btn-v81 axe-plika-request-v85" onclick="axeRequestPlikaAccountV85()">등록신청</button>
+          <button class="axe-plika-admin-btn-v81 axe-plika-close-v85" onclick="axeClosePlikaQuickV85()">닫기</button>
+        </div>
+        ${typeof isCurrentAdmin==='function'&&isCurrentAdmin()?`<div class="axe-plika-admin-v81"><button class="axe-plika-admin-btn-v81" onclick="axeAddPlikaAccountV81()">추가</button><button class="axe-plika-admin-btn-v81" onclick="axeEditPlikaAccountV81()">수정</button><button class="axe-plika-admin-btn-v81" onclick="axeDeletePlikaAccountV81()">삭제</button><button class="axe-plika-admin-btn-v81" onclick="axeManagePlikaRequestsV85()">신청관리</button></div>`:''}
+      </div>`;
+  }
+  window.renderPlikaQuickV81=render;
+  window.axeTogglePlikaQuickV81=function(){collapsedState=!collapsedState;render();};
+  window.axeCopyPlikaAccountV81=function(account,name){copyText(account,name);};
+
+  window.axeClosePlikaQuickV85=function(){collapsedState=true;render();};
+  if(!window.__axePlikaOutsideCloseV89Bound){
+    window.__axePlikaOutsideCloseV89Bound=true;
+    document.addEventListener('pointerdown',function(e){
+      try{
+        if(collapsedState!==false) return;
+        const quick=document.getElementById('axePlikaQuickV81');
+        const target=e.target;
+        if(quick && quick.contains(target)) return;
+        if(target && target.closest && target.closest('.axe-plika-modal-v87,.axe-plika-request-modal-v85')) return;
+        collapsedState=true;
+        render();
+      }catch(err){}
+    },true);
+  }
+  function currentLoginUserV85(){try{if(typeof getCurrentUser==='function')return getCurrentUser()||{};}catch(e){} return {};}
+  function normalPostV85(payload){return fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json());}
+  function closePlikaModalV87(){const el=document.getElementById('axePlikaModalV87'); if(el)el.remove();}
+  window.axeClosePlikaModalV87=closePlikaModalV87;
+  function openPlikaModalV87(html){closePlikaModalV87(); document.body.insertAdjacentHTML('beforeend',html);}
+  function modalShellV87(title,desc,body,actions){
+    return `<div class="axe-plika-modal-v87" id="axePlikaModalV87"><div class="axe-plika-modal-box-v87"><div class="axe-plika-modal-head-v87"><div><div class="axe-plika-modal-title-v87">${esc(title)}</div>${desc?`<div class="axe-plika-modal-desc-v87">${esc(desc)}</div>`:''}</div><button class="axe-plika-modal-close-v87" onclick="axeClosePlikaModalV87()">×</button></div><div class="axe-plika-modal-body-v87">${body}<div class="axe-plika-modal-actions-v87">${actions}</div></div></div></div>`;
+  }
+  function memberOptionsV87(selected){
+    return rows().map(r=>`<option value="${esc(r.name)}" ${r.name===selected?'selected':''}>${esc(r.name)}${r.account?' · '+esc(r.account):' · 미등록'}</option>`).join('');
+  }
+  function findRowByNameV87(name){const target=txt(name); return rows().find(x=>x.name===target)||null;}
+  function plikaFormBodyV87(mode,preset){
+    preset=preset||{};
+    const isRequest=mode==='request';
+    const isEdit=mode==='edit';
+    const isDelete=mode==='delete';
+    const selected=txt(preset.member||preset.name||'');
+    const r=isEdit||isDelete?findRowByNameV87(selected):null;
+    const name=esc(selected||'');
+    const account=esc(normalizeAccount(preset.account||(r&&r.account)||''));
+    const note=esc(preset.note||(r&&r.note)||'');
+    const selectBlock=(isEdit||isDelete)?`<div class="axe-plika-field-v87 full"><div class="axe-plika-label-v87">대상 멤버 선택</div><select id="axePlikaFormSelectV87" class="axe-plika-select-v87" onchange="axeFillPlikaFormFromSelectV87(this.value)"><option value="">선택</option>${memberOptionsV87(selected)}</select></div>`:'';
+    if(isDelete){
+      return `<div class="axe-plika-field-grid-v87">${selectBlock}<div class="axe-plika-preview-v87 full" id="axePlikaDeletePreviewV87">삭제할 멤버를 선택하세요.</div></div>`;
+    }
+    return `<div class="axe-plika-field-grid-v87">${selectBlock}<div class="axe-plika-field-v87"><div class="axe-plika-label-v87">멤버명</div><input id="axePlikaFormMemberV87" class="axe-plika-input-v87" value="${name}" placeholder="예: 영포티" ${isEdit?'':' '} autocomplete="off"></div><div class="axe-plika-field-v87"><div class="axe-plika-label-v87">계좌번호</div><input id="axePlikaFormAccountV87" class="axe-plika-input-v87" value="${account}" placeholder="숫자만 입력" inputmode="numeric" autocomplete="off"></div>${isRequest?'':`<div class="axe-plika-field-v87"><div class="axe-plika-label-v87">사용여부</div><label class="axe-plika-checkline-v87"><input id="axePlikaFormEnabledV87" type="checkbox" checked> 사용중</label></div>`}<div class="axe-plika-field-v87 ${isRequest?'full':''}"><div class="axe-plika-label-v87">비고</div><textarea id="axePlikaFormNoteV87" class="axe-plika-textarea-v87" placeholder="특이사항이 있으면 입력">${note}</textarea></div></div>`;
+  }
+  window.axeFillPlikaFormFromSelectV87=function(name){
+    const r=findRowByNameV87(name);
+    const member=document.getElementById('axePlikaFormMemberV87');
+    const account=document.getElementById('axePlikaFormAccountV87');
+    const note=document.getElementById('axePlikaFormNoteV87');
+    const preview=document.getElementById('axePlikaDeletePreviewV87');
+    if(member)member.value=r?r.name:'';
+    if(account)account.value=r?r.account:'';
+    if(note)note.value=r?r.note:'';
+    if(preview)preview.innerHTML=r?`<div>삭제 대상: <strong>${esc(r.name)}</strong></div><div>계좌: <strong>${esc(r.account||'미등록')}</strong></div><div style="margin-top:6px;color:#999">삭제하면 플리카 계좌 목록에서 제거됩니다.</div>`:'삭제할 멤버를 선택하세요.';
+  };
+  function readPlikaFormV87(){
+    return {member:txt(document.getElementById('axePlikaFormMemberV87')?.value),account:normalizeAccount(document.getElementById('axePlikaFormAccountV87')?.value),note:txt(document.getElementById('axePlikaFormNoteV87')?.value),enabled:document.getElementById('axePlikaFormEnabledV87')?.checked===false?'FALSE':'TRUE'};
+  }
+  window.axeSubmitPlikaRequestV87=function(){
+    const user=currentLoginUserV85();
+    if(!user||!user.nickname){alert('로그인 후 등록신청할 수 있습니다.'); try{openAuthModal('login')}catch(e){} return;}
+    const v=readPlikaFormV87();
+    if(!v.member){toast('멤버명을 입력하세요.');return;}
+    normalPostV85({type:'plika_account_request_submit',nickname:user.nickname,account:{member:v.member,account:v.account,note:v.note||''}}).then(data=>{
+      if(data&&data.result==='success'){closePlikaModalV87(); toast('플리카 계좌 등록신청이 접수되었습니다.');}
+      else alert((data&&data.message)||'등록신청에 실패했습니다.');
+    }).catch(()=>alert('등록신청 중 오류가 발생했습니다.'));
+  };
+  window.axeRequestPlikaAccountV85=function(){
+    const user=currentLoginUserV85();
+    if(!user||!user.nickname){alert('로그인 후 등록신청할 수 있습니다.'); try{openAuthModal('login')}catch(e){} return;}
+    const body=plikaFormBodyV87('request',{member:user.nickname||''});
+    const actions=`<button class="axe-plika-modal-btn-v87" onclick="axeClosePlikaModalV87()">취소</button><button class="axe-plika-modal-btn-v87 primary" onclick="axeSubmitPlikaRequestV87()">신청 접수</button>`;
+    openPlikaModalV87(modalShellV87('플리카 계좌 등록신청','관리자 승인 후 계좌 목록에 반영됩니다.',body,actions));
+  };
+  window.axeSubmitPlikaSaveV87=function(mode){
+    const v=readPlikaFormV87();
+    if(!v.member){toast('멤버명을 입력하세요.');return;}
+    const r=findRowByNameV87(v.member);
+    savePayload({account:{number:r?r.no:'',member:v.member,account:v.account,enabled:v.enabled,note:v.note}}).then(()=>closePlikaModalV87());
+  };
+  window.axeAddPlikaAccountV81=function(){
+    const body=plikaFormBodyV87('add',{});
+    const actions=`<button class="axe-plika-modal-btn-v87" onclick="axeClosePlikaModalV87()">취소</button><button class="axe-plika-modal-btn-v87 primary" onclick="axeSubmitPlikaSaveV87('add')">저장</button>`;
+    openPlikaModalV87(modalShellV87('플리카 계좌 추가','새 멤버 계좌를 추가합니다. 같은 멤버명이 있으면 기존 행을 업데이트합니다.',body,actions));
+  };
+  window.axeEditPlikaAccountV81=function(){
+    const first=rows()[0]||{};
+    const body=plikaFormBodyV87('edit',{member:first.name||''});
+    const actions=`<button class="axe-plika-modal-btn-v87" onclick="axeClosePlikaModalV87()">취소</button><button class="axe-plika-modal-btn-v87 primary" onclick="axeSubmitPlikaSaveV87('edit')">수정 저장</button>`;
+    openPlikaModalV87(modalShellV87('플리카 계좌 수정','수정할 멤버를 선택한 뒤 계좌 정보를 변경하세요.',body,actions));
+    if(first.name)axeFillPlikaFormFromSelectV87(first.name);
+  };
+  window.axeSubmitPlikaDeleteV87=function(){
+    const name=txt(document.getElementById('axePlikaFormSelectV87')?.value);
+    if(!name){toast('삭제할 멤버를 선택하세요.');return;}
+    const r=findRowByNameV87(name);
+    if(!r){toast('대상을 찾을 수 없습니다.');return;}
+    adminApi({type:'plika_account_delete',number:r.no,member:name}).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} closePlikaModalV87(); render(); toast('삭제되었습니다.');}else alert((data&&data.message)||'삭제에 실패했습니다.');});
+  };
+  window.axeDeletePlikaAccountV81=function(){
+    const first=rows()[0]||{};
+    const body=plikaFormBodyV87('delete',{member:first.name||''});
+    const actions=`<button class="axe-plika-modal-btn-v87" onclick="axeClosePlikaModalV87()">취소</button><button class="axe-plika-modal-btn-v87 danger" onclick="axeSubmitPlikaDeleteV87()">삭제</button>`;
+    openPlikaModalV87(modalShellV87('플리카 계좌 삭제','삭제할 멤버를 선택하세요. 삭제 후에는 목록에서 제거됩니다.',body,actions));
+    if(first.name)axeFillPlikaFormFromSelectV87(first.name);
+  };
+  function requestModalHtmlV85(items){
+    const rowsHtml=(items||[]).map(r=>{
+      const id=esc(r.id||r['id']||'');
+      const member=esc(r['멤버명']||r.member||r.name||'');
+      const account=esc(normalizeAccount(r['계좌']||r.account||''));
+      const requester=esc(r['신청자']||r.requester||r.nickname||'');
+      const date=esc(r['신청일']||r.requested_at||'');
+      const note=esc(r['비고']||r.note||'');
+      return `<div class="axe-plika-request-card-v85"><div class="axe-plika-request-meta-v85"><span>신청자 ${requester||'-'}</span><span>${date||''}</span></div><div class="axe-plika-request-main-v85"><span>멤버명</span><strong>${member||'-'}</strong><span>계좌</span><strong>${account||'미등록'}</strong>${note?`<span>비고</span><span>${note}</span>`:''}</div><div class="axe-plika-request-actions-v85"><button onclick="axeOpenApprovePlikaRequestV87('${id}','${member}','${account}')">승인</button><button class="danger" onclick="axeOpenRejectPlikaRequestV87('${id}','${member}')">반려</button></div></div>`;
+    }).join('')||'<div class="axe-plika-empty-v81">검수대기 등록신청이 없습니다.</div>';
+    return `<div class="axe-plika-request-modal-v85" id="axePlikaRequestModalV85"><div class="axe-plika-request-box-v85"><div class="axe-plika-request-head-v85"><div class="axe-plika-request-title-v85">플리카 계좌 등록신청 관리</div><button class="axe-plika-request-close-v85" onclick="axeClosePlikaRequestModalV85()">×</button></div><div class="axe-plika-request-body-v85">${rowsHtml}</div></div></div>`;
+  }
+  window.axeClosePlikaRequestModalV85=function(){const el=document.getElementById('axePlikaRequestModalV85'); if(el)el.remove();};
+  window.axeManagePlikaRequestsV85=function(){
+    adminApi({type:'plika_account_request_list'}).then(data=>{
+      if(!data||data.result!=='success'){alert((data&&data.message)||'신청 목록을 불러오지 못했습니다.');return;}
+      axeClosePlikaRequestModalV85();
+      document.body.insertAdjacentHTML('beforeend', requestModalHtmlV85(data.requests||[]));
+    });
+  };
+  window.axeOpenApprovePlikaRequestV87=function(id,member,account){
+    const body=`<div class="axe-plika-confirm-text-v87"><strong style="color:#ffcf75">${esc(member||'-')}</strong> 계좌 신청을 승인합니다.<br>계좌번호: <strong style="color:#ffcf75">${esc(account||'미등록')}</strong></div>`;
+    const actions=`<button class="axe-plika-modal-btn-v87" onclick="axeClosePlikaModalV87()">취소</button><button class="axe-plika-modal-btn-v87 primary" onclick="axeApprovePlikaRequestV85('${esc(id)}')">승인</button>`;
+    openPlikaModalV87(modalShellV87('플리카 계좌 신청 승인','승인하면 플리카계좌 시트에 반영됩니다.',body,actions));
+  };
+  window.axeOpenRejectPlikaRequestV87=function(id,member){
+    const body=`<div class="axe-plika-confirm-text-v87"><strong style="color:#ffcf75">${esc(member||'-')}</strong> 계좌 신청을 반려합니다.</div><div class="axe-plika-field-v87"><div class="axe-plika-label-v87">반려 사유</div><textarea id="axePlikaRejectReasonV87" class="axe-plika-textarea-v87" placeholder="반려 사유를 입력"></textarea></div>`;
+    const actions=`<button class="axe-plika-modal-btn-v87" onclick="axeClosePlikaModalV87()">취소</button><button class="axe-plika-modal-btn-v87 danger" onclick="axeRejectPlikaRequestV85('${esc(id)}')">반려</button>`;
+    openPlikaModalV87(modalShellV87('플리카 계좌 신청 반려','반려 사유는 신청관리 기록에 남습니다.',body,actions));
+  };
+  window.axeApprovePlikaRequestV85=function(id){if(!id)return; adminApi({type:'plika_account_request_approve',id:id}).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} closePlikaModalV87(); render(); toast('승인되었습니다.'); axeManagePlikaRequestsV85();}else alert((data&&data.message)||'승인에 실패했습니다.');});};
+  window.axeRejectPlikaRequestV85=function(id){if(!id)return; const reason=txt(document.getElementById('axePlikaRejectReasonV87')?.value); adminApi({type:'plika_account_request_reject',id:id,reason:reason||''}).then(data=>{if(data&&data.result==='success'){closePlikaModalV87(); toast('반려되었습니다.'); axeManagePlikaRequestsV85();}else alert((data&&data.message)||'반려에 실패했습니다.');});};
+
+  window.axePlikaSearchCompositionV84=function(isStart,el){
+    plikaImeComposing=!!isStart;
+    if(!isStart && el){plikaSearchKeyword=el.value||'';renderListOnly();}
+  };
+  window.axePlikaSearchInputV84=function(el){
+    plikaSearchKeyword=(el&&el.value)||'';
+    if(plikaImeComposing) return;
+    renderListOnly();
+  };
+  function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
+  window.axePlikaQuickV89Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch,hasRequestButton:!!document.querySelector('.axe-plika-request-v85')};};
+  window.axePlikaQuickV87Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV85Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV84Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV83Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV82Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV81Debug=window.axePlikaQuickV89Debug;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setTimeout(forceFetchIfEmpty,250);},{once:true}); else {render();setTimeout(forceFetchIfEmpty,250);}
+  setTimeout(()=>{render();forceFetchIfEmpty();},600);
+})();
+
+
+function axeRankingAdminV90Debug(){
+    return {
+        version:"AXE_NET_RANKING_INCLUDE_ADMIN_V90",
+        rankingCount:Array.isArray(rankings)?rankings.length:0,
+        adminIncluded:(Array.isArray(rankings)?rankings:[]).some(function(m){return String(m.role||"").toLowerCase()==="admin"||String(m.badge||"").toLowerCase()==="admin";}),
+        apiUrl:typeof API_URL!=="undefined"?API_URL:""
+    };
+}
+window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
+</script>
+
 <style id="axe-utility-graphic-patch-v92-style">
 /* AXE NET V93: 그래픽 패치 다운로드 버튼 정리 */
 .graphic-patch-wrap-v92{display:grid;gap:14px;}
@@ -22823,7 +23251,7 @@ function axeModBookFilterV34Debug(){
 <script id="axe-utility-graphic-patch-v92-script">
 /* AXE NET V92: 최종 편의기능 렌더러를 덮어써 그래픽 패치 탭 누락 방지 */
 (function(){
-    const VERSION="AXE_NET_UTILITY_GRAPHIC_PATCH_V93_DOWNLOAD_SIMPLE";
+    const VERSION="AXE_NET_UTILITY_GRAPHIC_PATCH_V94_MERGED_WITH_PLIKA";
     const GRAPHIC_PATCH_URL="https://drive.google.com/file/d/1VDdbwPeQNxZC0aSS0v72Q2zQq4TxmDCn/view";
     const PLICA_LEVELS_V92=[
         {name:"브론즈 카드",point:1000,key:"bronze"},
