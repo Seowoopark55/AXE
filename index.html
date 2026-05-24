@@ -4576,7 +4576,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzD4jZacCRtBHIHAnHIP2wI2W-RQ9zjxnqjMOFtpw2IXLeB4dOtnuvkGIhkLBLJcsIWgw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby_I5CNk7H6hFt2iRSzBTaQ8RUixFszRYobanRsGT5mOjnuIFrnvYlH2pv7D28ITS6X4w/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -22837,9 +22837,31 @@ function axeModBookFilterV34Debug(){
 @media(max-width:760px){.axe-plika-row-v81{grid-template-columns:82px minmax(0,1fr) 48px}.axe-plika-list-v81{max-height:280px}.axe-plika-quick-head-v81{height:28px;padding:0 9px!important}.axe-plika-quick-title-v81{font-size:11px}.axe-plika-toggle-v81{width:20px;height:20px;font-size:10px}}
 </style>
 <script>
+
+/* AXE NET V85: 플리카 계좌 닫기/등록신청/신청관리 */
+.axe-plika-action-row-v85{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.axe-plika-action-row-v85 .axe-plika-admin-btn-v81{height:34px;width:100%}
+.axe-plika-close-v85{color:#aaa!important;background:rgba(255,255,255,.045)!important}
+.axe-plika-request-v85{color:#ffcf75!important;background:rgba(255,181,46,.09)!important;border-color:rgba(255,181,46,.28)!important}
+.axe-plika-request-modal-v85{position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:14px}
+.axe-plika-request-box-v85{width:min(620px,100%);max-height:86vh;overflow:auto;border:1px solid rgba(255,181,46,.28);border-radius:18px;background:#0d0d0d;box-shadow:0 22px 70px rgba(0,0,0,.55)}
+.axe-plika-request-head-v85{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border-bottom:1px solid rgba(255,255,255,.08)}
+.axe-plika-request-title-v85{font-size:16px;font-weight:950;color:#ffb52e}
+.axe-plika-request-close-v85{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font-size:18px;font-weight:950}
+.axe-plika-request-body-v85{padding:14px;display:grid;gap:9px}
+.axe-plika-request-card-v85{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.035);padding:12px;display:grid;gap:8px}
+.axe-plika-request-meta-v85{display:flex;flex-wrap:wrap;gap:6px;color:#888;font-size:12px;font-weight:850}
+.axe-plika-request-main-v85{display:grid;grid-template-columns:92px 1fr;gap:8px;align-items:center;color:#ddd;font-size:13px;line-height:1.45}
+.axe-plika-request-main-v85 strong{color:#ffcf75;font-variant-numeric:tabular-nums}
+.axe-plika-request-actions-v85{display:flex;gap:7px;justify-content:flex-end;margin-top:4px}
+.axe-plika-request-actions-v85 button{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#ddd;font-size:12px;font-weight:950;cursor:pointer}
+.axe-plika-request-actions-v85 button:hover{color:#ffb52e;border-color:rgba(255,181,46,.42)}
+.axe-plika-request-actions-v85 button.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.52)}
+@media(max-width:760px){.axe-plika-action-row-v85{grid-template-columns:1fr}.axe-plika-request-main-v85{grid-template-columns:1fr}.axe-plika-request-actions-v85{display:grid;grid-template-columns:1fr 1fr}}
+
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V84_IME_SAFE';
+  const VERSION='AXE_NET_PLIKA_QUICK_V85_CLOSE_REQUEST';
   const LATEST_API='https://script.google.com/macros/s/AKfycbzD4jZacCRtBHIHAnHIP2wI2W-RQ9zjxnqjMOFtpw2IXLeB4dOtnuvkGIhkLBLJcsIWgw/exec';
   let collapsedState=true;
   let didForceFetch=false;
@@ -22935,12 +22957,61 @@ function axeModBookFilterV34Debug(){
         <div class="axe-plika-list-v81">
           ${filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
         </div>
-        ${typeof isCurrentAdmin==='function'&&isCurrentAdmin()?`<div class="axe-plika-admin-v81"><button class="axe-plika-admin-btn-v81" onclick="axeAddPlikaAccountV81()">추가</button><button class="axe-plika-admin-btn-v81" onclick="axeEditPlikaAccountV81()">수정</button><button class="axe-plika-admin-btn-v81" onclick="axeDeletePlikaAccountV81()">삭제</button></div>`:''}
+        <div class="axe-plika-action-row-v85">
+          <button class="axe-plika-admin-btn-v81 axe-plika-request-v85" onclick="axeRequestPlikaAccountV85()">등록신청</button>
+          <button class="axe-plika-admin-btn-v81 axe-plika-close-v85" onclick="axeClosePlikaQuickV85()">닫기</button>
+        </div>
+        ${typeof isCurrentAdmin==='function'&&isCurrentAdmin()?`<div class="axe-plika-admin-v81"><button class="axe-plika-admin-btn-v81" onclick="axeAddPlikaAccountV81()">추가</button><button class="axe-plika-admin-btn-v81" onclick="axeEditPlikaAccountV81()">수정</button><button class="axe-plika-admin-btn-v81" onclick="axeDeletePlikaAccountV81()">삭제</button><button class="axe-plika-admin-btn-v81" onclick="axeManagePlikaRequestsV85()">신청관리</button></div>`:''}
       </div>`;
   }
   window.renderPlikaQuickV81=render;
   window.axeTogglePlikaQuickV81=function(){collapsedState=!collapsedState;render();};
   window.axeCopyPlikaAccountV81=function(account,name){copyText(account,name);};
+
+  window.axeClosePlikaQuickV85=function(){collapsedState=true;render();};
+  function currentLoginUserV85(){try{if(typeof getCurrentUser==='function')return getCurrentUser()||{};}catch(e){} return {};}
+  function normalPostV85(payload){return fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json());}
+  window.axeRequestPlikaAccountV85=function(){
+    const user=currentLoginUserV85();
+    if(!user||!user.nickname){alert('로그인 후 등록신청할 수 있습니다.'); try{openAuthModal('login')}catch(e){} return;}
+    const defaultName=user.nickname||'';
+    const member=prompt('등록신청할 멤버명을 입력하세요.', defaultName);
+    if(!member)return;
+    const acc=prompt('등록신청할 계좌번호를 입력하세요. 숫자만 입력해도 됩니다.','');
+    if(acc===null)return;
+    const note=prompt('비고가 있으면 입력하세요. 없으면 빈칸으로 두세요.','');
+    normalPostV85({type:'plika_account_request_submit',nickname:user.nickname,account:{member:member,account:acc,note:note||''}}).then(data=>{
+      if(data&&data.result==='success'){toast('플리카 계좌 등록신청이 접수되었습니다.');}
+      else alert((data&&data.message)||'등록신청에 실패했습니다.');
+    }).catch(()=>alert('등록신청 중 오류가 발생했습니다.'));
+  };
+  function requestModalHtmlV85(items){
+    const rows=(items||[]).map(r=>{
+      const id=esc(r.id||r['id']||'');
+      const member=esc(r['멤버명']||r.member||r.name||'');
+      const account=esc(normalizeAccount(r['계좌']||r.account||''));
+      const requester=esc(r['신청자']||r.requester||r.nickname||'');
+      const date=esc(r['신청일']||r.requested_at||'');
+      const note=esc(r['비고']||r.note||'');
+      return `<div class="axe-plika-request-card-v85">
+        <div class="axe-plika-request-meta-v85"><span>신청자 ${requester||'-'}</span><span>${date||''}</span></div>
+        <div class="axe-plika-request-main-v85"><span>멤버명</span><strong>${member||'-'}</strong><span>계좌</span><strong>${account||'미등록'}</strong>${note?`<span>비고</span><span>${note}</span>`:''}</div>
+        <div class="axe-plika-request-actions-v85"><button onclick="axeApprovePlikaRequestV85('${id}')">승인</button><button class="danger" onclick="axeRejectPlikaRequestV85('${id}')">반려</button></div>
+      </div>`;
+    }).join('')||'<div class="axe-plika-empty-v81">검수대기 등록신청이 없습니다.</div>';
+    return `<div class="axe-plika-request-modal-v85" id="axePlikaRequestModalV85"><div class="axe-plika-request-box-v85"><div class="axe-plika-request-head-v85"><div class="axe-plika-request-title-v85">플리카 계좌 등록신청 관리</div><button class="axe-plika-request-close-v85" onclick="axeClosePlikaRequestModalV85()">×</button></div><div class="axe-plika-request-body-v85">${rows}</div></div></div>`;
+  }
+  window.axeClosePlikaRequestModalV85=function(){const el=document.getElementById('axePlikaRequestModalV85'); if(el)el.remove();};
+  window.axeManagePlikaRequestsV85=function(){
+    adminApi({type:'plika_account_request_list'}).then(data=>{
+      if(!data||data.result!=='success'){alert((data&&data.message)||'신청 목록을 불러오지 못했습니다.');return;}
+      axeClosePlikaRequestModalV85();
+      document.body.insertAdjacentHTML('beforeend', requestModalHtmlV85(data.requests||[]));
+    });
+  };
+  window.axeApprovePlikaRequestV85=function(id){if(!id)return; if(!confirm('이 계좌 등록신청을 승인할까요?'))return; adminApi({type:'plika_account_request_approve',id:id}).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('승인되었습니다.'); axeManagePlikaRequestsV85();}else alert((data&&data.message)||'승인에 실패했습니다.');});};
+  window.axeRejectPlikaRequestV85=function(id){if(!id)return; const reason=prompt('반려 사유를 입력하세요.',''); if(reason===null)return; adminApi({type:'plika_account_request_reject',id:id,reason:reason||''}).then(data=>{if(data&&data.result==='success'){toast('반려되었습니다.'); axeManagePlikaRequestsV85();}else alert((data&&data.message)||'반려에 실패했습니다.');});};
+
   window.axePlikaSearchCompositionV84=function(isStart,el){
     plikaImeComposing=!!isStart;
     if(!isStart && el){plikaSearchKeyword=el.value||'';renderListOnly();}
@@ -22954,7 +23025,8 @@ function axeModBookFilterV34Debug(){
   window.axeAddPlikaAccountV81=function(){const name=prompt('멤버명을 입력하세요.'); if(!name)return; const acc=prompt('계좌번호를 입력하세요. 빈칸도 가능합니다.',''); if(acc===null)return; savePayload({account:{member:name,account:acc,enabled:'TRUE'}});};
   window.axeEditPlikaAccountV81=function(){const name=prompt('수정할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); const acc=prompt('계좌번호를 입력하세요.',r?r.account:''); if(acc===null)return; savePayload({account:{number:r?r.no:'',member:name,account:acc,enabled:'TRUE'}});};
   window.axeDeletePlikaAccountV81=function(){const name=prompt('삭제할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); if(!r){alert('대상을 찾을 수 없습니다.');return;} if(!confirm(name+' 계좌 정보를 삭제할까요?'))return; adminApi({type:'plika_account_delete',number:r.no,member:name}).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('삭제되었습니다.');}else alert((data&&data.message)||'삭제에 실패했습니다.');});};
-  window.axePlikaQuickV84Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch};};
+  window.axePlikaQuickV85Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch,hasRequestButton:!!document.querySelector('.axe-plika-request-v85')};};
+  window.axePlikaQuickV84Debug=window.axePlikaQuickV85Debug;
   window.axePlikaQuickV83Debug=window.axePlikaQuickV84Debug;
   window.axePlikaQuickV82Debug=window.axePlikaQuickV84Debug;
   window.axePlikaQuickV81Debug=window.axePlikaQuickV84Debug;
