@@ -2628,6 +2628,30 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-notice-table th:nth-child(4),.admin-notice-table td:nth-child(4){width:72px;text-align:center;}
 .admin-notice-table th:nth-child(5),.admin-notice-table td:nth-child(5){width:132px;}
 @media(max-width:768px){.admin-notice-form{grid-template-columns:1fr;}.admin-notice-table{min-width:720px!important;}}
+
+
+/* AXE NET V91: 편의기능 그래픽 패치 */
+.graphic-patch-panel{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,181,46,.07),rgba(255,255,255,.018)),rgba(0,0,0,.25);border-radius:20px;padding:18px;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.graphic-patch-hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:18px;border-radius:18px;border:1px solid rgba(255,181,46,.22);background:linear-gradient(135deg,rgba(255,181,46,.10),rgba(255,255,255,.03));margin-bottom:14px}
+.graphic-patch-kicker{color:#ffb52e;font-size:12px;font-weight:950;letter-spacing:.8px;margin-bottom:7px}
+.graphic-patch-title{font-size:25px;font-weight:950;color:#fff;line-height:1.25;margin-bottom:7px}
+.graphic-patch-desc{color:#aaa;font-size:13px;line-height:1.6}
+.graphic-patch-download{height:44px;padding:0 18px;border-radius:13px;border:1px solid rgba(255,181,46,.55);background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);color:#111;font-size:14px;font-weight:950;cursor:pointer;white-space:nowrap;transition:.18s ease;box-shadow:0 10px 24px rgba(255,181,46,.18)}
+.graphic-patch-download:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.graphic-patch-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.graphic-patch-card{border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.24);border-radius:16px;padding:15px}
+.graphic-patch-card-title{font-size:15px;font-weight:950;color:#ffb52e;margin-bottom:10px}
+.graphic-patch-list{display:grid;gap:8px;margin:0;padding:0;list-style:none;color:#ddd;font-size:13px;line-height:1.55}
+.graphic-patch-list li{position:relative;padding-left:21px}
+.graphic-patch-list li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:999px;background:#ffb52e;box-shadow:0 0 12px rgba(255,181,46,.28)}
+.graphic-step-list{display:grid;gap:9px;margin-top:10px}
+.graphic-step{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:start;padding:10px 11px;border-radius:13px;border:1px solid rgba(255,255,255,.065);background:rgba(255,255,255,.025)}
+.graphic-step-no{width:32px;height:32px;border-radius:11px;background:rgba(255,181,46,.12);border:1px solid rgba(255,181,46,.35);color:#ffb52e;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:950}
+.graphic-step-text{color:#ddd;font-size:13px;line-height:1.55;font-weight:850}
+.graphic-patch-note{margin-top:12px;padding:12px 13px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.026);color:#999;font-size:12px;line-height:1.6}
+.graphic-patch-note strong{color:#ffcf75}
+@media(max-width:760px){.graphic-patch-hero{grid-template-columns:1fr;padding:15px}.graphic-patch-title{font-size:21px}.graphic-patch-download{width:100%}.graphic-patch-grid{grid-template-columns:1fr}}
+
 </style>
 
 <style>
@@ -4959,7 +4983,7 @@ function normalizeSubTab(page,subTab){
         notice:["noticeGeneral","noticePatch","noticeList","operations"],
         outlaw:["briefing","guide"],
         info:["craft","quest","process","modbook","skillrank"],
-        utility:["plica"]
+        utility:["plica","graphicPatch"]
     };
     const target=normalizeMainPage(page);
     const list=allowed[target]||[];
@@ -4990,6 +5014,7 @@ function renderSubTab(page,subTab){
     }
 
     if(target==="utility"){
+        if(tab==="graphicPatch"){showGraphicPatch();return;}
         showPlicaCalculator();return;
     }
 }
@@ -5063,7 +5088,8 @@ function parseRouteFromHash(){
         "info-process":{page:"info",subTab:"process"},
         "info-modbook":{page:"info",subTab:"modbook"},
         "info-skillrank":{page:"info",subTab:"skillrank"},
-        "utility-plica":{page:"utility",subTab:"plica"}
+        "utility-plica":{page:"utility",subTab:"plica"},
+        "utility-graphicPatch":{page:"utility",subTab:"graphicPatch"}
     };
     if(subMap[raw])return subMap[raw];
 
@@ -8201,7 +8227,10 @@ function infoMenu(active){
 }
 
 function utilityMenu(active){
-    const menus=[["플리카 계산기","navigateSubTab('utility','plica')"]];
+    const menus=[
+        ["플리카 계산기","navigateSubTab('utility','plica')"],
+        ["그래픽 패치","navigateSubTab('utility','graphicPatch')"]
+    ];
     return `<div class="info-menu">${menus.map(m=>`<button class="${m[0]===active?"active":""}" onclick="${m[1]}">${m[0]}</button>`).join("")}</div>`;
 }
 
@@ -8249,6 +8278,70 @@ function showPlicaCalculator(){
     <div class="plica-grid" id="plicaCards"></div>`;
 
     calcPlica();
+}
+
+
+function showGraphicPatch(){
+    setMainActive(8);
+    const downloadUrl="https://drive.google.com/file/d/1VDdbwPeQNxZC0aSS0v72Q2zQq4TxmDCn/view";
+    document.getElementById("content").innerHTML=`
+    <div class="section-head">
+        <div>
+            <div class="section-title">편의기능</div>
+            <div class="section-desc">게임 플레이에 필요한 보조 기능과 설치 자료를 확인합니다.</div>
+        </div>
+        <div class="count">UTILITY</div>
+    </div>
+
+    ${utilityMenu("그래픽 패치")}
+
+    <div class="graphic-patch-panel">
+        <div class="graphic-patch-hero">
+            <div>
+                <div class="graphic-patch-kicker">GRAPHIC PATCH</div>
+                <div class="graphic-patch-title">무법지대 및 날씨 없음/낮 그래픽 패치</div>
+                <div class="graphic-patch-desc">
+                    무법지대 플레이와 시야 확보를 편하게 하기 위한 그래픽 패치 파일입니다.<br>
+                    다운로드 후 압축을 풀고, FiveM 폴더 안의 <b>citizen</b> 폴더에 덮어쓰기 방식으로 적용합니다.
+                </div>
+            </div>
+            <button class="graphic-patch-download" onclick="openGraphicPatchDownload()">다운로드 열기</button>
+        </div>
+
+        <div class="graphic-patch-grid">
+            <div class="graphic-patch-card">
+                <div class="graphic-patch-card-title">패치 내용</div>
+                <ul class="graphic-patch-list">
+                    <li>무법지대 플레이 시 시야 확보에 도움</li>
+                    <li>날씨 효과를 줄이고 낮 환경 기준으로 보기 편하게 조정</li>
+                    <li>FiveM 클라이언트 폴더에 직접 적용하는 파일형 패치</li>
+                </ul>
+            </div>
+            <div class="graphic-patch-card">
+                <div class="graphic-patch-card-title">적용 순서</div>
+                <div class="graphic-step-list">
+                    <div class="graphic-step"><div class="graphic-step-no">1</div><div class="graphic-step-text">다운로드 버튼을 눌러 그래픽 패치 압축파일을 받습니다.</div></div>
+                    <div class="graphic-step"><div class="graphic-step-no">2</div><div class="graphic-step-text">다운로드한 압축파일을 해제합니다.</div></div>
+                    <div class="graphic-step"><div class="graphic-step-no">3</div><div class="graphic-step-text">PC에서 FiveM 설치 폴더를 찾습니다.</div></div>
+                    <div class="graphic-step"><div class="graphic-step-no">4</div><div class="graphic-step-text">FiveM 폴더 안의 <b>citizen</b> 폴더에 압축 해제한 파일을 덮어씁니다.</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="graphic-patch-note">
+            <strong>안내</strong><br>
+            기존 파일을 덮어쓰는 방식이므로, 원상복구가 필요할 수 있는 경우 기존 <b>citizen</b> 폴더를 백업한 뒤 적용하는 것을 권장합니다.
+            적용 후 FiveM을 재실행하면 패치가 반영됩니다.
+        </div>
+    </div>`;
+}
+
+function openGraphicPatchDownload(){
+    window.open("https://drive.google.com/file/d/1VDdbwPeQNxZC0aSS0v72Q2zQq4TxmDCn/view","_blank","noopener");
+}
+
+function axeGraphicPatchV91Debug(){
+    return {version:"AXE_NET_UTILITY_GRAPHIC_PATCH_V91",hasMenu:!!Array.from(document.querySelectorAll('.info-menu button')).find(b=>b.textContent.trim()==='그래픽 패치'),apiUrl:(typeof API_URL!=='undefined'?API_URL:''),downloadUrl:"https://drive.google.com/file/d/1VDdbwPeQNxZC0aSS0v72Q2zQq4TxmDCn/view"};
 }
 
 const plicaCards=[
@@ -22945,7 +23038,7 @@ function axeModBookFilterV34Debug(){
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
   const VERSION='AXE_NET_PLIKA_QUICK_V89_CLOSE_X_OUTSIDE';
-  const LATEST_API='https://script.google.com/macros/s/AKfycby_I5CNk7H6hFt2iRSzBTaQ8RUixFszRYobanRsGT5mOjnuIFrnvYlH2pv7D28ITS6X4w/exec';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbycjSMBLecdEscAiSz9akXY8cpEdvHSdPp66OJ06gYUa4i613y306O9Z-BGCyNzxWw-_g/exec';
   let collapsedState=true;
   let didForceFetch=false;
   let plikaSearchKeyword='';
