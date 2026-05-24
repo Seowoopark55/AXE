@@ -22944,7 +22944,7 @@ function axeModBookFilterV34Debug(){
 
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V89_CLOSE_X_OUTSIDE';
+  const VERSION='AXE_NET_PLIKA_QUICK_V95_TOAST_CENTER';
   const LATEST_API='https://script.google.com/macros/s/AKfycbycjSMBLecdEscAiSz9akXY8cpEdvHSdPp66OJ06gYUa4i613y306O9Z-BGCyNzxWw-_g/exec';
   let collapsedState=true;
   let didForceFetch=false;
@@ -22989,11 +22989,17 @@ function axeModBookFilterV34Debug(){
     return rows().filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
   }
   function toast(msg){
-    if(typeof showToast==='function'){showToast(msg);return;}
     const old=document.getElementById('axePlikaToastV81'); if(old) old.remove();
     const el=document.createElement('div'); el.id='axePlikaToastV81'; el.textContent=msg;
-    el.style.cssText='position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:10000;background:rgba(0,0,0,.86);border:1px solid rgba(255,181,46,.45);color:#ffcf75;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:950;box-shadow:0 10px 28px rgba(0,0,0,.4)';
-    document.body.appendChild(el); setTimeout(()=>el.remove(),1600);
+    const panel=document.querySelector('#axePlikaQuickV81:not(.collapsed) .axe-plika-quick-body-v81');
+    if(panel){
+      el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10090;max-width:92%;text-align:center;background:rgba(0,0,0,.88);border:1px solid rgba(255,181,46,.5);color:#ffcf75;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:950;line-height:1.35;box-shadow:0 12px 30px rgba(0,0,0,.48);pointer-events:none;white-space:nowrap';
+      panel.appendChild(el);
+    }else{
+      el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10090;background:rgba(0,0,0,.88);border:1px solid rgba(255,181,46,.5);color:#ffcf75;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:950;line-height:1.35;box-shadow:0 12px 30px rgba(0,0,0,.48);pointer-events:none;white-space:nowrap';
+      document.body.appendChild(el);
+    }
+    setTimeout(()=>el.remove(),1600);
   }
   function copyText(value,name){
     const text=normalizeAccount(value); if(!text){toast('등록된 계좌가 없습니다.');return;}
