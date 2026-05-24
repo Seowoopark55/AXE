@@ -4576,7 +4576,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxf9zcOqecCRgdyy_L3wZG_mqobgAGlJAwPR-ueX7b97Amwh8FWCXNgP2tEXgZ6goUdtw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwhvED29ZxUU4ivENSEw6Ip3fTQYN7E6E7CyBt6rVXAzadIacym0RzIlcIegA9MftYkZw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -4868,11 +4868,12 @@ function afterRenderAuth(){
 }
 
 
-let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[],rankings=[],foodMenus=[],foodOrders=[],foodSummary=[];
+let crafts=[],materials=[],notices=[],tubes=[],tubeComments=[],briefingMaps=[],outlawGuides=[],operations=[],quests=[],processes=[],materialRecipes=[],modBooks=[],modBookOptions=[],modBookCategories=[],skillRanks=[],boards=[],boardComments=[],galleries=[],galleryComments=[],rankings=[],foodMenus=[],foodOrders=[],foodSummary=[];
 let fundMembers=[],fundRequests=[],fundLedger=[],fundBalanceChecks=[],fundSettings=[],fundSummary={};
 let companyAssets=[];
 let companyAssetReturns=[];
 let plikaAccounts=[];
+window.plikaAccounts=plikaAccounts;
 let currentFundTab="status",fundSelectedMonth="";
 let foodCart=[];
 let currentCategory="ALL",searchKeyword="",selectedId="";
@@ -5169,6 +5170,10 @@ function hydrateData(data){
     processes=data.processes||data.processData||data.processing||[];
     materialRecipes=data.materialRecipes||data.material_recipes||data.recipes||[];
     modBooks=data.modBooks||data.mod_books||[];
+    modBookOptions=data.modBookOptions||data.mod_book_options||data.modbookOptions||[];
+    window.modBookOptions=modBookOptions;
+    modBookCategories=data.modBookCategories||data.mod_book_categories||data.modbookCategories||[];
+    window.modBookCategories=modBookCategories;
     skillRanks=data.skillRanks||data.skill_ranks||data.craftRanks||[];
     foodMenus=data.foodMenus||data.food_menus||[];
     foodOrders=data.foodOrders||data.food_orders||[];
@@ -5186,7 +5191,9 @@ function hydrateData(data){
     rankings=data.rankings||[];
     companyAssets=data.companyAssets||data.company_assets||data.assets||[];
     companyAssetReturns=data.companyAssetReturns||data.company_asset_returns||data.assetReturns||data.retiredAssetReturns||[];
-    plikaAccounts=data.plikaAccounts||data.plika_accounts||data.plikaBankAccounts||[];
+    plikaAccounts=data.plikaAccounts||data.plika_accounts||data.plikaAccountRows||[];
+    window.plikaAccounts=plikaAccounts;
+    if(typeof window.renderPlikaQuickV81==="function") setTimeout(window.renderPlikaQuickV81,0);
 }
 
 /* AXE NET STABILIZE V1: 전체 데이터 새로고침 중복 호출 방지 */
@@ -5266,6 +5273,8 @@ function applyPartialData(source,scope){
     if(data.galleryComments!==undefined||data.gallery_comments!==undefined)galleryComments=data.galleryComments||data.gallery_comments||[];
     if(data.rankings!==undefined)rankings=data.rankings||[];
     if(data.modBooks!==undefined||data.mod_books!==undefined)modBooks=data.modBooks||data.mod_books||[];
+    if(data.modBookOptions!==undefined||data.mod_book_options!==undefined||data.modbookOptions!==undefined){modBookOptions=data.modBookOptions||data.mod_book_options||data.modbookOptions||[];window.modBookOptions=modBookOptions;}
+    if(data.modBookCategories!==undefined||data.mod_book_categories!==undefined||data.modbookCategories!==undefined){modBookCategories=data.modBookCategories||data.mod_book_categories||data.modbookCategories||[];window.modBookCategories=modBookCategories;}
     if(data.crafts!==undefined)crafts=data.crafts||[];
     if(data.materials!==undefined)materials=data.materials||[];
     if(data.quests!==undefined)quests=data.quests||[];
@@ -19646,7 +19655,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     window.renderFundLedger=function(){
         const base=getLedgerBaseRows();
         const rows=getLedgerFilteredRows();
-        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length)}<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
+        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length)}<div class="fund-table-wrap fund-ledger-table-wrap"><table class="fund-table fund-ledger-table"><thead><tr><th>날짜</th><th>유형</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>수입/지출</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
     };
     window.renderFundLedgerFilteredOnly=function(){
         const body=document.getElementById("fundLedgerTableBody");
@@ -19874,7 +19883,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     window.renderFundLedger=function(){
         const base=getLedgerBaseRows();
         const rows=getLedgerFilteredRows();
-        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
+        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap fund-ledger-table-wrap"><table class="fund-table fund-ledger-table"><thead><tr><th>날짜</th><th>유형</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>수입/지출</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
     };
     window.renderFundLedgerFilteredOnly=function(){
         const body=document.getElementById("fundLedgerTableBody");
@@ -20097,7 +20106,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     window.renderFundLedger=function(){
         const base=getBaseRows();
         const rows=getFilteredRows();
-        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
+        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap fund-ledger-table-wrap"><table class="fund-table fund-ledger-table"><thead><tr><th>날짜</th><th>유형</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>수입/지출</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
     };
     window.renderFundLedgerFilteredOnly=function(){
         const body=document.getElementById("fundLedgerTableBody");
@@ -20271,10 +20280,18 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     function displayRelated(row){
         const n=personName(row);
         if(n)return n;
-        if(isManualLedger(row))return "직접기입";
         return "-";
     }
+    function fundLedgerText(value){
+        const s=String(value===undefined||value===null?"":value).trim();
+        return s?escapeHtml(s):"-";
+    }
+    function fundLedgerKindOnly(row){
+        return kindBadge(row)||`<span class="fund-ledger-kind-badge other">기타</span>`;
+    }
     function renderRows(rows){
+        window.__fundLedgerMemoStoreV51={};
+        window.__fundLedgerEditStoreV52={};
         return rows.map((r,index)=>{
             const ledgerId=typeof getFundLedgerId==="function"?getFundLedgerId(r,index):String(index);
             const ledgerKey=typeof makeFundLedgerKey==="function"?makeFundLedgerKey(r):"";
@@ -20282,7 +20299,19 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             const moneyClass=direction==="지출"?"minus":direction==="수입"?"plus":"";
             const signed=direction==="지출"?"-":"";
             const related=displayRelated(r);
-            return `<tr><td>${formatDateOnly(r.date||r.created_at)}</td><td>${safe(r.type)}${kindBadge(r)}</td><td>${safe(r.category)}</td><td>${safe(related)}</td><td>${safe(fundMonthLabel(r.month))} ${r&&r.week?safe(r.week)+'주차':''}</td><td class="money ${moneyClass}">${signed}${fundMoney(r.amount)}</td><td>${safe(direction)}</td><td>${safe(r.account)}</td><td>${fundEvidenceLink(r.evidence_url)}</td><td class="left">${safe(r.memo||"")}</td><td><button class="fund-btn danger" data-ledger-delete="${escapeAttr(ledgerId)}" onclick="deleteFundLedger('${escapeText(ledgerId)}',this,'${escapeText(ledgerKey)}')">삭제</button></td></tr>`;
+            const weekText=r&&r.week?`${fundLedgerText(r.week)}주차`:"";
+            const monthWeek=[fundLedgerText(fundMonthLabel(r.month)),weekText].filter(v=>v&&v!=="-").join(" ")||"-";
+            const rawMemo=String((r&&r.memo)!=null?r.memo:"");
+            const hasMemo=rawMemo.trim().length>0;
+            const memoKey=("memo_"+index+"_"+String(ledgerId||"")).replace(/[^a-zA-Z0-9_-]/g,"_");
+            window.__fundLedgerMemoStoreV51[memoKey]={
+                title:[formatDateOnly(r.date||r.created_at),r.category,related].filter(Boolean).join(" · ")||"공금내역 메모",
+                memo:rawMemo
+            };
+            window.__fundLedgerEditStoreV52=window.__fundLedgerEditStoreV52||{};
+            window.__fundLedgerEditStoreV52[String(ledgerId)]=Object.assign({},r,{__ledger_id:ledgerId,__ledger_key:ledgerKey});
+            const memoCell=hasMemo?`<button class="fund-btn fund-ledger-memo-view-btn" type="button" onclick="openFundLedgerMemoV51('${memoKey}')">메모보기</button>`:`<span class="fund-ledger-empty-text">-</span>`;
+            return `<tr class="fund-ledger-row"><td class="fund-ledger-date-cell">${fundLedgerText(formatDateOnly(r.date||r.created_at))}</td><td class="fund-ledger-type-cell">${fundLedgerKindOnly(r)}</td><td class="fund-ledger-category-cell">${fundLedgerText(r.category)}</td><td class="fund-ledger-related-cell">${fundLedgerText(related)}</td><td class="fund-ledger-month-cell">${monthWeek}</td><td class="money ${moneyClass} fund-ledger-money-cell">${signed}${fundMoney(r.amount)}</td><td class="fund-ledger-direction-cell">${fundLedgerText(direction)}</td><td class="fund-ledger-account-cell">${fundLedgerText(r.account)}</td><td class="fund-ledger-evidence-cell">${fundEvidenceLink(r.evidence_url)}</td><td class="fund-ledger-memo-cell">${memoCell}</td><td class="fund-ledger-action-cell"><button class="fund-btn fund-ledger-edit-btn" data-ledger-edit="${escapeAttr(ledgerId)}" onclick="openFundLedgerEditV52('${escapeText(ledgerId)}')">편집</button></td></tr>`;
         }).join("")||`<tr><td colspan="11"><div class="fund-empty">조건에 맞는 공금내역이 없습니다.</div></td></tr>`;
     }
     function renderFilterPanel(total,shown,base){
@@ -20296,7 +20325,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
             </div>
             <div class="fund-ledger-click-filter-grid">
                 <div class="fund-ledger-filter-field name"><div class="fund-label">이름</div><select class="fund-select" id="fundLedgerPerson" onchange="setFundLedgerPersonFilterV19(this.value)">${renderPersonOptions(base,s.person)}</select></div>
-                <div class="fund-ledger-filter-field type"><div class="fund-label">구분</div><select class="fund-select" id="fundLedgerKind" onchange="setFundLedgerKindFilterV19(this.value)">
+                <div class="fund-ledger-filter-field type"><div class="fund-label">유형</div><select class="fund-select" id="fundLedgerKind" onchange="setFundLedgerKindFilterV19(this.value)">
                     ${opt("all","전체",s.kind)}${opt("payment","공금 납부",s.kind)}${opt("manual","직접기입",s.kind)}${opt("income","수입",s.kind)}${opt("expense","지출",s.kind)}${opt("adjust","잔액조정",s.kind)}
                 </select></div>
                 <div class="fund-ledger-filter-field account"><div class="fund-label">계좌</div><select class="fund-select" id="fundLedgerAccount" onchange="setFundLedgerAccountFilterV19(this.value)">
@@ -20310,7 +20339,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
     window.renderFundLedger=function(){
         const base=getBaseRows();
         const rows=getFilteredRows();
-        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap"><table class="fund-table"><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>방향</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
+        return `${renderFundMonthToolbar(`<button class="fund-btn primary" onclick="openFundLedgerForm()">지출/수입 등록</button>`)}<div id="fundLedgerForm"></div>${renderFilterPanel(base.length,rows.length,base)}<div class="fund-table-wrap fund-ledger-table-wrap"><table class="fund-table fund-ledger-table"><thead><tr><th>날짜</th><th>유형</th><th>항목</th><th>관련자</th><th>월/주차</th><th>금액</th><th>수입/지출</th><th>계좌</th><th>증빙</th><th class="left">메모</th><th>관리</th></tr></thead><tbody id="fundLedgerTableBody">${renderRows(rows)}</tbody></table></div>`;
     };
     window.renderFundLedgerFilteredOnly=function(){
         const body=document.getElementById("fundLedgerTableBody");
@@ -20341,7 +20370,272 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 .fund-ledger-filter-panel.v19 .fund-ledger-filter-field.account{max-width:140px}
 </style>
 
+<style id="axe-fund-ledger-semantic-v47-style">
+/* AXE NET V47: 공금내역 표 의미 정리 - 유형/수입·지출/관련자 표시 개선 */
+.fund-ledger-table-wrap{overflow-x:auto!important;}
+.fund-ledger-table{min-width:1180px!important;table-layout:auto!important;}
+.fund-ledger-table th,.fund-ledger-table td{white-space:nowrap!important;}
+.fund-ledger-type-cell{min-width:92px!important;text-align:center!important;}
+.fund-ledger-type-cell .fund-ledger-kind-badge{margin-left:0!important;}
+.fund-ledger-kind-badge.other{display:inline-flex;align-items:center;min-height:22px;padding:0 7px;border-radius:999px;color:#bbb;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:950;vertical-align:middle;}
+.fund-ledger-related-cell,.fund-ledger-direction-cell,.fund-ledger-account-cell,.fund-ledger-evidence-cell,.fund-ledger-action-cell{text-align:center!important;white-space:nowrap!important;}
+.fund-ledger-account-cell{min-width:78px!important;}
+.fund-ledger-direction-cell{min-width:68px!important;}
+.fund-ledger-evidence-cell{min-width:62px!important;}
+.fund-ledger-action-cell{min-width:74px!important;width:74px!important;}
+.fund-ledger-delete-btn{min-width:54px!important;height:31px!important;padding:0 10px!important;white-space:nowrap!important;}
+/* V50: 공금내역 메모 칸 균형 조정 - 엑셀 줄바꿈 보존 */
+.fund-ledger-table{min-width:1460px!important;table-layout:fixed!important;}
+.fund-ledger-table th:nth-child(1),.fund-ledger-table td:nth-child(1){width:110px!important;}
+.fund-ledger-table th:nth-child(2),.fund-ledger-table td:nth-child(2){width:98px!important;}
+.fund-ledger-table th:nth-child(3),.fund-ledger-table td:nth-child(3){width:120px!important;}
+.fund-ledger-table th:nth-child(4),.fund-ledger-table td:nth-child(4){width:105px!important;}
+.fund-ledger-table th:nth-child(5),.fund-ledger-table td:nth-child(5){width:130px!important;}
+.fund-ledger-table th:nth-child(6),.fund-ledger-table td:nth-child(6){width:110px!important;}
+.fund-ledger-table th:nth-child(7),.fund-ledger-table td:nth-child(7){width:85px!important;}
+.fund-ledger-table th:nth-child(8),.fund-ledger-table td:nth-child(8){width:95px!important;}
+.fund-ledger-table th:nth-child(9),.fund-ledger-table td:nth-child(9){width:75px!important;}
+.fund-ledger-table th:nth-child(10),.fund-ledger-table td:nth-child(10){width:520px!important;}
+.fund-ledger-table th:nth-child(11),.fund-ledger-table td:nth-child(11){width:92px!important;}
+.fund-ledger-memo-cell{width:520px!important;min-width:520px!important;max-width:520px!important;white-space:normal!important;overflow:hidden!important;vertical-align:middle!important;}
+.fund-ledger-memo-text{white-space:pre-line!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.5!important;max-height:7.5em!important;overflow:auto!important;padding:2px 0!important;}
+.fund-ledger-action-cell{width:92px!important;min-width:92px!important;max-width:92px!important;text-align:center!important;white-space:nowrap!important;overflow:hidden!important;}
+.fund-ledger-delete-btn{min-width:58px!important;height:32px!important;padding:0 10px!important;white-space:nowrap!important;}
+@media(max-width:760px){.fund-ledger-table{min-width:1380px!important}.fund-ledger-table th:nth-child(10),.fund-ledger-table td:nth-child(10){width:430px!important}.fund-ledger-memo-cell{width:430px!important;min-width:430px!important;max-width:430px!important}.fund-ledger-memo-text{max-height:7.5em!important}}
+</style>
 
+
+
+
+
+<script id="axe-fund-ledger-semantic-v47-debug">
+window.axeFundLedgerV50Debug=function(){
+  const table=document.querySelector('.fund-ledger-table');
+  const firstMemo=document.querySelector('.fund-ledger-memo-text');
+  const cs=firstMemo?getComputedStyle(firstMemo):null;
+  return {version:'AXE_NET_FUND_LEDGER_MEMO_BALANCE_V50', tableExists:!!table, typeCells:document.querySelectorAll('.fund-ledger-type-cell').length, memoCells:document.querySelectorAll('.fund-ledger-memo-cell').length, actionCells:document.querySelectorAll('.fund-ledger-action-cell').length, firstMemoWhiteSpace:cs?cs.whiteSpace:'', firstMemoMaxHeight:cs?cs.maxHeight:'', apiUrl:typeof API_URL!=='undefined'?API_URL:''};
+};
+window.axeFundLedgerSemanticV47Debug=window.axeFundLedgerV50Debug;
+</script>
+
+<script id="axe-fund-ledger-memo-modal-v51-script">
+/* AXE NET V51: 공금내역 메모는 표에서 접고, 클릭 시 textContent로 안전 표시 */
+(function(){
+  function ensureModal(){
+    let modal=document.getElementById('fundLedgerMemoModalV51');
+    if(modal)return modal;
+    modal=document.createElement('div');
+    modal.id='fundLedgerMemoModalV51';
+    modal.className='fund-ledger-memo-modal-v51';
+    modal.innerHTML=`<div class="fund-ledger-memo-box-v51"><div class="fund-ledger-memo-head-v51"><div class="fund-ledger-memo-title-v51" id="fundLedgerMemoTitleV51">메모</div><button class="fund-ledger-memo-close-v51" type="button" onclick="closeFundLedgerMemoV51()">×</button></div><div class="fund-ledger-memo-body-v51" id="fundLedgerMemoBodyV51"></div></div>`;
+    modal.addEventListener('click',function(e){if(e.target===modal)closeFundLedgerMemoV51();});
+    document.body.appendChild(modal);
+    return modal;
+  }
+  window.openFundLedgerMemoV51=function(key){
+    const item=(window.__fundLedgerMemoStoreV51||{})[key]||{title:'공금내역 메모',memo:''};
+    const modal=ensureModal();
+    const title=document.getElementById('fundLedgerMemoTitleV51');
+    const body=document.getElementById('fundLedgerMemoBodyV51');
+    if(title)title.textContent=item.title||'공금내역 메모';
+    if(body)body.textContent=item.memo||'-';
+    modal.classList.add('active');
+  };
+  window.closeFundLedgerMemoV51=function(){
+    const modal=document.getElementById('fundLedgerMemoModalV51');
+    if(modal)modal.classList.remove('active');
+  };
+  window.addEventListener('keydown',function(e){if(e.key==='Escape')closeFundLedgerMemoV51();});
+  window.axeFundLedgerMemoV51Debug=function(){
+    return {version:'AXE_NET_FUND_LEDGER_MEMO_MODAL_V51', memoButtons:document.querySelectorAll('.fund-ledger-memo-view-btn').length, deleteButtons:document.querySelectorAll('.fund-ledger-delete-btn').length, modalExists:!!document.getElementById('fundLedgerMemoModalV51'), apiUrl:typeof API_URL!=='undefined'?API_URL:''};
+  };
+})();
+</script>
+<style id="axe-fund-ledger-memo-modal-v51-style">
+/* V51: 메모를 접어 테이블 폭을 줄이고, 삭제 버튼 가독성 확보 */
+.fund-ledger-table-wrap{overflow-x:auto!important;}
+.fund-ledger-table{min-width:1120px!important;table-layout:fixed!important;}
+.fund-ledger-table th,.fund-ledger-table td{white-space:nowrap!important;vertical-align:middle!important;}
+.fund-ledger-table th:nth-child(1),.fund-ledger-table td:nth-child(1){width:105px!important;}
+.fund-ledger-table th:nth-child(2),.fund-ledger-table td:nth-child(2){width:94px!important;}
+.fund-ledger-table th:nth-child(3),.fund-ledger-table td:nth-child(3){width:125px!important;}
+.fund-ledger-table th:nth-child(4),.fund-ledger-table td:nth-child(4){width:105px!important;}
+.fund-ledger-table th:nth-child(5),.fund-ledger-table td:nth-child(5){width:130px!important;}
+.fund-ledger-table th:nth-child(6),.fund-ledger-table td:nth-child(6){width:112px!important;}
+.fund-ledger-table th:nth-child(7),.fund-ledger-table td:nth-child(7){width:88px!important;}
+.fund-ledger-table th:nth-child(8),.fund-ledger-table td:nth-child(8){width:96px!important;}
+.fund-ledger-table th:nth-child(9),.fund-ledger-table td:nth-child(9){width:76px!important;}
+.fund-ledger-table th:nth-child(10),.fund-ledger-table td:nth-child(10){width:92px!important;}
+.fund-ledger-table th:nth-child(11),.fund-ledger-table td:nth-child(11){width:92px!important;}
+.fund-ledger-memo-cell,.fund-ledger-action-cell{text-align:center!important;overflow:hidden!important;}
+.fund-ledger-memo-view-btn{min-width:68px!important;height:31px!important;padding:0 10px!important;white-space:nowrap!important;color:#ffcf75!important;border-color:rgba(255,181,46,.32)!important;background:rgba(255,181,46,.07)!important;}
+.fund-ledger-memo-view-btn:hover{border-color:rgba(255,181,46,.62)!important;background:rgba(255,181,46,.12)!important;color:#ffb52e!important;}
+.fund-ledger-delete-btn{min-width:58px!important;height:32px!important;padding:0 10px!important;white-space:nowrap!important;}
+.fund-ledger-empty-text{color:#777;font-weight:900;}
+.fund-ledger-memo-modal-v51{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.78);z-index:10020;}
+.fund-ledger-memo-modal-v51.active{display:flex;}
+.fund-ledger-memo-box-v51{width:min(620px,96vw);max-height:82vh;border-radius:18px;border:1px solid rgba(255,181,46,.26);background:#0d0d0d;box-shadow:0 22px 70px rgba(0,0,0,.55);overflow:hidden;}
+.fund-ledger-memo-head-v51{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.fund-ledger-memo-title-v51{font-size:15px;font-weight:950;color:#ffb52e;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fund-ledger-memo-close-v51{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:20px;font-weight:950;cursor:pointer;}
+.fund-ledger-memo-close-v51:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);}
+.fund-ledger-memo-body-v51{padding:17px 18px;max-height:64vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.65;color:#ddd;font-size:14px;background:rgba(0,0,0,.22);}
+@media(max-width:760px){.fund-ledger-table{min-width:1080px!important}.fund-ledger-memo-box-v51{width:96vw}.fund-ledger-memo-body-v51{font-size:13px;line-height:1.6;padding:15px}}
+</style>
+
+
+<script id="axe-fund-ledger-edit-v52-script">
+/* AXE NET V52: 공금내역 관리 칸은 편집 버튼으로 통합, 편집 모달에서 수정/삭제 처리 */
+(function(){
+  const V52_VERSION='AXE_NET_FUND_LEDGER_EDIT_MODAL_V52';
+  function t(v){return String(v===undefined||v===null?'':v);}
+  function trim(v){return t(v).trim();}
+  function setVal(id,value){const el=document.getElementById(id); if(el)el.value=t(value);}
+  function getVal(id){const el=document.getElementById(id); return el?el.value:'';}
+  function moneyNum(v){return String(v||'').replace(/[$,\s]/g,'');}
+  function dateInputValue(value){
+    const raw=trim(value);
+    if(!raw)return '';
+    const d=new Date(raw);
+    if(!isNaN(d.getTime())){
+      const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+    const m=raw.match(/^(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
+    if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+    return raw;
+  }
+  function findRow(id){
+    id=String(id||'');
+    if(window.__fundLedgerEditStoreV52&&window.__fundLedgerEditStoreV52[id])return window.__fundLedgerEditStoreV52[id];
+    if(Array.isArray(window.fundLedger)){
+      for(let i=0;i<window.fundLedger.length;i++){
+        const r=window.fundLedger[i];
+        const rid=(typeof getFundLedgerId==='function')?String(getFundLedgerId(r,i)):String(r&&r.id||i);
+        if(rid===id)return Object.assign({},r,{__ledger_id:rid,__ledger_key:(typeof makeFundLedgerKey==='function'?makeFundLedgerKey(r):'')});
+      }
+    }
+    return null;
+  }
+  function ensureModal(){
+    let modal=document.getElementById('fundLedgerEditModalV52');
+    if(modal)return modal;
+    modal=document.createElement('div');
+    modal.id='fundLedgerEditModalV52';
+    modal.className='fund-ledger-edit-modal-v52';
+    modal.innerHTML=`<div class="fund-ledger-edit-box-v52">
+      <div class="fund-ledger-edit-head-v52"><div class="fund-ledger-edit-title-v52">공금내역 편집</div><button class="fund-ledger-edit-close-v52" type="button" onclick="closeFundLedgerEditV52()">×</button></div>
+      <div class="fund-ledger-edit-body-v52">
+        <input type="hidden" id="fundLedgerEditIdV52">
+        <div class="fund-ledger-edit-grid-v52">
+          <label><span>날짜</span><input class="fund-input" id="fundLedgerEditDateV52" type="date"></label>
+          <label><span>유형</span><input class="fund-input" id="fundLedgerEditTypeV52" placeholder="예: 지출, 기타수입, 공금납부"></label>
+          <label><span>항목</span><input class="fund-input" id="fundLedgerEditCategoryV52" placeholder="예: 의뢰비"></label>
+          <label><span>관련자</span><input class="fund-input" id="fundLedgerEditNicknameV52" placeholder="없으면 비워두세요"></label>
+          <label><span>대상 월</span><input class="fund-input" id="fundLedgerEditMonthV52" placeholder="예: 2026-05"></label>
+          <label><span>주차</span><input class="fund-input" id="fundLedgerEditWeekV52" placeholder="예: 3"></label>
+          <label><span>금액</span><input class="fund-input" id="fundLedgerEditAmountV52" type="number" placeholder="숫자만 입력"></label>
+          <label><span>수입/지출</span><select class="fund-select" id="fundLedgerEditDirectionV52"><option value="수입">수입</option><option value="지출">지출</option><option value="조정">조정</option></select></label>
+          <label><span>계좌</span><select class="fund-select" id="fundLedgerEditAccountV52"><option value="공용계좌">공용계좌</option><option value="회사잔고">회사잔고</option><option value="분할납부">분할납부</option></select></label>
+          <label><span>증빙 URL</span><input class="fund-input" id="fundLedgerEditEvidenceUrlV52" placeholder="증빙 이미지 URL"></label>
+          <label class="full"><span>메모</span><textarea class="fund-textarea" id="fundLedgerEditMemoV52" placeholder="메모를 입력하세요"></textarea></label>
+        </div>
+        <div class="fund-ledger-edit-help-v52">관리 칸은 표에서 간단히 보이도록 편집 버튼만 표시합니다. 삭제는 이 창 안에서 처리합니다.</div>
+        <div class="fund-ledger-edit-actions-v52"><button class="fund-btn" type="button" onclick="closeFundLedgerEditV52()">닫기</button><button class="fund-btn danger" type="button" onclick="deleteFundLedgerFromEditV52()">삭제</button><button class="fund-btn primary" id="fundLedgerEditSaveBtnV52" type="button" onclick="saveFundLedgerEditV52()">수정 저장</button></div>
+      </div>
+    </div>`;
+    modal.addEventListener('click',function(e){if(e.target===modal)closeFundLedgerEditV52();});
+    document.body.appendChild(modal);
+    return modal;
+  }
+  window.openFundLedgerEditV52=function(id){
+    const row=findRow(id);
+    if(!row){alert('편집할 공금내역을 찾을 수 없습니다.');return;}
+    const modal=ensureModal();
+    setVal('fundLedgerEditIdV52',id);
+    setVal('fundLedgerEditDateV52',dateInputValue(row.date||row.created_at));
+    setVal('fundLedgerEditTypeV52',row.type||'');
+    setVal('fundLedgerEditCategoryV52',row.category||'');
+    setVal('fundLedgerEditNicknameV52',row.nickname||'');
+    setVal('fundLedgerEditMonthV52',row.month||'');
+    setVal('fundLedgerEditWeekV52',row.week||'');
+    setVal('fundLedgerEditAmountV52',moneyNum(row.amount));
+    setVal('fundLedgerEditDirectionV52',row.direction||'수입');
+    setVal('fundLedgerEditAccountV52',row.account||'공용계좌');
+    setVal('fundLedgerEditEvidenceUrlV52',row.evidence_url||'');
+    setVal('fundLedgerEditMemoV52',row.memo||'');
+    modal.classList.add('active');
+  };
+  window.closeFundLedgerEditV52=function(){const modal=document.getElementById('fundLedgerEditModalV52'); if(modal)modal.classList.remove('active');};
+  function applyFundLedgerResponse(data){
+    if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
+    if(data&&data.summary)window.fundSummary=data.summary;
+    try{if(typeof DATA_CACHE_KEY!=='undefined')sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){}
+    if(typeof renderFundTab==='function')renderFundTab();
+    else if(typeof renderFundLedgerFilteredOnly==='function')renderFundLedgerFilteredOnly();
+  }
+  window.saveFundLedgerEditV52=function(){
+    const id=trim(getVal('fundLedgerEditIdV52'));
+    if(!id){alert('공금내역 정보가 없습니다.');return;}
+    const amount=trim(getVal('fundLedgerEditAmountV52'));
+    if(!amount||Number(amount)===0){alert('금액을 입력하세요.');return;}
+    const btn=document.getElementById('fundLedgerEditSaveBtnV52');
+    if(btn){btn.disabled=true;btn.textContent='저장 중...';}
+    const payload={
+      type:'fund_ledger_update',
+      ledger_id:id,
+      date:getVal('fundLedgerEditDateV52'),
+      log_type:getVal('fundLedgerEditTypeV52'),
+      category:getVal('fundLedgerEditCategoryV52'),
+      nickname:getVal('fundLedgerEditNicknameV52'),
+      month:getVal('fundLedgerEditMonthV52'),
+      week:getVal('fundLedgerEditWeekV52'),
+      amount:amount,
+      direction:getVal('fundLedgerEditDirectionV52'),
+      account:getVal('fundLedgerEditAccountV52'),
+      memo:getVal('fundLedgerEditMemoV52'),
+      evidence_url:getVal('fundLedgerEditEvidenceUrlV52')
+    };
+    (typeof fundAdminApi==='function'?fundAdminApi(payload):adminApi(payload)).then(function(data){
+      if(data&&data.result==='success'){closeFundLedgerEditV52();applyFundLedgerResponse(data); if(typeof showToast==='function')showToast('공금내역이 수정되었습니다.'); else alert(data.message||'수정되었습니다.');}
+      else alert((data&&data.message)||'수정에 실패했습니다.');
+    }).catch(function(){alert('수정 중 오류가 발생했습니다.');}).finally(function(){const b=document.getElementById('fundLedgerEditSaveBtnV52'); if(b){b.disabled=false;b.textContent='수정 저장';}});
+  };
+  window.deleteFundLedgerFromEditV52=function(){
+    const id=trim(getVal('fundLedgerEditIdV52'));
+    if(!id){alert('공금내역 정보가 없습니다.');return;}
+    const reason=prompt('삭제 사유를 입력해주세요.');
+    if(!reason||!String(reason).trim())return;
+    if(!confirm('이 공금내역을 삭제 처리할까요?'))return;
+    (typeof fundAdminApi==='function'?fundAdminApi({type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()}):adminApi({type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()})).then(function(data){
+      if(data&&data.result==='success'){closeFundLedgerEditV52();applyFundLedgerResponse(data); if(typeof showToast==='function')showToast('공금내역이 삭제 처리되었습니다.'); else alert(data.message||'삭제되었습니다.');}
+      else alert((data&&data.message)||'삭제에 실패했습니다.');
+    }).catch(function(){alert('삭제 중 오류가 발생했습니다.');});
+  };
+  window.addEventListener('keydown',function(e){if(e.key==='Escape')closeFundLedgerEditV52();});
+  window.axeFundLedgerEditV52Debug=function(){return {version:V52_VERSION, editButtons:document.querySelectorAll('.fund-ledger-edit-btn').length, memoButtons:document.querySelectorAll('.fund-ledger-memo-view-btn').length, modalExists:!!document.getElementById('fundLedgerEditModalV52'), apiUrl:typeof API_URL!=='undefined'?API_URL:''};};
+})();
+</script>
+<style id="axe-fund-ledger-edit-v52-style">
+.fund-ledger-edit-btn{min-width:58px!important;height:32px!important;padding:0 10px!important;white-space:nowrap!important;color:#ddd!important;border-color:rgba(255,255,255,.16)!important;background:rgba(255,255,255,.055)!important;}
+.fund-ledger-edit-btn:hover{color:#ffb52e!important;border-color:rgba(255,181,46,.48)!important;background:rgba(255,181,46,.075)!important;}
+.fund-ledger-edit-modal-v52{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.78);z-index:10030;}
+.fund-ledger-edit-modal-v52.active{display:flex;}
+.fund-ledger-edit-box-v52{width:min(760px,96vw);max-height:88vh;border-radius:18px;border:1px solid rgba(255,181,46,.26);background:#0d0d0d;box-shadow:0 22px 70px rgba(0,0,0,.55);overflow:hidden;}
+.fund-ledger-edit-head-v52{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.fund-ledger-edit-title-v52{font-size:15px;font-weight:950;color:#ffb52e;}
+.fund-ledger-edit-close-v52{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:20px;font-weight:950;cursor:pointer;}
+.fund-ledger-edit-body-v52{padding:16px;max-height:76vh;overflow:auto;background:rgba(0,0,0,.16);}
+.fund-ledger-edit-grid-v52{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.fund-ledger-edit-grid-v52 label{display:block;min-width:0;}
+.fund-ledger-edit-grid-v52 label.full{grid-column:1/-1;}
+.fund-ledger-edit-grid-v52 span{display:block;margin:0 0 5px 2px;color:#aaa;font-size:12px;font-weight:950;}
+.fund-ledger-edit-grid-v52 .fund-input,.fund-ledger-edit-grid-v52 .fund-select,.fund-ledger-edit-grid-v52 .fund-textarea{width:100%;}
+.fund-ledger-edit-grid-v52 .fund-textarea{min-height:120px;white-space:pre-wrap;}
+.fund-ledger-edit-help-v52{margin-top:10px;color:#888;font-size:12px;line-height:1.5;}
+.fund-ledger-edit-actions-v52{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+@media(max-width:760px){.fund-ledger-edit-grid-v52{grid-template-columns:1fr}.fund-ledger-edit-actions-v52{display:grid;grid-template-columns:1fr;}.fund-ledger-edit-box-v52{width:96vw}}
+</style>
 
 <script id="axe-net-duplicate-click-guard-v11">
 /* AXE NET V11 중복 클릭/중복 요청 방지 패치
@@ -21733,568 +22027,885 @@ function axeModBookFilterV34Debug(){
 }
 </script>
 
-</body>
-</html>
 
-<style id="axe-net-asset-v23-compact-filter">
-/* AXE NET V23: 자산관리 필터 select 길이 공금내역 필터 수준으로 축소 */
-.asset-filter-panel{
-    display:flex!important;
-    flex-wrap:wrap!important;
-    align-items:flex-end!important;
-    justify-content:flex-start!important;
-    gap:10px!important;
-    margin:12px 0 14px!important;
-    padding:14px 0 12px!important;
-    border-top:1px solid rgba(255,255,255,.07)!important;
-    border-bottom:1px solid rgba(255,255,255,.07)!important;
-    background:transparent!important;
-}
-.asset-filter-box{
-    flex:0 0 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    padding:0!important;
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-}
-.asset-filter-label{
-    margin:0 0 7px!important;
-    color:#9a9a9a!important;
-    font-size:12px!important;
-    font-weight:950!important;
-    letter-spacing:.15px!important;
-}
-.asset-filter-row{
-    margin:0!important;
-    display:block!important;
-}
-.asset-filter-select{
-    width:150px!important;
-    min-width:150px!important;
-    max-width:150px!important;
-    height:38px!important;
-    border-radius:12px!important;
-    border:1px solid rgba(255,255,255,.12)!important;
-    background:#151515!important;
-    color:#fff!important;
-    padding:0 28px 0 12px!important;
-    outline:none!important;
-    font-size:13px!important;
-    font-weight:950!important;
-    cursor:pointer!important;
-    appearance:auto!important;
-}
-.asset-filter-box:nth-child(3) .asset-filter-select{
-    width:160px!important;
-    min-width:160px!important;
-    max-width:160px!important;
-}
-.asset-filter-reset-box{
-    flex:0 0 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    display:flex!important;
-    align-items:flex-end!important;
-    justify-content:flex-start!important;
-}
-.asset-filter-reset-btn{
-    width:auto!important;
-    min-width:106px!important;
-    height:38px!important;
-    padding:0 13px!important;
-    border-radius:12px!important;
-    border:1px solid rgba(255,255,255,.12)!important;
-    background:rgba(20,20,20,.92)!important;
-    color:#ddd!important;
-    font-size:13px!important;
-    font-weight:950!important;
-    cursor:pointer!important;
-    transition:.16s ease!important;
-    white-space:nowrap!important;
-}
-.asset-toolbar{margin-bottom:10px!important}
+
+<style id="axe-net-modbook-request-v70-clean-style">
+/* AXE NET V70: 개조서 등록신청 정리본 - 기존 V53~V69 등록신청 UI를 단일 모달로 통합 */
+.modbook-request-actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-left:auto}
+.modbook-request-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:14px;z-index:10000}
+.modbook-request-modal.active{display:flex}
+#modBookRequestModalV70 .modbook-request-box,#modBookRequestListModalV70 .modbook-request-box{width:min(780px,calc(100vw - 28px));max-height:92vh;background:#0d0d0d;border:1px solid rgba(255,181,46,.25);border-radius:18px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+.modbook-request-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.modbook-request-title{font-size:18px;font-weight:950;color:#ffb52e}
+.modbook-request-close{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);color:#fff;font-size:20px;font-weight:950;cursor:pointer}
+.modbook-request-body{padding:14px 16px 16px;max-height:calc(92vh - 62px);overflow:auto}
+.modbook-request-label,.modbook-request-mini-label{margin:0 0 5px;color:#aaa;font-size:11px;line-height:1.2;font-weight:950}
+.modbook-request-mini-label{color:#777;font-size:10px}
+.modbook-request-input,.modbook-request-select,.modbook-request-textarea{width:100%;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;outline:none;font-family:Arial,sans-serif}
+.modbook-request-input,.modbook-request-select{height:34px;border-radius:10px;padding:0 10px;font-size:13px}
+.modbook-request-input:focus,.modbook-request-select:focus,.modbook-request-textarea:focus{border-color:rgba(255,181,46,.65)}
+.modbook-request-textarea{min-height:66px;max-height:112px;border-radius:10px;padding:9px 10px;font-size:13px;line-height:1.45;resize:vertical}
+.modbook-request-row{display:grid;gap:10px 12px;align-items:end;margin-bottom:10px}
+.modbook-request-row.type{grid-template-columns:170px}
+.modbook-request-row.two{grid-template-columns:220px 220px;max-width:452px}
+.modbook-request-row.name{grid-template-columns:260px 112px 132px;max-width:528px}
+.modbook-request-row.success{grid-template-columns:132px}
+.modbook-request-row.note{max-width:660px}
+.modbook-request-checkline{height:34px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(255,255,255,.035)}
+.modbook-request-check{display:flex;align-items:center;gap:6px;color:#ddd;font-size:12px;font-weight:900;white-space:nowrap}
+.modbook-request-check input{accent-color:#ffb52e}
+.modbook-request-option-block{max-width:690px;margin:10px 0 0;padding:10px 11px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:13px}
+.modbook-request-option-title{margin-bottom:7px;color:#ffb52e;font-size:12px;font-weight:950}
+.modbook-request-option-grid{display:grid;grid-template-columns:250px 74px 74px 62px 82px;gap:8px;align-items:end}
+.modbook-request-option-custom{display:none;margin-top:7px;width:250px;max-width:250px}
+.modbook-request-option-custom.active{display:block}
+.modbook-request-help,.modbook-request-note{max-width:690px;color:#888;font-size:11px;line-height:1.45;margin-top:8px}
+.modbook-request-actions-bottom{display:flex;justify-content:flex-end;gap:8px;max-width:690px;margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}
+.modbook-request-btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,181,46,.42);background:rgba(255,181,46,.1);color:#ffcf75;font-size:13px;font-weight:950;cursor:pointer;white-space:nowrap;transition:.16s ease}
+.modbook-request-btn:hover{transform:translateY(-1px);border-color:rgba(255,181,46,.72);background:rgba(255,181,46,.16)}
+.modbook-request-btn.secondary{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#ddd}
+.modbook-request-btn.danger{border-color:rgba(255,107,107,.38);background:rgba(255,80,80,.08);color:#ff9a9a}
+.modbook-request-list{display:grid;gap:9px;max-height:64vh;overflow:auto;padding-right:2px}
+.modbook-request-card{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:14px;padding:12px 13px}
+.modbook-request-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}
+.modbook-request-name{font-size:15px;font-weight:950;color:#fff;line-height:1.35}
+.modbook-request-meta{display:flex;flex-wrap:wrap;gap:6px;color:#888;font-size:12px;line-height:1.4}
+.modbook-request-pill{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.055);color:#bbb;font-size:11px;font-weight:950}
+.modbook-request-pill.pending{color:#ffcf75;border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.09)}
+.modbook-request-pill.approved{color:#76e0a2;border-color:rgba(68,200,120,.3);background:rgba(68,200,120,.08)}
+.modbook-request-pill.rejected{color:#ff9a9a;border-color:rgba(255,80,80,.3);background:rgba(255,80,80,.08)}
+.modbook-request-card-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:9px}
 @media(max-width:760px){
-    .asset-filter-panel{
-        display:grid!important;
-        grid-template-columns:1fr 1fr!important;
-        gap:10px!important;
-        padding:12px 0!important;
-    }
-    .asset-filter-box,.asset-filter-reset-box{width:100%!important}
-    .asset-filter-select,.asset-filter-box:nth-child(3) .asset-filter-select,.asset-filter-reset-btn{
-        width:100%!important;
-        min-width:0!important;
-        max-width:none!important;
-    }
-}
-@media(max-width:460px){
-    .asset-filter-panel{grid-template-columns:1fr!important}
+  #modBookRequestModalV70 .modbook-request-box,#modBookRequestListModalV70 .modbook-request-box{width:calc(100vw - 20px);max-height:92vh}
+  .modbook-request-row.type,.modbook-request-row.two,.modbook-request-row.name,.modbook-request-row.success,.modbook-request-row.note{grid-template-columns:1fr;max-width:none}
+  .modbook-request-option-grid{grid-template-columns:1fr 1fr;max-width:none}
+  .modbook-request-option-grid>div:first-child{grid-column:1/-1}
+  .modbook-request-option-custom{width:100%;max-width:none}
+  .modbook-request-actions-bottom,.modbook-request-card-actions{display:grid;grid-template-columns:1fr;max-width:none}
+  .modbook-request-btn{width:100%}
 }
 </style>
-
-<script id="axe-net-asset-v23-filter-debug">
-window.axeAssetV23Debug=function(){
-    return {
-        version:"AXE_NET_ASSET_CRUD_V23",
-        selectCount:document.querySelectorAll(".asset-filter-select").length,
-        selectWidths:Array.from(document.querySelectorAll(".asset-filter-select")).map(function(el){return Math.round(el.getBoundingClientRect().width);}),
-        resetButtonWidth:(function(btn){return btn?Math.round(btn.getBoundingClientRect().width):0;})(document.querySelector(".asset-filter-reset-btn"))
-    };
-};
-</script>
-
-
-<style id="axe-net-asset-return-crud-v24-style">
-/* AXE NET V24: 퇴사자 반납 내역 CRUD */
-.asset-return-actionbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin:0 0 12px}
-.asset-return-table.asset-return-editable{min-width:940px}
-.asset-return-table.asset-return-editable th:last-child,.asset-return-table.asset-return-editable td:last-child{width:110px;text-align:center}
-.asset-return-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:14px;z-index:10000}
-.asset-return-modal.active{display:flex}
-.asset-return-modal-box{width:min(560px,100%);background:#0d0d0d;border:1px solid rgba(255,181,46,.25);border-radius:18px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.55)}
-.asset-return-modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.asset-return-modal-title{font-weight:950;color:#ffb52e}
-.asset-return-modal-close{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:18px}
-.asset-return-modal-body{padding:16px}
-.asset-return-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.asset-return-form-full{grid-column:1/-1}
-.asset-return-form-label{font-size:12px;color:#aaa;margin:0 0 6px;font-weight:850}
-.asset-return-form-input,.asset-return-form-select{width:100%;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:12px;padding:11px;outline:none;font-family:Arial,sans-serif}
-.asset-return-form-input:focus,.asset-return-form-select:focus{border-color:rgba(255,181,46,.65)}
-.asset-return-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-.asset-return-form-help{margin-top:10px;color:#888;font-size:12px;line-height:1.45}
-@media(max-width:760px){.asset-return-form-grid{grid-template-columns:1fr}.asset-return-form-actions{display:grid;grid-template-columns:1fr 1fr}.asset-return-modal{align-items:flex-start;overflow:auto}.asset-return-modal-box{margin:18px 0}}
-</style>
-
-<script id="axe-net-asset-return-crud-v24-script">
-/* AXE NET V24: 퇴사자 반납 내역 등록/수정/삭제 */
+<script id="axe-net-modbook-request-v71-loginfix-script">
 (function(){
-    const V24_VERSION="AXE_NET_ASSET_RETURN_CRUD_V24";
-    window.__assetV24SubTab=window.__assetV24SubTab||"current";
-    let returnSearchKeywordV24="";
-    let returnStatusFilterV24="ALL";
-    let editingReturnNoV24="";
-
-    function t(v){return String(v===undefined||v===null?"":v).trim();}
-    function esc(v){return typeof escapeAttr==="function"?escapeAttr(v):String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-    function s(v){return typeof safe==="function"?safe(v):String(v||"");}
-    function f(row,names){for(const name of names){if(row&&row[name]!==undefined&&row[name]!==null&&t(row[name])!=="")return row[name];}return "";}
-    function checked(v){const raw=t(v);const low=raw.toLowerCase();return v===true||low==="true"||low==="y"||low==="yes"||low==="1"||raw==="완료"||raw==="확인"||raw==="반납완료"||raw==="체크"||raw==="✓"||raw==="☑";}
-    function returnRowsV24(){return Array.isArray(companyAssetReturns)?companyAssetReturns.filter(function(row){return t(f(row,["번호","no","No","number"]))||t(f(row,["이름","name","퇴사자"]))||t(f(row,["자산명","asset_name","assetName","item"]));}):[];}
-    function filteredReturnRowsV24(){
-        const keyword=returnSearchKeywordV24.trim().toLowerCase();
-        return returnRowsV24().filter(function(row){
-            const done=checked(f(row,["반납 확인","반납확인","확인","returned","checked"]));
-            if(returnStatusFilterV24==="done"&&!done)return false;
-            if(returnStatusFilterV24==="wait"&&done)return false;
-            if(keyword){const hay=Object.keys(row||{}).map(function(k){return String(row[k]||"");}).join(" ").toLowerCase(); if(!hay.includes(keyword))return false;}
-            return true;
-        });
-    }
-    function rowByReturnNoV24(no){return returnRowsV24().find(function(row){return t(f(row,["번호","no","number"]))===t(no);})||null;}
-    function assetSubTabsV24(){return `<div class="asset-subtabs"><button class="${window.__assetV24SubTab==="current"?"active":""}" onclick="setAssetSubTabV18('current')">회사 자산 현황</button><button class="${window.__assetV24SubTab==="returns"?"active":""}" onclick="setAssetSubTabV18('returns')">퇴사자 반납 내역</button></div>`;}
-    function renderReturnRowV24(row){
-        const no=f(row,["번호","no","No","number"]);
-        const name=f(row,["이름","name","퇴사자"]);
-        const assetName=f(row,["자산명","asset_name","assetName","item"]);
-        const isDone=checked(f(row,["반납 확인","반납확인","확인","returned","checked"]));
-        const checker=f(row,["확인자","checker","checked_by"]);
-        const date=f(row,["처리일","date","processed_at"]);
-        const note=f(row,["비고","메모","note"]);
-        return `<tr><td>${s(no)}</td><td><span class="asset-name">${s(name)}</span></td><td>${s(assetName)}</td><td><span class="asset-pill ${isDone?"done":"wait"}">${isDone?"반납완료":"확인대기"}</span></td><td>${s(checker||"-")}</td><td>${s(date||"-")}</td><td>${s(note||"")}</td><td><button class="asset-action-btn" onclick="openAssetReturnEditModalV24('${esc(no)}')">수정</button> <button class="asset-action-btn danger" onclick="deleteAssetReturnV24('${esc(no)}')">삭제</button></td></tr>`;
-    }
-    window.renderAssetReturnsV24=function(){
-        window.__assetV24SubTab="returns";
-        const rows=returnRowsV24();
-        const shown=filteredReturnRowsV24();
-        const done=rows.filter(function(r){return checked(f(r,["반납 확인","반납확인","확인","returned","checked"]));}).length;
-        const wait=rows.length-done;
-        const content=document.getElementById("content"); if(!content)return;
-        content.innerHTML=`<div class="panel"><div class="section-head with-action"><div><div class="section-title">회사 자산관리</div><div class="section-desc">회사 자산 현황과 퇴사자 반납 내역을 관리하는 관리자 전용 화면입니다.</div></div><div class="section-action"><button class="tube-submit-open" id="assetRefreshBtn" onclick="refreshCompanyAssets()">현재 화면 새로고침</button></div></div>${assetSubTabsV24()}<div class="asset-admin-only-note">퇴사자가 회사 자산을 반납했는지 기록하고 확인하는 화면입니다.</div><div class="asset-return-actionbar"><button class="asset-action-btn primary" onclick="openAssetReturnCreateModalV24()">+ 반납 기록 추가</button></div><div class="asset-summary-grid"><div class="asset-summary-card"><div class="asset-summary-value">${rows.length}</div><div class="asset-summary-label">총 기록</div></div><div class="asset-summary-card"><div class="asset-summary-value">${done}</div><div class="asset-summary-label">반납완료</div></div><div class="asset-summary-card"><div class="asset-summary-value">${wait}</div><div class="asset-summary-label">확인대기</div></div><div class="asset-summary-card"><div class="asset-summary-value">${shown.length}</div><div class="asset-summary-label">표시중</div></div></div><div class="asset-toolbar"><div class="search"><input id="assetReturnSearchInput" value="${esc(returnSearchKeywordV24)}" placeholder="이름, 자산명, 확인자, 비고 검색" oninput="returnSearchKeywordV24=this.value;renderAssetReturnsV24()"><span class="search-mark">⌕</span></div><div class="count">${shown.length} / ${rows.length}</div></div><div class="asset-filter-panel asset-return-filter-panel"><div class="asset-filter-box"><div class="asset-filter-label">반납 확인</div><div class="asset-filter-row"><select class="asset-filter-select" onchange="setAssetReturnStatusFilterV24(this.value)"><option value="ALL" ${returnStatusFilterV24==="ALL"?"selected":""}>전체</option><option value="done" ${returnStatusFilterV24==="done"?"selected":""}>반납완료</option><option value="wait" ${returnStatusFilterV24==="wait"?"selected":""}>확인대기</option></select></div></div><div class="asset-filter-reset-box"><button class="asset-filter-reset-btn" onclick="resetAssetReturnFiltersV24()">필터 초기화</button></div></div>${shown.length?`<div class="asset-table-wrap"><table class="asset-table asset-return-table asset-return-editable"><thead><tr><th>번호</th><th>이름</th><th>자산명</th><th>반납 확인</th><th>확인자</th><th>처리일</th><th>비고</th><th>관리</th></tr></thead><tbody>${shown.map(renderReturnRowV24).join("")}</tbody></table></div>`:`<div class="asset-empty">표시할 퇴사자 반납 내역이 없습니다. 시트명과 데이터 입력 여부를 확인하세요.</div>`}</div>`;
-    };
-    window.setAssetReturnStatusFilterV24=function(v){returnStatusFilterV24=String(v||"ALL");renderAssetReturnsV24();};
-    window.resetAssetReturnFiltersV24=function(){returnSearchKeywordV24="";returnStatusFilterV24="ALL";renderAssetReturnsV24();};
-
-    function ensureReturnModalV24(){
-        if(document.getElementById("assetReturnEditModal"))return;
-        document.body.insertAdjacentHTML("beforeend",`<div class="asset-return-modal" id="assetReturnEditModal"><div class="asset-return-modal-box"><div class="asset-return-modal-head"><div class="asset-return-modal-title" id="assetReturnModalTitle">퇴사자 반납 기록 등록</div><button class="asset-return-modal-close" onclick="closeAssetReturnModalV24()">×</button></div><div class="asset-return-modal-body"><div class="asset-return-form-grid"><input type="hidden" id="assetReturnFormNo"><div><div class="asset-return-form-label">이름</div><input class="asset-return-form-input" id="assetReturnFormName" placeholder="퇴사자 이름"></div><div><div class="asset-return-form-label">반납 확인</div><select class="asset-return-form-select" id="assetReturnFormChecked"><option value="TRUE">반납완료</option><option value="FALSE">확인대기</option></select></div><div class="asset-return-form-full"><div class="asset-return-form-label">자산명</div><input class="asset-return-form-input" id="assetReturnFormAssetName" placeholder="반납 자산명"></div><div><div class="asset-return-form-label">확인자</div><input class="asset-return-form-input" id="assetReturnFormChecker" placeholder="확인자"></div><div><div class="asset-return-form-label">처리일</div><input class="asset-return-form-input" id="assetReturnFormDate" placeholder="예: 05/20"></div><div class="asset-return-form-full"><div class="asset-return-form-label">비고</div><input class="asset-return-form-input" id="assetReturnFormNote" placeholder="비고"></div></div><div class="asset-return-form-help">번호는 신규 등록 시 자동 부여됩니다. 반납 확인은 시트의 체크박스 값으로 저장됩니다.</div><div class="asset-return-form-actions"><button class="asset-action-btn" onclick="closeAssetReturnModalV24()">취소</button><button class="asset-action-btn primary" id="assetReturnSaveBtn" onclick="saveAssetReturnFromModalV24()">저장</button></div></div></div></div>`);
-    }
-    window.closeAssetReturnModalV24=function(){const m=document.getElementById("assetReturnEditModal");if(m)m.classList.remove("active");};
-    window.openAssetReturnCreateModalV24=function(){ensureReturnModalV24();editingReturnNoV24="";document.getElementById("assetReturnModalTitle").textContent="퇴사자 반납 기록 등록";["No","Name","AssetName","Checker","Date","Note"].forEach(function(k){const el=document.getElementById("assetReturnForm"+k);if(el)el.value="";});document.getElementById("assetReturnFormChecked").value="TRUE";document.getElementById("assetReturnEditModal").classList.add("active");};
-    window.openAssetReturnEditModalV24=function(no){ensureReturnModalV24();const row=rowByReturnNoV24(no);if(!row){alert("수정할 반납 기록을 찾을 수 없습니다.");return;}editingReturnNoV24=t(no);document.getElementById("assetReturnModalTitle").textContent="퇴사자 반납 기록 수정";document.getElementById("assetReturnFormNo").value=editingReturnNoV24;document.getElementById("assetReturnFormName").value=t(f(row,["이름","name","퇴사자"]));document.getElementById("assetReturnFormAssetName").value=t(f(row,["자산명","asset_name","assetName","item"]));document.getElementById("assetReturnFormChecked").value=checked(f(row,["반납 확인","반납확인","확인","returned","checked"]))?"TRUE":"FALSE";document.getElementById("assetReturnFormChecker").value=t(f(row,["확인자","checker","checked_by"]));document.getElementById("assetReturnFormDate").value=t(f(row,["처리일","date","processed_at"]));document.getElementById("assetReturnFormNote").value=t(f(row,["비고","메모","note"]));document.getElementById("assetReturnEditModal").classList.add("active");};
-    function returnPayloadV24(){return {no:t(document.getElementById("assetReturnFormNo").value)||editingReturnNoV24,name:t(document.getElementById("assetReturnFormName").value),asset_name:t(document.getElementById("assetReturnFormAssetName").value),checked:document.getElementById("assetReturnFormChecked").value==="TRUE",checker:t(document.getElementById("assetReturnFormChecker").value),date:t(document.getElementById("assetReturnFormDate").value),note:t(document.getElementById("assetReturnFormNote").value)};}
-    window.saveAssetReturnFromModalV24=function(){const p=returnPayloadV24();if(!p.name){alert("이름을 입력하세요.");return;}if(!p.asset_name){alert("자산명을 입력하세요.");return;}const btn=document.getElementById("assetReturnSaveBtn");if(btn){btn.disabled=true;btn.textContent="저장 중...";}adminApi({type:"company_asset_return_save",return_item:p}).then(function(data){if(data&&data.result==="success"){companyAssetReturns=data.companyAssetReturns||companyAssetReturns||[];companyAssets=data.companyAssets||companyAssets||[];try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} closeAssetReturnModalV24();renderAssetReturnsV24(); if(typeof showToast==="function")showToast("퇴사자 반납 기록이 저장되었습니다.");}else{alert((data&&data.message)||"저장에 실패했습니다.");}}).catch(function(){alert("저장 중 오류가 발생했습니다.");}).finally(function(){const b=document.getElementById("assetReturnSaveBtn");if(b){b.disabled=false;b.textContent="저장";}});};
-    window.deleteAssetReturnV24=function(no){const row=rowByReturnNoV24(no);const name=row?t(f(row,["자산명","asset_name","assetName","item"])):String(no);if(!confirm("퇴사자 반납 기록 ["+name+"] 항목을 삭제할까요?"))return;adminApi({type:"company_asset_return_delete",no:no}).then(function(data){if(data&&data.result==="success"){companyAssetReturns=data.companyAssetReturns||companyAssetReturns||[];companyAssets=data.companyAssets||companyAssets||[];try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} renderAssetReturnsV24(); if(typeof showToast==="function")showToast("퇴사자 반납 기록이 삭제되었습니다.");}else{alert((data&&data.message)||"삭제에 실패했습니다.");}}).catch(function(){alert("삭제 중 오류가 발생했습니다.");});};
-
-    const oldSetAssetSubTab=window.setAssetSubTabV18;
-    window.setAssetSubTabV18=function(tab){window.__assetV24SubTab=tab==="returns"?"returns":"current"; if(window.__assetV24SubTab==="returns")return renderAssetReturnsV24(); if(typeof oldSetAssetSubTab==="function")return oldSetAssetSubTab("current"); if(typeof renderCompanyAssets==="function")return renderCompanyAssets(false);};
-    const oldRefresh=window.refreshCompanyAssets;
-    window.refreshCompanyAssets=function(){const btn=document.getElementById("assetRefreshBtn");if(btn){btn.disabled=true;btn.textContent="새로고침 중...";}const done=function(){if(window.__assetV24SubTab==="returns")renderAssetReturnsV24();else if(typeof renderCompanyAssets==="function")renderCompanyAssets(false);};const fallback=function(){return refreshData({force:true}).then(function(){done();return true;});};const partial=(typeof requestPartialRefresh==="function")?requestPartialRefresh("asset",{force:true}).then(function(data){done();return data;}).catch(function(){return fallback();}):fallback();return partial.then(function(){if(typeof showToast==="function")showToast("회사 자산 자료 최신 반영됨");}).catch(function(){alert("회사 자산 자료를 불러오지 못했습니다.");}).finally(function(){const b=document.getElementById("assetRefreshBtn");if(b){b.disabled=false;b.textContent="현재 화면 새로고침";}});};
-    window.axeAssetV24Debug=function(){return {version:V24_VERSION,subTab:window.__assetV24SubTab,assetReturnCount:returnRowsV24().length,filteredReturnCount:filteredReturnRowsV24().length,returnSaveButtonExists:!!document.querySelector('[onclick="openAssetReturnCreateModalV24()"]'),apiUrl:(typeof API_URL!=="undefined"?API_URL:"")};};
-})();
-
-window.axeModBookFilterV29Debug=function(){
-    const keyword=normalizeModBookSearchText(modBookSearchKeyword);
-    const all=Array.isArray(modBooks)?modBooks:[];
-    const nameMatches=keyword?all.filter(m=>getModBookNameSearchText(m).includes(keyword)).map(m=>parseModName(m.name).text):[];
-    const result=getFilteredModBooks().map(m=>parseModName(m.name).text);
+  const VERSION='AXE_NET_MODBOOK_REQUEST_V75_OPTION_LIST_FIX';
+  const FALLBACK_CATEGORIES=[
+    {name:'이동속도',kind:'의류'},{name:'체력',kind:'의류'},{name:'감정',kind:'의류'},
+    {name:'절도',kind:'의류'},{name:'낚시',kind:'의류'},{name:'벌목',kind:'의류'},
+    {name:'채광',kind:'의류'},{name:'채집',kind:'의류'},{name:'제작',kind:'의류'},
+    {name:'요리',kind:'의류'},{name:'제련',kind:'의류'},
+    {name:'근접무기',kind:'무기'},{name:'피스톨',kind:'무기'},{name:'SMG',kind:'무기'},
+    {name:'라이플',kind:'무기'},{name:'저격소총',kind:'무기'},{name:'머신건',kind:'무기'}
+  ];
+  const WEAPON_CATEGORIES=['근접무기','피스톨','SMG','라이플','저격소총','머신건'];
+  const CLOTH_PARTS=['겉옷/단독상의','상의','하의','신발'];
+  const WEAPON_PART_BY_CATEGORY={근접무기:['근접무기'],피스톨:['피스톨'],SMG:['SMG'],라이플:['라이플'],저격소총:['저격소총'],머신건:['머신건']};
+  const DEFAULT_OPTIONS=[
+    {name:'이동 속도 증가',unit:'%',min:'0.5',max:'20'},
+    {name:'최대 스태미나 증가',unit:'',min:'10',max:'500'},
+    {name:'전력질주 스킬 경험치 증가',unit:'',min:'1',max:'5'},
+    {name:'최대 체력 증가',unit:'',min:'1',max:'30'},
+    {name:'체력 재생 증가',unit:'',min:'0.5',max:'2'},
+    {name:'감정 성공 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'감정 시 파괴 확률 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 속도 증가',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'빈집털이 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'입질 대기 시간 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'낚시 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 스태미나 감소',unit:'%',min:'0.5',max:'20'},
+    {name:'제작 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'요리 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'요리 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'재련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'제련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'무기 데미지 증가',unit:'',min:'0.5',max:'10'},
+    {name:'총기 반동 감소',unit:'%',min:'0.5',max:'30'},
+    {name:'탄창 크기 증가',unit:'',min:'0.5',max:'10'},
+    {name:'크리티컬 확률',unit:'%',min:'0.5',max:'10'}
+  ];
+  const q=id=>document.getElementById(id);
+  const h=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const val=id=>{const el=q(id); return el?String(el.value||'').trim():''};
+  const checked=id=>{const el=q(id); return !!(el&&el.checked)};
+  const setCheck=(id,on)=>{const el=q(id); if(el)el.checked=!!on};
+  const uniq=arr=>Array.from(new Set((arr||[]).map(v=>String(v||'').trim()).filter(Boolean)));
+  function currentUser(){
+    try{
+      if(typeof window.getCurrentUser==='function'){
+        const u=window.getCurrentUser();
+        if(u&&u.nickname)return u;
+      }
+    }catch(e){}
+    try{
+      if(typeof getCurrentUser==='function'){
+        const u=getCurrentUser();
+        if(u&&u.nickname)return u;
+      }
+    }catch(e){}
+    try{
+      const keys=['axe_current_user','axe_current_user_v2','AXE_CURRENT_USER','axeUser'];
+      for(const key of keys){
+        const raw=localStorage.getItem(key);
+        if(!raw)continue;
+        const u=JSON.parse(raw||'{}');
+        if(u&&u.nickname)return u;
+      }
+    }catch(e){}
+    try{return window.currentUser||{}}catch(e){return {}}
+  }
+  function isAdmin(){try{if(typeof window.isCurrentAdmin==='function')return !!window.isCurrentAdmin()}catch(e){} const u=currentUser(); return String(u.role||'').toLowerCase()==='admin'||String(u.badge||'').toLowerCase()==='admin'}
+  function api(payload){const t=String((payload&&payload.type)||''); if(typeof window.adminApi==='function'&&(t.indexOf('modbook_request_')===0||t==='modbook_direct_add'||t==='modbook_update')){try{return window.adminApi(payload)}catch(e){}}
+    if(typeof window.post==='function')return window.post(payload); return fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json());}
+  function getModBookOptionsRaw(){try{if(Array.isArray(modBookOptions))return modBookOptions}catch(e){} try{if(Array.isArray(window.modBookOptions))return window.modBookOptions}catch(e){} return []}
+  function getModBookCategoriesRaw(){try{if(Array.isArray(modBookCategories))return modBookCategories}catch(e){} try{if(Array.isArray(window.modBookCategories))return window.modBookCategories}catch(e){} return []}
+  function normalizeCategoryRow(r){
+    const name=String(r['분류명']||r.category_name||r.name||r.category||'').trim();
+    const kind=String(r['분류유형']||r.kind||r.type||'의류').trim()||'의류';
+    const active=String(r['사용여부']??r.active??r.use??'TRUE').trim().toUpperCase();
+    return {name,kind,active};
+  }
+  function categoryRows(){
+    const map=new Map();
+    getModBookCategoriesRaw().map(normalizeCategoryRow).filter(r=>r.name&&r.active!=='FALSE').forEach(r=>map.set(r.name,r));
+    FALLBACK_CATEGORIES.forEach(r=>{if(!map.has(r.name))map.set(r.name,r)});
+    return Array.from(map.values());
+  }
+  function categoryNames(){return categoryRows().map(r=>r.name)}
+  function categoryKind(cat){const row=categoryRows().find(r=>r.name===String(cat||'').trim()); return row?row.kind:''}
+  function normalizeOptionNameV75(v){
+    return String(v==null?'':v).replace(/^\s*\*/,'').replace(/ /g,' ').replace(/\s+/g,' ').trim();
+  }
+  function normalizeOptionRow(r){
+    r=r||{};
+    const name=normalizeOptionNameV75(r['옵션명']??r.optionName??r.option_name??r.name??r['name']??'');
+    const active=String(r['사용여부']??r.enabled??r.active??r.use??r.use_yn??'TRUE').replace(/ /g,' ').trim().toUpperCase();
     return {
-        version:"AXE_NET_MODBOOK_FILTER_V32",
-        keyword:modBookSearchKeyword||"",
-        normalizedKeyword:keyword,
-        nameMatchCount:nameMatches.length,
-        nameMatches:nameMatches.slice(0,20),
-        resultCount:result.length,
-        results:result.slice(0,30)
+      name,
+      unit:String(r['기본단위']??r.default_unit??r.unit??'').replace(/ /g,' ').trim(),
+      min:String(r['최소값']??r.min_value??r.min??'').replace(/ /g,' ').trim(),
+      max:String(r['최대값']??r.max_value??r.max??'').replace(/ /g,' ').trim(),
+      active
     };
-};
-</script>
-
-<script>
-/* AXE NET V29: 개조서 종속 필터 디버그 alias */
-window.axeModBookFilterV28Debug=window.axeModBookFilterV29Debug||window.axeModBookFilterV28Debug;
-</script>
-
-<style id="axe-net-plika-quick-v80-style">
-/* AXE NET V80: 플리카 계좌 빠른도구 */
-#plikaQuickToolMount{position:fixed;z-index:9996;left:18px;top:50%;transform:translateY(-50%);pointer-events:none}
-.plika-quick{width:330px;max-width:calc(100vw - 28px);border:1px solid rgba(255,181,46,.24);border-radius:18px;background:linear-gradient(145deg,rgba(255,181,46,.08),rgba(255,255,255,.025)),rgba(8,8,8,.94);box-shadow:0 18px 50px rgba(0,0,0,.42);overflow:hidden;pointer-events:auto;backdrop-filter:blur(8px)}
-.plika-quick.collapsed{width:auto;border-radius:999px}
-.plika-quick-collapsed-btn{height:42px;padding:0 16px;border:0;background:rgba(255,181,46,.12);color:#ffcf75;font-size:13px;font-weight:950;cursor:pointer;display:flex;align-items:center;gap:7px}
-.plika-quick-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;border-bottom:1px solid rgba(255,255,255,.075)}
-.plika-quick-title{font-size:14px;font-weight:950;color:#ffb52e;line-height:1.2}
-.plika-quick-sub{margin-top:3px;font-size:11px;color:#8e8e8e;font-weight:800}
-.plika-quick-toggle{width:31px;height:31px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-weight:950;cursor:pointer}
-.plika-quick-body{padding:12px}
-.plika-quick-search{width:100%;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 11px;outline:none;font-size:13px}
-.plika-quick-search:focus{border-color:rgba(255,181,46,.58)}
-.plika-quick-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:9px 0}
-.plika-quick-count{font-size:11px;color:#888;font-weight:850}
-.plika-quick-add{height:31px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,181,46,.32);background:rgba(255,181,46,.1);color:#ffcf75;font-size:12px;font-weight:950;cursor:pointer}
-.plika-quick-list{display:grid;gap:7px;max-height:340px;overflow:auto;padding-right:2px}
-.plika-quick-row{display:grid;grid-template-columns:minmax(74px,1fr) minmax(116px,1.15fr) auto;gap:7px;align-items:center;padding:8px 9px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:rgba(0,0,0,.22)}
-.plika-quick-name{min-width:0;font-size:13px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.plika-quick-account{min-width:0;font-size:12.5px;font-weight:950;color:#ffcf75;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.plika-quick-account.missing{color:#777;cursor:default}
-.plika-quick-row-actions{display:flex;gap:4px;align-items:center}
-.plika-copy-btn,.plika-mini-btn{height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#bbb;font-size:11px;font-weight:950;cursor:pointer;white-space:nowrap}
-.plika-copy-btn:hover,.plika-mini-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.42)}
-.plika-copy-btn:disabled{opacity:.42;cursor:not-allowed;color:#777}
-.plika-mini-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.5)}
-.plika-quick-empty{padding:16px;border:1px dashed rgba(255,255,255,.12);border-radius:12px;color:#888;font-size:12px;line-height:1.5;text-align:center}
-.plika-account-modal{position:fixed;inset:0;z-index:10040;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}
-.plika-account-modal.active{display:flex}
-.plika-account-box{width:min(430px,100%);border-radius:18px;border:1px solid rgba(255,181,46,.28);background:linear-gradient(145deg,#101010,#080808);box-shadow:0 24px 80px rgba(0,0,0,.65);overflow:hidden}
-.plika-account-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 15px;border-bottom:1px solid rgba(255,255,255,.08)}
-.plika-account-title{font-size:15px;font-weight:950;color:#ffb52e}
-.plika-account-close{width:32px;height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:18px;cursor:pointer}
-.plika-account-body{padding:15px}
-.plika-account-grid{display:grid;grid-template-columns:1fr;gap:9px}
-.plika-account-label{font-size:12px;color:#aaa;font-weight:900;margin-bottom:5px}
-.plika-account-input,.plika-account-textarea{width:100%;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;border-radius:11px;padding:11px;outline:none;font-family:Arial,sans-serif}
-.plika-account-input:focus,.plika-account-textarea:focus{border-color:rgba(255,181,46,.62)}
-.plika-account-textarea{min-height:76px;resize:vertical}
-.plika-account-check{display:flex;align-items:center;gap:8px;color:#ddd;font-size:13px;font-weight:900;margin-top:2px}
-.plika-account-check input{width:16px;height:16px;accent-color:#ffb52e}
-.plika-account-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
-.plika-account-footer button{height:37px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#ddd;font-weight:950;cursor:pointer}
-.plika-account-footer button.primary{border-color:#ffb52e;background:#ffb52e;color:#111}
-@media(max-width:900px){#plikaQuickToolMount{left:10px;top:auto;bottom:66px;transform:none}.plika-quick{width:min(330px,calc(100vw - 20px))}.plika-quick-list{max-height:260px}}
-</style>
-
-
-<script id="axe-net-plika-quick-v80-script">
-/* AXE NET V80: 플리카 계좌 빠른도구 */
-(function(){
-  const PLikaQuickVersion="AXE_NET_PLIKA_QUICK_V80";
-  const COLLAPSE_KEY="axe_net_plika_quick_collapsed";
-  let plikaQuickSearch="";
-  let plikaEditTarget=null;
-
-  function normalizeAccountNumber(value){
-    const raw=String(value===undefined||value===null?"":value).trim();
-    if(!raw)return "";
-    const digits=raw.replace(/[^0-9]/g,"");
-    if(!digits)return raw;
-    if(digits.length>0&&digits.length<12)return digits.padStart(12,"0");
-    return digits;
   }
-
-  function isPlikaQuickCollapsed(){
-    try{return localStorage.getItem(COLLAPSE_KEY)==="1";}catch(e){return false;}
+  function isOptionRowActiveV75(r){
+    const a=String((r&&r.active)||'TRUE').trim().toUpperCase();
+    return !['FALSE','N','NO','0','미사용','OFF'].includes(a);
   }
-
-  function setPlikaQuickCollapsed(flag){
-    try{localStorage.setItem(COLLAPSE_KEY,flag?"1":"0");}catch(e){}
-    renderPlikaQuickTool();
+  function optionRows(){
+    const map=new Map();
+    const put=function(r){
+      r=normalizeOptionRow(r);
+      if(!r.name||!isOptionRowActiveV75(r))return;
+      const key=r.name;
+      const prev=map.get(key)||{};
+      map.set(key,{name:key,unit:r.unit||prev.unit||'%',min:r.min||prev.min||'1',max:r.max||prev.max||'20',active:r.active||prev.active||'TRUE'});
+    };
+    getModBookOptionsRaw().forEach(put);
+    DEFAULT_OPTIONS.forEach(put);
+    map.set('직접입력',{name:'직접입력',unit:'%',min:'1',max:'20',active:'TRUE'});
+    return Array.from(map.values());
   }
-
-  function getPlikaAccountsForView(){
-    const list=Array.isArray(window.plikaAccounts)?window.plikaAccounts:(typeof plikaAccounts!=="undefined"?plikaAccounts:[]);
-    return (list||[]).map((row,index)=>({
-      raw:row||{},
-      index:index,
-      number:String(row["번호"]||row.no||row.number||"").trim(),
-      name:String(row["멤버명"]||row.member||row.nickname||row.name||"").trim(),
-      account:normalizeAccountNumber(row["계좌"]||row.account||row.account_number||""),
-      enabled:String(row["사용여부"]||row.enabled||"TRUE").trim().toUpperCase()!=="FALSE",
-      note:String(row["비고"]||row.note||"").trim(),
-      updated_at:row["수정일"]||row.updated_at||""
-    })).filter(row=>row.name);
-  }
-
-  function copyPlikaAccount(account,name){
-    const text=normalizeAccountNumber(account);
-    if(!text){alert("등록된 계좌가 없습니다.");return;}
-    const done=()=>showPlikaToast((name?name+" ":"")+"계좌번호가 복사되었습니다.");
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));
-    }else{
-      fallbackCopy(text,done);
-    }
-  }
-
-  function fallbackCopy(text,done){
-    const ta=document.createElement("textarea");
-    ta.value=text;
-    ta.style.position="fixed";
-    ta.style.left="-9999px";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    try{document.execCommand("copy");}catch(e){}
-    document.body.removeChild(ta);
-    if(done)done();
-  }
-
-  function showPlikaToast(message){
-    if(typeof showAxeToast==="function"){showAxeToast(message);return;}
-    const old=document.getElementById("plikaQuickToast");
-    if(old)old.remove();
-    const el=document.createElement("div");
-    el.id="plikaQuickToast";
-    el.textContent=message;
-    el.style.cssText="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:10080;background:rgba(0,0,0,.86);color:#ffcf75;border:1px solid rgba(255,181,46,.35);border-radius:999px;padding:10px 14px;font-size:13px;font-weight:950;box-shadow:0 14px 34px rgba(0,0,0,.45);";
-    document.body.appendChild(el);
-    setTimeout(()=>{try{el.remove();}catch(e){}},1600);
-  }
-
-  function renderPlikaQuickRows(){
-    const admin=typeof isCurrentAdmin==="function"&&isCurrentAdmin();
-    const keyword=String(plikaQuickSearch||"").trim().toLowerCase();
-    const list=getPlikaAccountsForView().filter(row=>{
-      if(!admin&&!row.enabled)return false;
-      if(!keyword)return true;
-      return row.name.toLowerCase().includes(keyword)||row.account.includes(keyword)||row.note.toLowerCase().includes(keyword);
+  function rebuildOptionNameSelectsV75(){
+    const names=optionRows().map(r=>r.name);
+    [1,2,3].forEach(function(idx){
+      const sel=q(`modReqOption${idx}NameV70`);
+      if(!sel)return;
+      const cur=sel.value;
+      sel.innerHTML=optionChoices(names,cur,'선택');
+      if(cur && !names.includes(cur)){
+        sel.insertAdjacentHTML('beforeend',`<option value="${h(cur)}" selected>${h(cur)}</option>`);
+      }
+      refreshOptionRow(idx,true);
     });
-    if(!list.length)return `<div class="plika-quick-empty">표시할 플리카 계좌가 없습니다.</div>`;
-    return list.map(row=>{
-      const accountText=row.account?escapeHtml(row.account):"미등록";
-      return `<div class="plika-quick-row" data-plika-no="${escapeAttr(row.number)}">
-        <div class="plika-quick-name" title="${escapeAttr(row.name)}">${escapeHtml(row.name)}</div>
-        <div class="plika-quick-account ${row.account?"":"missing"}" ${row.account?`onclick="copyPlikaAccount('${escapeText(row.account)}','${escapeText(row.name)}')"`:""} title="${escapeAttr(row.account||"미등록")}">${accountText}</div>
-        <div class="plika-quick-row-actions">
-          <button class="plika-copy-btn" ${row.account?`onclick="copyPlikaAccount('${escapeText(row.account)}','${escapeText(row.name)}')"`:"disabled"}>복사</button>
-          ${admin?`<button class="plika-mini-btn" onclick="openPlikaAccountForm('${escapeText(row.number)}','${escapeText(row.name)}')">수정</button><button class="plika-mini-btn danger" onclick="deletePlikaAccount('${escapeText(row.number)}','${escapeText(row.name)}')">삭제</button>`:""}
-        </div>
-      </div>`;
-    }).join("");
   }
-
-  function renderPlikaQuickTool(){
-    let mount=document.getElementById("plikaQuickToolMount");
-    if(!mount){
-      mount=document.createElement("div");
-      mount.id="plikaQuickToolMount";
-      document.body.appendChild(mount);
+  function optionChoices(list,current,label='선택'){
+    const cur=String(current||'').trim();
+    return `<option value="">${h(label)}</option>`+(list||[]).map(v=>`<option value="${h(v)}" ${v===cur?'selected':''}>${h(v)}</option>`).join('');
+  }
+  function numberChoices(min,max,current){
+    let a=Number(min), b=Number(max); if(!isFinite(a))a=1; if(!isFinite(b))b=20; if(b<a){const t=a;a=b;b=t}
+    const hasDecimal=String(min).includes('.')||String(max).includes('.'); let step=hasDecimal?0.1:1; if(!hasDecimal && b-a>100)step=10;
+    const cur=String(current||'').replace(/^[-+]/,''); let html='<option value="">선택</option>'; let n=a; let guard=0;
+    while(n<=b+1e-9&&guard<1000){const s=hasDecimal?String(Math.round(n*10)/10):String(Math.round(n)); html+=`<option value="${h(s)}" ${s===cur?'selected':''}>${h(s)}</option>`; n+=step; guard++;}
+    if(cur&&!html.includes(`value="${h(cur)}"`))html+=`<option value="${h(cur)}" selected>${h(cur)}</option>`; return html;
+  }
+  function selectedOptionData(idx){let name=val(`modReqOption${idx}NameV70`); if(name==='직접입력')name=val(`modReqOption${idx}CustomV70`); name=name.replace(/^\*/,'').trim(); return optionRows().find(r=>r.name===name)||{name,unit:'%',min:'1',max:'20'};}
+  function refreshOptionRow(idx,keep=false){
+    const nameSel=q(`modReqOption${idx}NameV70`), custom=q(`modReqOption${idx}CustomV70`), min=q(`modReqOption${idx}MinV70`), max=q(`modReqOption${idx}MaxV70`), unit=q(`modReqOption${idx}UnitV70`);
+    if(!nameSel)return; const beforeMin=keep?min.value:''; const beforeMax=keep?max.value:''; const data=selectedOptionData(idx);
+    if(custom)custom.classList.toggle('active',nameSel.value==='직접입력'); if(unit)unit.value=data.unit||'';
+    if(min)min.innerHTML=numberChoices(data.min,data.max,beforeMin); if(max)max.innerHTML=numberChoices(data.min,data.max,beforeMax);
+  }
+  function normalizeSuccess(v){let s=String(v||'').trim(); if(!s)return ''; return s.includes('%')?s:s+'%'}
+  function isWeaponCategory(cat){cat=String(cat||'').trim(); const kind=categoryKind(cat); return kind==='무기'||WEAPON_CATEGORIES.includes(cat);}
+  function partsForCategory(cat){cat=String(cat||'').trim(); if(!cat)return []; if(isWeaponCategory(cat))return WEAPON_PART_BY_CATEGORY[cat]||[cat]; return CLOTH_PARTS.slice();}
+  function partsForSelectedCategories(){
+    const cats=uniq([val('modReqCategory1V70'),val('modReqCategory2V70')]);
+    if(!cats.length)return CLOTH_PARTS.slice();
+    const weaponCats=cats.filter(isWeaponCategory);
+    if(weaponCats.length){
+      return uniq(weaponCats.flatMap(function(cat){return partsForCategory(cat)}));
     }
-    const collapsed=isPlikaQuickCollapsed();
-    if(collapsed){
-      mount.innerHTML=`<div class="plika-quick collapsed"><button class="plika-quick-collapsed-btn" onclick="togglePlikaQuickTool()">💳 플리카 계좌</button></div>`;
-      return;
-    }
-    const admin=typeof isCurrentAdmin==="function"&&isCurrentAdmin();
-    const total=getPlikaAccountsForView().filter(row=>admin||row.enabled).length;
-    mount.innerHTML=`<div class="plika-quick">
-      <div class="plika-quick-head">
-        <div><div class="plika-quick-title">플리카 계좌</div><div class="plika-quick-sub">계좌 클릭 또는 복사 버튼으로 복사</div></div>
-        <button class="plika-quick-toggle" onclick="togglePlikaQuickTool()" title="접기">−</button>
-      </div>
-      <div class="plika-quick-body">
-        <input class="plika-quick-search" id="plikaQuickSearchInput" value="${escapeAttr(plikaQuickSearch)}" placeholder="멤버명 또는 계좌 검색" oninput="setPlikaQuickSearch(this.value)" autocomplete="off">
-        <div class="plika-quick-actions">
-          <div class="plika-quick-count">등록 ${total}명</div>
-          ${admin?`<button class="plika-quick-add" onclick="openPlikaAccountForm()">+ 계좌 추가</button>`:""}
-        </div>
-        <div class="plika-quick-list">${renderPlikaQuickRows()}</div>
-      </div>
-    </div>`;
-    if(typeof axeDisableAutocompleteStrong==="function")setTimeout(()=>axeDisableAutocompleteStrong(),0);
+    return CLOTH_PARTS.slice();
   }
-
-  function togglePlikaQuickTool(){
-    setPlikaQuickCollapsed(!isPlikaQuickCollapsed());
+  function refreshParts(){const list=partsForSelectedCategories(); ['1','2'].forEach(n=>{const el=q(`modReqParts${n}V70`); if(!el)return; const cur=el.value; el.innerHTML=optionChoices(list,cur,'선택'); if(cur && !list.includes(cur))el.value='';});}
+  function parseMarks(raw){let s=String(raw||'').trim(),tier=false,debuff=false; while(s.startsWith('!')||s.startsWith('*')){if(s[0]==='!')tier=true; if(s[0]==='*')debuff=true; s=s.slice(1).trim();} return {text:s,tier,debuff}}
+  function splitText(raw){return String(raw||'').split(/[,·|\n]+/).map(v=>v.trim()).filter(Boolean)}
+  function parseOptionText(raw){const p=parseMarks(raw); let text=p.text,name=text,min='',max='',unit='%'; const m=text.match(/^(.*?)\s*\(([-+]?\d+(?:\.\d+)?)([^\d~)]*)\s*~\s*([-+]?\d+(?:\.\d+)?)([^\d)]*)\)$/); if(m){name=m[1].trim(); min=String(Math.abs(Number(m[2]))); unit=(m[3]||m[5]||'').trim(); max=String(Math.abs(Number(m[4])))} else {const s=text.match(/^(.*?)\s*\(([-+]?\d+(?:\.\d+)?)([^\d)]*)\)$/); if(s){name=s[1].trim(); min=String(Math.abs(Number(s[2]))); max=min; unit=(s[3]||'').trim()}} return {name,min,max,unit,debuff:p.debuff}}
+  function optionRowHtml(idx){const opts=optionChoices(optionRows().map(r=>r.name),'','선택'); return `<div class="modbook-request-option-block"><div class="modbook-request-option-title">옵션 ${idx}</div><div class="modbook-request-option-grid"><div><div class="modbook-request-mini-label">옵션명</div><select class="modbook-request-select" id="modReqOption${idx}NameV70" onchange="handleModBookOptionChangeV70(${idx})">${opts}</select><input class="modbook-request-input modbook-request-option-custom" id="modReqOption${idx}CustomV70" placeholder="옵션명 직접입력"></div><div><div class="modbook-request-mini-label">최소</div><select class="modbook-request-select" id="modReqOption${idx}MinV70"></select></div><div><div class="modbook-request-mini-label">최대</div><select class="modbook-request-select" id="modReqOption${idx}MaxV70"></select></div><div><div class="modbook-request-mini-label">단위</div><input class="modbook-request-input" id="modReqOption${idx}UnitV70" placeholder="%"></div><div><div class="modbook-request-mini-label">표시</div><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqOption${idx}DebuffV70">디버프</label></div></div></div></div>`}
+  window.handleModBookOptionChangeV70=function(idx){refreshOptionRow(idx,false)};
+  window.handleModBookRequestCategoryChangeV70=function(){refreshParts()};
+  function ensureRequestButtons(){const bottom=document.querySelector('.modbook-filter-bottom'); if(!bottom)return; let wrap=bottom.querySelector('.modbook-request-actions'); if(!wrap){wrap=document.createElement('div');wrap.className='modbook-request-actions';bottom.appendChild(wrap)} wrap.innerHTML=`<button class="modbook-request-btn" onclick="openModBookRequestFormV70()">+ 등록 신청</button>${isAdmin()?'<button class="modbook-request-btn secondary" onclick="openModBookRequestAdminV70()">신청 관리</button>':''}`;}
+  const originalShow=window.showModBooks; if(typeof originalShow==='function'&&!originalShow.__modReqV70){const wrapped=function(){const r=originalShow.apply(this,arguments); setTimeout(ensureRequestButtons,0); return r}; wrapped.__modReqV70=true; window.showModBooks=wrapped;}
+  function ensureModal(){if(q('modBookRequestModalV70'))return; document.body.insertAdjacentHTML('beforeend',`<div class="modbook-request-modal" id="modBookRequestModalV70"><div class="modbook-request-box"><div class="modbook-request-head"><div class="modbook-request-title" id="modBookRequestModalTitleV70">개조서 등록 신청</div><button class="modbook-request-close" onclick="closeModBookRequestModalV70()">×</button></div><div class="modbook-request-body"><input type="hidden" id="modReqRequestIdV70"><div class="modbook-request-row type"><div><div class="modbook-request-label">개조위치</div><select class="modbook-request-select" id="modReqTypeV70"><option value="접두">접두</option><option value="접미">접미</option></select></div></div><div class="modbook-request-row two"><div><div class="modbook-request-label">분류1</div><select class="modbook-request-select" id="modReqCategory1V70" onchange="handleModBookRequestCategoryChangeV70()">${optionChoices(categoryNames(),'','선택')}</select></div><div><div class="modbook-request-label">분류2</div><select class="modbook-request-select" id="modReqCategory2V70" onchange="handleModBookRequestCategoryChangeV70()">${optionChoices(categoryNames(),'','선택')}</select></div></div><div class="modbook-request-row two"><div><div class="modbook-request-label">부위1</div><select class="modbook-request-select" id="modReqParts1V70"></select></div><div><div class="modbook-request-label">부위2</div><select class="modbook-request-select" id="modReqParts2V70"></select></div></div><div class="modbook-request-row name"><div><div class="modbook-request-label">개조서 이름</div><input class="modbook-request-input" id="modReqNameV70" placeholder="예: 전력질주의"></div><div><div class="modbook-request-label">표시</div><div class="modbook-request-checkline"><label class="modbook-request-check"><input type="checkbox" id="modReqTier1V70">1티어</label></div></div><div><div class="modbook-request-label">성공률</div><input class="modbook-request-input" id="modReqSuccessV70" placeholder="예: 20 또는 20%" onblur="this.value=normalizeModBookRequestSuccessV70(this.value)"></div></div>${optionRowHtml(1)}${optionRowHtml(2)}${optionRowHtml(3)}<div class="modbook-request-row note"><div><div class="modbook-request-label">비고</div><textarea class="modbook-request-textarea" id="modReqNoteV70" placeholder="출처, 확인 내용, 특이사항 등"></textarea></div></div><div class="modbook-request-note">정렬순서(order)는 입력하지 않습니다. 승인 또는 바로 등록 시 분류1 기준으로 자동 부여됩니다.</div><div class="modbook-request-help" id="modReqHelpV70">일반 팀원은 신청으로 접수되고, 관리자 검수 후 정식 개조서에 반영됩니다.</div><div class="modbook-request-actions-bottom"><button class="modbook-request-btn secondary" onclick="closeModBookRequestModalV70()">닫기</button><button class="modbook-request-btn danger" id="modReqRejectBtnV70" onclick="rejectModBookRequestFromFormV70()" style="display:none">반려</button><button class="modbook-request-btn" id="modReqSubmitBtnV70" onclick="submitModBookRequestV70()">신청 접수</button><button class="modbook-request-btn" id="modReqDirectBtnV70" onclick="directAddModBookV70()" style="display:none">관리자 바로 등록</button><button class="modbook-request-btn" id="modReqOfficialSaveBtnV70" onclick="saveOfficialModBookEditV72()" style="display:none">수정 저장</button><button class="modbook-request-btn" id="modReqApproveBtnV70" onclick="approveModBookRequestV70()" style="display:none">수정 후 승인</button></div></div></div></div>`); refreshParts(); rebuildOptionNameSelectsV75(); [1,2,3].forEach(i=>refreshOptionRow(i,false));}
+  function setOptionFromText(idx,raw){const p=parseOptionText(raw); const rows=optionRows(); const sel=q(`modReqOption${idx}NameV70`); if(sel){sel.value=rows.some(r=>r.name===p.name)?p.name:(p.name?'직접입력':'')} refreshOptionRow(idx,false); if(p.name&&!rows.some(r=>r.name===p.name)){const c=q(`modReqOption${idx}CustomV70`); if(c){c.value=p.name;c.classList.add('active')}} const mn=q(`modReqOption${idx}MinV70`), mx=q(`modReqOption${idx}MaxV70`), un=q(`modReqOption${idx}UnitV70`); if(un&&p.unit)un.value=p.unit; if(mn&&p.min)mn.value=p.min; if(mx&&p.max)mx.value=p.max; setCheck(`modReqOption${idx}DebuffV70`,p.debuff)}
+  function fillForm(item){item=item||{}; if(q('modReqTypeV70'))q('modReqTypeV70').value=item.type||'접두'; const cats=splitText(item.category||''); const catsKnown=categoryNames(); if(cats[0]&&!catsKnown.includes(cats[0])){const el=q('modReqCategory1V70'); if(el)el.insertAdjacentHTML('beforeend',`<option value="${h(cats[0])}">${h(cats[0])}</option>`)} if(cats[1]&&!catsKnown.includes(cats[1])){const el=q('modReqCategory2V70'); if(el)el.insertAdjacentHTML('beforeend',`<option value="${h(cats[1])}">${h(cats[1])}</option>`)} q('modReqCategory1V70').value=cats[0]||''; q('modReqCategory2V70').value=cats[1]||''; refreshParts(); const parts=splitText(String(item.parts||'').replace(/겉옷\s*,\s*단독상의/g,'겉옷/단독상의')); q('modReqParts1V70').value=parts[0]||''; q('modReqParts2V70').value=parts[1]||''; const nm=parseMarks(item.name||''); q('modReqNameV70').value=nm.text||''; setCheck('modReqTier1V70',nm.tier); setOptionFromText(1,item.option1||''); setOptionFromText(2,item.option2||''); setOptionFromText(3,item.option3||''); q('modReqSuccessV70').value=item.success_rate||''; q('modReqNoteV70').value=item.note||'';}
+  function buildOptionText(idx){let name=val(`modReqOption${idx}NameV70`); if(name==='직접입력')name=val(`modReqOption${idx}CustomV70`); name=name.replace(/^\*/,'').trim(); if(!name)return ''; const min0=val(`modReqOption${idx}MinV70`), max0=val(`modReqOption${idx}MaxV70`), unit=val(`modReqOption${idx}UnitV70`); const deb=checked(`modReqOption${idx}DebuffV70`); const signed=x=>{let s=String(x||'').replace(/^[-+]/,'').trim(); return s?(deb?'-'+s:s):''}; const min=signed(min0), max=signed(max0); let range=''; if(min&&max)range=min===max?` (${min}${unit})`:` (${min}${unit} ~ ${max}${unit})`; else if(min)range=` (${min}${unit})`; return (deb?'*':'')+name+range;}
+  function itemFromForm(){const cats=uniq([val('modReqCategory1V70'),val('modReqCategory2V70')]); const parts=uniq([val('modReqParts1V70'),val('modReqParts2V70')]); return {type:val('modReqTypeV70'),category:cats.join(', '),name:(checked('modReqTier1V70')?'!':'')+val('modReqNameV70'),parts:parts.join(', '),option1:buildOptionText(1),option2:buildOptionText(2),option3:buildOptionText(3),success_rate:normalizeSuccess(val('modReqSuccessV70')),order:'',note:val('modReqNoteV70')}}
+  function validate(item){const clean=String(item.name||'').replace(/^!/,'').trim(); if(!item.type)return '개조위치를 선택하세요.'; if(!item.category)return '분류1을 선택하세요.'; if(!item.parts)return '부위를 1개 이상 선택하세요.'; if(!clean)return '개조서 이름을 입력하세요.'; if(!item.option1&&!item.option2&&!item.option3)return '옵션을 1개 이상 선택하세요.'; return ''}
+  window.normalizeModBookRequestSuccessV70=normalizeSuccess;
+  window.closeModBookRequestModalV70=function(){const m=q('modBookRequestModalV70'); if(m)m.classList.remove('active')};
+  window.openModBookRequestFormV70=function(request){const u=currentUser(); if(!u.nickname){alert('로그인 후 이용 가능합니다.'); if(typeof openAuthModal==='function')openAuthModal('login'); return} ensureModal(); rebuildOptionNameSelectsV75(); request=request||null; q('modReqRequestIdV70').value=request?String(request.id||''):''; q('modBookRequestModalTitleV70').textContent=request?'개조서 등록 신청 검수':'개조서 등록 신청'; fillForm(request||{}); const reviewing=!!request; q('modReqSubmitBtnV70').style.display=reviewing?'none':''; q('modReqDirectBtnV70').style.display=(!reviewing&&isAdmin())?'':'none'; q('modReqApproveBtnV70').style.display=reviewing?'':'none'; q('modReqRejectBtnV70').style.display=reviewing?'':'none'; const officialBtn=q('modReqOfficialSaveBtnV70'); if(officialBtn)officialBtn.style.display='none'; q('modReqHelpV70').textContent=reviewing?'신청 내용을 확인한 뒤 승인 또는 반려할 수 있습니다. 세부 수정은 승인 후 개조서 상세의 수정 버튼에서 처리합니다.':'일반 팀원은 신청으로 접수되고, 관리자 승인 후 정식 개조서에 반영됩니다.'; q('modBookRequestModalV70').classList.add('active')};
+  window.submitModBookRequestV70=function(){const u=currentUser(); if(!u.nickname){alert('로그인 후 이용 가능합니다.');return} const item=itemFromForm(), err=validate(item); if(err){alert(err);return} const btn=q('modReqSubmitBtnV70'); if(btn){btn.disabled=true;btn.textContent='접수 중...'} api({type:'modbook_request_submit',nickname:u.nickname,item}).then(data=>{if(data&&data.result==='success'){alert(data.message||'개조서 등록 신청이 접수되었습니다.');closeModBookRequestModalV70()}else alert((data&&data.message)||'신청 접수에 실패했습니다.')}).catch(()=>alert('신청 접수 중 오류가 발생했습니다.')).finally(()=>{const b=q('modReqSubmitBtnV70'); if(b){b.disabled=false;b.textContent='신청 접수'}})};
+  window.directAddModBookV70=function(){if(!isAdmin()){alert('관리자 권한이 필요합니다.');return} const item=itemFromForm(), err=validate(item); if(err){alert(err);return} if(!confirm('이 개조서를 신청 절차 없이 바로 정식 등록할까요?\n정렬순서는 분류1 기준으로 자동 부여됩니다.'))return; const btn=q('modReqDirectBtnV70'); if(btn){btn.disabled=true;btn.textContent='등록 중...'} api({type:'modbook_direct_add',item}).then(data=>{if(data&&data.result==='success'){if(data.modBooks)modBooks=data.modBooks; try{sessionStorage.removeItem(DATA_CACHE_KEY)}catch(e){} alert(data.message||'개조서가 등록되었습니다.'); closeModBookRequestModalV70(); if(currentInfoSubTab==='modbook')showModBooks()}else alert((data&&data.message)||'등록에 실패했습니다.')}).catch(()=>alert('등록 중 오류가 발생했습니다.')).finally(()=>{const b=q('modReqDirectBtnV70'); if(b){b.disabled=false;b.textContent='관리자 바로 등록'}})};
+  window.approveModBookRequestV70=function(){if(!isAdmin()){alert('관리자 권한이 필요합니다.');return} const request_id=val('modReqRequestIdV70'), item=itemFromForm(), err=validate(item); if(err){alert(err);return} if(!request_id){alert('신청 ID가 없습니다.');return} if(!confirm('이 신청을 승인하고 정식 개조서로 등록할까요?\n정렬순서는 분류1 기준으로 자동 부여됩니다.'))return; const btn=q('modReqApproveBtnV70'); if(btn){btn.disabled=true;btn.textContent='승인 중...'} api({type:'modbook_request_approve',request_id,item}).then(data=>{if(data&&data.result==='success'){if(data.modBooks)modBooks=data.modBooks; try{sessionStorage.removeItem(DATA_CACHE_KEY)}catch(e){} alert(data.message||'승인되었습니다.'); closeModBookRequestModalV70(); openModBookRequestAdminV70(); if(currentInfoSubTab==='modbook')showModBooks()}else alert((data&&data.message)||'승인에 실패했습니다.')}).catch(()=>alert('승인 중 오류가 발생했습니다.')).finally(()=>{const b=q('modReqApproveBtnV70'); if(b){b.disabled=false;b.textContent='승인'}})};
+  window.rejectModBookRequestFromFormV70=function(){const id=val('modReqRequestIdV70'); if(!id){alert('신청 ID가 없습니다.');return} rejectModBookRequestV70(id)};
+  window.rejectModBookRequestV70=function(id){if(!isAdmin()){alert('관리자 권한이 필요합니다.');return} const reason=prompt('반려 사유를 입력하세요.',''); if(reason===null)return; api({type:'modbook_request_reject',request_id:id,reason:reason||''}).then(data=>{if(data&&data.result==='success'){alert(data.message||'반려되었습니다.'); closeModBookRequestModalV70(); openModBookRequestAdminV70()}else alert((data&&data.message)||'반려에 실패했습니다.')}).catch(()=>alert('반려 중 오류가 발생했습니다.'))};
+  function ensureListModal(){if(q('modBookRequestListModalV70'))return; document.body.insertAdjacentHTML('beforeend',`<div class="modbook-request-modal" id="modBookRequestListModalV70"><div class="modbook-request-box"><div class="modbook-request-head"><div class="modbook-request-title">개조서 등록 신청 관리</div><button class="modbook-request-close" onclick="closeModBookRequestListV70()">×</button></div><div class="modbook-request-body"><div class="modbook-request-help">검수대기 신청을 확인하고 승인 또는 반려합니다. 승인 후 세부 수정은 개조서 상세 화면에서 처리합니다.</div><div class="modbook-request-list" id="modBookRequestListBoxV70"><div class="ready">불러오는 중...</div></div></div></div></div>`)}
+  window.closeModBookRequestListV70=function(){const m=q('modBookRequestListModalV70'); if(m)m.classList.remove('active')};
+  function requestIdAttr(id){return h(String(id||''));}
+  window.approveModBookRequestFromListV72=function(id,btn){
+    if(!isAdmin()){alert('관리자 권한이 필요합니다.');return}
+    if(!id){alert('신청 ID가 없습니다.');return}
+    if(!confirm('이 신청을 승인하고 정식 개조서로 등록할까요?\n정렬순서는 분류1 기준으로 자동 부여됩니다.'))return;
+    const old=btn?btn.textContent:''; if(btn){btn.disabled=true;btn.textContent='승인 중...'}
+    api({type:'modbook_request_approve',request_id:id}).then(data=>{
+      if(data&&data.result==='success'){
+        if(data.modBooks)modBooks=data.modBooks;
+        try{sessionStorage.removeItem(DATA_CACHE_KEY)}catch(e){}
+        alert(data.message||'승인되었습니다.');
+        openModBookRequestAdminV70();
+        if(currentInfoSubTab==='modbook')showModBooks();
+      }else alert((data&&data.message)||'승인에 실패했습니다.');
+    }).catch(()=>alert('승인 중 오류가 발생했습니다.')).finally(()=>{if(btn){btn.disabled=false;btn.textContent=old||'승인'}})
+  };
+  function renderReqCard(r){
+    const st=String(r['상태']||r.status||'검수대기');
+    const id=String(r.id||'');
+    const pending=st==='검수대기'||!st;
+    const nm=parseMarks(r.name||'');
+    const opts=[r.option1,r.option2,r.option3].map(v=>parseMarks(v).text).filter(Boolean).join(' / ');
+    return `<div class="modbook-request-card"><div class="modbook-request-card-head"><div><div class="modbook-request-name">${h(nm.text||'-')}</div><div class="modbook-request-meta"><span class="modbook-request-pill ${st==='승인'?'approved':st==='반려'?'rejected':'pending'}">${h(st)}</span><span class="modbook-request-pill">${h(r.type||'-')}</span><span class="modbook-request-pill">${h(r.category||'-')}</span><span class="modbook-request-pill">${h(r.parts||'-')}</span>${nm.tier?'<span class="modbook-request-pill">1티어</span>':''}</div></div><div class="modbook-request-meta">${h(r['신청자']||r.requester||'-')} · ${h(r['신청일']||r.created_at||'')}</div></div><div class="modbook-request-help">${h(opts||'옵션 없음')}</div>${r.note?`<div class="modbook-request-help">비고: ${h(r.note)}</div>`:''}${r['반려사유']?`<div class="modbook-request-help">반려사유: ${h(r['반려사유'])}</div>`:''}<div class="modbook-request-card-actions">${pending?`<button class="modbook-request-btn" onclick="approveModBookRequestFromListV72('${requestIdAttr(id)}',this)">승인</button><button class="modbook-request-btn danger" onclick="rejectModBookRequestV70('${requestIdAttr(id)}')">반려</button>`:`<button class="modbook-request-btn secondary" onclick="alert('이미 처리된 신청입니다.')">처리완료</button>`}</div></div>`;
   }
+  window.openModBookRequestAdminV70=function(){if(!isAdmin()){alert('관리자 권한이 필요합니다.');return} ensureListModal(); q('modBookRequestListModalV70').classList.add('active'); q('modBookRequestListBoxV70').innerHTML='<div class="ready">신청 내역을 불러오는 중...</div>'; api({type:'modbook_request_list'}).then(data=>{if(data&&data.result==='success'){const rows=data.requests||[]; const pending=rows.filter(r=>String(r['상태']||'검수대기')==='검수대기'); const rest=rows.filter(r=>String(r['상태']||'검수대기')!=='검수대기').slice(0,20); const all=[...pending,...rest]; q('modBookRequestListBoxV70').innerHTML=all.length?all.map(renderReqCard).join(''):'<div class="ready">등록 신청 내역이 없습니다.</div>'}else q('modBookRequestListBoxV70').innerHTML='<div class="ready">'+h((data&&data.message)||'신청 내역을 불러오지 못했습니다.')+'</div>'}).catch(()=>{q('modBookRequestListBoxV70').innerHTML='<div class="ready">신청 내역을 불러오는 중 오류가 발생했습니다.</div>'})};
 
-  function setPlikaQuickSearch(value){
-    plikaQuickSearch=String(value||"");
-    const list=document.querySelector("#plikaQuickToolMount .plika-quick-list");
-    const count=document.querySelector("#plikaQuickToolMount .plika-quick-count");
-    if(list)list.innerHTML=renderPlikaQuickRows();
-    if(count){
-      const admin=typeof isCurrentAdmin==="function"&&isCurrentAdmin();
-      const total=getPlikaAccountsForView().filter(row=>admin||row.enabled).length;
-      count.textContent="등록 "+total+"명";
-    }
+  function findModBookByKeyV72(key){
+    try{const list=typeof getFilteredModBooks==='function'?getFilteredModBooks():(modBooks||[]); return (list||[]).find((m,i)=>typeof getModBookKey==='function'&&getModBookKey(m,i)===key)||null}catch(e){return null}
   }
-
-  function findPlikaAccount(number,name){
-    const list=getPlikaAccountsForView();
-    const no=String(number||"").trim();
-    const nm=String(name||"").trim();
-    return list.find(row=>(no&&row.number===no)||(nm&&row.name===nm))||null;
-  }
-
-  function ensurePlikaAccountModal(){
-    let modal=document.getElementById("plikaAccountModal");
-    if(modal)return modal;
-    modal=document.createElement("div");
-    modal.className="plika-account-modal";
-    modal.id="plikaAccountModal";
-    modal.onclick=function(e){if(e.target===modal)closePlikaAccountForm();};
-    document.body.appendChild(modal);
-    return modal;
-  }
-
-  function openPlikaAccountForm(number,name){
-    if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){alert("관리자만 수정할 수 있습니다.");return;}
-    const target=findPlikaAccount(number,name);
-    plikaEditTarget=target;
-    const modal=ensurePlikaAccountModal();
-    modal.innerHTML=`<div class="plika-account-box" onclick="event.stopPropagation();">
-      <div class="plika-account-head">
-        <div class="plika-account-title">${target?"플리카 계좌 수정":"플리카 계좌 추가"}</div>
-        <button class="plika-account-close" onclick="closePlikaAccountForm()">×</button>
-      </div>
-      <div class="plika-account-body">
-        <div class="plika-account-grid">
-          <div><div class="plika-account-label">멤버명</div><input id="plikaAccountName" class="plika-account-input" value="${escapeAttr(target&&target.name||"")}" placeholder="예: 호듀" autocomplete="off"></div>
-          <div><div class="plika-account-label">계좌번호</div><input id="plikaAccountNumber" class="plika-account-input" value="${escapeAttr(target&&target.account||"")}" placeholder="숫자만 입력" inputmode="numeric" autocomplete="off"></div>
-          <label class="plika-account-check"><input id="plikaAccountEnabled" type="checkbox" ${!target||target.enabled?"checked":""}> 사용</label>
-          <div><div class="plika-account-label">비고</div><textarea id="plikaAccountNote" class="plika-account-textarea" placeholder="선택 입력" autocomplete="off">${escapeTextarea(target&&target.note||"")}</textarea></div>
-        </div>
-        <div class="plika-account-footer">
-          <button onclick="closePlikaAccountForm()">닫기</button>
-          <button class="primary" onclick="savePlikaAccount()">저장</button>
-        </div>
-      </div>
-    </div>`;
-    modal.classList.add("active");
-    if(typeof axeDisableAutocompleteStrong==="function")setTimeout(()=>axeDisableAutocompleteStrong(),0);
-    setTimeout(()=>{const el=document.getElementById("plikaAccountName");if(el)el.focus();},60);
-  }
-
-  function closePlikaAccountForm(){
-    const modal=document.getElementById("plikaAccountModal");
-    if(modal)modal.classList.remove("active");
-    plikaEditTarget=null;
-  }
-
-  function savePlikaAccount(){
-    const name=String((document.getElementById("plikaAccountName")||{}).value||"").trim();
-    const account=normalizeAccountNumber((document.getElementById("plikaAccountNumber")||{}).value||"");
-    const enabled=!!((document.getElementById("plikaAccountEnabled")||{}).checked);
-    const note=String((document.getElementById("plikaAccountNote")||{}).value||"").trim();
-    if(!name){alert("멤버명을 입력하세요.");return;}
-    const payload={
-      type:"plika_account_save",
-      number:plikaEditTarget&&plikaEditTarget.number||"",
-      member:name,
-      account:account,
-      enabled:enabled?"TRUE":"FALSE",
-      note:note
-    };
-    adminApi(payload).then(data=>{
-      if(data&&data.result==="success"){
-        if(Array.isArray(data.plikaAccounts))plikaAccounts=data.plikaAccounts;
-        closePlikaAccountForm();
-        renderPlikaQuickTool();
-        try{refreshData({force:true}).then(()=>renderPlikaQuickTool());}catch(e){}
-        showPlikaToast("플리카 계좌가 저장되었습니다.");
-      }else{
-        alert(data.message||"저장 중 오류가 발생했습니다.");
-      }
-    }).catch(()=>{});
-  }
-
-  function deletePlikaAccount(number,name){
-    if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){alert("관리자만 삭제할 수 있습니다.");return;}
-    if(!confirm((name||"선택한 멤버")+" 계좌를 삭제할까요?"))return;
-    adminApi({type:"plika_account_delete",number:number||"",member:name||""}).then(data=>{
-      if(data&&data.result==="success"){
-        if(Array.isArray(data.plikaAccounts))plikaAccounts=data.plikaAccounts;
-        renderPlikaQuickTool();
-        try{refreshData({force:true}).then(()=>renderPlikaQuickTool());}catch(e){}
-        showPlikaToast("플리카 계좌가 삭제되었습니다.");
-      }else{
-        alert(data.message||"삭제 중 오류가 발생했습니다.");
-      }
-    }).catch(()=>{});
-  }
-
-  const originalHydrate=window.hydrateData;
-  if(typeof originalHydrate==="function"&&!originalHydrate.__plikaV80){
-    const wrapped=function(data){
-      const result=originalHydrate.apply(this,arguments);
+  window.openModBookOfficialEditorV72=function(key){
+    if(!isAdmin()){alert('관리자 권한이 필요합니다.');return}
+    const target=findModBookByKeyV72(key);
+    if(!target){alert('수정할 개조서를 찾을 수 없습니다.');return}
+    ensureModal();
+    window.__modBookOfficialEditOriginalV72={type:String(target.type||''),category:String(target.category||''),name:String(target.name||''),order:String(target.order||'')};
+    q('modReqRequestIdV70').value='';
+    q('modBookRequestModalTitleV70').textContent='개조서 정보 수정';
+    fillForm(target||{});
+    ['modReqSubmitBtnV70','modReqDirectBtnV70','modReqApproveBtnV70','modReqRejectBtnV70'].forEach(id=>{const el=q(id); if(el)el.style.display='none'});
+    const save=q('modReqOfficialSaveBtnV70'); if(save)save.style.display='';
+    q('modReqHelpV70').textContent='정식 등록된 개조서 정보를 수정합니다. 저장 시 개조서 시트에 바로 반영됩니다.';
+    q('modBookRequestModalV70').classList.add('active');
+  };
+  window.saveOfficialModBookEditV72=function(){
+    if(!isAdmin()){alert('관리자 권한이 필요합니다.');return}
+    const original=window.__modBookOfficialEditOriginalV72;
+    if(!original){alert('수정 대상 정보가 없습니다.');return}
+    const item=itemFromForm(), err=validate(item); if(err){alert(err);return}
+    if(!confirm('이 개조서 정보를 수정 저장할까요?'))return;
+    const btn=q('modReqOfficialSaveBtnV70'); const old=btn?btn.textContent:''; if(btn){btn.disabled=true;btn.textContent='저장 중...'}
+    api({type:'modbook_update',original,item}).then(data=>{
+      if(data&&data.result==='success'){
+        if(data.modBooks)modBooks=data.modBooks;
+        try{sessionStorage.removeItem(DATA_CACHE_KEY)}catch(e){}
+        alert(data.message||'수정되었습니다.');
+        closeModBookRequestModalV70();
+        if(currentInfoSubTab==='modbook')showModBooks();
+      }else alert((data&&data.message)||'수정에 실패했습니다.');
+    }).catch(()=>alert('수정 저장 중 오류가 발생했습니다.')).finally(()=>{if(btn){btn.disabled=false;btn.textContent=old||'수정 저장'}})
+  };
+  try{
+    const __oldSelectModBookV72=window.selectModBook;
+    window.selectModBook=function(key){
+      if(typeof __oldSelectModBookV72==='function')__oldSelectModBookV72(key);
       try{
-        if(data&&(data.plikaAccounts||data.plika_accounts||data.plikaBankAccounts)){
-          plikaAccounts=data.plikaAccounts||data.plika_accounts||data.plikaBankAccounts||[];
-        }
-        setTimeout(renderPlikaQuickTool,0);
+        if(!isAdmin())return;
+        const box=document.getElementById('modBookDetailBox');
+        if(!box||box.querySelector('.modbook-official-edit-btn'))return;
+        const title=box.querySelector('.modbook-detail-titleline');
+        if(title){title.insertAdjacentHTML('beforeend',`<button class="modbook-price-admin-btn modbook-official-edit-btn" onclick="event.stopPropagation();openModBookOfficialEditorV72('${h(String(key||''))}')">수정</button>`)}
       }catch(e){}
-      return result;
     };
-    wrapped.__plikaV80=true;
-    window.hydrateData=wrapped;
-  }
+  }catch(e){}
 
-  const originalRenderAuthBar=window.renderAuthBar;
-  if(typeof originalRenderAuthBar==="function"&&!originalRenderAuthBar.__plikaV80){
-    const wrappedAuth=function(){
-      const result=originalRenderAuthBar.apply(this,arguments);
-      setTimeout(renderPlikaQuickTool,0);
-      return result;
-    };
-    wrappedAuth.__plikaV80=true;
-    window.renderAuthBar=wrappedAuth;
-  }
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72'].forEach(v=>{window['openModBookRequestFormV'+v]=window.openModBookRequestFormV70;window['closeModBookRequestModalV'+v]=window.closeModBookRequestModalV70;window['submitModBookRequestV'+v]=window.submitModBookRequestV70;window['directAddModBookV'+v]=window.directAddModBookV70;window['approveModBookRequestV'+v]=window.approveModBookRequestV70;window['rejectModBookRequestFromFormV'+v]=window.rejectModBookRequestFromFormV70;window['openModBookRequestAdminV'+v]=window.openModBookRequestAdminV70;window['rejectModBookRequestV'+v]=window.rejectModBookRequestV70;});
+  window.axeModBookRequestV75Debug=function(){ensureRequestButtons(); const rows=optionRows(); return {version:VERSION,apiUrl:typeof API_URL!=='undefined'?API_URL:'',loginUser:currentUser(),modalExists:!!q('modBookRequestModalV70'),rawOptionRows:getModBookOptionsRaw().length,optionRows:rows.length,hasGatheringStamina:rows.some(r=>r.name==='채집 스태미나 감소'),gatheringStaminaRow:rows.find(r=>r.name==='채집 스태미나 감소')||null,firstOptions:rows.slice(0,12).map(r=>r.name),lastOptions:rows.slice(-12).map(r=>r.name),selectedCategories:[val('modReqCategory1V70'),val('modReqCategory2V70')].filter(Boolean),currentPartOptions:partsForSelectedCategories(),categoryRows:categoryRows().length,firstCategories:categoryRows().slice(0,8),category1:!!q('modReqCategory1V70'),category2:!!q('modReqCategory2V70'),parts1:!!q('modReqParts1V70'),parts2:!!q('modReqParts2V70')};};
+  window.axeModBookRequestV74Debug=window.axeModBookRequestV75Debug;
+  window.axeModBookRequestV73Debug=window.axeModBookRequestV75Debug;
+  window.axeModBookRequestV72Debug=window.axeModBookRequestV75Debug;
+  window.axeModBookRequestV71Debug=window.axeModBookRequestV75Debug;
 
-  window.renderPlikaQuickTool=renderPlikaQuickTool;
-  window.togglePlikaQuickTool=togglePlikaQuickTool;
-  window.setPlikaQuickSearch=setPlikaQuickSearch;
-  window.copyPlikaAccount=copyPlikaAccount;
-  window.openPlikaAccountForm=openPlikaAccountForm;
-  window.closePlikaAccountForm=closePlikaAccountForm;
-  window.savePlikaAccount=savePlikaAccount;
-  window.deletePlikaAccount=deletePlikaAccount;
-  window.axePlikaQuickV80Debug=function(){
-    const list=getPlikaAccountsForView();
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72'].forEach(v=>{window['axeModBookRequestV'+v+'Debug']=window.axeModBookRequestV75Debug});
+  setTimeout(ensureRequestButtons,0);
+
+  window.axeModBookRequestV70Debug=window.axeModBookRequestV75Debug;
+})();
+</script>
+
+<!-- AXE NET V76: 개조서 등록신청 옵션목록 근본 보정 - DOM/핸들러 단일화 -->
+<script id="axe-net-modbook-request-v76-option-rootfix-script">
+(function(){
+  if(window.__axeModBookRequestV76Applied)return;
+  window.__axeModBookRequestV76Applied=true;
+  const VERSION='AXE_NET_MODBOOK_REQUEST_V76_OPTION_ROOTFIX';
+
+  const CANONICAL_OPTIONS=[
+    {name:'이동 속도 증가',unit:'%',min:'0.5',max:'20'},
+    {name:'최대 스태미나 증가',unit:'',min:'10',max:'500'},
+    {name:'전력질주 스킬 경험치 증가',unit:'',min:'1',max:'5'},
+    {name:'최대 체력 증가',unit:'',min:'1',max:'30'},
+    {name:'체력 재생 증가',unit:'',min:'0.5',max:'2'},
+    {name:'감정 성공 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'감정 시 파괴 확률 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 속도 증가',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'빈집털이 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'절도 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'입질 대기 시간 감소',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {name:'낚시 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'낚시 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'벌목 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채광 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'채집 스태미나 감소',unit:'%',min:'0.5',max:'20'},
+    {name:'제작 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'요리 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'요리 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {name:'재련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'제련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {name:'무기 데미지 증가',unit:'',min:'0.5',max:'10'},
+    {name:'총기 반동 감소',unit:'%',min:'0.5',max:'30'},
+    {name:'탄창 크기 증가',unit:'',min:'0.5',max:'10'},
+    {name:'크리티컬 확률',unit:'%',min:'0.5',max:'10'}
+  ];
+  const ORDER=CANONICAL_OPTIONS.map(function(r){return r.name});
+  const q=function(id){return document.getElementById(id)};
+  const clean=function(v){return String(v==null?'':v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/^\s*\*/,'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim()};
+  const esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')};
+  const active=function(v){const s=String(v==null?'TRUE':v).normalize('NFKC').replace(/\u00A0/g,' ').trim().toUpperCase();return !['FALSE','N','NO','0','미사용','OFF'].includes(s)};
+  function normalizeRow(row){
+    row=row||{};
+    const name=clean(row['옵션명']??row.optionName??row.option_name??row.name??row['name']??'');
+    if(!name)return null;
     return {
-      version:PLikaQuickVersion,
-      count:list.length,
-      visible:!!document.getElementById("plikaQuickToolMount"),
-      collapsed:isPlikaQuickCollapsed(),
-      sample:list.slice(0,5)
+      name:name,
+      unit:String(row['기본단위']??row.default_unit??row.unit??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      min:String(row['최소값']??row.min_value??row.min??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      max:String(row['최대값']??row.max_value??row.max??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      enabled:row['사용여부']??row.enabled??row.active??row.use??'TRUE'
+    };
+  }
+  function rawOptions(){
+    try{if(Array.isArray(window.modBookOptions))return window.modBookOptions}catch(e){}
+    try{if(Array.isArray(modBookOptions))return modBookOptions}catch(e){}
+    return [];
+  }
+  function canonicalOptions(){
+    const map=new Map();
+    CANONICAL_OPTIONS.forEach(function(r){map.set(clean(r.name),Object.assign({},r,{name:clean(r.name)}))});
+    rawOptions().forEach(function(row){
+      const r=normalizeRow(row);
+      if(!r||!active(r.enabled))return;
+      const prev=map.get(r.name)||{};
+      map.set(r.name,{name:r.name,unit:r.unit||prev.unit||'%',min:r.min||prev.min||'1',max:r.max||prev.max||'20'});
+    });
+    const rows=Array.from(map.values()).filter(function(r){return r.name});
+    rows.sort(function(a,b){
+      const ia=ORDER.indexOf(a.name), ib=ORDER.indexOf(b.name);
+      if(ia>=0&&ib>=0)return ia-ib;
+      if(ia>=0)return -1;
+      if(ib>=0)return 1;
+      return a.name.localeCompare(b.name,'ko');
+    });
+    rows.push({name:'직접입력',unit:'%',min:'1',max:'20'});
+    return rows;
+  }
+  function optionHtml(current){
+    const cur=clean(current||'');
+    return '<option value="">선택</option>'+canonicalOptions().map(function(r){return '<option value="'+esc(r.name)+'" '+(r.name===cur?'selected':'')+'>'+esc(r.name)+'</option>'}).join('');
+  }
+  function numberHtml(min,max,current){
+    let a=Number(min), b=Number(max);
+    if(!isFinite(a))a=1;
+    if(!isFinite(b))b=20;
+    if(b<a){const t=a;a=b;b=t;}
+    const hasDecimal=String(min).includes('.')||String(max).includes('.')||!Number.isInteger(a)||!Number.isInteger(b);
+    let step=hasDecimal?0.1:1;
+    if(!hasDecimal && b-a>100)step=10;
+    const cur=String(current||'').replace(/^[-+]/,'').trim();
+    let html='<option value="">선택</option>';
+    let n=a, guard=0;
+    while(n<=b+1e-9&&guard<1000){
+      const s=hasDecimal?String(Math.round(n*10)/10):String(Math.round(n));
+      html+='<option value="'+esc(s)+'" '+(s===cur?'selected':'')+'>'+esc(s)+'</option>';
+      n+=step; guard++;
+    }
+    if(cur&&!html.includes('value="'+esc(cur)+'"'))html+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+    return html;
+  }
+  function getSelectedOption(idx){
+    const sel=q('modReqOption'+idx+'NameV70');
+    let name=clean(sel?sel.value:'');
+    if(name==='직접입력')name=clean((q('modReqOption'+idx+'CustomV70')||{}).value||'');
+    return canonicalOptions().find(function(r){return r.name===name})||{name:name,unit:'%',min:'1',max:'20'};
+  }
+  function refreshOptionRow(idx,keep){
+    const sel=q('modReqOption'+idx+'NameV70');
+    if(!sel)return;
+    const custom=q('modReqOption'+idx+'CustomV70');
+    const min=q('modReqOption'+idx+'MinV70');
+    const max=q('modReqOption'+idx+'MaxV70');
+    const unit=q('modReqOption'+idx+'UnitV70');
+    const beforeMin=keep&&min?min.value:'';
+    const beforeMax=keep&&max?max.value:'';
+    const data=getSelectedOption(idx);
+    if(custom)custom.classList.toggle('active',sel.value==='직접입력');
+    if(unit)unit.value=data.unit||'';
+    if(min)min.innerHTML=numberHtml(data.min,data.max,beforeMin);
+    if(max)max.innerHTML=numberHtml(data.min,data.max,beforeMax);
+  }
+  function rebuildAllOptionSelects(){
+    [1,2,3].forEach(function(idx){
+      const sel=q('modReqOption'+idx+'NameV70');
+      if(!sel)return;
+      const cur=sel.value;
+      sel.innerHTML=optionHtml(cur);
+      if(cur && !Array.from(sel.options).some(function(o){return o.value===cur})){
+        sel.insertAdjacentHTML('beforeend','<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>');
+      }
+      refreshOptionRow(idx,true);
+    });
+  }
+  window.handleModBookOptionChangeV70=function(idx){refreshOptionRow(idx,false)};
+  window.axeRebuildModBookOptionDropdownsV76=rebuildAllOptionSelects;
+  const previousOpen=window.openModBookRequestFormV70;
+  window.openModBookRequestFormV70=function(){
+    const result=typeof previousOpen==='function'?previousOpen.apply(this,arguments):undefined;
+    setTimeout(rebuildAllOptionSelects,0);
+    setTimeout(rebuildAllOptionSelects,80);
+    setTimeout(rebuildAllOptionSelects,250);
+    return result;
+  };
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72','73','74','75'].forEach(function(v){
+    window['openModBookRequestFormV'+v]=window.openModBookRequestFormV70;
+    window['axeModBookRequestV'+v+'Debug']=window.axeModBookRequestV76Debug;
+  });
+  window.axeModBookRequestV76Debug=function(){
+    rebuildAllOptionSelects();
+    const rows=canonicalOptions();
+    const selectRows=[1,2,3].map(function(i){const el=q('modReqOption'+i+'NameV70');return el?Array.from(el.options).map(function(o){return o.value}):[]});
+    return {
+      version:VERSION,
+      rawOptionRows:rawOptions().length,
+      canonicalCount:rows.length,
+      hasGatheringStamina:rows.some(function(r){return r.name==='채집 스태미나 감소'}),
+      gatheringStaminaRow:rows.find(function(r){return r.name==='채집 스태미나 감소'})||null,
+      firstOptions:rows.slice(0,12).map(function(r){return r.name}),
+      lastOptions:rows.slice(-12).map(function(r){return r.name}),
+      select1HasGatheringStamina:selectRows[0].includes('채집 스태미나 감소'),
+      select2HasGatheringStamina:selectRows[1].includes('채집 스태미나 감소'),
+      select3HasGatheringStamina:selectRows[2].includes('채집 스태미나 감소'),
+      option1Count:selectRows[0].length,
+      option2Count:selectRows[1].length,
+      option3Count:selectRows[2].length
     };
   };
-
-  if(document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded",()=>setTimeout(renderPlikaQuickTool,80));
-  }else{
-    setTimeout(renderPlikaQuickTool,80);
-  }
+  setTimeout(rebuildAllOptionSelects,300);
 })();
 </script>
 
+
+<!-- AXE NET V77: 개조서 등록신청 옵션분류 종속 드롭다운 정리 -->
+<style id="axe-net-modbook-request-v77-option-category-style">
+#modBookRequestModalV70 .modbook-request-option-grid{
+  grid-template-columns:120px 220px 70px 70px 58px 80px!important;
+  max-width:690px!important;
+}
+#modBookRequestModalV70 .modbook-request-option-grid .modbook-option-group-field{min-width:0}
+#modBookRequestModalV70 .modbook-request-option-grid .modbook-option-name-field{min-width:0}
+@media(max-width:760px){
+  #modBookRequestModalV70 .modbook-request-option-grid{grid-template-columns:1fr 1fr!important;max-width:none!important}
+  #modBookRequestModalV70 .modbook-request-option-grid .modbook-option-group-field,
+  #modBookRequestModalV70 .modbook-request-option-grid .modbook-option-name-field{grid-column:1/-1}
+}
+</style>
+<script id="axe-net-modbook-request-v77-option-category-script">
+(function(){
+  if(window.__axeModBookRequestV77Applied)return;
+  window.__axeModBookRequestV77Applied=true;
+  const VERSION='AXE_NET_MODBOOK_REQUEST_V77_OPTION_CATEGORY';
+  const LATEST_OPTIONS=[
+    {group:'이동속도',name:'이동 속도 증가',unit:'%',min:'0.5',max:'20'},
+    {group:'스태미나',name:'최대 스태미나 증가',unit:'',min:'10',max:'500'},
+    {group:'이동속도',name:'전력질주 스킬 경험치 증가',unit:'',min:'1',max:'5'},
+    {group:'체력',name:'최대 체력 증가',unit:'',min:'1',max:'30'},
+    {group:'체력',name:'체력 재생 증가',unit:'',min:'0.5',max:'2'},
+    {group:'감정',name:'감정 성공 확률',unit:'%',min:'0.1',max:'10'},
+    {group:'감정',name:'감정 시 파괴 확률 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'절도 속도 증가',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'절도 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'빈집털이 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'절도',name:'절도 소음 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'낚시',name:'입질 대기 시간 감소',unit:'%',min:'0.1',max:'10'},
+    {group:'낚시',name:'낚시 2배 획득 확률',unit:'%',min:'0.1',max:'10'},
+    {group:'낚시',name:'낚시 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'낚시',name:'낚시 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'벌목',name:'벌목 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채광',name:'채광 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 스태미나 증가',unit:'',min:'10',max:'500'},
+    {group:'채집',name:'채집 배고픔 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'채집',name:'채집 목마름 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'제작',name:'제작 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'제작',name:'제작 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'요리',name:'요리 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'요리',name:'요리 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'재련',name:'재련 시간 감소',unit:'%',min:'0.5',max:'10'},
+    {group:'재련',name:'재련 2배 획득 확률',unit:'%',min:'0.5',max:'10'},
+    {group:'무기',name:'무기 데미지 증가',unit:'',min:'0.5',max:'10'},
+    {group:'총기',name:'총기 반동 감소',unit:'%',min:'0.5',max:'30'},
+    {group:'총기',name:'탄창 크기 증가',unit:'',min:'0.5',max:'10'},
+    {group:'총기',name:'크리티컬 확률',unit:'%',min:'0.5',max:'10'}
+  ];
+  const ORDER=LATEST_OPTIONS.map(r=>r.name);
+  const q=id=>document.getElementById(id);
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const clean=v=>String(v==null?'':v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/^\s*\*/,'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim();
+  const active=v=>{const s=String(v==null?'TRUE':v).normalize('NFKC').replace(/\u00A0/g,' ').trim().toUpperCase();return !['FALSE','N','NO','0','미사용','OFF'].includes(s)};
+  function rawOptions(){try{if(Array.isArray(window.modBookOptions))return window.modBookOptions}catch(e){} try{if(Array.isArray(modBookOptions))return modBookOptions}catch(e){} return []}
+  function normalizeRow(row){
+    row=row||{};
+    const name=clean(row['옵션명']??row.optionName??row.option_name??row.name??row['name']??'');
+    if(!name)return null;
+    const fallback=LATEST_OPTIONS.find(r=>r.name===name)||{};
+    return {
+      group:clean(row['옵션분류']??row.optionGroup??row.option_group??row.group??row.category??row['분류']??fallback.group??'기타'),
+      name,
+      unit:String(row['기본단위']??row.default_unit??row.unit??fallback.unit??'').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      min:String(row['최소값']??row.min_value??row.min??fallback.min??'1').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      max:String(row['최대값']??row.max_value??row.max??fallback.max??'20').normalize('NFKC').replace(/\u00A0/g,' ').trim(),
+      enabled:row['사용여부']??row.enabled??row.active??row.use??'TRUE'
+    };
+  }
+  function optionRowsV77(){
+    const map=new Map();
+    LATEST_OPTIONS.forEach(r=>map.set(r.name,Object.assign({},r)));
+    rawOptions().forEach(row=>{const r=normalizeRow(row); if(!r||!active(r.enabled))return; const prev=map.get(r.name)||{}; map.set(r.name,{group:r.group||prev.group||'기타',name:r.name,unit:r.unit||prev.unit||'',min:r.min||prev.min||'1',max:r.max||prev.max||'20'});});
+    const rows=Array.from(map.values()).filter(r=>r.name);
+    rows.sort((a,b)=>{const ga=String(a.group||''),gb=String(b.group||''); if(ga!==gb)return ga.localeCompare(gb,'ko'); const ia=ORDER.indexOf(a.name),ib=ORDER.indexOf(b.name); if(ia>=0&&ib>=0)return ia-ib; if(ia>=0)return -1; if(ib>=0)return 1; return a.name.localeCompare(b.name,'ko')});
+    rows.push({group:'직접입력',name:'직접입력',unit:'%',min:'1',max:'20'});
+    return rows;
+  }
+  function groupList(){const preferred=['이동속도','스태미나','체력','감정','절도','낚시','벌목','채광','채집','제작','요리','재련','무기','총기']; const groups=Array.from(new Set(optionRowsV77().map(r=>r.group).filter(g=>g&&g!=='직접입력'))); groups.sort((a,b)=>{const ia=preferred.indexOf(a),ib=preferred.indexOf(b); if(ia>=0&&ib>=0)return ia-ib; if(ia>=0)return -1; if(ib>=0)return 1; return a.localeCompare(b,'ko')}); return groups;}
+  function numberHtml(min,max,current){
+    let a=Number(min), b=Number(max); if(!isFinite(a))a=1; if(!isFinite(b))b=20; if(b<a){const t=a;a=b;b=t}
+    const hasDecimal=String(min).includes('.')||String(max).includes('.')||!Number.isInteger(a)||!Number.isInteger(b); let step=hasDecimal?0.1:1; if(!hasDecimal&&b-a>100)step=10;
+    const cur=String(current||'').replace(/^[-+]/,'').trim(); let html='<option value="">선택</option>'; let n=a, guard=0;
+    while(n<=b+1e-9&&guard<1000){const s=hasDecimal?String(Math.round(n*10)/10):String(Math.round(n)); html+='<option value="'+esc(s)+'" '+(s===cur?'selected':'')+'>'+esc(s)+'</option>'; n+=step; guard++;}
+    if(cur&&!html.includes('value="'+esc(cur)+'"'))html+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+    return html;
+  }
+  function ensureOptionCategorySelect(idx){
+    const grid=q('modReqOption'+idx+'NameV70')?.closest('.modbook-request-option-grid');
+    if(!grid||q('modReqOption'+idx+'GroupV77'))return;
+    const div=document.createElement('div');
+    div.className='modbook-option-group-field';
+    div.innerHTML='<div class="modbook-request-mini-label">옵션분류</div><select class="modbook-request-select" id="modReqOption'+idx+'GroupV77" onchange="handleModBookOptionGroupChangeV77('+idx+')"></select>';
+    grid.insertBefore(div,grid.firstChild);
+    const nameWrap=q('modReqOption'+idx+'NameV70')?.parentElement;
+    if(nameWrap)nameWrap.classList.add('modbook-option-name-field');
+  }
+  function fillGroupSelect(idx,current){
+    const el=q('modReqOption'+idx+'GroupV77'); if(!el)return;
+    const cur=current??el.value;
+    el.innerHTML='<option value="">전체</option>'+groupList().map(g=>'<option value="'+esc(g)+'" '+(g===cur?'selected':'')+'>'+esc(g)+'</option>').join('')+'<option value="직접입력" '+(cur==='직접입력'?'selected':'')+'>직접입력</option>';
+  }
+  function fillNameSelect(idx,keepName){
+    const group=q('modReqOption'+idx+'GroupV77')?.value||'';
+    const nameSel=q('modReqOption'+idx+'NameV70'); if(!nameSel)return;
+    const cur=keepName??nameSel.value;
+    let rows=optionRowsV77().filter(r=>r.name!=='직접입력');
+    if(group&&group!=='직접입력')rows=rows.filter(r=>r.group===group);
+    const names=rows.map(r=>r.name);
+    let html='<option value="">선택</option>'+names.map(n=>'<option value="'+esc(n)+'" '+(n===cur?'selected':'')+'>'+esc(n)+'</option>').join('')+'<option value="직접입력" '+(cur==='직접입력'?'selected':'')+'>직접입력</option>';
+    if(cur&&cur!=='직접입력'&&!names.includes(cur))html+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+    nameSel.innerHTML=html;
+  }
+  function selectedRow(idx){
+    const nameSel=q('modReqOption'+idx+'NameV70');
+    let name=clean(nameSel?nameSel.value:'');
+    if(name==='직접입력')name=clean(q('modReqOption'+idx+'CustomV70')?.value||'');
+    return optionRowsV77().find(r=>r.name===name)||{group:q('modReqOption'+idx+'GroupV77')?.value||'',name,unit:'%',min:'1',max:'20'};
+  }
+  function refreshRow(idx,keep){
+    ensureOptionCategorySelect(idx);
+    fillGroupSelect(idx);
+    fillNameSelect(idx);
+    const nameSel=q('modReqOption'+idx+'NameV70'); const custom=q('modReqOption'+idx+'CustomV70'); const min=q('modReqOption'+idx+'MinV70'); const max=q('modReqOption'+idx+'MaxV70'); const unit=q('modReqOption'+idx+'UnitV70');
+    const row=selectedRow(idx);
+    if(custom)custom.classList.toggle('active',nameSel&&nameSel.value==='직접입력');
+    if(unit)unit.value=row.unit||'';
+    if(min)min.innerHTML=numberHtml(row.min,row.max,keep?min.value:'');
+    if(max)max.innerHTML=numberHtml(row.min,row.max,keep?max.value:'');
+  }
+  function rebuildAll(){[1,2,3].forEach(i=>refreshRow(i,true));}
+  window.handleModBookOptionGroupChangeV77=function(idx){fillNameSelect(idx,''); refreshRow(idx,false)};
+  window.handleModBookOptionChangeV70=function(idx){refreshRow(idx,false)};
+  const prevOpen=window.openModBookRequestFormV70;
+  window.openModBookRequestFormV70=function(){const r=typeof prevOpen==='function'?prevOpen.apply(this,arguments):undefined; setTimeout(rebuildAll,0); setTimeout(rebuildAll,80); setTimeout(rebuildAll,250); return r;};
+  ['53','54','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72','73','74','75','76'].forEach(v=>{window['openModBookRequestFormV'+v]=window.openModBookRequestFormV70; window['axeModBookRequestV'+v+'Debug']=window.axeModBookRequestV77Debug});
+  window.axeModBookRequestV77Debug=function(){rebuildAll(); const rows=optionRowsV77(); return {version:VERSION,rawOptionRows:rawOptions().length,optionRows:rows.length,groups:groupList(),hasGatheringStamina:rows.some(r=>r.name==='채집 스태미나 증가'),gatheringStaminaRow:rows.find(r=>r.name==='채집 스태미나 증가')||null,option1Group:!!q('modReqOption1GroupV77'),option2Group:!!q('modReqOption2GroupV77'),option3Group:!!q('modReqOption3GroupV77'),option1Names:q('modReqOption1NameV70')?Array.from(q('modReqOption1NameV70').options).map(o=>o.value).slice(0,20):[]};};
+  setTimeout(rebuildAll,300);
+})();
+</script>
+
+
+<script>
+/* AXE NET V79: stronger browser autocomplete suppression for search/input fields.
+   It does not change saved site data or Apps Script calls. Login/password fields are excluded. */
+(function(){
+  const VERSION='AXE_NET_AUTOCOMPLETE_STRONG_V79';
+  const EXCLUDE_SELECTOR = [
+    '#authModal input',
+    '.auth-bar input',
+    'input[type="password"]',
+    'input[type="file"]',
+    'input[type="checkbox"]',
+    'input[type="radio"]',
+    'input[type="button"]',
+    'input[type="submit"]',
+    'input[type="reset"]',
+    'input[type="hidden"]'
+  ].join(',');
+  const TEXT_TYPES = new Set(['','text','search','email','tel','url','number']);
+  function shouldPatch(el){
+    if(!el || !el.matches) return false;
+    if(!(el.matches('input') || el.matches('textarea'))) return false;
+    if(el.matches(EXCLUDE_SELECTOR)) return false;
+    if(el.matches('input')){
+      const type=String(el.getAttribute('type')||'text').toLowerCase();
+      if(!TEXT_TYPES.has(type)) return false;
+    }
+    return true;
+  }
+  function unlock(el){
+    if(!el || !el.dataset) return;
+    if(el.dataset.axeNoAutocompleteReadonly === '1'){
+      el.removeAttribute('readonly');
+    }
+  }
+  function patchField(el, index){
+    if(!shouldPatch(el)) return;
+    if(!el.dataset.axeAutocompleteOriginalName){
+      el.dataset.axeAutocompleteOriginalName = el.getAttribute('name') || '';
+    }
+    const key = 'axe_no_auto_' + (el.id || 'field') + '_' + index + '_' + Math.random().toString(36).slice(2,8);
+    el.setAttribute('autocomplete','new-password');
+    el.setAttribute('autocorrect','off');
+    el.setAttribute('autocapitalize','off');
+    el.setAttribute('spellcheck','false');
+    el.setAttribute('name', key);
+    el.setAttribute('data-axe-autocomplete-v79','1');
+    if(!el.dataset.axeNoAutocompleteBound){
+      el.dataset.axeNoAutocompleteBound='1';
+      el.addEventListener('pointerdown',()=>unlock(el),{passive:true});
+      el.addEventListener('mousedown',()=>unlock(el),{passive:true});
+      el.addEventListener('touchstart',()=>unlock(el),{passive:true});
+      el.addEventListener('focus',()=>setTimeout(()=>unlock(el),30),{passive:true});
+    }
+    if(!el.value && document.activeElement !== el){
+      el.setAttribute('readonly','readonly');
+      el.dataset.axeNoAutocompleteReadonly='1';
+    }
+    const form=el.closest('form');
+    if(form) form.setAttribute('autocomplete','off');
+  }
+  function applyStrongAutocompleteOff(root){
+    const base=root && root.querySelectorAll ? root : document;
+    Array.from(base.querySelectorAll('input, textarea')).forEach((el, idx)=>patchField(el, idx));
+  }
+  window.axeDisableAutocompleteStrongV79 = function(){ applyStrongAutocompleteOff(document); };
+  window.axeAutocompleteV79Debug = function(){
+    applyStrongAutocompleteOff(document);
+    const fields=Array.from(document.querySelectorAll('input, textarea')).filter(shouldPatch);
+    return {
+      version: VERSION,
+      patched: fields.filter(el=>el.getAttribute('data-axe-autocomplete-v79')==='1').length,
+      candidates: fields.length,
+      sample: fields.slice(0,12).map(el=>({id:el.id||'', type:el.getAttribute('type')||'textarea', autocomplete:el.getAttribute('autocomplete'), name:el.getAttribute('name')||'', readonly:el.hasAttribute('readonly')}))
+    };
+  };
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>applyStrongAutocompleteOff(document),{once:true});
+  }else{
+    applyStrongAutocompleteOff(document);
+  }
+  try{
+    const observer=new MutationObserver(muts=>{
+      for(const m of muts){
+        m.addedNodes && m.addedNodes.forEach(node=>{
+          if(node && node.nodeType===1){
+            if(node.matches && (node.matches('input') || node.matches('textarea'))) patchField(node,0);
+            applyStrongAutocompleteOff(node);
+          }
+        });
+      }
+    });
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+  }catch(e){}
+})();
+</script>
+
+
+<!-- AXE NET V81: 플리카 계좌 빠른도구 안정화 -->
+<style>
+.axe-plika-quick-v81{position:fixed;left:18px;bottom:22px;z-index:9500;width:330px;max-width:calc(100vw - 36px);border:1px solid rgba(255,181,46,.28);border-radius:18px;background:linear-gradient(145deg,rgba(18,18,18,.98),rgba(7,7,7,.96));box-shadow:0 18px 46px rgba(0,0,0,.45);overflow:hidden;color:#fff}
+.axe-plika-quick-v81.collapsed{width:auto;border-radius:999px}
+.axe-plika-quick-head-v81{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer;user-select:none}
+.axe-plika-quick-v81.collapsed .axe-plika-quick-head-v81{border-bottom:0;padding:10px 14px}
+.axe-plika-quick-title-v81{font-weight:950;color:#ffb52e;font-size:14px;white-space:nowrap}
+.axe-plika-quick-sub-v81{font-size:11px;color:#888;margin-top:2px;font-weight:800}
+.axe-plika-toggle-v81{width:28px;height:28px;border-radius:999px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.045);color:#ddd;font-weight:950;cursor:pointer}
+.axe-plika-quick-body-v81{padding:12px;display:block}
+.axe-plika-quick-v81.collapsed .axe-plika-quick-body-v81{display:none}
+.axe-plika-search-v81{width:100%;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#151515;color:#fff;padding:0 11px;outline:none;font-size:13px;margin-bottom:10px}
+.axe-plika-search-v81:focus{border-color:rgba(255,181,46,.65)}
+.axe-plika-list-v81{display:grid;gap:7px;max-height:330px;overflow:auto;padding-right:2px}
+.axe-plika-row-v81{display:grid;grid-template-columns:88px minmax(0,1fr) 54px;gap:8px;align-items:center;min-height:38px;padding:8px 9px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:rgba(0,0,0,.22)}
+.axe-plika-name-v81{font-size:13px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.axe-plika-account-v81{font-size:13px;font-weight:950;color:#ffcf75;font-variant-numeric:tabular-nums;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.axe-plika-account-v81.empty{color:#777;cursor:default}
+.axe-plika-copy-v81,.axe-plika-admin-btn-v81{height:30px;padding:0 9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.94);color:#ddd;font-size:12px;font-weight:950;cursor:pointer;transition:.15s ease;white-space:nowrap}
+.axe-plika-copy-v81:hover,.axe-plika-admin-btn-v81:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.axe-plika-copy-v81:disabled{opacity:.35;cursor:default;transform:none;color:#777;border-color:rgba(255,255,255,.08)}
+.axe-plika-admin-v81{display:flex;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.axe-plika-admin-v81 .axe-plika-admin-btn-v81{flex:1;height:34px}
+.axe-plika-empty-v81{padding:18px 8px;text-align:center;color:#888;font-size:13px;line-height:1.5;border:1px dashed rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.025)}
+@media(max-width:760px){.axe-plika-quick-v81{left:10px;right:10px;bottom:12px;width:auto;max-width:none}.axe-plika-row-v81{grid-template-columns:82px minmax(0,1fr) 48px}.axe-plika-list-v81{max-height:280px}}
+</style>
+<script>
+/* AXE NET V81: 플리카 계좌 빠른도구 안정화 */
+(function(){
+  const VERSION='AXE_NET_PLIKA_QUICK_V81_STABLE';
+  const STORE_KEY='axe_plika_quick_collapsed_v81';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbxf9zcOqecCRgdyy_L3wZG_mqobgAGlJAwPR-ueX7b97Amwh8FWCXNgP2tEXgZ6goUdtw/exec';
+  function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+  function txt(v){return String(v==null?'':v).trim();}
+  function rawRows(){return Array.isArray(window.plikaAccounts)?window.plikaAccounts:(typeof plikaAccounts!=='undefined'&&Array.isArray(plikaAccounts)?plikaAccounts:[]);}
+  function normalizeAccount(v){
+    let s=String(v==null?'':v).trim().replace(/[^0-9]/g,'');
+    if(s && s.length<12) s=s.padStart(12,'0');
+    return s;
+  }
+  function rowNo(r,i){return txt(r['번호']||r.no||r.number||(i+1));}
+  function rowName(r){return txt(r['멤버명']||r.member||r.name||r.nickname||r['이름']);}
+  function rowAccount(r){return normalizeAccount(r['계좌']||r.account||r.plika_account||r['계좌번호']);}
+  function rowEnabled(r){
+    const v=txt(r['사용여부']!==undefined?r['사용여부']:(r.enabled!==undefined?r.enabled:'TRUE')).toLowerCase();
+    return !['false','n','no','0','사용안함','비활성'].includes(v);
+  }
+  function rows(){return rawRows().filter(rowEnabled).map((r,i)=>({raw:r,no:rowNo(r,i),name:rowName(r),account:rowAccount(r),note:txt(r['비고']||r.note||r.memo)})).filter(r=>r.name||r.account);}
+  function toast(msg){
+    if(typeof showToast==='function'){showToast(msg);return;}
+    const old=document.getElementById('axePlikaToastV81'); if(old) old.remove();
+    const el=document.createElement('div'); el.id='axePlikaToastV81'; el.textContent=msg;
+    el.style.cssText='position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:10000;background:rgba(0,0,0,.86);border:1px solid rgba(255,181,46,.45);color:#ffcf75;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:950;box-shadow:0 10px 28px rgba(0,0,0,.4)';
+    document.body.appendChild(el); setTimeout(()=>el.remove(),1600);
+  }
+  function copyText(value,name){
+    const text=normalizeAccount(value); if(!text){toast('등록된 계좌가 없습니다.');return;}
+    const done=()=>toast((name?name+' ':'')+'계좌번호가 복사되었습니다.');
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));}
+    else fallbackCopy(text,done);
+  }
+  function fallbackCopy(text,done){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done&&done();}catch(e){alert(text);}ta.remove();}
+  function ensure(){
+    let box=document.getElementById('axePlikaQuickV81');
+    if(box) return box;
+    box=document.createElement('div'); box.id='axePlikaQuickV81'; box.className='axe-plika-quick-v81';
+    document.body.appendChild(box); return box;
+  }
+  function render(){
+    const box=ensure();
+    const collapsed=localStorage.getItem(STORE_KEY)==='1';
+    box.classList.toggle('collapsed',collapsed);
+    const list=rows();
+    const q=txt((document.getElementById('axePlikaSearchV81')||{}).value).toLowerCase();
+    const filtered=list.filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
+    box.innerHTML=`
+      <div class="axe-plika-quick-head-v81" onclick="axeTogglePlikaQuickV81()">
+        <div><div class="axe-plika-quick-title-v81">플리카 계좌</div><div class="axe-plika-quick-sub-v81">계좌 클릭 또는 복사</div></div>
+        <button class="axe-plika-toggle-v81" onclick="event.stopPropagation();axeTogglePlikaQuickV81()">${collapsed?'▴':'▾'}</button>
+      </div>
+      <div class="axe-plika-quick-body-v81">
+        <input id="axePlikaSearchV81" class="axe-plika-search-v81" placeholder="멤버명/계좌 검색" value="${esc(q)}" oninput="renderPlikaQuickV81()" autocomplete="new-password">
+        <div class="axe-plika-list-v81">
+          ${filtered.length?filtered.map(r=>`<div class="axe-plika-row-v81">
+            <div class="axe-plika-name-v81" title="${esc(r.name)}">${esc(r.name||'-')}</div>
+            <div class="axe-plika-account-v81 ${r.account?'':'empty'}" title="${esc(r.account||'미등록')}" onclick="${r.account?`axeCopyPlikaAccountV81('${esc(r.account)}','${esc(r.name)}')`:''}">${r.account?esc(r.account):'미등록'}</div>
+            <button class="axe-plika-copy-v81" ${r.account?'':'disabled'} onclick="axeCopyPlikaAccountV81('${esc(r.account)}','${esc(r.name)}')">복사</button>
+          </div>`).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
+        </div>
+        ${typeof isCurrentAdmin==='function'&&isCurrentAdmin()?`<div class="axe-plika-admin-v81"><button class="axe-plika-admin-btn-v81" onclick="axeAddPlikaAccountV81()">추가</button><button class="axe-plika-admin-btn-v81" onclick="axeEditPlikaAccountV81()">수정</button><button class="axe-plika-admin-btn-v81" onclick="axeDeletePlikaAccountV81()">삭제</button></div>`:''}
+      </div>`;
+    setTimeout(()=>{const input=document.getElementById('axePlikaSearchV81'); if(input && q){input.focus(); input.setSelectionRange(input.value.length,input.value.length);}},0);
+  }
+  window.renderPlikaQuickV81=render;
+  window.axeTogglePlikaQuickV81=function(){const now=localStorage.getItem(STORE_KEY)==='1';localStorage.setItem(STORE_KEY,now?'0':'1');render();};
+  window.axeCopyPlikaAccountV81=function(account,name){copyText(account,name);};
+  function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){window.plikaAccounts=data.plikaAccounts||data.plika_accounts||window.plikaAccounts||[]; if(typeof plikaAccounts!=='undefined')plikaAccounts=window.plikaAccounts; try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
+  window.axeAddPlikaAccountV81=function(){const name=prompt('멤버명을 입력하세요.'); if(!name)return; const acc=prompt('계좌번호를 입력하세요. 빈칸도 가능합니다.',''); if(acc===null)return; savePayload({account:{member:name,account:acc,enabled:'TRUE'}});};
+  window.axeEditPlikaAccountV81=function(){const name=prompt('수정할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); const acc=prompt('계좌번호를 입력하세요.',r?r.account:''); if(acc===null)return; savePayload({account:{number:r?r.no:'',member:name,account:acc,enabled:'TRUE'}});};
+  window.axeDeletePlikaAccountV81=function(){const name=prompt('삭제할 멤버명을 입력하세요.'); if(!name)return; const r=rows().find(x=>x.name===name); if(!r){alert('대상을 찾을 수 없습니다.');return;} if(!confirm(name+' 계좌 정보를 삭제할까요?'))return; adminApi({type:'plika_account_delete',number:r.no,member:name}).then(data=>{if(data&&data.result==='success'){window.plikaAccounts=data.plikaAccounts||data.plika_accounts||[]; if(typeof plikaAccounts!=='undefined')plikaAccounts=window.plikaAccounts; try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('삭제되었습니다.');}else alert((data&&data.message)||'삭제에 실패했습니다.');});};
+  window.axePlikaQuickV81Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81')};};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true}); else render();
+  setTimeout(render,600);
+})();
+</script>
