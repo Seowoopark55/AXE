@@ -22800,7 +22800,7 @@ function axeModBookFilterV34Debug(){
 
 
 <style id="axe-utility-graphic-patch-v92-style">
-/* AXE NET V92: 편의기능 그래픽 패치 탭 확정 적용 */
+/* AXE NET V93: 그래픽 패치 다운로드 버튼 정리 */
 .graphic-patch-wrap-v92{display:grid;gap:14px;}
 .graphic-patch-hero-v92{position:relative;overflow:hidden;border:1px solid rgba(255,181,46,.22);background:linear-gradient(135deg,rgba(255,181,46,.12),rgba(255,255,255,.025)),rgba(0,0,0,.24);border-radius:18px;padding:20px;}
 .graphic-patch-hero-v92::after{content:"PATCH";position:absolute;right:18px;top:10px;color:rgba(255,255,255,.045);font-size:46px;font-weight:950;letter-spacing:3px;pointer-events:none;}
@@ -22809,8 +22809,6 @@ function axeModBookFilterV34Debug(){
 .graphic-patch-actions-v92{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 .graphic-patch-download-v92{height:42px;padding:0 16px;border-radius:13px;border:1px solid rgba(255,181,46,.65);background:linear-gradient(135deg,#ffcf61,#ffb52e 58%,#ff8c00);color:#111;font-size:14px;font-weight:950;cursor:pointer;transition:.18s ease;}
 .graphic-patch-download-v92:hover{filter:brightness(1.06);transform:translateY(-1px);}
-.graphic-patch-copy-v92{height:42px;padding:0 14px;border-radius:13px;border:1px solid rgba(255,255,255,.11);background:rgba(20,20,20,.92);color:#bbb;font-size:13px;font-weight:950;cursor:pointer;transition:.18s ease;}
-.graphic-patch-copy-v92:hover{color:#ffb52e;border-color:rgba(255,181,46,.42);transform:translateY(-1px);}
 .graphic-patch-grid-v92{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .graphic-patch-card-v92{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.24);border-radius:16px;padding:16px;}
 .graphic-patch-card-title-v92{font-size:16px;font-weight:950;color:#ffb52e;margin-bottom:10px;}
@@ -22825,7 +22823,7 @@ function axeModBookFilterV34Debug(){
 <script id="axe-utility-graphic-patch-v92-script">
 /* AXE NET V92: 최종 편의기능 렌더러를 덮어써 그래픽 패치 탭 누락 방지 */
 (function(){
-    const VERSION="AXE_NET_UTILITY_GRAPHIC_PATCH_V92_FINAL_OVERRIDE";
+    const VERSION="AXE_NET_UTILITY_GRAPHIC_PATCH_V93_DOWNLOAD_SIMPLE";
     const GRAPHIC_PATCH_URL="https://drive.google.com/file/d/1VDdbwPeQNxZC0aSS0v72Q2zQq4TxmDCn/view";
     const PLICA_LEVELS_V92=[
         {name:"브론즈 카드",point:1000,key:"bronze"},
@@ -22905,8 +22903,7 @@ function axeModBookFilterV34Debug(){
                 <div class="graphic-patch-title-v92">그래픽 패치</div>
                 <div class="graphic-patch-desc-v92">무법지대 플레이와 시야 확보를 편하게 하기 위한 그래픽 패치입니다. 날씨 효과를 줄이고 낮 환경 기준으로 보기 편한 화면을 구성하는 용도입니다.</div>
                 <div class="graphic-patch-actions-v92">
-                    <button class="graphic-patch-download-v92" onclick="window.open('${GRAPHIC_PATCH_URL}','_blank')">다운로드 열기</button>
-                    <button class="graphic-patch-copy-v92" onclick="axeCopyGraphicPatchUrlV92()">주소 복사</button>
+                    <button class="graphic-patch-download-v92" onclick="window.open('${GRAPHIC_PATCH_URL}','_blank')">다운로드</button>
                 </div>
             </div>
             <div class="graphic-patch-grid-v92">
@@ -22993,6 +22990,7 @@ function axeModBookFilterV34Debug(){
         if(typeof oldFavId==="function")return oldFavId.apply(this,arguments);
         return String(Date.now());
     };
-    window.axeGraphicPatchV92Debug=function(){return {version:VERSION, tabs:Array.from(document.querySelectorAll('.utility-category-tabs button')).map(b=>b.textContent.trim()), hash:location.hash};};
+    window.axeGraphicPatchV93Debug=function(){return {version:VERSION, tabs:Array.from(document.querySelectorAll('.utility-category-tabs button')).map(b=>b.textContent.trim()), hash:location.hash, downloadText:(document.querySelector('.graphic-patch-download-v92')||{}).textContent||''};};
+    window.axeGraphicPatchV92Debug=window.axeGraphicPatchV93Debug;
 })();
 </script>
