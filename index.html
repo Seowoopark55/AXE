@@ -22904,6 +22904,12 @@ function axeModBookFilterV34Debug(){
 .axe-plika-request-actions-v85 button.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.52)}
 @media(max-width:760px){.axe-plika-action-row-v85{grid-template-columns:1fr}.axe-plika-request-main-v85{grid-template-columns:1fr}.axe-plika-request-actions-v85{display:grid;grid-template-columns:1fr 1fr}}
 
+/* AXE NET V89: 플리카 계좌 우측 상단 X + 바깥 클릭 닫기 */
+.axe-plika-body-head-v89{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;padding:1px 1px 0}
+.axe-plika-body-title-v89{font-size:13px;font-weight:950;color:#ffb52e;letter-spacing:-.1px}
+.axe-plika-body-close-v89{width:28px;height:28px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055);color:#ddd;font-size:17px;font-weight:950;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.16s ease}
+.axe-plika-body-close-v89:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.08);transform:translateY(-1px)}
+
 /* AXE NET V87: 플리카 계좌 전용 모달 UI */
 .axe-plika-modal-v87{position:fixed;inset:0;z-index:10080;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:14px}
 .axe-plika-modal-box-v87{width:min(560px,100%);max-height:88vh;overflow:auto;border:1px solid rgba(255,181,46,.3);border-radius:20px;background:linear-gradient(180deg,rgba(255,181,46,.045),rgba(255,255,255,.015)),#0d0d0d;box-shadow:0 24px 80px rgba(0,0,0,.62)}
@@ -22938,7 +22944,7 @@ function axeModBookFilterV34Debug(){
 
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V87_MODAL_UI';
+  const VERSION='AXE_NET_PLIKA_QUICK_V89_CLOSE_X_OUTSIDE';
   const LATEST_API='https://script.google.com/macros/s/AKfycby_I5CNk7H6hFt2iRSzBTaQ8RUixFszRYobanRsGT5mOjnuIFrnvYlH2pv7D28ITS6X4w/exec';
   let collapsedState=true;
   let didForceFetch=false;
@@ -23030,6 +23036,10 @@ function axeModBookFilterV34Debug(){
         <button class="axe-plika-toggle-v81" onclick="event.stopPropagation();axeTogglePlikaQuickV81()">${collapsed?'▾':'▴'}</button>
       </div>
       <div class="axe-plika-quick-body-v81">
+        <div class="axe-plika-body-head-v89">
+          <div class="axe-plika-body-title-v89">플리카 계좌</div>
+          <button type="button" class="axe-plika-body-close-v89" onclick="event.stopPropagation();axeClosePlikaQuickV85()" aria-label="플리카 계좌 닫기">×</button>
+        </div>
         <input id="axePlikaSearchV81" class="axe-plika-search-v81" data-axe-ime-safe="1" placeholder="멤버명/계좌 검색" value="${esc(plikaSearchKeyword)}" oncompositionstart="axePlikaSearchCompositionV84(true)" oncompositionend="axePlikaSearchCompositionV84(false,this)" oninput="axePlikaSearchInputV84(this)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="axe-plika-list-v81">
           ${filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
@@ -23046,6 +23056,20 @@ function axeModBookFilterV34Debug(){
   window.axeCopyPlikaAccountV81=function(account,name){copyText(account,name);};
 
   window.axeClosePlikaQuickV85=function(){collapsedState=true;render();};
+  if(!window.__axePlikaOutsideCloseV89Bound){
+    window.__axePlikaOutsideCloseV89Bound=true;
+    document.addEventListener('pointerdown',function(e){
+      try{
+        if(collapsedState!==false) return;
+        const quick=document.getElementById('axePlikaQuickV81');
+        const target=e.target;
+        if(quick && quick.contains(target)) return;
+        if(target && target.closest && target.closest('.axe-plika-modal-v87,.axe-plika-request-modal-v85')) return;
+        collapsedState=true;
+        render();
+      }catch(err){}
+    },true);
+  }
   function currentLoginUserV85(){try{if(typeof getCurrentUser==='function')return getCurrentUser()||{};}catch(e){} return {};}
   function normalPostV85(payload){return fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json());}
   function closePlikaModalV87(){const el=document.getElementById('axePlikaModalV87'); if(el)el.remove();}
@@ -23180,12 +23204,13 @@ function axeModBookFilterV34Debug(){
     renderListOnly();
   };
   function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
-  window.axePlikaQuickV87Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch,hasRequestButton:!!document.querySelector('.axe-plika-request-v85')};};
-  window.axePlikaQuickV85Debug=window.axePlikaQuickV87Debug;
-  window.axePlikaQuickV84Debug=window.axePlikaQuickV87Debug;
-  window.axePlikaQuickV83Debug=window.axePlikaQuickV87Debug;
-  window.axePlikaQuickV82Debug=window.axePlikaQuickV87Debug;
-  window.axePlikaQuickV81Debug=window.axePlikaQuickV87Debug;
+  window.axePlikaQuickV89Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch,hasRequestButton:!!document.querySelector('.axe-plika-request-v85')};};
+  window.axePlikaQuickV87Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV85Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV84Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV83Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV82Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV81Debug=window.axePlikaQuickV89Debug;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setTimeout(forceFetchIfEmpty,250);},{once:true}); else {render();setTimeout(forceFetchIfEmpty,250);}
   setTimeout(()=>{render();forceFetchIfEmpty();},600);
 })();
