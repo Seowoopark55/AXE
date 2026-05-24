@@ -2628,49 +2628,6 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .admin-notice-table th:nth-child(4),.admin-notice-table td:nth-child(4){width:72px;text-align:center;}
 .admin-notice-table th:nth-child(5),.admin-notice-table td:nth-child(5){width:132px;}
 @media(max-width:768px){.admin-notice-form{grid-template-columns:1fr;}.admin-notice-table{min-width:720px!important;}}
-
-
-/* V91 플리카 계좌 복사 토스트: 플리카 UI 중앙형 */
-.axe-plika-toast-v90{
-    left:50%;
-    z-index:12000;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:260px;
-    max-width:min(420px,calc(100vw - 28px));
-    padding:12px 15px 12px 13px;
-    border-radius:16px;
-    border:1px solid rgba(255,181,46,.52);
-    background:linear-gradient(135deg,rgba(255,181,46,.2),rgba(16,16,16,.97) 42%,rgba(0,0,0,.97));
-    color:#fff;
-    box-shadow:0 18px 48px rgba(0,0,0,.46),0 0 0 1px rgba(255,255,255,.04) inset;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .2s ease,transform .2s ease;
-}
-.axe-plika-toast-v90.global{position:fixed;top:86px;transform:translate(-50%,-12px) scale(.98)}
-.axe-plika-toast-v90.global.show{opacity:1;transform:translate(-50%,0) scale(1)}
-.axe-plika-toast-v90.in-panel{position:absolute;top:50%;max-width:calc(100% - 24px);transform:translate(-50%,-46%) scale(.98);z-index:10090}
-.axe-plika-toast-v90.in-panel.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.axe-plika-toast-icon-v90{
-    flex:0 0 auto;
-    width:30px;
-    height:30px;
-    border-radius:999px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#ffb52e;
-    color:#111;
-    font-size:17px;
-    font-weight:950;
-    box-shadow:0 0 18px rgba(255,181,46,.28);
-}
-.axe-plika-toast-text-v90{min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.25}
-.axe-plika-toast-text-v90 strong{font-size:13px;font-weight:950;color:#ffcf75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.axe-plika-toast-text-v90 span{font-size:12px;font-weight:900;color:#d8d8d8;letter-spacing:.2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:760px){.axe-plika-toast-v90.global{top:72px}.axe-plika-toast-v90{min-width:240px;padding:11px 13px}.axe-plika-toast-text-v90 strong{font-size:12.5px}.axe-plika-toast-text-v90 span{font-size:11.5px}}
 </style>
 
 <style>
@@ -4629,7 +4586,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby_I5CNk7H6hFt2iRSzBTaQ8RUixFszRYobanRsGT5mOjnuIFrnvYlH2pv7D28ITS6X4w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbycjSMBLecdEscAiSz9akXY8cpEdvHSdPp66OJ06gYUa4i613y306O9Z-BGCyNzxWw-_g/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -10318,7 +10275,7 @@ function showRanking(){
         <div class="section-head">
             <div>
                 <div class="section-title">포인트 랭킹</div>
-                <div class="section-desc">회원 활동 포인트 기준 순위입니다. 글 작성, 댓글 작성, 출석체크, 추천 받은 활동이 반영됩니다.</div>
+                <div class="section-desc">회원 및 관리자 활동 포인트 기준 순위입니다. 글 작성, 댓글 작성, 출석체크, 추천 받은 활동이 반영됩니다.</div>
             </div>
         </div>
         <div class="ranking-grid">
@@ -22987,7 +22944,7 @@ function axeModBookFilterV34Debug(){
 
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V91_PANEL_TOAST';
+  const VERSION='AXE_NET_PLIKA_QUICK_V89_CLOSE_X_OUTSIDE';
   const LATEST_API='https://script.google.com/macros/s/AKfycby_I5CNk7H6hFt2iRSzBTaQ8RUixFszRYobanRsGT5mOjnuIFrnvYlH2pv7D28ITS6X4w/exec';
   let collapsedState=true;
   let didForceFetch=false;
@@ -23031,20 +22988,16 @@ function axeModBookFilterV34Debug(){
     const q=txt(plikaSearchKeyword).toLowerCase();
     return rows().filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
   }
-  function toast(msg, detail){
-    const old=document.getElementById('axePlikaToastV90'); if(old) old.remove();
-    const panel=document.querySelector('#axePlikaQuickV81:not(.collapsed) .axe-plika-quick-body-v81');
-    const el=document.createElement('div');
-    el.id='axePlikaToastV90';
-    el.className='axe-plika-toast-v90 '+(panel?'in-panel':'global');
-    el.innerHTML='<div class="axe-plika-toast-icon-v90">✓</div><div class="axe-plika-toast-text-v90"><strong>'+esc(msg||'처리되었습니다.')+'</strong>'+(detail?'<span>'+esc(detail)+'</span>':'')+'</div>';
-    (panel||document.body).appendChild(el);
-    requestAnimationFrame(()=>el.classList.add('show'));
-    setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),220);},1900);
+  function toast(msg){
+    if(typeof showToast==='function'){showToast(msg);return;}
+    const old=document.getElementById('axePlikaToastV81'); if(old) old.remove();
+    const el=document.createElement('div'); el.id='axePlikaToastV81'; el.textContent=msg;
+    el.style.cssText='position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:10000;background:rgba(0,0,0,.86);border:1px solid rgba(255,181,46,.45);color:#ffcf75;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:950;box-shadow:0 10px 28px rgba(0,0,0,.4)';
+    document.body.appendChild(el); setTimeout(()=>el.remove(),1600);
   }
   function copyText(value,name){
     const text=normalizeAccount(value); if(!text){toast('등록된 계좌가 없습니다.');return;}
-    const done=()=>toast((name?name+' 계좌번호':'계좌번호')+' 복사 완료', text);
+    const done=()=>toast((name?name+' ':'')+'계좌번호가 복사되었습니다.');
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));}
     else fallbackCopy(text,done);
   }
@@ -23251,15 +23204,25 @@ function axeModBookFilterV34Debug(){
     renderListOnly();
   };
   function savePayload(payload){return adminApi(Object.assign({type:'plika_account_save'},payload)).then(data=>{if(data&&data.result==='success'){syncRowsFromData(data); try{sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){} render(); toast('플리카 계좌 정보가 저장되었습니다.');}else alert((data&&data.message)||'저장에 실패했습니다.');});}
-  window.axePlikaQuickV90Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch,hasRequestButton:!!document.querySelector('.axe-plika-request-v85')};};
-  window.axePlikaQuickV90Debug=window.axePlikaQuickV90Debug;
-  window.axePlikaQuickV87Debug=window.axePlikaQuickV90Debug;
-  window.axePlikaQuickV85Debug=window.axePlikaQuickV90Debug;
-  window.axePlikaQuickV84Debug=window.axePlikaQuickV90Debug;
-  window.axePlikaQuickV83Debug=window.axePlikaQuickV90Debug;
-  window.axePlikaQuickV82Debug=window.axePlikaQuickV90Debug;
-  window.axePlikaQuickV81Debug=window.axePlikaQuickV90Debug;
+  window.axePlikaQuickV89Debug=function(){return {version:VERSION,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),expectedApi:LATEST_API,rawCount:rawRows().length,count:rows().length,collapsed:collapsedState!==false,searchKeyword:plikaSearchKeyword,mount:document.getElementById('axePlikaQuickV81')?.parentElement?.className||'',inputPatched:document.getElementById('axePlikaSearchV81')?.getAttribute('data-axe-autocomplete-v79')||'',inputReadonly:!!document.getElementById('axePlikaSearchV81')?.hasAttribute('readonly'),names:rows().slice(0,20).map(r=>r.name),first:rows()[0]||null,visible:!!document.getElementById('axePlikaQuickV81'),didForceFetch:didForceFetch,hasRequestButton:!!document.querySelector('.axe-plika-request-v85')};};
+  window.axePlikaQuickV87Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV85Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV84Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV83Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV82Debug=window.axePlikaQuickV89Debug;
+  window.axePlikaQuickV81Debug=window.axePlikaQuickV89Debug;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setTimeout(forceFetchIfEmpty,250);},{once:true}); else {render();setTimeout(forceFetchIfEmpty,250);}
   setTimeout(()=>{render();forceFetchIfEmpty();},600);
 })();
+
+
+function axeRankingAdminV90Debug(){
+    return {
+        version:"AXE_NET_RANKING_INCLUDE_ADMIN_V90",
+        rankingCount:Array.isArray(rankings)?rankings.length:0,
+        adminIncluded:(Array.isArray(rankings)?rankings:[]).some(function(m){return String(m.role||"").toLowerCase()==="admin"||String(m.badge||"").toLowerCase()==="admin";}),
+        apiUrl:typeof API_URL!=="undefined"?API_URL:""
+    };
+}
+window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 </script>
