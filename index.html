@@ -2618,6 +2618,16 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 /* AXE NET 공금: 관리자 대리 제출자 선택 */
 .fund-submitter-select{width:100%;min-width:0}
 .fund-form-card.submitting .fund-submitter-select{opacity:.7;cursor:wait}
+
+/* V88 공지사항 분류: 일반공지/패치노트 */
+.admin-notice-form{grid-template-columns:1fr 150px 120px;}
+.admin-notice-form .form-textarea{grid-column:1 / -1;}
+.admin-notice-table th:nth-child(1),.admin-notice-table td:nth-child(1){width:auto;}
+.admin-notice-table th:nth-child(2),.admin-notice-table td:nth-child(2){width:110px;}
+.admin-notice-table th:nth-child(3),.admin-notice-table td:nth-child(3){width:150px;}
+.admin-notice-table th:nth-child(4),.admin-notice-table td:nth-child(4){width:72px;text-align:center;}
+.admin-notice-table th:nth-child(5),.admin-notice-table td:nth-child(5){width:132px;}
+@media(max-width:768px){.admin-notice-form{grid-template-columns:1fr;}.admin-notice-table{min-width:720px!important;}}
 </style>
 
 <style>
@@ -4944,9 +4954,9 @@ function navigateMain(page,push=true){
 }
 
 function normalizeSubTab(page,subTab){
-    const defaults={notice:"noticeList",outlaw:"briefing",info:"craft",utility:"plica"};
+    const defaults={notice:"noticeGeneral",outlaw:"briefing",info:"craft",utility:"plica"};
     const allowed={
-        notice:["noticeList","operations"],
+        notice:["noticeGeneral","noticePatch","noticeList","operations"],
         outlaw:["briefing","guide"],
         info:["craft","quest","process","modbook","skillrank"],
         utility:["plica"]
@@ -4962,7 +4972,8 @@ function renderSubTab(page,subTab){
 
     if(target==="notice"){
         if(tab==="operations"){showOperationList();return;}
-        showNoticeList();return;
+        if(tab==="noticePatch"){showNoticeList("패치노트");return;}
+        showNoticeList("일반공지");return;
     }
 
     if(target==="outlaw"){
@@ -5041,7 +5052,9 @@ function parseRouteFromHash(){
     if(raw.startsWith("gallery-gallery-"))return {page:"gallery",detailType:"gallery",id:raw.substring("gallery-gallery-".length)};
 
     const subMap={
-        "notice-noticeList":{page:"notice",subTab:"noticeList"},
+        "notice-noticeList":{page:"notice",subTab:"noticeGeneral"},
+        "notice-noticeGeneral":{page:"notice",subTab:"noticeGeneral"},
+        "notice-noticePatch":{page:"notice",subTab:"noticePatch"},
         "notice-operations":{page:"notice",subTab:"operations"},
         "outlaw-briefing":{page:"outlaw",subTab:"briefing"},
         "outlaw-guide":{page:"outlaw",subTab:"guide"},
@@ -7960,6 +7973,24 @@ function showHome(){
             </div>
         </div>`;
 }
+function normalizeNoticeType(type){
+    const value=String(type||"").trim();
+    if(value==="패치노트")return "패치노트";
+    return "일반공지";
+}
+function noticeSubTabByType(type){
+    return normalizeNoticeType(type)==="패치노트"?"noticePatch":"noticeGeneral";
+}
+function setNoticeTabActive(category){
+    const target=category==="패치노트"?"noticePatch":category==="운영기준"?"operations":"noticeGeneral";
+    document.querySelectorAll(".sub-filter button").forEach(btn=>{
+        btn.classList.toggle("active",btn.dataset.noticeTab===target);
+    });
+}
+function getNoticeIdStable(notice,index){
+    return String((notice&&notice.id)!==undefined&&notice.id!==""?notice.id:index);
+}
+
 function showNotice(){
     enterMainSection("notice");
     setMainActive(1);
@@ -7975,20 +8006,18 @@ function showNotice(){
             </div>
         </div>
         <div class="sub-filter">
-            <button class="active" onclick="navigateSubTab('notice','noticeList')">일반공지</button>
-            <button onclick="navigateSubTab('notice','operations')">운영기준</button>
+            <button class="active" data-notice-tab="noticeGeneral" onclick="navigateSubTab('notice','noticeGeneral')">일반공지</button>
+            <button data-notice-tab="noticePatch" onclick="navigateSubTab('notice','noticePatch')">패치노트</button>
+            <button data-notice-tab="operations" onclick="navigateSubTab('notice','operations')">운영기준</button>
         </div>
         <div id="noticeContent"></div>`;
-    showNoticeList();
+    showNoticeList("일반공지");
 }
 
-function showNoticeList(){
-    const list=notices.slice().reverse();
-    const buttons=document.querySelectorAll(".sub-filter button");
-    if(buttons.length>=2){
-        buttons[0].classList.add("active");
-        buttons[1].classList.remove("active");
-    }
+function showNoticeList(category="일반공지"){
+    const noticeCategory=normalizeNoticeType(category);
+    const list=notices.slice().reverse().filter(n=>normalizeNoticeType(n.type)===noticeCategory);
+    setNoticeTabActive(noticeCategory);
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="item-list">
@@ -8000,13 +8029,13 @@ function showNoticeList(){
             ${
                 list.length
                 ? list.map((n,i)=>`
-                    <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeId(n,i))}',true)">
+                    <div class="notice-row" onclick="openNoticeDetail('${escapeText(getNoticeIdStable(n,i))}',true)">
                         <div class="notice-row-title">${isImportant(n.important)?'<span class="important">중요</span>':''}${safe(n.title)}</div>
                         <div class="notice-row-date">${formatDate(n.date)}</div>
-                        <div class="notice-row-type">일반공지</div>
+                        <div class="notice-row-type">${safe(noticeCategory)}</div>
                     </div>
                 `).join("")
-                : `<div class="ready">등록된 공지사항이 없습니다.</div>`
+                : `<div class="ready">등록된 ${safe(noticeCategory)}가 없습니다.</div>`
             }
         </div>
     `;
@@ -8031,21 +8060,24 @@ function openNoticeDetail(id,addHistory=false){
         return;
     }
 
+    const noticeType=normalizeNoticeType(target.type);
+    const noticeBackTab=noticeSubTabByType(noticeType);
+
     document.getElementById("content").innerHTML=`
         <div class="section-head">
             <div>
-                <div class="section-title">일반공지</div>
+                <div class="section-title">${safe(noticeType)}</div>
                 <div class="section-desc">공지 상세 내용을 확인합니다.</div>
             </div>
             <div class="count">NOTICE</div>
         </div>
 
-        <button class="back-btn" onclick="goBackToList('notice')">목록으로</button>
+        <button class="back-btn" onclick="navigateSubTab('notice','${noticeBackTab}')">목록으로</button>
 
         <div class="detail" style="margin-top:14px;">
             <div class="detail-title">${safe(target.title)}</div>
             <div class="notice-detail-meta">
-                <span class="badge gold">일반공지</span>
+                <span class="badge gold">${safe(noticeType)}</span>
                 <span class="badge">작성일 ${formatDate(target.date)}</span>
                 ${isImportant(target.important)?'<span class="badge">중요</span>':''}
             </div>
@@ -8070,11 +8102,7 @@ function getValidOperations(){
 
 function showOperationList(){
     selectedOperationId="";
-    const buttons=document.querySelectorAll(".sub-filter button");
-    if(buttons.length>=2){
-        buttons[0].classList.remove("active");
-        buttons[1].classList.add("active");
-    }
+    setNoticeTabActive("운영기준");
 
     document.getElementById("noticeContent").innerHTML=`
         <div class="db-layout">
@@ -8866,7 +8894,9 @@ MAIN_FAVORITE_LABELS=window.MAIN_FAVORITE_LABELS=MAIN_FAVORITE_LABELS||{
 };
 
 const SUB_FAVORITE_LABELS={
-    "notice|noticeList":"공지사항 · 공지",
+    "notice|noticeList":"공지사항 · 일반공지",
+    "notice|noticeGeneral":"공지사항 · 일반공지",
+    "notice|noticePatch":"공지사항 · 패치노트",
     "notice|operations":"공지사항 · 운영기준",
     "outlaw|briefing":"무법지대 · 브리핑맵",
     "outlaw|guide":"무법지대 · 공략",
@@ -8932,7 +8962,7 @@ function getCurrentRouteForFavorite(){
     }
 
     if(page==="notice"){
-        const sub=state.subTab||"noticeList";
+        const sub=state.subTab||"noticeGeneral";
         route.subTab=normalizeSubTab("notice",sub);
         if(route.subTab==="operations")route.category=operationCategory||"ALL";
         return route;
@@ -10706,6 +10736,10 @@ function showAdmin(){
                 <input type="hidden" id="adminNoticeId" value="">
                 <div class="admin-notice-form">
                     <input class="form-input" id="adminNoticeTitle" placeholder="공지 제목">
+                    <select class="form-input" id="adminNoticeType">
+                        <option value="일반공지">일반공지</option>
+                        <option value="패치노트">패치노트</option>
+                    </select>
                     <label class="admin-notice-options">
                         <input type="checkbox" id="adminNoticeImportant">
                         중요공지
@@ -10758,6 +10792,7 @@ function renderAdminNotices(){
                 <thead>
                     <tr>
                         <th>제목</th>
+                        <th>구분</th>
                         <th>작성일</th>
                         <th>중요</th>
                         <th>관리</th>
@@ -10781,6 +10816,7 @@ function renderAdminNoticeRow(notice,index){
                 </div>
                 <div style="color:#777;font-size:11px;margin-top:4px;">${safe(id)}</div>
             </td>
+            <td>${safe(normalizeNoticeType(notice.type))}</td>
             <td>${formatDate(notice.date)}</td>
             <td>${important?"TRUE":"FALSE"}</td>
             <td>
@@ -10805,10 +10841,12 @@ function resetAdminNoticeForm(){
     const title=document.getElementById("adminNoticeTitle");
     const content=document.getElementById("adminNoticeContent");
     const important=document.getElementById("adminNoticeImportant");
+    const type=document.getElementById("adminNoticeType");
 
     if(id)id.value="";
     if(title)title.value="";
     if(content)content.value="";
+    if(type)type.value="일반공지";
     if(important)important.checked=false;
     updateAdminNoticeFormMode();
 }
@@ -10827,6 +10865,7 @@ function editAdminNotice(id){
 
     document.getElementById("adminNoticeId").value=id;
     document.getElementById("adminNoticeTitle").value=notice.title||"";
+    document.getElementById("adminNoticeType").value=normalizeNoticeType(notice.type);
     document.getElementById("adminNoticeContent").value=notice.content||"";
     document.getElementById("adminNoticeImportant").checked=isImportant(notice.important);
     updateAdminNoticeFormMode();
@@ -10840,6 +10879,7 @@ function submitAdminNotice(){
     const id=document.getElementById("adminNoticeId")?.value.trim()||"";
     const title=document.getElementById("adminNoticeTitle")?.value.trim()||"";
     const content=document.getElementById("adminNoticeContent")?.value.trim()||"";
+    const noticeType=normalizeNoticeType(document.getElementById("adminNoticeType")?.value||"일반공지");
     const important=document.getElementById("adminNoticeImportant")?.checked||false;
 
     if(!title){alert("공지 제목을 입력하세요.");return;}
@@ -10850,6 +10890,8 @@ function submitAdminNotice(){
         id:id,
         title:title,
         content:content,
+        type_name:noticeType,
+        notice_type:noticeType,
         important:important
     };
 
@@ -10892,7 +10934,8 @@ function deleteAdminNotice(id){
 
 function showNoticeListIfVisible(){
     if(currentHistoryPage==="notice"&&document.getElementById("noticeContent")){
-        showNoticeList();
+        const state=history.state||{};
+        showNoticeList(state.subTab==="noticePatch"?"패치노트":"일반공지");
     }
 }
 
@@ -12425,6 +12468,7 @@ function renderAdminNoticeRow(notice,index){
                 </div>
                 <div style="color:#777;font-size:11px;margin-top:4px;">${safe(id)}</div>
             </td>
+            <td>${safe(normalizeNoticeType(notice.type))}</td>
             <td>${formatDate(notice.date)}</td>
             <td>${important?"TRUE":"FALSE"}</td>
             <td>
@@ -12493,6 +12537,7 @@ function submitAdminNotice(btn){
     const id=document.getElementById("adminNoticeId")?.value.trim()||"";
     const title=document.getElementById("adminNoticeTitle")?.value.trim()||"";
     const content=document.getElementById("adminNoticeContent")?.value.trim()||"";
+    const noticeType=normalizeNoticeType(document.getElementById("adminNoticeType")?.value||"일반공지");
     const important=document.getElementById("adminNoticeImportant")?.checked||false;
 
     if(!title){alert("공지 제목을 입력하세요.");return;}
@@ -12507,6 +12552,8 @@ function submitAdminNotice(btn){
         id:id,
         title:title,
         content:content,
+        type_name:noticeType,
+        notice_type:noticeType,
         important:important
     })
     .then(function(data){
