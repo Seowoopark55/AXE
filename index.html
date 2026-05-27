@@ -23904,3 +23904,142 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
     window.axeMemoNotepadDebug=function(){return {version:VERSION,memoCount:getMemoArray().length,visible:getVisibleMemos().length,category:memoCategoryFilter,hash:location.hash};};
 })();
 </script>
+<script>
+/* AXE NET MEMO/UTILITY FINAL GUARD V1: 편의기능 탭 재렌더 덮어쓰기 방지 */
+(function(){
+    const VERSION="AXE_NET_MEMO_UTILITY_FINAL_GUARD_V1";
+    function normalizeUtilityTab(tab){
+        const value=String(tab||"").trim();
+        if(value==="graphic"||value==="patch"||value==="graphicPatch")return "graphic";
+        if(value==="plica")return "plica";
+        return "memo";
+    }
+    function routeUtilityTab(){
+        const state=history.state||{};
+        const hash=String(location.hash||"");
+        if(state&&state.page==="utility"&&state.subTab)return normalizeUtilityTab(state.subTab);
+        if(hash.indexOf("utility-graphic")>=0||hash.indexOf("graphic")>=0)return "graphic";
+        if(hash.indexOf("utility-plica")>=0||hash.indexOf("plica")>=0)return "plica";
+        if(hash.indexOf("utility-memo")>=0||hash.indexOf("memo")>=0)return "memo";
+        return normalizeUtilityTab(window.axeUtilityActiveTab||"memo");
+    }
+    function setUtilityTab(tab){
+        const normalized=normalizeUtilityTab(tab);
+        window.axeUtilityActiveTab=normalized;
+        try{sessionStorage.setItem("axe_utility_active_tab",normalized);}catch(e){}
+        return normalized;
+    }
+    try{
+        if(!window.axeUtilityActiveTab){
+            window.axeUtilityActiveTab=sessionStorage.getItem("axe_utility_active_tab")||"memo";
+        }
+    }catch(e){window.axeUtilityActiveTab=window.axeUtilityActiveTab||"memo";}
+
+    const oldShowUtility=window.showUtility;
+    if(typeof oldShowUtility==="function"){
+        window.showUtility=function(tab){
+            const normalized=setUtilityTab(tab||routeUtilityTab());
+            return oldShowUtility.call(this,normalized);
+        };
+    }
+    const oldShowMemo=window.showMemoNotepad;
+    window.showMemoNotepad=function(){setUtilityTab("memo"); if(typeof oldShowMemo==="function")return oldShowMemo.apply(this,arguments); if(typeof window.showUtility==="function")return window.showUtility("memo");};
+    const oldShowPlica=window.showPlicaCalculator;
+    window.showPlicaCalculator=function(){setUtilityTab("plica"); if(typeof oldShowPlica==="function")return oldShowPlica.apply(this,arguments); if(typeof window.showUtility==="function")return window.showUtility("plica");};
+    window.showPlicaCalculatorV12=window.showPlicaCalculator;
+    const oldShowGraphic=window.showGraphicPatchV92;
+    window.showGraphicPatchV92=function(){setUtilityTab("graphic"); if(typeof oldShowGraphic==="function")return oldShowGraphic.apply(this,arguments); if(typeof window.showUtility==="function")return window.showUtility("graphic");};
+
+    const oldRenderMemo=window.renderMemoNotepad;
+    if(typeof oldRenderMemo==="function"){
+        window.renderMemoNotepad=function(){
+            const visualUtility=(window.currentMainSection==="utility")||((history.state||{}).page==="utility")||String(location.hash||"").indexOf("#utility")===0;
+            if(visualUtility&&normalizeUtilityTab(window.axeUtilityActiveTab)!=="memo")return;
+            return oldRenderMemo.apply(this,arguments);
+        };
+    }
+
+    const oldRenderSubTab=window.renderSubTab;
+    if(typeof oldRenderSubTab==="function"){
+        window.renderSubTab=function(page,subTab){
+            const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+            if(target==="utility"){
+                const tab=setUtilityTab(subTab||routeUtilityTab());
+                if(tab==="graphic"&&typeof window.showGraphicPatchV92==="function")return window.showGraphicPatchV92();
+                if(tab==="plica"&&typeof window.showPlicaCalculator==="function")return window.showPlicaCalculator();
+                if(typeof window.showMemoNotepad==="function")return window.showMemoNotepad();
+            }
+            return oldRenderSubTab.apply(this,arguments);
+        };
+    }
+
+    const oldNavigateSubTab=window.navigateSubTab;
+    if(typeof oldNavigateSubTab==="function"){
+        window.navigateSubTab=function(page,subTab,push){
+            const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+            if(target==="utility"){
+                const tab=setUtilityTab(subTab||"memo");
+                const shouldPush=push!==false;
+                const current=history.state||{};
+                if(shouldPush&&(current.page!=="utility"||current.subTab!==tab))history.pushState({page:"utility",subTab:tab},"",`#utility-${tab}`);
+                if(tab==="graphic"&&typeof window.showGraphicPatchV92==="function")window.showGraphicPatchV92();
+                else if(tab==="plica"&&typeof window.showPlicaCalculator==="function")window.showPlicaCalculator();
+                else if(typeof window.showMemoNotepad==="function")window.showMemoNotepad();
+                if(typeof requestPartialRefresh==="function"){
+                    requestPartialRefresh("utility",{force:true}).then(function(){
+                        if(normalizeUtilityTab(window.axeUtilityActiveTab)==="memo"&&typeof window.renderMemoNotepad==="function")window.renderMemoNotepad();
+                    }).catch(function(){});
+                }
+                if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+                return;
+            }
+            return oldNavigateSubTab.apply(this,arguments);
+        };
+    }
+
+    const oldNavigateMain=window.navigateMain;
+    if(typeof oldNavigateMain==="function"){
+        window.navigateMain=function(page,push){
+            const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+            if(target==="utility"){
+                const tab=setUtilityTab(routeUtilityTab()||"memo");
+                const shouldPush=push!==false;
+                const current=history.state||{};
+                if(shouldPush&&(current.page!=="utility"||current.subTab!==tab))history.pushState({page:"utility",subTab:tab},"",`#utility-${tab}`);
+                if(typeof window.showUtility==="function")window.showUtility(tab);
+                if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+                return;
+            }
+            return oldNavigateMain.apply(this,arguments);
+        };
+    }
+
+    const oldParse=window.parseRouteFromHash;
+    window.parseRouteFromHash=function(){
+        const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
+        if(raw==="utility-memo")return {page:"utility",subTab:"memo"};
+        if(raw==="utility-plica")return {page:"utility",subTab:"plica"};
+        if(raw==="utility-graphic"||raw==="utility-patch"||raw==="utility-graphicPatch")return {page:"utility",subTab:"graphic"};
+        if(typeof oldParse==="function")return oldParse.apply(this,arguments);
+        return {page:raw||"home"};
+    };
+
+    const oldRerender=window.rerenderCurrentPageScope;
+    if(typeof oldRerender==="function"){
+        window.rerenderCurrentPageScope=function(scope){
+            const key=String(scope||window.currentMainSection||"");
+            if(key==="utility"){
+                const tab=normalizeUtilityTab(window.axeUtilityActiveTab||routeUtilityTab());
+                if(typeof window.showUtility==="function")return window.showUtility(tab);
+                return;
+            }
+            return oldRerender.apply(this,arguments);
+        };
+    }
+
+    window.axeUtilityTabGuardDebug=function(){
+        return {version:VERSION,active:window.axeUtilityActiveTab,hash:location.hash,state:history.state,content:(document.getElementById("utilityContent")||{}).className||"",title:(document.querySelector(".graphic-patch-title-v92,.memo-panel-title")||{}).textContent||""};
+    };
+})();
+</script>
+
