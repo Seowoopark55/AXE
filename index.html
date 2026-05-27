@@ -22945,7 +22945,7 @@ function axeModBookFilterV34Debug(){
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
   const VERSION='AXE_NET_PLIKA_QUICK_V95_TOAST_CENTER';
-  const LATEST_API='https://script.google.com/macros/s/AKfycbycjSMBLecdEscAiSz9akXY8cpEdvHSdPp66OJ06gYUa4i613y306O9Z-BGCyNzxWw-_g/exec';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbw_0pVG15VYEj3W6yDtKVG2zNcLMyDdII9f2xU_C1CXHtUweKURPZZsRAgvjyoeKKKhqQ/exec';
   let collapsedState=true;
   let didForceFetch=false;
   let plikaSearchKeyword='';
@@ -23455,13 +23455,16 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 .memo-empty{padding:28px;border:1px dashed rgba(255,255,255,.13);border-radius:16px;background:rgba(255,255,255,.025);color:#888;text-align:center;line-height:1.6}
 .memo-form{margin-bottom:14px;padding:14px;border:1px solid rgba(255,181,46,.22);background:rgba(255,181,46,.045);border-radius:16px}
 .memo-form-grid{display:grid;grid-template-columns:170px 1fr;gap:9px;margin-bottom:9px}
-.memo-emoji-bar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.memo-emoji-bar button{height:30px;min-width:32px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.24);color:#ddd;cursor:pointer;font-weight:950}
-.memo-emoji-bar button:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.08)}
+.memo-emoji-groups{display:grid;gap:9px;margin:10px 0 11px;padding:10px;border-radius:13px;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.18)}
+.memo-emoji-group{display:grid;grid-template-columns:74px 1fr;gap:8px;align-items:start}
+.memo-emoji-group-title{min-height:30px;display:flex;align-items:center;color:#ffcf75;font-size:12px;font-weight:950;white-space:nowrap}
+.memo-emoji-bar{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.memo-emoji-bar button{height:30px;min-width:32px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.24);color:#ddd;cursor:pointer;font-weight:950;font-size:15px}
+.memo-emoji-bar button:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.08);transform:translateY(-1px)}
 .memo-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 .memo-copy-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:99999;padding:10px 15px;border-radius:999px;background:rgba(0,0,0,.88);border:1px solid rgba(255,181,46,.38);color:#ffcf75;font-size:13px;font-weight:950;opacity:0;pointer-events:none;transition:.22s ease;box-shadow:0 12px 30px rgba(0,0,0,.35)}
 .memo-copy-toast.active{opacity:1;transform:translateX(-50%) translateY(0)}
-@media(max-width:768px){.memo-toolbar{display:block}.memo-toolbar-left{display:block}.memo-search{min-width:0;margin-bottom:8px}.memo-toolbar .memo-btn{width:100%;margin-top:8px}.memo-category-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.memo-category-tabs::-webkit-scrollbar{display:none}.memo-category-tabs button{flex:0 0 auto}.memo-grid{grid-template-columns:1fr}.memo-form-grid{grid-template-columns:1fr}.memo-form-actions{display:grid;grid-template-columns:1fr 1fr}.memo-actions{justify-content:stretch}.memo-actions .memo-btn{flex:1}.memo-content{max-height:220px}}
+@media(max-width:768px){.memo-toolbar{display:block}.memo-toolbar-left{display:block}.memo-search{min-width:0;margin-bottom:8px}.memo-toolbar .memo-btn{width:100%;margin-top:8px}.memo-category-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.memo-category-tabs::-webkit-scrollbar{display:none}.memo-category-tabs button{flex:0 0 auto}.memo-grid{grid-template-columns:1fr}.memo-form-grid{grid-template-columns:1fr}.memo-emoji-group{grid-template-columns:1fr;gap:5px}.memo-emoji-group-title{min-height:auto}.memo-form-actions{display:grid;grid-template-columns:1fr 1fr}.memo-actions{justify-content:stretch}.memo-actions .memo-btn{flex:1}.memo-content{max-height:220px}}
 </style>
 
 <script>
@@ -23659,16 +23662,29 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
         const target=String(id||"");
         return getMemoArray().map(normalizeMemo).find(function(m){return String(m.id)===target;})||null;
     }
+    function getMemoEmojiGroups(){
+        return [
+            {label:"자주사용",items:["✅","❌","📌","🙏","⚠️","🔥","✨","💬","👍","🙇","😭","😂"]},
+            {label:"거래",items:["💰","💸","🪙","📦","🚚","🧾","📋","📍","⏰","☎️","📞","📱"]},
+            {label:"감정",items:["😀","😆","😂","🤣","😭","🥹","😅","😎","😡","😢","🙏","🙇"]},
+            {label:"강조",items:["⭐","✨","🔥","💥","❗","❓","⚠️","🚨","📌","🔔","✅","❌"]},
+            {label:"상태",items:["🟢","🟡","🔴","⚫","⚪","🔵","🟣","🟠","⬆️","⬇️","🔒","🔓"]}
+        ];
+    }
+    function renderMemoEmojiGroups(){
+        return `<div class="memo-emoji-groups">${getMemoEmojiGroups().map(function(group){
+            return `<div class="memo-emoji-group"><div class="memo-emoji-group-title">${esc(group.label)}</div><div class="memo-emoji-bar">${group.items.map(function(e){return `<button type="button" onclick="insertMemoEmoji('${esc(e)}')" title="${esc(e)}">${esc(e)}</button>`;}).join("")}</div></div>`;
+        }).join("")}</div>`;
+    }
     function renderMemoForm(id){
         const memo=id?findMemo(id):null;
-        const emojis=["✅","❌","📌","💰","📦","🚚","🙏","⚠️","🔥","✨","😭","ㅎㅎ","ㅋㅋ"];
         return `<div class="memo-form">
             <div class="memo-form-grid">
                 <input class="form-input" id="memoCategoryInput" value="${esc(memo?memo.category:"기본")}" placeholder="카테고리" autocomplete="off">
                 <input class="form-input" id="memoTitleInput" value="${esc(memo?memo.title:"")}" placeholder="제목" autocomplete="off">
             </div>
             <textarea class="form-textarea" id="memoContentInput" placeholder="복사해서 사용할 채팅 멘트를 입력하세요">${esc(memo?memo.content:"")}</textarea>
-            <div class="memo-emoji-bar">${emojis.map(function(e){return `<button type="button" onclick="insertMemoEmoji('${esc(e)}')">${esc(e)}</button>`;}).join("")}</div>
+            ${renderMemoEmojiGroups()}
             <input class="form-input" id="memoNoteInput" value="${esc(memo?memo.note:"")}" placeholder="비고. 예: 거래용, 공지용, 상황별 멘트" autocomplete="off">
             <div class="memo-form-actions"><button class="memo-btn" onclick="closeMemoForm()">취소</button><button class="memo-btn primary" onclick="saveMemo()">저장</button></div>
         </div>`;
