@@ -23356,6 +23356,8 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
             <div class="graphic-patch-note-v92">적용 후 문제가 생기면 덮어쓰기 전 백업 파일로 복구하거나, FiveM 기본 파일을 복원해 주세요. 패치 적용은 개인 PC 환경에 따라 결과가 다를 수 있습니다.</div>
         </div>`;
     }
+    window.renderGraphicPatchV92=function(){renderGraphicPatch();};
+    window.renderGraphicPatch=function(){renderGraphicPatch();};
     window.axeCopyGraphicPatchUrlV92=function(){
         if(navigator.clipboard&&navigator.clipboard.writeText){
             navigator.clipboard.writeText(GRAPHIC_PATCH_URL).then(()=>alert("그래픽 패치 다운로드 주소가 복사되었습니다."));
@@ -23617,7 +23619,7 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
             <div><div class="section-title">편의기능</div><div class="section-desc">게임 플레이에 필요한 보조 기능을 확인합니다.</div></div>
             <div class="count">UTILITY</div>
         </div>${utilityTabHtml(active)}<div id="utilityContent"></div>`;
-        if(active==="graphic"&&typeof renderGraphicPatch==="function")renderGraphicPatch();
+        if(active==="graphic"&&typeof window.renderGraphicPatchV92==="function")window.renderGraphicPatchV92();
         else if(active==="plica"&&typeof renderPlicaFinalCards==="function")renderPlicaFallback();
         else renderMemoNotepad();
         if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
