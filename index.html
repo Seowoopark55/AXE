@@ -4586,7 +4586,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbycjSMBLecdEscAiSz9akXY8cpEdvHSdPp66OJ06gYUa4i613y306O9Z-BGCyNzxWw-_g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw_0pVG15VYEj3W6yDtKVG2zNcLMyDdII9f2xU_C1CXHtUweKURPZZsRAgvjyoeKKKhqQ/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -23426,5 +23426,401 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
     };
     window.axeGraphicPatchV93Debug=function(){return {version:VERSION, tabs:Array.from(document.querySelectorAll('.utility-category-tabs button')).map(b=>b.textContent.trim()), hash:location.hash, downloadText:(document.querySelector('.graphic-patch-download-v92')||{}).textContent||''};};
     window.axeGraphicPatchV92Debug=window.axeGraphicPatchV93Debug;
+})();
+</script>
+
+
+<style id="axe-memo-notepad-style">
+/* AXE NET V16: 편의기능 메모장 */
+.memo-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.memo-toolbar-left{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+.memo-search{min-width:240px;flex:1}
+.memo-category-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.memo-category-tabs button{height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#aaa;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease}
+.memo-category-tabs button:hover,.memo-category-tabs button.active{color:#111;background:#ffb52e;border-color:#ffb52e;transform:translateY(-1px)}
+.memo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.memo-card{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),rgba(0,0,0,.24);border-radius:16px;padding:14px;min-width:0;transition:.16s ease}
+.memo-card:hover{border-color:rgba(255,181,46,.32);background:rgba(255,181,46,.045);transform:translateY(-1px)}
+.memo-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.memo-title{font-size:16px;font-weight:950;color:#fff;line-height:1.35;min-width:0;word-break:break-word}
+.memo-category{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:rgba(255,181,46,.09);border:1px solid rgba(255,181,46,.26);color:#ffcf75;font-size:11px;font-weight:950;white-space:nowrap}
+.memo-content{white-space:pre-line;line-height:1.62;color:#ddd;font-size:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;max-height:170px;overflow:auto;word-break:break-word}
+.memo-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;color:#888;font-size:12px;line-height:1.35}
+.memo-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;margin-top:11px}
+.memo-btn{height:34px;padding:0 11px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(20,20,20,.92);color:#bbb;font-size:12px;font-weight:950;cursor:pointer;transition:.16s ease}
+.memo-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45);transform:translateY(-1px)}
+.memo-btn.primary{background:#ffb52e;color:#111;border-color:#ffb52e}
+.memo-btn.primary:hover{color:#111;filter:brightness(1.06)}
+.memo-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
+.memo-empty{padding:28px;border:1px dashed rgba(255,255,255,.13);border-radius:16px;background:rgba(255,255,255,.025);color:#888;text-align:center;line-height:1.6}
+.memo-form{margin-bottom:14px;padding:14px;border:1px solid rgba(255,181,46,.22);background:rgba(255,181,46,.045);border-radius:16px}
+.memo-form-grid{display:grid;grid-template-columns:170px 1fr;gap:9px;margin-bottom:9px}
+.memo-emoji-bar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.memo-emoji-bar button{height:30px;min-width:32px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.24);color:#ddd;cursor:pointer;font-weight:950}
+.memo-emoji-bar button:hover{border-color:rgba(255,181,46,.45);background:rgba(255,181,46,.08)}
+.memo-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.memo-copy-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:99999;padding:10px 15px;border-radius:999px;background:rgba(0,0,0,.88);border:1px solid rgba(255,181,46,.38);color:#ffcf75;font-size:13px;font-weight:950;opacity:0;pointer-events:none;transition:.22s ease;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.memo-copy-toast.active{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:768px){.memo-toolbar{display:block}.memo-toolbar-left{display:block}.memo-search{min-width:0;margin-bottom:8px}.memo-toolbar .memo-btn{width:100%;margin-top:8px}.memo-category-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.memo-category-tabs::-webkit-scrollbar{display:none}.memo-category-tabs button{flex:0 0 auto}.memo-grid{grid-template-columns:1fr}.memo-form-grid{grid-template-columns:1fr}.memo-form-actions{display:grid;grid-template-columns:1fr 1fr}.memo-actions{justify-content:stretch}.memo-actions .memo-btn{flex:1}.memo-content{max-height:220px}}
+</style>
+
+<script>
+/* AXE NET V16: 편의기능 메모장 */
+(function(){
+    const VERSION="V16_MEMO_NOTEPAD";
+    window.memos=window.memos||[];
+    if(typeof memos==="undefined") window.memos=window.memos||[];
+    let memoCategoryFilter="ALL";
+    let memoSearchKeyword="";
+    let memoEditingId="";
+
+    function getMemoArray(){
+        try{
+            if(Array.isArray(window.memos))return window.memos;
+            if(typeof memos!=="undefined"&&Array.isArray(memos))return memos;
+        }catch(e){}
+        return [];
+    }
+    function setMemoArray(list){
+        window.memos=Array.isArray(list)?list:[];
+        try{memos=window.memos;}catch(e){}
+    }
+    function esc(value){
+        if(typeof escapeText==="function")return escapeText(value);
+        return String(value||"").replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[ch]||ch;});
+    }
+    function normalizeEnabled(value){
+        const text=String(value===undefined||value===null?"TRUE":value).trim().toLowerCase();
+        if(!text)return true;
+        return ["true","y","yes","1","사용","사용중","활성","on"].includes(text);
+    }
+    function normalizeMemo(row){
+        row=row||{};
+        return {
+            id:String(row.id||row.memo_id||""),
+            category:String(row.category||row["카테고리"]||"기본").trim()||"기본",
+            title:String(row.title||row["제목"]||""),
+            content:String(row.content||row["내용"]||""),
+            enabled:normalizeEnabled(row.enabled!==undefined?row.enabled:row["사용여부"]),
+            writer:String(row.writer||row["작성자"]||""),
+            updated_at:row.updated_at||row["수정일"]||"",
+            note:String(row.note||row["비고"]||"")
+        };
+    }
+    function getVisibleMemos(){
+        return getMemoArray().map(normalizeMemo).filter(function(memo){
+            if(!memo.enabled)return false;
+            if(!memo.title&&!memo.content)return false;
+            if(memoCategoryFilter!=="ALL"&&memo.category!==memoCategoryFilter)return false;
+            const q=String(memoSearchKeyword||"").toLowerCase().replace(/\s+/g," ").trim();
+            if(q){
+                const hay=[memo.category,memo.title,memo.content,memo.writer,memo.note].join(" ").toLowerCase();
+                if(hay.indexOf(q)===-1)return false;
+            }
+            return true;
+        }).sort(function(a,b){
+            const ac=String(a.category||""); const bc=String(b.category||"");
+            if(ac!==bc)return ac.localeCompare(bc);
+            const ad=new Date(a.updated_at||0).getTime()||0;
+            const bd=new Date(b.updated_at||0).getTime()||0;
+            return bd-ad;
+        });
+    }
+    function getMemoCategories(){
+        const set={};
+        getMemoArray().map(normalizeMemo).forEach(function(m){if(m.enabled&&m.category)set[m.category]=true;});
+        return Object.keys(set).sort(function(a,b){return a.localeCompare(b);});
+    }
+    function formatMemoDate(value){
+        if(!value)return "";
+        try{
+            const d=new Date(value);
+            if(isFinite(d.getTime())){
+                const y=d.getFullYear();
+                const m=String(d.getMonth()+1).padStart(2,"0");
+                const day=String(d.getDate()).padStart(2,"0");
+                return y+"."+m+"."+day;
+            }
+        }catch(e){}
+        return String(value).replace(/T.*/,"").replace(/-/g,".");
+    }
+    function isMemoAdmin(){
+        try{return typeof isCurrentAdmin==="function"&&isCurrentAdmin();}catch(e){return false;}
+    }
+    function canEditMemo(memo){
+        const nick=typeof getLoginNickname==="function"?String(getLoginNickname()||"").trim():"";
+        return isMemoAdmin()||(nick&&String(memo.writer||"").trim()===nick);
+    }
+    function postMemoApi(payload){
+        return fetch(API_URL,{
+            method:"POST",
+            cache:"no-store",
+            headers:{"Content-Type":"text/plain;charset=utf-8"},
+            body:JSON.stringify(payload||{})
+        }).then(function(res){return res.json();}).then(function(data){
+            if(data&&data.memos)setMemoArray(data.memos);
+            if(typeof mergeCachePartial==="function"&&data&&data.memos)mergeCachePartial({memos:data.memos});
+            return data;
+        });
+    }
+    function toast(text){
+        let el=document.getElementById("memoCopyToast");
+        if(!el){
+            el=document.createElement("div");
+            el.id="memoCopyToast";
+            el.className="memo-copy-toast";
+            document.body.appendChild(el);
+        }
+        el.textContent=text||"복사되었습니다.";
+        el.classList.add("active");
+        clearTimeout(window.__memoToastTimer);
+        window.__memoToastTimer=setTimeout(function(){el.classList.remove("active");},1400);
+    }
+    function utilityTabHtml(active){
+        const tabs=[
+            {key:"memo",label:"메모장"},
+            {key:"plica",label:"플리카 계산기"},
+            {key:"graphic",label:"그래픽 패치"}
+        ];
+        return `<div class="utility-category-shell"><div class="utility-category-tabs">
+            ${tabs.map(function(t){return `<button data-utility-tab="${t.key}" class="${active===t.key?"active":""}" onclick="navigateSubTab('utility','${t.key}')">${t.label}</button>`;}).join("")}
+        </div><div class="utility-category-note">채팅 멘트 메모, 계산기, 그래픽 패치를 한 곳에서 관리합니다.</div></div>`;
+    }
+    function renderUtilityShell(tab){
+        let active="memo";
+        if(tab==="plica")active="plica";
+        if(tab==="graphic"||tab==="patch"||tab==="graphicPatch")active="graphic";
+        if(typeof enterMainSection==="function")enterMainSection("utility");
+        window.currentHistoryPage="utility";
+        if(typeof setMainActive==="function")setMainActive(8);
+        const content=document.getElementById("content");
+        if(!content)return;
+        content.innerHTML=`<div class="section-head">
+            <div><div class="section-title">편의기능</div><div class="section-desc">게임 플레이에 필요한 보조 기능을 확인합니다.</div></div>
+            <div class="count">UTILITY</div>
+        </div>${utilityTabHtml(active)}<div id="utilityContent"></div>`;
+        if(active==="graphic"&&typeof renderGraphicPatch==="function")renderGraphicPatch();
+        else if(active==="plica"&&typeof renderPlicaFinalCards==="function")renderPlicaFallback();
+        else renderMemoNotepad();
+        if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+    }
+    function renderPlicaFallback(){
+        if(typeof window.showPlicaCalculatorV12==="function"&&window.showPlicaCalculatorV12.__memoWrapped!==true){
+            try{
+                const box=document.getElementById("utilityContent");
+                let saved=38;
+                try{const raw=Number(localStorage.getItem("axe_plica_trade_ratio")||38);if(isFinite(raw)&&raw>0)saved=raw;}catch(e){}
+                if(box){
+                    box.innerHTML=`<div class="plica-panel"><div class="plica-control-row"><div class="plica-input-box"><div class="plica-label">거래비율 입력</div><input class="plica-input" id="plicaRatio" type="number" min="1" step="0.1" value="${saved}" oninput="renderPlicaFinalCards()" placeholder="예: 38"></div><div class="plica-input-box" style="min-width:0;flex:1;"><div class="plica-label">비율 프리셋</div><div class="plica-preset-box">${[37,38,39,40,41,42,43,44,45].map(function(n){return `<button class="plica-btn" data-ratio="${n}" onclick="setPlicaFinalRatio(${n})">${n}</button>`;}).join("")}</div></div></div><div class="plica-summary" id="plicaSummary"></div></div><div class="plica-grid" id="plicaResultGrid"></div>`;
+                    if(typeof renderPlicaFinalCards==="function")renderPlicaFinalCards();
+                    return;
+                }
+            }catch(e){}
+        }
+        if(typeof showPlicaCalculator==="function")showPlicaCalculator();
+    }
+    window.renderMemoNotepad=function(){
+        const box=document.getElementById("utilityContent");
+        if(!box)return;
+        const categories=getMemoCategories();
+        const visible=getVisibleMemos();
+        const isLogged=typeof getLoginNickname==="function"&&!!getLoginNickname();
+        box.innerHTML=`
+            <div class="memo-toolbar">
+                <div class="memo-toolbar-left">
+                    <div class="search memo-search"><input id="memoSearchInput" value="${esc(memoSearchKeyword)}" placeholder="제목, 내용, 카테고리 검색" oninput="memoSearchChanged(this.value)" autocomplete="off"><span class="search-mark">검색</span></div>
+                </div>
+                <button class="memo-btn primary" onclick="openMemoForm()">메모 추가</button>
+            </div>
+            <div class="memo-category-tabs">
+                <button class="${memoCategoryFilter==="ALL"?"active":""}" onclick="setMemoCategory('ALL')">전체</button>
+                ${categories.map(function(c){return `<button class="${memoCategoryFilter===c?"active":""}" onclick="setMemoCategory('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</button>`;}).join("")}
+            </div>
+            <div id="memoFormArea">${memoEditingId!==""?renderMemoForm(memoEditingId):""}</div>
+            ${!isLogged?`<div class="form-help" style="margin-bottom:12px;">메모 추가·수정은 로그인 후 이용 가능합니다. 등록된 메모는 복사해서 바로 사용할 수 있습니다.</div>`:""}
+            ${visible.length?`<div class="memo-grid">${visible.map(renderMemoCard).join("")}</div>`:`<div class="memo-empty">등록된 메모가 없습니다.<br>자주 쓰는 채팅 멘트를 추가해두면 복사해서 바로 사용할 수 있습니다.</div>`}
+        `;
+    };
+    function renderMemoCard(memo){
+        memo=normalizeMemo(memo);
+        const meta=[memo.writer?`작성자 ${esc(memo.writer)}`:"",memo.updated_at?`수정 ${esc(formatMemoDate(memo.updated_at))}`:"",memo.note?esc(memo.note):""].filter(Boolean).join(" · ");
+        const editable=canEditMemo(memo);
+        return `<div class="memo-card">
+            <div class="memo-card-head"><div class="memo-title">${esc(memo.title)}</div><div class="memo-category">${esc(memo.category)}</div></div>
+            <div class="memo-content">${esc(memo.content)}</div>
+            ${meta?`<div class="memo-meta">${meta}</div>`:""}
+            <div class="memo-actions">
+                <button class="memo-btn primary" onclick="copyMemoContent('${esc(memo.id)}')">복사</button>
+                ${editable?`<button class="memo-btn" onclick="openMemoForm('${esc(memo.id)}')">수정</button><button class="memo-btn danger" onclick="deleteMemo('${esc(memo.id)}')">삭제</button>`:""}
+            </div>
+        </div>`;
+    }
+    function findMemo(id){
+        const target=String(id||"");
+        return getMemoArray().map(normalizeMemo).find(function(m){return String(m.id)===target;})||null;
+    }
+    function renderMemoForm(id){
+        const memo=id?findMemo(id):null;
+        const emojis=["✅","❌","📌","💰","📦","🚚","🙏","⚠️","🔥","✨","😭","ㅎㅎ","ㅋㅋ"];
+        return `<div class="memo-form">
+            <div class="memo-form-grid">
+                <input class="form-input" id="memoCategoryInput" value="${esc(memo?memo.category:"기본")}" placeholder="카테고리" autocomplete="off">
+                <input class="form-input" id="memoTitleInput" value="${esc(memo?memo.title:"")}" placeholder="제목" autocomplete="off">
+            </div>
+            <textarea class="form-textarea" id="memoContentInput" placeholder="복사해서 사용할 채팅 멘트를 입력하세요">${esc(memo?memo.content:"")}</textarea>
+            <div class="memo-emoji-bar">${emojis.map(function(e){return `<button type="button" onclick="insertMemoEmoji('${esc(e)}')">${esc(e)}</button>`;}).join("")}</div>
+            <input class="form-input" id="memoNoteInput" value="${esc(memo?memo.note:"")}" placeholder="비고. 예: 거래용, 공지용, 상황별 멘트" autocomplete="off">
+            <div class="memo-form-actions"><button class="memo-btn" onclick="closeMemoForm()">취소</button><button class="memo-btn primary" onclick="saveMemo()">저장</button></div>
+        </div>`;
+    }
+    window.openMemoForm=function(id){
+        if(typeof requireLogin==="function"&&!requireLogin("메모 추가·수정은 로그인 후 이용해주세요."))return;
+        memoEditingId=id||"__new";
+        renderMemoNotepad();
+        setTimeout(function(){const el=document.getElementById("memoTitleInput");if(el)el.focus();},0);
+    };
+    window.closeMemoForm=function(){memoEditingId="";renderMemoNotepad();};
+    window.insertMemoEmoji=function(text){
+        const el=document.getElementById("memoContentInput");
+        if(!el)return;
+        const start=el.selectionStart||0; const end=el.selectionEnd||0;
+        const before=el.value.slice(0,start); const after=el.value.slice(end);
+        el.value=before+text+after;
+        el.focus();
+        const pos=start+String(text).length;
+        try{el.setSelectionRange(pos,pos);}catch(e){}
+    };
+    window.saveMemo=function(){
+        if(typeof requireLogin==="function"&&!requireLogin("메모 저장은 로그인 후 이용해주세요."))return;
+        const id=memoEditingId&&memoEditingId!=="__new"?memoEditingId:"";
+        const category=(document.getElementById("memoCategoryInput")||{}).value||"기본";
+        const title=(document.getElementById("memoTitleInput")||{}).value||"";
+        const content=(document.getElementById("memoContentInput")||{}).value||"";
+        const note=(document.getElementById("memoNoteInput")||{}).value||"";
+        if(!title.trim()){alert("제목을 입력하세요.");return;}
+        if(!content.trim()){alert("내용을 입력하세요.");return;}
+        postMemoApi({type:"memo_save",id:id,category:category,title:title,content:content,note:note,enabled:true,nickname:typeof getLoginNickname==="function"?getLoginNickname():""})
+        .then(function(data){
+            if(data&&data.result==="success"){
+                memoEditingId="";
+                alert("메모가 저장되었습니다.");
+                renderMemoNotepad();
+            }else{alert((data&&data.message)||"메모 저장 중 오류가 발생했습니다.");}
+        }).catch(function(){alert("메모 저장 중 오류가 발생했습니다.");});
+    };
+    window.deleteMemo=function(id){
+        if(!confirm("이 메모를 삭제할까요?"))return;
+        postMemoApi({type:"memo_delete",id:id,nickname:typeof getLoginNickname==="function"?getLoginNickname():""})
+        .then(function(data){
+            if(data&&data.result==="success"){alert("메모가 삭제되었습니다.");renderMemoNotepad();}
+            else alert((data&&data.message)||"메모 삭제 중 오류가 발생했습니다.");
+        }).catch(function(){alert("메모 삭제 중 오류가 발생했습니다.");});
+    };
+    window.copyMemoContent=function(id){
+        const memo=findMemo(id);
+        if(!memo)return;
+        const text=memo.content||"";
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+            navigator.clipboard.writeText(text).then(function(){toast("메모 내용이 복사되었습니다.");}).catch(function(){prompt("아래 내용을 복사하세요.",text);});
+        }else prompt("아래 내용을 복사하세요.",text);
+    };
+    window.memoSearchChanged=function(value){memoSearchKeyword=value||"";renderMemoNotepad();};
+    window.setMemoCategory=function(category){memoCategoryFilter=category||"ALL";renderMemoNotepad();};
+
+    const oldHydrate=window.hydrateData;
+    window.hydrateData=function(data){
+        const result=typeof oldHydrate==="function"?oldHydrate.apply(this,arguments):undefined;
+        if(data&&(data.memos!==undefined||data.memoList!==undefined))setMemoArray(data.memos||data.memoList||[]);
+        return result;
+    };
+    const oldApplyPartial=window.applyPartialData;
+    window.applyPartialData=function(source,scope){
+        const result=typeof oldApplyPartial==="function"?oldApplyPartial.apply(this,arguments):source;
+        const data=(source&&source.data)||(source&&source.payload)||source||{};
+        if(data.memos!==undefined||data.memoList!==undefined)setMemoArray(data.memos||data.memoList||[]);
+        return result;
+    };
+    const oldGetPartial=window.getPartialRefreshPayload;
+    window.getPartialRefreshPayload=function(scope){
+        const key=String(scope||currentMainSection||"");
+        if(key==="utility"||key==="memo")return {type:"category_refresh",category:"utility"};
+        if(typeof oldGetPartial==="function")return oldGetPartial.apply(this,arguments);
+        return {type:"category_refresh",category:key};
+    };
+
+    window.showUtility=function(tab){renderUtilityShell(tab||"memo");};
+    window.showMemoNotepad=function(){renderUtilityShell("memo");};
+    window.showPlicaCalculator=function(){renderUtilityShell("plica");};
+    window.showPlicaCalculatorV12=function(){renderUtilityShell("plica");};
+    window.showGraphicPatchV92=function(){renderUtilityShell("graphic");};
+
+    const oldRenderSubTab=window.renderSubTab;
+    window.renderSubTab=function(page,subTab){
+        const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+        if(target==="utility"){
+            const tab=subTab==="plica"?"plica":(subTab==="graphic"||subTab==="patch"||subTab==="graphicPatch"?"graphic":"memo");
+            renderUtilityShell(tab);
+            return;
+        }
+        if(typeof oldRenderSubTab==="function")return oldRenderSubTab.apply(this,arguments);
+    };
+    const oldNavigateSubTab=window.navigateSubTab;
+    window.navigateSubTab=function(page,subTab,push){
+        const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+        if(target==="utility"){
+            const tab=subTab==="plica"?"plica":(subTab==="graphic"?"graphic":"memo");
+            const shouldPush=push!==false;
+            const current=history.state||{};
+            if(shouldPush&&(current.page!=="utility"||current.subTab!==tab))history.pushState({page:"utility",subTab:tab},"",`#utility-${tab}`);
+            renderUtilityShell(tab);
+            if(typeof requestPartialRefresh==="function")requestPartialRefresh("utility",{force:true}).then(function(){if(tab==="memo")renderMemoNotepad();}).catch(function(){});
+            return;
+        }
+        if(typeof oldNavigateSubTab==="function")return oldNavigateSubTab.apply(this,arguments);
+    };
+    const oldNavigateMain=window.navigateMain;
+    window.navigateMain=function(page,push){
+        const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+        if(target==="utility"){
+            const shouldPush=push!==false;
+            const current=history.state||{};
+            if(shouldPush&&(current.page!=="utility"||current.subTab!=="memo"))history.pushState({page:"utility",subTab:"memo"},"","#utility-memo");
+            renderUtilityShell("memo");
+            if(typeof requestPartialRefresh==="function")requestPartialRefresh("utility",{force:true}).then(function(){renderMemoNotepad();}).catch(function(){});
+            return;
+        }
+        if(typeof oldNavigateMain==="function")return oldNavigateMain.apply(this,arguments);
+    };
+    const oldGetRoute=window.getCurrentRouteForFavorite;
+    window.getCurrentRouteForFavorite=function(){
+        const state=history.state||{}; const hash=String(location.hash||"");
+        if(window.currentMainSection==="utility"||state.page==="utility"||hash.indexOf("#utility")===0){
+            let tab="memo";
+            if(state.subTab==="plica"||hash.indexOf("plica")>=0)tab="plica";
+            if(state.subTab==="graphic"||hash.indexOf("graphic")>=0)tab="graphic";
+            return {page:"utility",subTab:tab};
+        }
+        if(typeof oldGetRoute==="function")return oldGetRoute.apply(this,arguments);
+        return {page:"home"};
+    };
+    const oldLabel=window.makeFavoriteLabel;
+    window.makeFavoriteLabel=function(route){
+        const r=route||{}; const page=typeof normalizeMainPage==="function"?normalizeMainPage(r.page||""):r.page;
+        if(page==="utility"){
+            if(r.subTab==="plica")return "플리카 계산기";
+            if(r.subTab==="graphic")return "그래픽 패치";
+            return "메모장";
+        }
+        if(typeof oldLabel==="function")return oldLabel.apply(this,arguments);
+        return "즐겨찾기";
+    };
+    const oldFavId=window.makeFavoriteId;
+    window.makeFavoriteId=function(route){
+        const r=route||{}; const page=typeof normalizeMainPage==="function"?normalizeMainPage(r.page||""):r.page;
+        if(page==="utility")return `utility|${r.subTab==="plica"?"plica":(r.subTab==="graphic"?"graphic":"memo")}`;
+        if(typeof oldFavId==="function")return oldFavId.apply(this,arguments);
+        return String(Date.now());
+    };
+    window.axeMemoNotepadDebug=function(){return {version:VERSION,memoCount:getMemoArray().length,visible:getVisibleMemos().length,category:memoCategoryFilter,hash:location.hash};};
 })();
 </script>
