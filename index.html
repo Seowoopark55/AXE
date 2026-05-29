@@ -27050,206 +27050,101 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 </style>
 
 
-<script>
-/* AXE NET Cooking Tool V41 - material other/fixed source display fix */
+<script id="axe-cooking-tool-final-cleanup-materials-v43">
+/* AXE NET Cooking Helper Final Cleanup V43
+   - 재료목록은 마트 / 노점상 2열 비교형으로 단순화
+   - 기타/고정단가/물 전용 예외 렌더러 제거 기준
+   - 물은 시트에서 마트 구매처로 관리하는 기준 */
 (function(){
-  const VERSION='v41-material-other-source-fix';
-  function h(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function q(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
-  function n(v){const x=parseFloat(String(v==null?'':v).replace(/,/g,''));return Number.isFinite(x)?x:0;}
-  function rowId(r){return String((r&&(r.id||r.ID||r['id']||r['ID']))||'').trim();}
-  function active(r){const v=String(r&&r['사용여부']!=null?r['사용여부']:'TRUE').trim().toUpperCase();return !['FALSE','N','NO','0','미사용','사용안함'].includes(v);}
-  function keyName(v){return String(v||'').replace(/\s+/g,'').toLowerCase();}
-  function matName(r){return String(r&&r['재료명']||'').trim();}
-  function src(r){return String(r&&r['구매처']||'').trim();}
-  function isMarket(r){return src(r).indexOf('마트')!==-1;}
-  function isStreet(r){return src(r).indexOf('노점')!==-1;}
-  function isPriority(r){const v=String((r&&(r['우선구매']||r['우선']))||'').trim().toUpperCase();return ['TRUE','Y','YES','1','우선'].includes(v);}
-  function money(v){const x=n(v); return x?Math.round(x).toLocaleString('ko-KR')+'원':'-';}
-  function unit(row){const u=n(row&&row['개당가격']); const bq=n(row&&row['묶음수량']); const bp=n(row&&row['묶음가격']); return u || (bq&&bp?bp/bq:0);}
-  function saleInfo(row){
-    if(!row) return '<div class="ct41-empty">-</div>';
-    const bq=n(row['묶음수량']); const bp=n(row['묶음가격']); const u=unit(row); const source=src(row)||'구매처 미입력';
-    let main='';
-    if(bq>1 && bp){ main=`${h(source)}${isPriority(row)?' <em>우선</em>':''} · ${h(bq)}개 묶음 · ${money(bp)}`; }
-    else if(bp){ main=`${h(source)}${isPriority(row)?' <em>우선</em>':''} · 낱개 판매 · ${money(bp)}`; }
-    else { main=`${h(source)}${isPriority(row)?' <em>우선</em>':''}`; }
-    const unitLine = u ? `<strong>개당 ${money(u)}</strong>` : '<span class="muted">개당 -</span>';
-    const note = row['비고'] ? `<small>${h(row['비고'])}</small>` : '';
-    return `<div class="ct41-mat-sale"><div>${main}</div>${unitLine}${note}<button type="button" onclick="CookingTool30.openMaterialEditor('${q(rowId(row))}')">수정</button></div>`;
-  }
-  function ctx(){try{return window.CookingTool30&&typeof window.CookingTool30.ctx==='function'?window.CookingTool30.ctx():{};}catch(e){return {};}}
-  function getGroups(c, search){
-    const rows=(c.materials||[]).filter(active).filter(r=>{
-      if(!search)return true;
-      return [r['재료명'],r['구매처'],r['비고'],r['획득구분']].join(' ').replace(/\s+/g,'').toLowerCase().includes(search);
-    });
-    const groups={};
-    rows.forEach(r=>{const name=matName(r); if(!name)return; const k=keyName(name); const g=groups[k]||(groups[k]={name,market:null,street:null,others:[]}); if(isMarket(r)&&!g.market)g.market=r; else if(isStreet(r)&&!g.street)g.street=r; else g.others.push(r);});
-    return Object.values(groups).sort((a,b)=>{
-      const as=(a.market?1:0)+(a.street?1:0)+(a.others.length?1:0); const bs=(b.market?1:0)+(b.street?1:0)+(b.others.length?1:0);
-      const aboth=(a.market&&a.street)?1:0, bboth=(b.market&&b.street)?1:0;
-      return (bboth-aboth)||(bs-as)||a.name.localeCompare(b.name,'ko');
-    });
-  }
-  function renderMaterialList(value){
-    const st=window.CookingTool30&&window.CookingTool30.state; if(st && value!==undefined) st.materialSearch=value;
-    const search=String((st&&st.materialSearch)||window.axeCookingPriceSearch||'').replace(/\s+/g,'').toLowerCase();
-    const c=ctx(); const groups=getGroups(c, search);
-    const rows=groups.map(g=>`<div class="ct41-mat-row">
-      <div class="ct41-mat-name">${h(g.name)}</div>
-      <div>${saleInfo(g.market)}</div>
-      <div>${saleInfo(g.street)}</div>
-      <div>${g.others.length?g.others.map(saleInfo).join(''):'<div class="ct41-empty">-</div>'}</div>
-    </div>`).join('') || '<div class="ct41-no-result">재료가 없습니다.</div>';
-    const html=`<div class="ct41-mat-table"><div class="ct41-mat-head"><span>재료</span><span>마트</span><span>노점상</span><span>기타·고정단가</span></div>${rows}</div>`;
-    const box=document.getElementById('ct30MaterialList')||document.getElementById('cookingMaterialListBox'); if(box)box.innerHTML=html;
-    return html;
-  }
-  function renderMaterials(){
-    const c=ctx(); const st=window.CookingTool30&&window.CookingTool30.state||{}; const box=document.getElementById('ct30View'); if(!box)return;
-    box.innerHTML=`<div class="ct30-card ct41-card"><div class="ct30-head ct41-head"><b>재료목록</b><span>${h((c.materials||[]).length)}개</span><button class="primary" type="button" onclick="CookingTool30.openMaterialEditor('')">물품 추가</button></div><input class="ct30-search ct41-search" id="ct30MatSearch" placeholder="재료명, 구매처, 비고 검색" value="${h(st.materialSearch||'')}" autocomplete="off" oninput="CookingTool30.renderMaterialList(this.value)"><div id="ct30MaterialList"></div></div>`;
-    renderMaterialList(st.materialSearch||'');
-  }
-  function install(){
-    if(!window.CookingTool30)return false;
-    window.CookingTool30.renderMaterials=renderMaterials;
-    window.CookingTool30.renderMaterialList=renderMaterialList;
-    window.axeCookingV41Debug=function(){const c=ctx();return {version:VERSION, renderer:'v41-material-other-source-owned', materials:(c.materials||[]).length, hasWater:(c.materials||[]).some(r=>matName(r)==='물')};};
-    return true;
-  }
-  function ensure(){ if(!install()) setTimeout(ensure,300); }
-  ensure();
-})();
-</script>
-<style>
-/* V41 material list: market/street/other fixed-source table */
-.ct41-card{max-width:980px!important;width:min(980px,100%)!important;margin:0!important;padding:12px!important}
-.ct41-head{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:10px!important;align-items:center!important;margin-bottom:8px!important}
-.ct41-head b{font-size:18px!important}.ct41-head span{font-size:12px!important;color:#9eabbc!important}.ct41-search{max-width:360px!important;height:38px!important;margin-bottom:8px!important}
-.ct41-mat-table{display:grid!important;gap:4px!important;width:100%!important;max-width:980px!important;overflow:auto!important;padding-right:2px!important}
-.ct41-mat-head,.ct41-mat-row{display:grid!important;grid-template-columns:118px minmax(210px,1fr) minmax(210px,1fr) minmax(210px,1fr)!important;gap:4px!important;align-items:stretch!important}
-.ct41-mat-head{font-size:11px!important;color:#9da7b7!important;font-weight:900!important;padding:0 6px!important}
-.ct41-mat-row{min-height:54px!important;border-bottom:1px solid rgba(255,255,255,.065)!important}
-.ct41-mat-name{display:flex!important;align-items:center!important;background:rgba(255,183,58,.055)!important;border:1px solid rgba(255,183,58,.18)!important;border-radius:8px!important;padding:8px!important;font-size:13px!important;font-weight:950!important;color:#f7f2e9!important;line-height:1.25!important}
-.ct41-mat-sale{position:relative!important;min-height:54px!important;background:rgba(255,255,255,.025)!important;border:1px solid rgba(255,255,255,.085)!important;border-radius:8px!important;padding:7px 54px 7px 8px!important;font-size:12px!important;line-height:1.25!important;color:#e9edf7!important;display:grid!important;gap:2px!important}
-.ct41-mat-sale em{display:inline-flex!important;margin-left:3px!important;padding:1px 5px!important;border-radius:999px!important;border:1px solid rgba(255,183,58,.38)!important;color:#ffc64e!important;font-style:normal!important;font-size:10px!important}
-.ct41-mat-sale strong{color:#6bffb2!important;font-size:12px!important}.ct41-mat-sale small{color:#8e98a8!important;font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.ct41-mat-sale button{position:absolute!important;right:7px!important;top:7px!important;padding:4px 7px!important;border-radius:8px!important;font-size:11px!important;background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.16)!important;color:#dbe5f5!important}.ct41-empty{min-height:54px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px dashed rgba(255,255,255,.08)!important;border-radius:8px!important;color:#5f6876!important;font-size:12px!important;background:rgba(255,255,255,.012)!important}.ct41-no-result{padding:12px!important;color:#9da7b7!important;border:1px dashed rgba(255,255,255,.1)!important;border-radius:10px!important}
-@media(max-width:980px){.ct41-card{max-width:100%!important}.ct41-mat-head,.ct41-mat-row{grid-template-columns:100px 220px 220px 220px!important;width:max-content!important;min-width:100%!important}}
-</style>
-
-
-<script id="axe-cooking-tool-v42-material-etc-stabilize">
-/* AXE NET Cooking Tool V42
-   - 재료목록에서 마트/노점상 외 구매처를 '기타'로 통합 표시
-   - 물처럼 기타만 있는 재료는 빈 마트/노점상 칸을 만들지 않고 한 줄 전체로 표시
-   - 기존 CookingTool30 내부 렌더러가 남아 있어도 재료목록 진입 시 V42 렌더러가 최종 적용되도록 setView/render를 보강 */
-(function(){
-  const VERSION='v42-material-etc-stabilize';
-  const LATEST_API=https://script.google.com/macros/s/AKfycbz4Qn2PwDUmrmJmO6-WJ0gNXmrmAygV6rwrJWMT_LznlITwWD7oXtypnrMPrZIGrbpt1Q/exec;
+  const VERSION='final-cleanup-v43-materials-simple';
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function q(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
   function num(v){const x=parseFloat(String(v==null?'':v).replace(/,/g,''));return Number.isFinite(x)?x:0;}
   function rowId(r){return String((r&&(r.id||r.ID||r.Id||r['id']||r['ID']))||'').trim();}
-  function active(r){const v=String(r&&r['사용여부']!=null?r['사용여부']:'TRUE').trim().toLowerCase();return !['false','0','n','no','미사용','사용안함','비활성','off'].includes(v);}
-  function nameOf(r){return String((r&&r['재료명'])||'').trim();}
+  function isActive(r){const v=String(r&&r['사용여부']!=null?r['사용여부']:'TRUE').trim().toLowerCase();return !['false','0','n','no','미사용','사용안함','비활성','off'].includes(v);}
+  function matName(r){return String((r&&r['재료명'])||'').trim();}
   function sourceOf(r){return String((r&&r['구매처'])||'').trim();}
-  function keyName(v){return String(v||'').replace(/\s+/g,'').toLowerCase();}
-  function money(v){const x=num(v);return x?Math.round(x).toLocaleString('ko-KR')+'원':'-';}
-  function isMarket(r){return /마트/.test(sourceOf(r));}
-  function isStreet(r){return /노점/.test(sourceOf(r));}
+  function key(v){return String(v||'').replace(/\s+/g,'').toLowerCase();}
+  function isStall(r){return /노점/.test(sourceOf(r));}
   function isPriority(r){const v=String((r&&(r['우선구매']||r['우선']))||'').trim().toLowerCase();return ['true','1','y','yes','우선','사용','on'].includes(v);}
-  function labelSource(r){const s=sourceOf(r); if(!s) return '기타'; if(/고정단가|기타/i.test(s)) return '기타'; return s;}
-  function unitPrice(r){const u=num(r&&r['개당가격']); const bq=num(r&&r['묶음수량']); const bp=num(r&&r['묶음가격']); return u || (bq&&bp?bp/bq:0);}
+  function money(v){const x=num(v);return x?Math.round(x).toLocaleString('ko-KR')+'원':'-';}
+  function unitPrice(r){const u=num(r&&r['개당가격']);const bq=num(r&&r['묶음수량']);const bp=num(r&&r['묶음가격']);return u||(bq&&bp?bp/bq:0);}
   function ctx(){try{if(window.CookingTool30&&typeof window.CookingTool30.ctx==='function')return window.CookingTool30.ctx();}catch(e){}try{if(typeof window.buildContext==='function')return window.buildContext();}catch(e){}return {materials:[]};}
-  function materialCard(row){
-    if(!row)return '<div class="ct42-empty">-</div>';
-    const bq=num(row['묶음수량']); const bp=num(row['묶음가격']); const u=unitPrice(row); const src=labelSource(row);
-    let line='';
-    if(bq>1 && bp) line = `${esc(src)}${isPriority(row)?' <em>우선</em>':''} · ${esc(bq)}개 묶음 · ${money(bp)}`;
-    else if(bp) line = `${esc(src)}${isPriority(row)?' <em>우선</em>':''} · 낱개 판매 · ${money(bp)}`;
-    else line = `${esc(src)}${isPriority(row)?' <em>우선</em>':''}`;
-    const unit = u?`<strong>개당 ${money(u)}</strong>`:'<span class="ct42-muted">개당 -</span>';
-    const note = row['비고']?`<small>${esc(row['비고'])}</small>`:'';
-    return `<div class="ct42-card"><div>${line}</div>${unit}${note}<button type="button" onclick="CookingTool30.openMaterialEditor('${q(rowId(row))}')">수정</button></div>`;
+  function saleCard(row){
+    if(!row)return '<div class="ct43-empty">-</div>';
+    const bq=num(row['묶음수량']); const bp=num(row['묶음가격']); const u=unitPrice(row); const src=sourceOf(row)||'마트';
+    let main='';
+    if(bq>1 && bp) main=`${esc(src)}${isPriority(row)?' <em>우선</em>':''} · ${esc(bq)}개 묶음 · ${money(bp)}`;
+    else if(bp) main=`${esc(src)}${isPriority(row)?' <em>우선</em>':''} · 낱개 판매 · ${money(bp)}`;
+    else main=`${esc(src)}${isPriority(row)?' <em>우선</em>':''}`;
+    const unit=u?`<strong>개당 ${money(u)}</strong>`:'<span class="ct43-muted">개당 -</span>';
+    const note=row['비고']?`<small>${esc(row['비고'])}</small>`:'';
+    return `<div class="ct43-sale"><div>${main}</div>${unit}${note}<button type="button" onclick="CookingTool30.openMaterialEditor('${q(rowId(row))}')">수정</button></div>`;
   }
-  function groups(c, search){
+  function buildGroups(c, search){
     const s=String(search||'').replace(/\s+/g,'').toLowerCase();
     const map={};
-    (c.materials||[]).filter(active).filter(r=>{
+    (c.materials||[]).filter(isActive).filter(r=>{
       if(!s)return true;
       return [r['재료명'],r['구매처'],r['획득구분'],r['비고']].join(' ').replace(/\s+/g,'').toLowerCase().includes(s);
     }).forEach(r=>{
-      const nm=nameOf(r); if(!nm)return; const k=keyName(nm); const g=map[k]||(map[k]={name:nm,market:null,street:null,others:[]});
-      if(isMarket(r)&&!g.market)g.market=r;
-      else if(isStreet(r)&&!g.street)g.street=r;
-      else g.others.push(r);
+      const nm=matName(r); if(!nm)return;
+      const g=map[key(nm)]||(map[key(nm)]={name:nm,market:[],stall:[]});
+      if(isStall(r))g.stall.push(r); else g.market.push(r);
     });
     return Object.values(map).sort((a,b)=>{
-      const aCompare=(a.market&&a.street)?1:0, bCompare=(b.market&&b.street)?1:0;
-      const aMain=(a.market||a.street)?1:0, bMain=(b.market||b.street)?1:0;
-      return (bCompare-aCompare)||(bMain-aMain)||a.name.localeCompare(b.name,'ko');
+      const aboth=(a.market.length&&a.stall.length)?1:0;
+      const bboth=(b.market.length&&b.stall.length)?1:0;
+      const amain=(a.market.length||a.stall.length)?1:0;
+      const bmain=(b.market.length||b.stall.length)?1:0;
+      return (bboth-aboth)||(bmain-amain)||a.name.localeCompare(b.name,'ko');
     });
   }
-  function row(g){
-    const onlyEtc=!g.market&&!g.street&&g.others.length;
-    if(onlyEtc){
-      return `<div class="ct42-row ct42-row-etc-only"><div class="ct42-name">${esc(g.name)}</div><div class="ct42-etc-span">${g.others.map(materialCard).join('')}</div></div>`;
-    }
-    return `<div class="ct42-row"><div class="ct42-name">${esc(g.name)}</div><div>${materialCard(g.market)}</div><div>${materialCard(g.street)}</div><div>${g.others.length?g.others.map(materialCard).join(''):'<div class="ct42-empty">-</div>'}</div></div>`;
-  }
-  function materialList(value){
-    const c=ctx(); const st=window.CookingTool30&&window.CookingTool30.state; if(st&&value!==undefined)st.materialSearch=value;
-    const search=String((st&&st.materialSearch)||window.axeCookingPriceSearch||'');
-    const data=groups(c, search);
-    const html=`<div class="ct42-table"><div class="ct42-head"><span>재료</span><span>마트</span><span>노점상</span><span>기타</span></div>${data.map(row).join('')||'<div class="ct42-no">검색 결과가 없습니다.</div>'}</div>`;
-    const box=document.getElementById('ct30MaterialList')||document.getElementById('cookingMaterialListBox')||document.getElementById('ct30View');
-    if(box)box.innerHTML=html;
+  function renderMaterialList(value){
+    const tool=window.CookingTool30; const st=tool&&tool.state; if(st&&value!==undefined)st.materialSearch=value;
+    const c=ctx(); const search=String((st&&st.materialSearch)||window.axeCookingPriceSearch||'');
+    const rows=buildGroups(c,search).map(g=>`<div class="ct43-row"><div class="ct43-name">${esc(g.name)}</div><div>${g.market.length?g.market.map(saleCard).join(''):'<div class="ct43-empty">-</div>'}</div><div>${g.stall.length?g.stall.map(saleCard).join(''):'<div class="ct43-empty">-</div>'}</div></div>`).join('')||'<div class="ct43-no">검색 결과가 없습니다.</div>';
+    const html=`<div class="ct43-table"><div class="ct43-head"><span>재료</span><span>마트</span><span>노점상</span></div>${rows}</div>`;
+    const box=document.getElementById('ct30MaterialList')||document.getElementById('cookingMaterialListBox'); if(box)box.innerHTML=html;
     return html;
   }
   function renderMaterials(){
-    const c=ctx(); const st=window.CookingTool30&&window.CookingTool30.state||{}; const box=document.getElementById('ct30View'); if(!box)return;
-    box.innerHTML=`<div class="ct30-card ct42-wrap"><div class="ct42-top"><b>재료목록</b><span>${esc((c.materials||[]).length)}개</span><button class="primary" type="button" onclick="CookingTool30.openMaterialEditor('')">물품 추가</button></div><input class="ct30-search ct42-search" id="ct30MatSearch" placeholder="재료명, 구매처, 비고 검색" value="${esc(st.materialSearch||'')}" autocomplete="off" oninput="CookingTool30.renderMaterialList(this.value)"><div id="ct30MaterialList"></div></div>`;
-    materialList(st.materialSearch||'');
-  }
-  function updateTabActive(){
-    try{document.querySelectorAll('.ct30-tabs button').forEach(btn=>{const txt=(btn.textContent||'').trim();btn.classList.toggle('active', (window.CookingTool30&&window.CookingTool30.state&&window.CookingTool30.state.view==='materials'&&txt.includes('재료목록')));});}catch(e){}
+    const c=ctx(); const tool=window.CookingTool30; const st=tool&&tool.state||{}; const box=document.getElementById('ct30View'); if(!box)return;
+    box.innerHTML=`<div class="ct30-card ct43-wrap"><div class="ct43-top"><b>재료목록</b><span>${esc((c.materials||[]).length)}개</span><button class="primary" type="button" onclick="CookingTool30.openMaterialEditor('')">물품 추가</button></div><input class="ct30-search ct43-search" id="ct30MatSearch" placeholder="재료명, 구매처, 비고 검색" value="${esc(st.materialSearch||'')}" autocomplete="off" oninput="CookingTool30.renderMaterialList(this.value)"><div id="ct30MaterialList"></div></div>`;
+    renderMaterialList(st.materialSearch||'');
   }
   function install(){
     if(!window.CookingTool30||!window.CookingTool30.state)return false;
     const oldSet=window.CookingTool30.setView;
     const oldRender=window.CookingTool30.render;
     window.CookingTool30.renderMaterials=renderMaterials;
-    window.CookingTool30.renderMaterialList=materialList;
+    window.CookingTool30.renderMaterialList=renderMaterialList;
     window.CookingTool30.setView=function(v){
       this.state.view=v||'calculator';
-      if(this.state.view==='materials'){renderMaterials();updateTabActive();return;}
+      if(this.state.view==='materials'){renderMaterials();return;}
       if(typeof oldSet==='function')return oldSet.call(this,v);
     };
     window.CookingTool30.render=function(){
       if(typeof oldRender==='function')oldRender.call(this);
-      if(this.state&&this.state.view==='materials'){renderMaterials();updateTabActive();}
+      if(this.state&&this.state.view==='materials')renderMaterials();
     };
-    window.axeCookingV42Debug=function(){const c=ctx();return {version:VERSION, renderer:'v42-material-etc-stabilize', materials:(c.materials||[]).length, water:(c.materials||[]).filter(r=>nameOf(r)==='물').map(r=>({source:sourceOf(r),bundleQty:r['묶음수량'],bundlePrice:r['묶음가격'],unit:r['개당가격']}))};};
+    window.axeCookingFinalCleanupDebug=function(){const c=ctx();return {version:VERSION, renderer:'materials-market-stall-only', materials:(c.materials||[]).length, water:(c.materials||[]).filter(r=>matName(r)==='물').map(r=>({source:sourceOf(r),bundleQty:r['묶음수량'],bundlePrice:r['묶음가격'],unit:r['개당가격']}))};};
     return true;
   }
-  function ensure(){if(!install())setTimeout(ensure,300);} ensure();
+  function ensure(){if(!install())setTimeout(ensure,250);}ensure();
 })();
 </script>
-<style id="axe-cooking-tool-v42-material-etc-stabilize-style">
-.ct42-wrap{max-width:980px!important;width:min(980px,100%)!important;padding:10px!important;margin:0!important;border-radius:12px!important;}
-.ct42-top{display:grid!important;grid-template-columns:auto 1fr auto!important;align-items:center!important;gap:8px!important;margin-bottom:7px!important;}
-.ct42-top b{font-size:18px!important;color:#f7f2e9!important}.ct42-top span{font-size:12px!important;color:#9da7b7!important;font-weight:900!important}.ct42-search{max-width:340px!important;height:36px!important;margin-bottom:7px!important;}
-.ct42-table{display:grid!important;gap:3px!important;width:100%!important;max-width:980px!important;overflow:auto!important;padding-right:2px!important;}
-.ct42-head,.ct42-row{display:grid!important;grid-template-columns:96px 1fr 1fr 1fr!important;gap:4px!important;align-items:stretch!important;}
-.ct42-head{font-size:11px!important;color:#9aa5b5!important;font-weight:950!important;padding:0 5px!important;}
-.ct42-row{min-height:48px!important;border-bottom:1px solid rgba(255,255,255,.055)!important;}
-.ct42-row-etc-only{grid-template-columns:96px minmax(0,1fr)!important;}
-.ct42-etc-span{grid-column:auto!important;}
-.ct42-name{display:flex!important;align-items:center!important;padding:7px 8px!important;border-radius:8px!important;background:rgba(255,181,46,.055)!important;border:1px solid rgba(255,181,46,.16)!important;color:#f7f2e9!important;font-weight:950!important;font-size:13px!important;line-height:1.25!important;}
-.ct42-card{position:relative!important;min-height:48px!important;padding:6px 50px 6px 8px!important;border:1px solid rgba(255,255,255,.085)!important;border-radius:8px!important;background:rgba(255,255,255,.024)!important;color:#e9edf7!important;font-size:12px!important;line-height:1.28!important;display:grid!important;gap:1px!important;}
-.ct42-card em{display:inline-flex!important;margin-left:3px!important;padding:1px 5px!important;border:1px solid rgba(255,181,46,.35)!important;border-radius:999px!important;color:#ffca5f!important;font-style:normal!important;font-size:10px!important;}
-.ct42-card strong{color:#68f6aa!important;font-size:12px!important;font-weight:950!important;}.ct42-card small{color:#8f98a8!important;font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}.ct42-card button{position:absolute!important;right:6px!important;top:6px!important;padding:4px 7px!important;border-radius:8px!important;font-size:11px!important;background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.15)!important;color:#dce6f7!important;}
-.ct42-empty{min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px dashed rgba(255,255,255,.075)!important;border-radius:8px!important;color:#596273!important;background:rgba(255,255,255,.012)!important;font-size:12px!important;}.ct42-muted{color:#8e98a8!important}.ct42-no{padding:10px!important;border:1px dashed rgba(255,255,255,.11)!important;border-radius:10px!important;color:#9da7b7!important;}
-@media(max-width:980px){.ct42-wrap{max-width:100%!important}.ct42-head,.ct42-row{grid-template-columns:88px 220px 220px 220px!important;width:max-content!important;min-width:100%!important}.ct42-row-etc-only{grid-template-columns:88px 660px!important;}}
+<style id="axe-cooking-tool-final-cleanup-materials-v43-style">
+.ct43-wrap{max-width:900px!important;width:min(900px,100%)!important;margin:0!important;padding:10px!important;border-radius:12px!important;}
+.ct43-top{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:8px!important;align-items:center!important;margin-bottom:7px!important;}
+.ct43-top b{font-size:17px!important;color:#f7f2e9!important}.ct43-top span{font-size:12px!important;color:#9da7b7!important;font-weight:900!important}.ct43-search{max-width:320px!important;height:35px!important;margin-bottom:7px!important;}
+.ct43-table{display:grid!important;gap:3px!important;width:100%!important;max-width:900px!important;overflow:auto!important;padding-right:2px!important;}
+.ct43-head,.ct43-row{display:grid!important;grid-template-columns:104px minmax(230px,1fr) minmax(230px,1fr)!important;gap:4px!important;align-items:stretch!important;}
+.ct43-head{font-size:11px!important;color:#9aa5b5!important;font-weight:950!important;padding:0 5px!important;}
+.ct43-row{min-height:48px!important;border-bottom:1px solid rgba(255,255,255,.055)!important;}
+.ct43-name{display:flex!important;align-items:center!important;padding:7px 8px!important;border-radius:8px!important;background:rgba(255,181,46,.055)!important;border:1px solid rgba(255,181,46,.16)!important;color:#f7f2e9!important;font-weight:950!important;font-size:13px!important;line-height:1.25!important;}
+.ct43-sale{position:relative!important;min-height:48px!important;padding:6px 50px 6px 8px!important;border:1px solid rgba(255,255,255,.085)!important;border-radius:8px!important;background:rgba(255,255,255,.024)!important;color:#e9edf7!important;font-size:12px!important;line-height:1.28!important;display:grid!important;gap:1px!important;}
+.ct43-sale em{display:inline-flex!important;margin-left:3px!important;padding:1px 5px!important;border:1px solid rgba(255,181,46,.35)!important;border-radius:999px!important;color:#ffca5f!important;font-style:normal!important;font-size:10px!important;}.ct43-sale strong{color:#68f6aa!important;font-size:12px!important;font-weight:950!important;}.ct43-sale small{color:#8f98a8!important;font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}.ct43-sale button{position:absolute!important;right:6px!important;top:6px!important;padding:4px 7px!important;border-radius:8px!important;font-size:11px!important;background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.15)!important;color:#dce6f7!important;}
+.ct43-empty{min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px dashed rgba(255,255,255,.075)!important;border-radius:8px!important;color:#596273!important;background:rgba(255,255,255,.012)!important;font-size:12px!important;}.ct43-muted{color:#8e98a8!important}.ct43-no{padding:10px!important;border:1px dashed rgba(255,255,255,.11)!important;border-radius:10px!important;color:#9da7b7!important;}
+@media(max-width:900px){.ct43-wrap{max-width:100%!important}.ct43-head,.ct43-row{grid-template-columns:88px 220px 220px!important;width:max-content!important;min-width:100%!important}}
 </style>
