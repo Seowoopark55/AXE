@@ -26503,3 +26503,55 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 })();
 
 </script>
+
+
+<!-- AXE NET COOKING HELPER V34 : RECIPE COMPACT + MODAL DARK FIX -->
+<style id="axe-cooking-v34-recipe-compact-modal-fix">
+/* v34: 새 요리/수정 모달은 body 직속으로 생성되므로 .ct30 하위 선택자만으로는 스타일이 안 먹음 */
+#ct30Modal, #ct30Modal *{box-sizing:border-box!important;}
+#ct30Modal.ct30-modal{position:fixed!important;inset:0!important;display:none!important;align-items:center!important;justify-content:center!important;padding:18px!important;background:rgba(0,0,0,.78)!important;z-index:100000!important;}
+#ct30Modal.ct30-modal.active{display:flex!important;}
+#ct30Modal .ct30-modal-box{width:min(760px,calc(100vw - 36px))!important;max-height:88vh!important;overflow:auto!important;border:1px solid rgba(255,181,46,.32)!important;border-radius:16px!important;background:linear-gradient(180deg,#101010,#080808)!important;box-shadow:0 24px 80px rgba(0,0,0,.68)!important;color:#f4f4f4!important;}
+#ct30Modal .ct30-modal-head{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:11px 14px!important;border-bottom:1px solid rgba(255,255,255,.08)!important;}
+#ct30Modal .ct30-modal-head b{font-size:18px!important;color:#ffcf75!important;font-weight:950!important;}
+#ct30Modal .ct30-modal-head button{width:30px!important;height:30px!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.18)!important;background:rgba(255,255,255,.08)!important;color:#fff!important;font-size:17px!important;line-height:1!important;padding:0!important;}
+#ct30Modal .ct30-modal-body{padding:12px 14px!important;}
+#ct30Modal .ct30-form-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px 10px!important;align-items:start!important;}
+#ct30Modal label{display:grid!important;gap:4px!important;margin:0!important;color:#8f98a8!important;font-size:11px!important;font-weight:900!important;line-height:1.2!important;}
+#ct30Modal label span{color:#9aa3b3!important;font-size:11px!important;font-weight:950!important;}
+#ct30Modal input,#ct30Modal select,#ct30Modal textarea{width:100%!important;min-width:0!important;border:1px solid rgba(255,255,255,.13)!important;background:#141414!important;color:#f7f7f7!important;border-radius:9px!important;padding:0 9px!important;outline:none!important;font:inherit!important;font-size:12.5px!important;box-shadow:none!important;appearance:auto!important;}
+#ct30Modal input,#ct30Modal select{height:34px!important;}
+#ct30Modal textarea{min-height:78px!important;height:78px!important;padding:8px 9px!important;resize:vertical!important;}
+#ct30Modal input:focus,#ct30Modal select:focus,#ct30Modal textarea:focus{border-color:rgba(255,181,46,.62)!important;box-shadow:0 0 0 2px rgba(255,181,46,.10)!important;}
+#ct30Modal select option{background:#111!important;color:#f4f4f4!important;}
+#ct30Modal .wide{grid-column:span 3!important;}
+#ct30Modal .ct30-modal-actions{display:flex!important;justify-content:flex-end!important;gap:7px!important;padding:10px 14px!important;border-top:1px solid rgba(255,255,255,.08)!important;}
+#ct30Modal .ct30-modal-actions button{height:32px!important;border-radius:9px!important;border:1px solid rgba(255,255,255,.12)!important;background:#191919!important;color:#ddd!important;font-size:12px!important;font-weight:950!important;padding:0 12px!important;}
+#ct30Modal .ct30-modal-actions button.primary{background:#ffb52e!important;border-color:#ffb52e!important;color:#111!important;}
+
+/* v34: 요리·레시피 목록 compact */
+.ct30 .ct30-card:has(#ct30FoodList){padding:8px!important;border-radius:12px!important;}
+.ct30 .ct30-card:has(#ct30FoodList) .ct30-head{margin-bottom:6px!important;}
+.ct30 .ct30-filter{grid-template-columns:minmax(180px,330px) 130px!important;gap:6px!important;margin-bottom:6px!important;}
+.ct30 .ct30-filter input,.ct30 .ct30-filter select{height:34px!important;font-size:12.5px!important;}
+.ct30 .ct30-food-list{gap:5px!important;}
+.ct30 .ct30-food{padding:7px 8px!important;border-radius:10px!important;background:rgba(0,0,0,.12)!important;}
+.ct30 .ct30-food>div:first-child{align-items:center!important;gap:8px!important;border-bottom:1px solid rgba(255,255,255,.045)!important;padding-bottom:4px!important;margin-bottom:4px!important;}
+.ct30 .ct30-food b{font-size:13.5px!important;line-height:1.2!important;}
+.ct30 .ct30-food span{font-size:11px!important;line-height:1.25!important;}
+.ct30 .ct30-recipe-pills{margin-top:4px!important;padding-top:4px!important;gap:4px!important;border-top:0!important;}
+.ct30 .ct30-recipe-pills span{height:22px!important;padding:0 6px!important;font-size:11px!important;border-radius:999px!important;}
+.ct30 .ct30-recipe-pills b{font-size:11.5px!important;}
+.ct30 .ct30-recipe-pills button{height:18px!important;font-size:9.5px!important;padding:0 4px!important;}
+.ct30 .ct30-actions{margin-top:5px!important;gap:4px!important;}
+.ct30 .ct30-actions button{height:25px!important;font-size:11px!important;padding:0 7px!important;}
+
+@media(max-width:760px){
+  #ct30Modal .ct30-form-grid{grid-template-columns:1fr 1fr!important;}
+  #ct30Modal .wide{grid-column:1/-1!important;}
+}
+@media(max-width:520px){
+  #ct30Modal .ct30-form-grid{grid-template-columns:1fr!important;}
+  .ct30 .ct30-filter{grid-template-columns:1fr!important;}
+}
+</style>
