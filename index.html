@@ -4607,7 +4607,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxY5oVkShkEI143EM6Y3Xs2eEoRKyqUWJgZIzQ_dzw7HIS_QuTYJ8tTgnTyLmdyqqIdjw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxswMLghsXsNWaZvwYBhZTovgRDB09zcB7ARd1ogZbVVVK9Ms5hGTKL4zxlfTK9QjnzIw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -26621,5 +26621,103 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
     };
   }
   installCookingNameOnlySearch();
+})();
+</script>
+
+
+<script id="axe-permission-v36">
+(function(){
+  const VERSION='v36-memo-personal-cooking-chef';
+  const CACHE_KEY=(typeof DATA_CACHE_KEY!=='undefined')?DATA_CACHE_KEY:'axeNetDataCache_v1';
+  function safe(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c;});}
+  function currentUser(){try{return (typeof getCurrentUser==='function'&&getCurrentUser())||JSON.parse(localStorage.getItem(typeof AUTH_STORAGE_KEY!=='undefined'?AUTH_STORAGE_KEY:'axe_net_current_user')||'null')||null;}catch(e){return null;}}
+  function currentNick(){const u=currentUser();return String((u&&u.nickname)||'').trim();}
+  function isAdmin(){try{return typeof isCurrentAdmin==='function'&&isCurrentAdmin();}catch(e){const u=currentUser();return !!u&&['admin'].includes(String(u.role||u.badge||'').toLowerCase());}}
+  function readCache(){try{return JSON.parse(sessionStorage.getItem(CACHE_KEY)||'{}')||{};}catch(e){return {};}}
+  function chefRows(){const c=readCache();return (Array.isArray(window.cookingChefs)?window.cookingChefs:(Array.isArray(c.cookingChefs)?c.cookingChefs:[])).map(function(r){return {nickname:String(r.nickname||r['닉네임']||'').trim(),enabled:String(r.enabled!==undefined?r.enabled:(r['사용여부']!==undefined?r['사용여부']:'TRUE')).toLowerCase()!=='false',note:String(r.note||r['비고']||'')};});}
+  function hasCookingAccess(){const u=currentUser();if(!u)return false;const role=String(u.role||'').toLowerCase();const badge=String(u.badge||'').toLowerCase();if(isAdmin()||['chef','cook','요리사'].includes(role)||['chef','cook','요리사'].includes(badge))return true;const nick=currentNick();return !!nick&&chefRows().some(function(r){return r.enabled&&r.nickname===nick;});}
+  window.hasCookingToolAccessV36=hasCookingAccess;
+  function mergeLocal(data){if(!data)return; if(data.cookingChefs!==undefined){window.cookingChefs=data.cookingChefs||[];} if(data.memos!==undefined){window.memos=data.memos||[];} }
+
+  const oldGetPartial=window.getPartialRefreshPayload;
+  if(typeof oldGetPartial==='function'){
+    window.getPartialRefreshPayload=function(scope){
+      const p=oldGetPartial(scope)||{type:'category_refresh',category:scope||''};
+      const nick=currentNick();
+      if(nick)p.nickname=nick;
+      if(String(p.category||scope||'')==='utility'||String(scope||'')==='utility')p.memo_scope='mine';
+      return p;
+    };
+  }
+  const oldApply=window.applyPartialData;
+  if(typeof oldApply==='function'){
+    window.applyPartialData=function(source,scope){const res=oldApply.apply(this,arguments);const data=(source&&source.data)||source||{};mergeLocal(data);setTimeout(refreshCookingAccessButtons,0);return res;};
+  }
+
+  function visibleMemos(list){const nick=currentNick();return (Array.isArray(list)?list:[]).filter(function(m){m=m||{};const writer=String(m.writer||m['작성자']||'').trim();return !!nick&&writer===nick;});}
+  const oldRenderMemo=window.renderMemoNotepad;
+  if(typeof oldRenderMemo==='function'){
+    window.renderMemoNotepad=function(){
+      try{window.memos=visibleMemos(window.memos||[]);}catch(e){}
+      const out=oldRenderMemo.apply(this,arguments);
+      try{
+        const sub=document.querySelector('.memo-panel-sub');
+        if(sub)sub.textContent='내가 저장한 개인 메모만 표시됩니다.';
+        document.querySelectorAll('.memo-meta').forEach(function(el){el.textContent=el.textContent.replace(/작성자\s*[^·]+\s*·?\s*/,'');});
+      }catch(e){}
+      return out;
+    };
+  }
+  const oldPostMemo=window.postMemoApi;
+  if(typeof oldPostMemo==='function'){
+    window.postMemoApi=function(payload){payload=payload||{};payload.nickname=payload.nickname||currentNick();return oldPostMemo(payload).then(function(data){mergeLocal(data);return data;});};
+  }
+
+  function deniedHtml(){return `<div class="ct30 ct36-denied"><div class="ct30-panel"><h2>요리 도우미</h2><div class="ct30-empty">요리사로 등록된 사용자만 이용할 수 있습니다.<br>관리자에게 요리사 등록을 요청해 주세요.</div>${isAdmin()?'<button class="primary" onclick="openCookingChefManagerV36()">요리사 관리</button>':''}</div></div>`;}
+  function showDenied(){const box=document.getElementById('utilityContent')||document.getElementById('content');if(box)box.innerHTML=deniedHtml();}
+  const oldNav=window.navigateSubTab;
+  if(typeof oldNav==='function'){
+    window.navigateSubTab=function(section,tab){
+      if(String(section)==='utility'&&String(tab)==='cooking'){
+        if(hasCookingAccess())return oldNav.apply(this,arguments);
+        const nick=currentNick();
+        if(nick&&typeof requestPartialRefresh==='function'){
+          return requestPartialRefresh('utility',{force:true}).then(function(){if(hasCookingAccess())oldNav('utility','cooking');else showDenied();}).catch(showDenied);
+        }
+        showDenied();return;
+      }
+      return oldNav.apply(this,arguments);
+    };
+  }
+  if(window.CookingTool30&&typeof window.CookingTool30.render==='function'){
+    const oldCookingRender=window.CookingTool30.render.bind(window.CookingTool30);
+    window.CookingTool30.render=function(){if(!hasCookingAccess()){showDenied();return;} return oldCookingRender();};
+  }
+  function refreshCookingAccessButtons(){
+    const allow=hasCookingAccess();
+    document.querySelectorAll('[data-utility-tab="cooking"]').forEach(function(btn){
+      if(allow||isAdmin()){btn.style.display='';btn.disabled=false;btn.title='요리 도우미';}
+      else{btn.style.display='none';btn.disabled=true;btn.title='요리사 권한 필요';}
+    });
+    if(isAdmin()&&!document.getElementById('ct36ChefManageStyle')){
+      const st=document.createElement('style');st.id='ct36ChefManageStyle';st.textContent='.ct36-chef-modal{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px}.ct36-chef-box{width:min(760px,96vw);max-height:86vh;overflow:auto;background:#111;border:1px solid rgba(255,181,46,.35);border-radius:18px;padding:18px;color:#f5f5f5;box-shadow:0 20px 80px rgba(0,0,0,.55)}.ct36-chef-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.ct36-chef-title{font-weight:1000;color:#ffb52e;font-size:20px}.ct36-chef-row{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:10px}.ct36-chef-row input{background:#181818!important;border:1px solid rgba(255,255,255,.16)!important;color:#fff!important;border-radius:10px!important;padding:9px!important}.ct36-chef-list{display:grid;gap:6px}.ct36-chef-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:9px;background:rgba(255,255,255,.025)}.ct36-chef-item.off{opacity:.45}.ct36-x{border-radius:999px!important;width:34px;height:34px;padding:0!important}';document.head.appendChild(st);
+    }
+  }
+  window.openCookingChefManagerV36=function(){
+    if(!isAdmin()){alert('관리자 권한이 필요합니다.');return;}
+    const rows=chefRows();
+    const modal=document.createElement('div');modal.className='ct36-chef-modal';modal.id='ct36ChefModal';
+    modal.innerHTML=`<div class="ct36-chef-box"><div class="ct36-chef-head"><div><div class="ct36-chef-title">요리사 관리</div><div style="color:#aaa;font-size:12px;margin-top:4px">등록된 요리사만 편의기능의 요리 도우미를 볼 수 있습니다.</div></div><button class="ct36-x" onclick="document.getElementById('ct36ChefModal')?.remove()">×</button></div><div class="ct36-chef-row"><input id="ct36ChefNick" placeholder="회원 닉네임"><input id="ct36ChefNote" placeholder="비고"><button class="primary" onclick="saveCookingChefV36()">등록/수정</button></div><div class="ct36-chef-list">${rows.length?rows.map(function(r){return `<div class="ct36-chef-item ${r.enabled?'':'off'}"><div><b>${safe(r.nickname)}</b><div style="color:#999;font-size:12px">${safe(r.note||'')}</div></div><span>${r.enabled?'사용':'해제'}</span><button onclick="deleteCookingChefV36('${safe(r.nickname)}')">해제</button></div>`;}).join(''):'<div class="ct30-empty">등록된 요리사가 없습니다.</div>'}</div></div>`;
+    document.body.appendChild(modal);
+  };
+  window.saveCookingChefV36=function(){
+    const nick=(document.getElementById('ct36ChefNick')||{}).value||'';const note=(document.getElementById('ct36ChefNote')||{}).value||'';
+    if(!nick.trim()){alert('닉네임을 입력하세요.');return;}
+    adminApi({type:'cooking_chef_save',target_nickname:nick.trim(),note:note,enabled:true}).then(function(data){if(data&&data.result==='success'){mergeLocal(data);alert('저장되었습니다.');document.getElementById('ct36ChefModal')?.remove();openCookingChefManagerV36();refreshCookingAccessButtons();}else alert((data&&data.message)||'저장 실패');});
+  };
+  window.deleteCookingChefV36=function(nick){if(!confirm(nick+' 요리사 권한을 해제할까요?'))return;adminApi({type:'cooking_chef_delete',target_nickname:nick}).then(function(data){if(data&&data.result==='success'){mergeLocal(data);document.getElementById('ct36ChefModal')?.remove();openCookingChefManagerV36();refreshCookingAccessButtons();}else alert((data&&data.message)||'해제 실패');});};
+  const mo=new MutationObserver(refreshCookingAccessButtons);try{mo.observe(document.body,{childList:true,subtree:true});}catch(e){}
+  setTimeout(function(){if(currentNick()&&typeof requestPartialRefresh==='function')requestPartialRefresh('utility',{force:true}).catch(function(){});refreshCookingAccessButtons();},300);
+  window.axePermissionV36Debug=function(){return {version:VERSION,nickname:currentNick(),admin:isAdmin(),chefRows:chefRows(),cookingAccess:hasCookingAccess(),memoCount:Array.isArray(window.memos)?window.memos.length:null};};
 })();
 </script>
