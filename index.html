@@ -4586,7 +4586,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw_0pVG15VYEj3W6yDtKVG2zNcLMyDdII9f2xU_C1CXHtUweKURPZZsRAgvjyoeKKKhqQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxXhubmTmfe3VzOkeXf3jq2oPHFaFOtIy1LeW-hWoBH99XGgikJR8ZAddfIJhwg-r58Kw/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -24043,3 +24043,284 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 })();
 </script>
 
+
+<style id="axe-cooking-helper-test-v1-style">
+.cooking-test-wrap{display:grid;gap:14px}
+.cooking-test-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.cooking-test-card{border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),rgba(0,0,0,.24);border-radius:15px;padding:14px}
+.cooking-test-label{font-size:12px;color:#888;font-weight:950;margin-bottom:6px}
+.cooking-test-value{font-size:22px;color:#ffcf75;font-weight:950;font-variant-numeric:tabular-nums}
+.cooking-test-panel{border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.22);border-radius:16px;padding:15px}
+.cooking-test-title{font-size:18px;font-weight:950;color:#ffb52e;margin-bottom:8px}
+.cooking-test-desc{font-size:13px;color:#aaa;line-height:1.55;margin-bottom:12px}
+.cooking-test-form{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px;gap:8px;align-items:end;margin-bottom:12px}
+.cooking-test-result{display:grid;gap:8px}
+.cooking-recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 80px 120px;gap:8px;align-items:center;padding:10px 12px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.025);border-radius:12px}
+.cooking-recipe-name{font-size:14px;font-weight:950;color:#fff}
+.cooking-recipe-qty{font-size:15px;font-weight:950;color:#ffcf75;text-align:right}
+.cooking-recipe-type{font-size:12px;color:#aaa;text-align:right}
+.cooking-test-warning{border:1px solid rgba(255,107,107,.28);background:rgba(255,107,107,.08);color:#ffb7b7;border-radius:13px;padding:11px 12px;font-size:13px;line-height:1.5}
+.cooking-test-ok{border:1px solid rgba(110,231,168,.28);background:rgba(110,231,168,.08);color:#baf7d6;border-radius:13px;padding:11px 12px;font-size:13px;line-height:1.5}
+.cooking-mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.cooking-mini-table th,.cooking-mini-table td{border-bottom:1px solid rgba(255,255,255,.07);padding:8px 6px;text-align:left;vertical-align:top}
+.cooking-mini-table th{color:#888;font-weight:950;background:rgba(255,255,255,.025)}
+.cooking-mini-table td{color:#ddd}
+.cooking-helper-tab-btn{position:relative}
+@media(max-width:920px){.cooking-test-grid{grid-template-columns:repeat(2,1fr)}.cooking-test-form{grid-template-columns:1fr}.cooking-recipe-row{grid-template-columns:1fr}.cooking-recipe-qty,.cooking-recipe-type{text-align:left}}
+@media(max-width:520px){.cooking-test-grid{grid-template-columns:1fr}}
+</style>
+<script id="axe-cooking-helper-test-v1-script">
+/* AXE NET COOKING HELPER TEST V1: 편의기능 요리 도우미 시트 연동 테스트 */
+(function(){
+    const VERSION="AXE_COOKING_HELPER_TEST_V1";
+    function escHtml(value){
+        return String(value==null?"":value).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});
+    }
+    function num(value){
+        const n=Number(String(value==null?"":value).replace(/[,원개세트\s]/g,""));
+        return isFinite(n)?n:0;
+    }
+    function readCache(){
+        try{
+            const key=(typeof DATA_CACHE_KEY!=="undefined")?DATA_CACHE_KEY:"axeNetDataCache_v1";
+            const raw=sessionStorage.getItem(key);
+            return raw?JSON.parse(raw):{};
+        }catch(e){return {};}
+    }
+    function payload(){
+        const cache=readCache();
+        return {
+            cookingTypes: window.cookingTypes || cache.cookingTypes || [],
+            cookingRecipes: window.cookingRecipes || cache.cookingRecipes || [],
+            cookingMaterials: window.cookingMaterials || cache.cookingMaterials || [],
+            cookingProcesses: window.cookingProcesses || cache.cookingProcesses || [],
+            cookingFarmItems: window.cookingFarmItems || cache.cookingFarmItems || [],
+            cookingAliases: window.cookingAliases || cache.cookingAliases || [],
+            cookingFishConvert: window.cookingFishConvert || cache.cookingFishConvert || []
+        };
+    }
+    function setCookingGlobals(data){
+        if(!data)return;
+        if(data.cookingTypes!==undefined)window.cookingTypes=data.cookingTypes||[];
+        if(data.cookingRecipes!==undefined)window.cookingRecipes=data.cookingRecipes||[];
+        if(data.cookingMaterials!==undefined)window.cookingMaterials=data.cookingMaterials||[];
+        if(data.cookingProcesses!==undefined)window.cookingProcesses=data.cookingProcesses||[];
+        if(data.cookingFarmItems!==undefined)window.cookingFarmItems=data.cookingFarmItems||[];
+        if(data.cookingAliases!==undefined)window.cookingAliases=data.cookingAliases||[];
+        if(data.cookingFishConvert!==undefined)window.cookingFishConvert=data.cookingFishConvert||[];
+    }
+    const oldApplyPartial=window.applyPartialData;
+    if(typeof oldApplyPartial==="function"){
+        window.applyPartialData=function(source,scope){
+            const result=oldApplyPartial.apply(this,arguments);
+            const data=(source&&source.data)||(source&&source.payload)||source||{};
+            setCookingGlobals(data);
+            return result;
+        };
+    }
+    const oldHydrate=window.hydrateData;
+    if(typeof oldHydrate==="function"){
+        window.hydrateData=function(data){
+            const result=oldHydrate.apply(this,arguments);
+            setCookingGlobals(data||{});
+            return result;
+        };
+    }
+    function normalizeTab(tab){
+        const v=String(tab||"").trim();
+        if(v==="cooking"||v==="cook"||v==="cookinghelper"||v==="요리도우미")return "cooking";
+        if(v==="graphic"||v==="patch"||v==="graphicPatch")return "graphic";
+        if(v==="plica")return "plica";
+        return "memo";
+    }
+    function ensureCookingTab(active){
+        const tabs=document.querySelector(".utility-category-tabs");
+        if(!tabs)return;
+        if(!tabs.querySelector('[data-utility-tab="cooking"]')){
+            const btn=document.createElement("button");
+            btn.type="button";
+            btn.dataset.utilityTab="cooking";
+            btn.className="cooking-helper-tab-btn";
+            btn.textContent="요리 도우미";
+            btn.onclick=function(){ if(typeof window.navigateSubTab==="function")window.navigateSubTab("utility","cooking"); };
+            tabs.appendChild(btn);
+        }
+        Array.from(tabs.querySelectorAll("button[data-utility-tab]")).forEach(function(btn){
+            btn.classList.toggle("active",btn.dataset.utilityTab===active);
+        });
+    }
+    function renderShell(active){
+        if(typeof enterMainSection==="function")enterMainSection("utility");
+        window.currentHistoryPage="utility";
+        if(typeof setMainActive==="function")setMainActive(8);
+        const content=document.getElementById("content");
+        if(!content)return false;
+        content.innerHTML=`<div class="section-head">
+            <div><div class="section-title">편의기능</div><div class="section-desc">게임 플레이에 필요한 보조 기능을 확인합니다.</div></div>
+            <div class="count">UTILITY</div>
+        </div><div class="utility-category-shell"><div class="utility-category-tabs">
+            <button data-utility-tab="memo" class="${active==="memo"?"active":""}" onclick="navigateSubTab('utility','memo')">메모장</button>
+            <button data-utility-tab="plica" class="${active==="plica"?"active":""}" onclick="navigateSubTab('utility','plica')">플리카 계산기</button>
+            <button data-utility-tab="graphic" class="${active==="graphic"?"active":""}" onclick="navigateSubTab('utility','graphic')">그래픽 패치</button>
+            <button data-utility-tab="cooking" class="${active==="cooking"?"active":""}" onclick="navigateSubTab('utility','cooking')">요리 도우미</button>
+        </div><div class="utility-category-note">메모, 계산기, 그래픽 패치, 요리 도우미를 한 곳에서 관리합니다.</div></div><div id="utilityContent"></div>`;
+        return true;
+    }
+    function foodName(row){return String(row["요리명"]||row.name||row.food||"").trim();}
+    function materialName(row){return String(row["재료명"]||row.name||"").trim();}
+    function recipeFoodName(row){return String(row["요리명"]||row.food||"").trim();}
+    function recipeMaterial(row){return String(row["재료명"]||row.material||"").trim();}
+    function activeRows(rows){
+        return (rows||[]).filter(function(row){
+            const use=String(row["사용여부"]==null?"TRUE":row["사용여부"]).trim().toLowerCase();
+            return !use||["true","1","y","yes","사용","사용중","활성"].indexOf(use)>=0;
+        });
+    }
+    function sortedTypes(types){
+        return activeRows(types).slice().sort(function(a,b){
+            const ao=num(a["정렬"]), bo=num(b["정렬"]);
+            if(ao!==bo)return ao-bo;
+            return foodName(a).localeCompare(foodName(b),"ko");
+        });
+    }
+    function renderCookingHelperTest(){
+        const box=document.getElementById("utilityContent");
+        if(!box)return;
+        window.axeUtilityActiveTab="cooking";
+        try{sessionStorage.setItem("axe_utility_active_tab","cooking");}catch(e){}
+        ensureCookingTab("cooking");
+        const data=payload();
+        const types=sortedTypes(data.cookingTypes);
+        const recipes=activeRows(data.cookingRecipes);
+        const materials=activeRows(data.cookingMaterials);
+        const processes=activeRows(data.cookingProcesses);
+        const farm=activeRows(data.cookingFarmItems);
+        const aliases=activeRows(data.cookingAliases);
+        const fish=activeRows(data.cookingFishConvert);
+        const selected=String(window.axeCookingSelected||"") || (types[0]?foodName(types[0]):"");
+        const setCount=Number(window.axeCookingTestSets||1)||1;
+        const food=types.find(function(row){return foodName(row)===selected;})||types[0]||{};
+        const currentName=foodName(food);
+        const setSize=Math.max(1,num(food["1세트수량"])||1);
+        const pieces=setCount*setSize;
+        const recipeRows=recipes.filter(function(row){return recipeFoodName(row)===currentName;});
+        const needRows=recipeRows.map(function(row){
+            const q=num(row["필요수량"]);
+            return {name:recipeMaterial(row),qty:q*pieces,type:String(row["재료구분"]||""),base:q};
+        });
+        const emptyWarning=(!types.length||!recipes.length||!materials.length)?`<div class="cooking-test-warning">일부 요리 도우미 시트 데이터가 비어 있습니다. Apps Script 배포 후 새로고침했는지, 시트명이 정확한지 확인해 주세요.</div>`:`<div class="cooking-test-ok">시트 데이터가 응답에 포함되었습니다. 다음 단계에서 계산기 UI와 원가 계산 로직을 연결하면 됩니다.</div>`;
+        box.innerHTML=`<div class="cooking-test-wrap">
+            <div class="cooking-test-panel">
+                <div class="cooking-test-title">요리 도우미 데이터 연동 테스트</div>
+                <div class="cooking-test-desc">시트에서 읽어온 요리 도우미 데이터를 확인하는 1차 테스트 화면입니다. 아직 완성형 계산기가 아니라 데이터 연결 상태 확인용입니다.</div>
+                ${emptyWarning}
+            </div>
+            <div class="cooking-test-grid">
+                ${[
+                    ["요리종류",types.length],["요리레시피",recipes.length],["요리재료",materials.length],["요리가공재료",processes.length],
+                    ["요리농장재료",farm.length],["요리별칭",aliases.length],["요리생선변환",fish.length]
+                ].map(function(item){return `<div class="cooking-test-card"><div class="cooking-test-label">${item[0]}</div><div class="cooking-test-value">${item[1]}</div></div>`;}).join("")}
+            </div>
+            <div class="cooking-test-panel">
+                <div class="cooking-test-title">샘플 요리 계산 테스트</div>
+                <div class="cooking-test-form">
+                    <div><div class="form-label">요리 선택</div><select id="cookingTestFood" onchange="window.axeCookingSelected=this.value;renderCookingHelperTest();">${types.map(function(row){const n=foodName(row);return `<option value="${escHtml(n)}" ${n===currentName?"selected":""}>${escHtml(n)}</option>`;}).join("")}</select></div>
+                    <div><div class="form-label">세트 수</div><input id="cookingTestSets" type="number" min="1" value="${setCount}" oninput="window.axeCookingTestSets=this.value;renderCookingHelperTest();"></div>
+                    <div><div class="form-label">제작 개수</div><input readonly value="${pieces}개"></div>
+                </div>
+                <div class="cooking-test-desc">1세트수량: <b>${setSize}개</b> · 세트판매가: <b>${escHtml(food["세트판매가"]||"미입력")}</b> · 등급: <b>${escHtml(food["등급"]||"미입력")}</b></div>
+                <div class="cooking-test-result">
+                    ${needRows.length?needRows.map(function(row){return `<div class="cooking-recipe-row"><div class="cooking-recipe-name">${escHtml(row.name)}</div><div class="cooking-recipe-qty">${row.qty}개</div><div class="cooking-recipe-type">기본 ${row.base} · ${escHtml(row.type||"구분없음")}</div></div>`;}).join(""):`<div class="cooking-test-warning">선택한 요리의 레시피 행을 찾지 못했습니다.</div>`}
+                </div>
+            </div>
+            <div class="cooking-test-panel">
+                <div class="cooking-test-title">최근 요리종류 샘플</div>
+                <div style="overflow:auto"><table class="cooking-mini-table"><thead><tr><th>요리명</th><th>등급</th><th>1세트</th><th>세트가</th><th>효과</th></tr></thead><tbody>
+                    ${types.slice(0,10).map(function(row){return `<tr><td>${escHtml(foodName(row))}</td><td>${escHtml(row["등급"]||"")}</td><td>${escHtml(row["1세트수량"]||"")}</td><td>${escHtml(row["세트판매가"]||"")}</td><td>${escHtml(row["효과"]||"")}</td></tr>`;}).join("")}
+                </tbody></table></div>
+            </div>
+        </div>`;
+    }
+    window.renderCookingHelperTest=renderCookingHelperTest;
+    function showCooking(){
+        window.axeUtilityActiveTab="cooking";
+        try{sessionStorage.setItem("axe_utility_active_tab","cooking");}catch(e){}
+        renderShell("cooking");
+        renderCookingHelperTest();
+        if(typeof requestPartialRefresh==="function"){
+            requestPartialRefresh("utility",{force:true}).then(function(data){
+                setCookingGlobals((data&&data.data)||data||{});
+                if(window.axeUtilityActiveTab==="cooking")renderCookingHelperTest();
+            }).catch(function(){});
+        }
+        if(typeof refreshFavoriteSidebar==="function")refreshFavoriteSidebar();
+    }
+    window.showCookingHelper=showCooking;
+
+    const oldShowUtility=window.showUtility;
+    window.showUtility=function(tab){
+        const normalized=normalizeTab(tab||window.axeUtilityActiveTab||"memo");
+        if(normalized==="cooking")return showCooking();
+        const result=typeof oldShowUtility==="function"?oldShowUtility.apply(this,arguments):undefined;
+        ensureCookingTab(normalized);
+        return result;
+    };
+    const oldNavigateSubTab=window.navigateSubTab;
+    window.navigateSubTab=function(page,subTab,push){
+        const target=typeof normalizeMainPage==="function"?normalizeMainPage(page):page;
+        if(target==="utility"&&normalizeTab(subTab)==="cooking"){
+            const shouldPush=push!==false;
+            const current=history.state||{};
+            if(shouldPush&&(current.page!=="utility"||current.subTab!=="cooking"))history.pushState({page:"utility",subTab:"cooking"},"","#utility-cooking");
+            return showCooking();
+        }
+        const result=typeof oldNavigateSubTab==="function"?oldNavigateSubTab.apply(this,arguments):undefined;
+        setTimeout(function(){ensureCookingTab(normalizeTab(subTab||window.axeUtilityActiveTab));},0);
+        return result;
+    };
+    const oldRenderMemo=window.renderMemoNotepad;
+    if(typeof oldRenderMemo==="function"){
+        window.renderMemoNotepad=function(){
+            if(window.axeUtilityActiveTab==="cooking")return;
+            return oldRenderMemo.apply(this,arguments);
+        };
+    }
+    const oldRerender=window.rerenderCurrentPageScope;
+    if(typeof oldRerender==="function"){
+        window.rerenderCurrentPageScope=function(scope){
+            const key=String(scope||window.currentMainSection||"");
+            if(key==="utility"&&window.axeUtilityActiveTab==="cooking")return showCooking();
+            return oldRerender.apply(this,arguments);
+        };
+    }
+    const oldParse=window.parseRouteFromHash;
+    window.parseRouteFromHash=function(){
+        const raw=decodeURIComponent((location.hash||"").replace(/^#/,""));
+        if(raw==="utility-cooking"||raw==="cooking"||raw==="cooking-helper")return {page:"utility",subTab:"cooking"};
+        if(typeof oldParse==="function")return oldParse.apply(this,arguments);
+        return {page:raw||"home"};
+    };
+    const oldGetRoute=window.getCurrentRouteForFavorite;
+    window.getCurrentRouteForFavorite=function(){
+        const state=history.state||{}; const hash=String(location.hash||"");
+        if((window.currentMainSection==="utility"||state.page==="utility"||hash.indexOf("#utility")===0)&&window.axeUtilityActiveTab==="cooking")return {page:"utility",subTab:"cooking"};
+        if(typeof oldGetRoute==="function")return oldGetRoute.apply(this,arguments);
+        return {page:"home"};
+    };
+    const oldLabel=window.makeFavoriteLabel;
+    window.makeFavoriteLabel=function(route){
+        const r=route||{}; const page=typeof normalizeMainPage==="function"?normalizeMainPage(r.page||""):r.page;
+        if(page==="utility"&&r.subTab==="cooking")return "요리 도우미";
+        if(typeof oldLabel==="function")return oldLabel.apply(this,arguments);
+        return "즐겨찾기";
+    };
+    const oldFavId=window.makeFavoriteId;
+    window.makeFavoriteId=function(route){
+        const r=route||{}; const page=typeof normalizeMainPage==="function"?normalizeMainPage(r.page||""):r.page;
+        if(page==="utility"&&r.subTab==="cooking")return "utility|cooking";
+        if(typeof oldFavId==="function")return oldFavId.apply(this,arguments);
+        return String(Date.now());
+    };
+    window.axeCookingHelperDebug=function(){const d=payload();return {version:VERSION,counts:{types:d.cookingTypes.length,recipes:d.cookingRecipes.length,materials:d.cookingMaterials.length,processes:d.cookingProcesses.length,farm:d.cookingFarmItems.length,aliases:d.cookingAliases.length,fish:d.cookingFishConvert.length},active:window.axeUtilityActiveTab,hash:location.hash};};
+})();
+</script>
