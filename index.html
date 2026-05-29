@@ -27048,3 +27048,92 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 .ct40-id-box span{font-size:11px;color:#9da7b7;font-weight:900}.ct40-id-box b{font-size:13px;color:#ffe0a3}.ct40-id-box em{font-size:11px;color:#8f98a7;font-style:normal}.ct40-id-box.auto b{color:#7ee7b4}
 @media(max-width:760px){.ct40-form-grid{grid-template-columns:1fr!important}.ct40-modal-box{width:calc(100vw - 18px)!important}}
 </style>
+
+
+<script>
+/* AXE NET Cooking Tool V41 - material other/fixed source display fix */
+(function(){
+  const VERSION='v41-material-other-source-fix';
+  function h(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function q(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
+  function n(v){const x=parseFloat(String(v==null?'':v).replace(/,/g,''));return Number.isFinite(x)?x:0;}
+  function rowId(r){return String((r&&(r.id||r.ID||r['id']||r['ID']))||'').trim();}
+  function active(r){const v=String(r&&r['사용여부']!=null?r['사용여부']:'TRUE').trim().toUpperCase();return !['FALSE','N','NO','0','미사용','사용안함'].includes(v);}
+  function keyName(v){return String(v||'').replace(/\s+/g,'').toLowerCase();}
+  function matName(r){return String(r&&r['재료명']||'').trim();}
+  function src(r){return String(r&&r['구매처']||'').trim();}
+  function isMarket(r){return src(r).indexOf('마트')!==-1;}
+  function isStreet(r){return src(r).indexOf('노점')!==-1;}
+  function isPriority(r){const v=String((r&&(r['우선구매']||r['우선']))||'').trim().toUpperCase();return ['TRUE','Y','YES','1','우선'].includes(v);}
+  function money(v){const x=n(v); return x?Math.round(x).toLocaleString('ko-KR')+'원':'-';}
+  function unit(row){const u=n(row&&row['개당가격']); const bq=n(row&&row['묶음수량']); const bp=n(row&&row['묶음가격']); return u || (bq&&bp?bp/bq:0);}
+  function saleInfo(row){
+    if(!row) return '<div class="ct41-empty">-</div>';
+    const bq=n(row['묶음수량']); const bp=n(row['묶음가격']); const u=unit(row); const source=src(row)||'구매처 미입력';
+    let main='';
+    if(bq>1 && bp){ main=`${h(source)}${isPriority(row)?' <em>우선</em>':''} · ${h(bq)}개 묶음 · ${money(bp)}`; }
+    else if(bp){ main=`${h(source)}${isPriority(row)?' <em>우선</em>':''} · 낱개 판매 · ${money(bp)}`; }
+    else { main=`${h(source)}${isPriority(row)?' <em>우선</em>':''}`; }
+    const unitLine = u ? `<strong>개당 ${money(u)}</strong>` : '<span class="muted">개당 -</span>';
+    const note = row['비고'] ? `<small>${h(row['비고'])}</small>` : '';
+    return `<div class="ct41-mat-sale"><div>${main}</div>${unitLine}${note}<button type="button" onclick="CookingTool30.openMaterialEditor('${q(rowId(row))}')">수정</button></div>`;
+  }
+  function ctx(){try{return window.CookingTool30&&typeof window.CookingTool30.ctx==='function'?window.CookingTool30.ctx():{};}catch(e){return {};}}
+  function getGroups(c, search){
+    const rows=(c.materials||[]).filter(active).filter(r=>{
+      if(!search)return true;
+      return [r['재료명'],r['구매처'],r['비고'],r['획득구분']].join(' ').replace(/\s+/g,'').toLowerCase().includes(search);
+    });
+    const groups={};
+    rows.forEach(r=>{const name=matName(r); if(!name)return; const k=keyName(name); const g=groups[k]||(groups[k]={name,market:null,street:null,others:[]}); if(isMarket(r)&&!g.market)g.market=r; else if(isStreet(r)&&!g.street)g.street=r; else g.others.push(r);});
+    return Object.values(groups).sort((a,b)=>{
+      const as=(a.market?1:0)+(a.street?1:0)+(a.others.length?1:0); const bs=(b.market?1:0)+(b.street?1:0)+(b.others.length?1:0);
+      const aboth=(a.market&&a.street)?1:0, bboth=(b.market&&b.street)?1:0;
+      return (bboth-aboth)||(bs-as)||a.name.localeCompare(b.name,'ko');
+    });
+  }
+  function renderMaterialList(value){
+    const st=window.CookingTool30&&window.CookingTool30.state; if(st && value!==undefined) st.materialSearch=value;
+    const search=String((st&&st.materialSearch)||window.axeCookingPriceSearch||'').replace(/\s+/g,'').toLowerCase();
+    const c=ctx(); const groups=getGroups(c, search);
+    const rows=groups.map(g=>`<div class="ct41-mat-row">
+      <div class="ct41-mat-name">${h(g.name)}</div>
+      <div>${saleInfo(g.market)}</div>
+      <div>${saleInfo(g.street)}</div>
+      <div>${g.others.length?g.others.map(saleInfo).join(''):'<div class="ct41-empty">-</div>'}</div>
+    </div>`).join('') || '<div class="ct41-no-result">재료가 없습니다.</div>';
+    const html=`<div class="ct41-mat-table"><div class="ct41-mat-head"><span>재료</span><span>마트</span><span>노점상</span><span>기타·고정단가</span></div>${rows}</div>`;
+    const box=document.getElementById('ct30MaterialList')||document.getElementById('cookingMaterialListBox'); if(box)box.innerHTML=html;
+    return html;
+  }
+  function renderMaterials(){
+    const c=ctx(); const st=window.CookingTool30&&window.CookingTool30.state||{}; const box=document.getElementById('ct30View'); if(!box)return;
+    box.innerHTML=`<div class="ct30-card ct41-card"><div class="ct30-head ct41-head"><b>재료목록</b><span>${h((c.materials||[]).length)}개</span><button class="primary" type="button" onclick="CookingTool30.openMaterialEditor('')">물품 추가</button></div><input class="ct30-search ct41-search" id="ct30MatSearch" placeholder="재료명, 구매처, 비고 검색" value="${h(st.materialSearch||'')}" autocomplete="off" oninput="CookingTool30.renderMaterialList(this.value)"><div id="ct30MaterialList"></div></div>`;
+    renderMaterialList(st.materialSearch||'');
+  }
+  function install(){
+    if(!window.CookingTool30)return false;
+    window.CookingTool30.renderMaterials=renderMaterials;
+    window.CookingTool30.renderMaterialList=renderMaterialList;
+    window.axeCookingV41Debug=function(){const c=ctx();return {version:VERSION, renderer:'v41-material-other-source-owned', materials:(c.materials||[]).length, hasWater:(c.materials||[]).some(r=>matName(r)==='물')};};
+    return true;
+  }
+  function ensure(){ if(!install()) setTimeout(ensure,300); }
+  ensure();
+})();
+</script>
+<style>
+/* V41 material list: market/street/other fixed-source table */
+.ct41-card{max-width:980px!important;width:min(980px,100%)!important;margin:0!important;padding:12px!important}
+.ct41-head{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:10px!important;align-items:center!important;margin-bottom:8px!important}
+.ct41-head b{font-size:18px!important}.ct41-head span{font-size:12px!important;color:#9eabbc!important}.ct41-search{max-width:360px!important;height:38px!important;margin-bottom:8px!important}
+.ct41-mat-table{display:grid!important;gap:4px!important;width:100%!important;max-width:980px!important;overflow:auto!important;padding-right:2px!important}
+.ct41-mat-head,.ct41-mat-row{display:grid!important;grid-template-columns:118px minmax(210px,1fr) minmax(210px,1fr) minmax(210px,1fr)!important;gap:4px!important;align-items:stretch!important}
+.ct41-mat-head{font-size:11px!important;color:#9da7b7!important;font-weight:900!important;padding:0 6px!important}
+.ct41-mat-row{min-height:54px!important;border-bottom:1px solid rgba(255,255,255,.065)!important}
+.ct41-mat-name{display:flex!important;align-items:center!important;background:rgba(255,183,58,.055)!important;border:1px solid rgba(255,183,58,.18)!important;border-radius:8px!important;padding:8px!important;font-size:13px!important;font-weight:950!important;color:#f7f2e9!important;line-height:1.25!important}
+.ct41-mat-sale{position:relative!important;min-height:54px!important;background:rgba(255,255,255,.025)!important;border:1px solid rgba(255,255,255,.085)!important;border-radius:8px!important;padding:7px 54px 7px 8px!important;font-size:12px!important;line-height:1.25!important;color:#e9edf7!important;display:grid!important;gap:2px!important}
+.ct41-mat-sale em{display:inline-flex!important;margin-left:3px!important;padding:1px 5px!important;border-radius:999px!important;border:1px solid rgba(255,183,58,.38)!important;color:#ffc64e!important;font-style:normal!important;font-size:10px!important}
+.ct41-mat-sale strong{color:#6bffb2!important;font-size:12px!important}.ct41-mat-sale small{color:#8e98a8!important;font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.ct41-mat-sale button{position:absolute!important;right:7px!important;top:7px!important;padding:4px 7px!important;border-radius:8px!important;font-size:11px!important;background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.16)!important;color:#dbe5f5!important}.ct41-empty{min-height:54px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px dashed rgba(255,255,255,.08)!important;border-radius:8px!important;color:#5f6876!important;font-size:12px!important;background:rgba(255,255,255,.012)!important}.ct41-no-result{padding:12px!important;color:#9da7b7!important;border:1px dashed rgba(255,255,255,.1)!important;border-radius:10px!important}
+@media(max-width:980px){.ct41-card{max-width:100%!important}.ct41-mat-head,.ct41-mat-row{grid-template-columns:100px 220px 220px 220px!important;width:max-content!important;min-width:100%!important}}
+</style>
