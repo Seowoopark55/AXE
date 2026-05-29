@@ -24260,6 +24260,75 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
     const oldGetRoute=window.getCurrentRouteForFavorite;window.getCurrentRouteForFavorite=function(){const state=history.state||{};const hash=String(location.hash||"");if((window.currentMainSection==="utility"||state.page==="utility"||hash.indexOf("#utility")===0)&&window.axeUtilityActiveTab==="cooking")return {page:"utility",subTab:"cooking"};if(typeof oldGetRoute==="function")return oldGetRoute.apply(this,arguments);return {page:"home"};};
     const oldLabel=window.makeFavoriteLabel;window.makeFavoriteLabel=function(route){const r=route||{};const page=typeof normalizeMainPage==="function"?normalizeMainPage(r.page||""):r.page;if(page==="utility"&&r.subTab==="cooking")return "요리 도우미";if(typeof oldLabel==="function")return oldLabel.apply(this,arguments);return "즐겨찾기";};
     const oldFavId=window.makeFavoriteId;window.makeFavoriteId=function(route){const r=route||{};const page=typeof normalizeMainPage==="function"?normalizeMainPage(r.page||""):r.page;if(page==="utility"&&r.subTab==="cooking")return "utility|cooking";if(typeof oldFavId==="function")return oldFavId.apply(this,arguments);return String(Date.now());};
+
+
+    /* AXE COOKING HELPER V14: rebuild add-food panel without stacked dropdown/search interference. */
+    window.AXE_COOKING_HELPER_STABLE_VERSION="v14_add_food_panel_stable";
+    function ensureCookingV14Style(){
+      if(document.getElementById("axeCookingV14Style"))return;
+      const style=document.createElement("style");
+      style.id="axeCookingV14Style";
+      style.textContent=`
+        .cooking-add-grid.v14{grid-template-columns:minmax(0,1fr) 84px 84px!important;gap:8px!important;align-items:start!important}
+        .cooking-search-zone.v14{position:relative!important;min-width:0!important;overflow:visible!important}
+        .cooking-search-zone.v14 .cooking-search-list{position:static!important;left:auto!important;right:auto!important;top:auto!important;z-index:auto!important;margin-top:8px!important;max-height:178px!important;min-height:0!important;background:rgba(0,0,0,.20)!important;box-shadow:none!important;overflow:auto!important}
+        .cooking-search-zone.v14 .cooking-search-list.is-empty{min-height:38px!important;display:flex!important;align-items:center!important;padding:0 10px!important;color:#888!important;font-size:12px!important;font-weight:850!important}
+        .cooking-search-zone.v14 .cooking-search-list.is-idle{display:none!important}
+        .cooking-select-row{margin-top:8px!important;display:grid!important;grid-template-columns:68px minmax(0,260px)!important;gap:8px!important;align-items:center!important;max-width:340px!important}
+        .cooking-select-row .cooking-select-label{font-size:12px!important;font-weight:950!important;color:#9a9a9a!important;white-space:nowrap!important}
+        #cookingQuickSelect{height:38px!important;max-width:260px!important;padding:0 10px!important;font-size:13px!important;color:#fff!important;background:#151515!important}
+        #cookingQuickSelect option{background:#151515!important;color:#fff!important}
+        .cooking-search-zone.v14 .cooking-search-item{min-height:36px!important;padding:7px 9px!important;grid-template-columns:minmax(0,1fr) 52px!important;gap:6px!important}
+        .cooking-search-zone.v14 .cooking-search-name{font-size:13px!important;line-height:1.25!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+        .cooking-search-zone.v14 .cooking-search-meta{display:none!important}
+        @media(max-width:760px){.cooking-add-grid.v14{grid-template-columns:1fr!important}.cooking-select-row{grid-template-columns:1fr!important;max-width:none!important}.cooking-select-row .cooking-select-label{display:none!important}#cookingQuickSelect{max-width:none!important;width:100%!important}}
+      `;
+      document.head.appendChild(style);
+    }
+    function renderCookingSearchResultsStable(ctx){
+      const q=String(window.axeCookingSearch||"").trim().toLowerCase();
+      if(!q)return "";
+      const rows=ctx.types.filter(function(row){return recipeSearchText(row,ctx).includes(q);}).slice(0,8);
+      if(!rows.length)return `<div class="cooking-search-list is-empty">검색 결과가 없습니다.</div>`;
+      return `<div class="cooking-search-list">${rows.map(function(row){const name=foodName(row);return `<div class="cooking-search-item" onclick="syncCookingQuickSelect('${js(name)}')"><div class="cooking-search-name">${esc(name)}</div><button type="button" class="cooking-mini-btn primary" onclick="event.stopPropagation();syncCookingQuickSelect('${js(name)}')">선택</button></div>`;}).join("")}</div>`;
+    }
+    renderSearchResults=renderCookingSearchResultsStable;
+    window.updateCookingSearchResults=function(){
+      const box=document.getElementById("cookingSearchResultBox");
+      if(!box)return;
+      try{box.innerHTML=renderCookingSearchResultsStable(buildContext());}catch(e){box.innerHTML="";}
+    };
+    window.handleCookingMainSearchInput=function(input){
+      window.axeCookingSearch=input?input.value:"";
+      if(typeof markCookingTyping==="function")markCookingTyping();
+      if(window.axeCookingMainSearchComposing)return;
+      window.updateCookingSearchResults();
+    };
+    window.finishCookingMainSearchComposition=function(input){
+      window.axeCookingMainSearchComposing=false;
+      window.axeCookingSearch=input?input.value:"";
+      window.updateCookingSearchResults();
+    };
+    window.syncCookingQuickSelect=function(name){
+      window.axeCookingSelectedName=String(name||"");
+      const sel=document.getElementById("cookingQuickSelect");
+      if(sel)sel.value=window.axeCookingSelectedName;
+    };
+    window.addSelectedCookingOrder=function(){
+      const sel=document.getElementById("cookingQuickSelect");
+      const name=String(sel&&sel.value||window.axeCookingSelectedName||"").trim();
+      if(!name){alert("추가할 요리를 선택해 주세요.");return;}
+      const setsEl=document.getElementById("cookingAddSets");
+      addCookingOrder(name,Number(setsEl&&setsEl.value)||1);
+      window.axeCookingSelectedName="";
+      window.axeCookingSearch="";
+    };
+    renderCalculator=function(ctx){
+      ensureCookingV14Style();
+      const selected=ctx.types.some(function(row){return foodName(row)===window.axeCookingSelectedName;})?window.axeCookingSelectedName:"";
+      return `<div class="cooking-tool-dashboard"><div class="cooking-tool-stack"><div class="cooking-panel"><div class="cooking-panel-title">만들 음식 추가 <span>작업 시작</span></div><div class="cooking-add-grid v14"><div class="cooking-search-zone v14"><div class="form-label">요리 검색</div><input id="cookingSearchInput" class="form-input" value="${esc(window.axeCookingSearch||"")}" placeholder="요리명 검색" autocomplete="off" oncompositionstart="window.axeCookingMainSearchComposing=true;markCookingTyping();" oncompositionend="finishCookingMainSearchComposition(this);" oninput="handleCookingMainSearchInput(this);"><div class="cooking-select-row"><div class="cooking-select-label">선택 목록</div><select id="cookingQuickSelect" class="form-input" onchange="syncCookingQuickSelect(this.value)"><option value="">선택</option>${ctx.types.map(function(row){const name=foodName(row);return `<option value="${esc(name)}" ${name===selected?"selected":""}>${esc(name)}</option>`;}).join("")}</select></div><div id="cookingSearchResultBox">${renderCookingSearchResultsStable(ctx)}</div></div><div><div class="form-label">세트 수</div><input id="cookingAddSets" class="form-input" type="number" min="1" value="1"></div><div><div class="form-label">추가</div><button type="button" class="cooking-mini-btn primary" style="width:100%;height:42px" onclick="addSelectedCookingOrder()">추가</button></div></div><div style="margin-top:10px"><div class="form-label">즐겨찾기 빠른 추가</div>${renderFavoriteStrip()}</div></div><div class="cooking-panel"><div class="cooking-panel-title">오늘 제작 목록 <span>${window.axeCookingOrders.length}개 요리</span></div>${renderOrderRows(ctx)}<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button type="button" class="cooking-mini-btn danger" onclick="clearCookingOrders()">초기화</button></div></div></div><div>${renderResultBoard(ctx)}</div></div>`;
+    };
+
     window.axeCookingHelperDebug=function(){const ctx=buildContext();return {version:VERSION,counts:{types:ctx.types.length,recipes:ctx.recipes.length,materials:ctx.materials.length,processes:ctx.processes.length,farm:ctx.farm.length,aliases:activeRows(ctx.data.cookingAliases).length,fish:ctx.fish.length},orders:window.axeCookingOrders,active:window.axeUtilityActiveTab,hash:location.hash};};
 })();
 </script>
