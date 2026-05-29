@@ -25625,3 +25625,100 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
   ensureStyle();
 })();
 </script>
+
+<script>
+/* AXE COOKING HELPER V27: dense data-management layouts
+   - Rebuilds material/process/fish views as compact working tables.
+   - Removes fixed oversized row/card spacing in the data-management area.
+*/
+(function(){
+  const VERSION='v27_dense_data_views';
+  function h(v){return String(v??'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function q(v){return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
+  function n(v){if(v===undefined||v===null||v==='')return 0;const s=String(v).replace(/[,원개묶음\s]/g,'');return parseFloat(s)||0;}
+  function f(v){const x=Number(v);return isFinite(x)?(Math.round(x*100)/100).toLocaleString('ko-KR'):'-';}
+  function money(v){const x=Number(v);return isFinite(x)?f(x)+'원':'-';}
+  function active(row){const v=String(row&&row['사용여부']!==undefined?row['사용여부']:'TRUE').trim().toLowerCase();return !['false','거짓','미사용','사용안함','0','n','no'].includes(v);}
+  function rid(row){return String(row&&row.id||row&&row.ID||row&&row['id']||'').trim();}
+  function key(s){return String(s||'').trim().replace(/\s+/g,'').toLowerCase();}
+  function pri(row){const v=String(row&&(row['우선구매']!==undefined?row['우선구매']:row['우선'])||'').trim().toLowerCase();return ['true','1','y','yes','우선','기본'].includes(v);}
+  function ctx(){return typeof window.axeCookingBuildContextV26==='function'?window.axeCookingBuildContextV26():{materials:[],processes:[],fish:[],aliases:{}};}
+  function std(name,aliases){const raw=String(name||'').trim();return aliases&&aliases[key(raw)]?aliases[key(raw)]:raw;}
+  function compactText(row){return [row['재료명'],row['구매처'],row['묶음수량'],row['묶음가격'],row['개당가격'],row['비고'],row['획득구분']].join(' ').toLowerCase().replace(/\s+/g,'');}
+  function processText(group){return [group.name].concat(group.rows.map(r=>[r['하위재료명'],r['필요수량'],r['결과수량'],r['가공시간'],r['비고']].join(' '))).join(' ').toLowerCase().replace(/\s+/g,'');}
+  function fishText(row){return [row['생선명'],row['투입수량'],row['결과재료'],row['결과수량'],row['가공시간'],row['비고']].join(' ').toLowerCase().replace(/\s+/g,'');}
+  function ensureStyle(){
+    if(document.getElementById('axeCookingV27Style'))return;
+    const style=document.createElement('style');style.id='axeCookingV27Style';style.textContent=`
+      .cook-v27-panel{padding:10px 12px!important;border-radius:14px!important;max-width:1180px!important;margin:0 auto!important;overflow:visible!important}
+      .cook-v27-head{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:10px!important;align-items:center!important;margin-bottom:8px!important}
+      .cook-v27-title{font-size:18px!important;font-weight:950!important;color:#fff!important;line-height:1.15!important;white-space:nowrap!important}
+      .cook-v27-count{justify-self:start;color:#9aa!important;font-size:12px!important;font-weight:950!important}
+      .cook-v27-tools{display:grid!important;grid-template-columns:minmax(180px,360px) auto!important;gap:7px!important;align-items:center!important;margin-bottom:7px!important}
+      .cook-v27-tools .form-input{height:34px!important;font-size:12.5px!important;padding:0 10px!important;border-radius:10px!important}.cook-v27-tools .cooking-mini-btn{height:33px!important;padding:0 10px!important;font-size:12px!important;border-radius:10px!important}
+      .mat-v27{display:grid!important;gap:2px!important}.mat-v27-head,.mat-v27-row{display:grid!important;grid-template-columns:112px minmax(0,1fr) minmax(0,1fr)!important;gap:3px!important;align-items:stretch!important}.mat-v27-head{position:sticky!important;top:0!important;z-index:1!important;background:#111!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:7px!important;color:#8d8d8d!important;font-size:10.5px!important;font-weight:950!important;padding:4px 6px!important}.mat-v27-row{min-height:0!important}.mat-v27-name{display:flex!important;align-items:center!important;min-height:34px!important;padding:4px 7px!important;border-radius:7px!important;background:rgba(255,181,46,.035)!important;border:1px solid rgba(255,181,46,.11)!important;color:#eee!important;font-size:12.5px!important;font-weight:950!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.mat-v27-cell{min-width:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:3px 6px!important;align-items:center!important;min-height:34px!important;padding:4px 6px!important;border-radius:7px!important;border:1px solid rgba(255,255,255,.065)!important;background:rgba(0,0,0,.16)!important}.mat-v27-cell.empty{display:flex!important;justify-content:center!important;align-items:center!important;min-height:30px!important;color:#595959!important;font-size:10.5px!important;border-style:dashed!important;opacity:.55!important}.mat-v27-source{font-size:11px!important;font-weight:950!important;color:#ddd!important;display:flex!important;align-items:center!important;gap:4px!important}.mat-v27-priority{display:inline-flex!important;align-items:center!important;height:17px!important;padding:0 5px!important;border-radius:999px!important;border:1px solid rgba(255,181,46,.36)!important;background:rgba(255,181,46,.09)!important;color:#ffcf75!important;font-size:9.5px!important}.mat-v27-line{font-size:11.2px!important;line-height:1.2!important;color:#cfcfcf!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.mat-v27-line strong{color:#ffcf75!important}.mat-v27-unit{font-size:11px!important;color:#6ee7a8!important;font-weight:950!important;white-space:nowrap!important}.mat-v27-note{grid-column:1/-1!important;font-size:10.5px!important;color:#858585!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.mat-v27-cell .cooking-mini-btn{height:22px!important;padding:0 7px!important;font-size:10.5px!important;border-radius:7px!important}.mat-v27-other-title{margin:7px 0 3px!important;color:#777!important;font-size:10.5px!important;font-weight:950!important}.mat-v27-other{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3px!important}.mat-v27-other .mat-v27-cell{min-height:34px!important}
+      .proc-v27,.fish-v27{display:grid!important;gap:3px!important}.proc-v27-head,.fish-v27-head{display:grid!important;align-items:center!important;gap:6px!important;padding:4px 7px!important;border-radius:7px!important;background:#111!important;border:1px solid rgba(255,255,255,.07)!important;color:#888!important;font-size:10.5px!important;font-weight:950!important}.proc-v27-head{grid-template-columns:170px 140px 1fr 70px}.fish-v27-head,.fish-v27-row{grid-template-columns:minmax(160px,1fr) 70px minmax(150px,1fr) 72px 76px 70px}.proc-v27-group{border:1px solid rgba(255,255,255,.065)!important;border-radius:8px!important;background:rgba(0,0,0,.12)!important;overflow:hidden!important}.proc-v27-main{display:grid!important;grid-template-columns:170px 140px minmax(0,1fr) auto!important;gap:6px!important;align-items:center!important;padding:5px 7px!important;border-bottom:1px solid rgba(255,255,255,.045)!important}.proc-v27-name,.fish-v27-name{font-size:12.8px!important;font-weight:950!important;color:#fff!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.proc-v27-meta{font-size:11px!important;color:#aaa!important;line-height:1.2!important}.proc-v27-lines{display:grid!important;gap:0!important}.proc-v27-line{display:grid!important;grid-template-columns:170px 80px minmax(0,1fr) auto!important;gap:6px!important;align-items:center!important;min-height:27px!important;padding:4px 7px!important;border-top:1px solid rgba(255,255,255,.035)!important;font-size:11.5px!important;color:#ddd!important}.proc-v27-line:first-child{border-top:0!important}.proc-v27-line strong{color:#ffcf75!important}.proc-v27-note,.fish-v27-note{color:#777!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.proc-v27 .cooking-mini-btn,.fish-v27 .cooking-mini-btn{height:22px!important;padding:0 7px!important;font-size:10.5px!important;border-radius:7px!important}.fish-v27-row{display:grid!important;gap:6px!important;align-items:center!important;min-height:30px!important;padding:5px 7px!important;border-bottom:1px solid rgba(255,255,255,.055)!important;font-size:11.5px!important;color:#ddd!important}.fish-v27-row:last-child{border-bottom:0!important}.fish-v27-result strong,.fish-v27-input strong{color:#ffcf75!important}
+      @media(max-width:900px){.mat-v27-head,.mat-v27-row{grid-template-columns:96px minmax(0,1fr) minmax(0,1fr)!important}.mat-v27-other{grid-template-columns:1fr!important}.proc-v27-head{display:none!important}.proc-v27-main{grid-template-columns:1fr auto!important}.proc-v27-meta{grid-column:1/-1}.proc-v27-line{grid-template-columns:1fr 60px auto!important}.proc-v27-note{display:none!important}.fish-v27-head{display:none!important}.fish-v27-row{grid-template-columns:1fr auto!important}.fish-v27-input,.fish-v27-result,.fish-v27-note{grid-column:1/-1}}
+      @media(max-width:640px){.cook-v27-head{grid-template-columns:1fr auto!important}.cook-v27-count{display:none!important}.cook-v27-tools{grid-template-columns:1fr!important}.mat-v27-head{display:none!important}.mat-v27-row{grid-template-columns:1fr!important}.mat-v27-name{min-height:28px!important}.mat-v27-cell{min-height:31px!important}}
+    `;document.head.appendChild(style);
+  }
+  function sale(row){
+    const bq=n(row&&row['묶음수량']); const bp=n(row&&row['묶음가격']); let unit=n(row&&row['개당가격']);
+    if(!unit&&bq&&bp)unit=bp/bq;
+    if(bq>1) return {type:'bundle',line:`<strong>${f(bq)}개 묶음</strong> · ${bp?money(bp):'가격 미확인'}`,unit:unit?`개당 ${money(unit)}`:'개당 미확인'};
+    if(bq===1&&bp) return {type:'single',line:`<strong>낱개</strong> · ${money(bp)}`,unit:`개당 ${money(unit||bp)}`};
+    if(unit) return {type:'single',line:'<strong>낱개/표기없음</strong>',unit:`개당 ${money(unit)}`};
+    if(bp) return {type:'unknown',line:`가격 ${money(bp)}`,unit:'개당 미확인'};
+    return {type:'unknown',line:'판매단위 미확인',unit:'가격 미확인'};
+  }
+  function matCell(row,c,label){
+    if(!row)return `<div class="mat-v27-cell empty">${h(label)} 없음</div>`;
+    const source=String(row['구매처']||label||'').trim()||label; const s=sale(row); const note=String(row['비고']||'').trim();
+    return `<div class="mat-v27-cell"><div><div class="mat-v27-source">${h(source)}${pri(row)?'<span class="mat-v27-priority">우선</span>':''}</div><div class="mat-v27-line ${s.type}">${s.line}</div></div><button type="button" class="cooking-mini-btn" onclick="openCookingMaterialEdit('${q(rid(row))}','${q(std(row['재료명'],c.aliases))}','${q(source)}')">수정</button><div class="mat-v27-unit">${h(s.unit)}</div>${note?`<div class="mat-v27-note">${h(note)}</div>`:''}</div>`;
+  }
+  function materialGroups(c){
+    const qv=String(window.axeCookingPriceSearch||'').toLowerCase().replace(/\s+/g,'');
+    const groups={};
+    (c.materials||[]).filter(active).forEach(r=>{
+      const name=std(r['재료명'],c.aliases); if(!name)return;
+      if(qv && compactText(r).indexOf(qv)===-1)return;
+      const source=String(r['구매처']||'').trim(); const g=groups[name]||(groups[name]={name,market:null,street:null,others:[]});
+      if(source.indexOf('마트')!==-1 && !g.market)g.market=r; else if(source.indexOf('노점')!==-1 && !g.street)g.street=r; else g.others.push(r);
+    });
+    const arr=Object.values(groups).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    return {paired:arr.filter(x=>x.market&&x.street),single:arr.filter(x=>(x.market||x.street)&&!(x.market&&x.street)),other:arr.filter(x=>!x.market&&!x.street)};
+  }
+  function renderMaterialList(c){
+    c=c||ctx(); const g=materialGroups(c); let out='<div class="mat-v27-head"><div>재료</div><div>마트</div><div>노점상</div></div>';
+    function row(x){return `<div class="mat-v27-row"><div class="mat-v27-name" title="${h(x.name)}">${h(x.name)}</div>${matCell(x.market,c,'마트')}${matCell(x.street,c,'노점상')}</div>`;}
+    out+=g.paired.map(row).join('')+g.single.map(row).join('');
+    const other=[]; g.other.forEach(x=>(x.others||[]).forEach(r=>other.push(r)));
+    if(other.length)out+=`<div class="mat-v27-other-title">기타 구매처</div><div class="mat-v27-other">${other.map(r=>matCell(r,c,r['구매처']||'기타')).join('')}</div>`;
+    return (g.paired.length+g.single.length+other.length)?out:'<div class="cooking-empty">검색 결과가 없습니다.</div>';
+  }
+  window.handleCookingPriceSearchInput=function(input){window.axeCookingPriceSearch=String(input&&input.value||''); if(window.axeCookingPriceSearchComposing)return; const box=document.getElementById('cookingMaterialListBox'); if(box)box.innerHTML=renderMaterialList(ctx());};
+  window.finishCookingPriceSearchComposition=function(input){window.axeCookingPriceSearchComposing=false; window.axeCookingPriceSearch=String(input&&input.value||''); const box=document.getElementById('cookingMaterialListBox'); if(box)box.innerHTML=renderMaterialList(ctx());};
+  window.renderPricesView=function(c){ensureStyle(); c=c||ctx(); return `<div class="cooking-panel cook-v27-panel"><div class="cook-v27-head"><div class="cook-v27-title">재료목록</div><div class="cook-v27-count">${h(c.materials.length)}개</div><button type="button" class="cooking-mini-btn primary" onclick="openCookingMaterialEdit('','','')">물품 추가</button></div><div class="cook-v27-tools"><input id="cookingPriceSearchInput" class="form-input" placeholder="재료명, 구매처, 비고 검색" value="${h(window.axeCookingPriceSearch||'')}" autocomplete="off" oncompositionstart="window.axeCookingPriceSearchComposing=true" oncompositionend="finishCookingPriceSearchComposition(this)" oninput="handleCookingPriceSearchInput(this)"></div><div id="cookingMaterialListBox" class="mat-v27">${renderMaterialList(c)}</div></div>`;};
+  function procGroups(c){
+    const qv=String(window.axeCookingProcessSearch||'').toLowerCase().replace(/\s+/g,''); const groups={};
+    (c.processes||[]).filter(active).forEach(r=>{const name=std(r['가공재료명'],c.aliases); if(!name)return; (groups[name]=groups[name]||[]).push(r);});
+    return Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ko')).map(name=>({name,rows:groups[name].sort((a,b)=>n(a['정렬'])-n(b['정렬']))})).filter(g=>!qv||processText(g).indexOf(qv)!==-1);
+  }
+  function renderProcList(c){
+    c=c||ctx(); return procGroups(c).map(g=>{const first=g.rows[0]||{};return `<div class="proc-v27-group"><div class="proc-v27-main"><div class="proc-v27-name">${h(g.name)}</div><div class="proc-v27-meta">1회 ${h(first['결과수량']||'1')}개 · ${h(first['가공시간']||'시간 미확인')}</div><div class="proc-v27-note">${h(first['비고']||'')}</div><button type="button" class="cooking-mini-btn" onclick="openCookingProcessEdit('', '${q(g.name)}')">하위재료 추가</button></div><div class="proc-v27-lines">${g.rows.map(r=>`<div class="proc-v27-line"><span>${h(std(r['하위재료명'],c.aliases))}</span><strong>${h(r['필요수량']||'')}</strong><span class="proc-v27-note">${h(r['비고']||'')}</span><button type="button" class="cooking-mini-btn" onclick="openCookingProcessEdit('${q(rid(r))}','${q(g.name)}')">수정</button></div>`).join('')}</div></div>`;}).join('')||'<div class="cooking-empty">검색 결과가 없습니다.</div>';
+  }
+  window.handleCookingProcessSearchInput=function(input){window.axeCookingProcessSearch=String(input&&input.value||''); if(window.axeCookingProcessSearchComposing)return; const box=document.getElementById('cookingProcessListBox'); if(box)box.innerHTML=renderProcList(ctx());};
+  window.finishCookingProcessSearchComposition=function(input){window.axeCookingProcessSearchComposing=false; window.axeCookingProcessSearch=String(input&&input.value||''); const box=document.getElementById('cookingProcessListBox'); if(box)box.innerHTML=renderProcList(ctx());};
+  window.updateCookingProcessListV23=function(){const box=document.getElementById('cookingProcessListBox'); if(box)box.innerHTML=renderProcList(ctx());};
+  window.renderProcessesView=function(c){ensureStyle(); c=c||ctx(); const count=procGroups(c).length; return `<div class="cooking-panel cook-v27-panel"><div class="cook-v27-head"><div class="cook-v27-title">가공재료</div><div class="cook-v27-count">${h(count)}종</div><button type="button" class="cooking-mini-btn primary" onclick="openCookingProcessEdit('', '')">가공재료 추가</button></div><div class="cook-v27-tools"><input id="cookingProcessSearchInput" class="form-input" placeholder="가공재료, 하위재료 검색" value="${h(window.axeCookingProcessSearch||'')}" autocomplete="off" oncompositionstart="window.axeCookingProcessSearchComposing=true" oncompositionend="finishCookingProcessSearchComposition(this)" oninput="handleCookingProcessSearchInput(this)"></div><div class="proc-v27-head"><div>가공재료</div><div>결과/시간</div><div>비고</div><div>관리</div></div><div id="cookingProcessListBox" class="proc-v27">${renderProcList(c)}</div></div>`;};
+  function fishRows(c){const qv=String(window.axeCookingFishSearch||'').toLowerCase().replace(/\s+/g,'');return (c.fish||[]).filter(active).filter(r=>!qv||fishText(r).indexOf(qv)!==-1).sort((a,b)=>(n(a['정렬'])-n(b['정렬']))||String(a['생선명']||'').localeCompare(String(b['생선명']||''),'ko'));}
+  function renderFishList(c){c=c||ctx();return fishRows(c).map(r=>`<div class="fish-v27-row"><div class="fish-v27-name">${h(r['생선명']||'')}</div><div class="fish-v27-input">투입 <strong>${h(r['투입수량']||'-')}</strong></div><div class="fish-v27-result">${h(r['결과재료']||'')} <strong>${h(r['결과수량']||'-')}</strong>개</div><div>${h(r['가공시간']||'')}</div><div class="fish-v27-note">${h(r['비고']||'')}</div><button type="button" class="cooking-mini-btn" onclick="openCookingFishEdit('${q(rid(r))}','${q(r['생선명']||'')}')">수정</button></div>`).join('')||'<div class="cooking-empty">검색 결과가 없습니다.</div>';}
+  window.handleCookingFishSearchInput=function(input){window.axeCookingFishSearch=String(input&&input.value||''); if(window.axeCookingFishSearchComposing)return; const box=document.getElementById('cookingFishListBox'); if(box)box.innerHTML=renderFishList(ctx());};
+  window.finishCookingFishSearchComposition=function(input){window.axeCookingFishSearchComposing=false; window.axeCookingFishSearch=String(input&&input.value||''); const box=document.getElementById('cookingFishListBox'); if(box)box.innerHTML=renderFishList(ctx());};
+  window.renderFishView=function(c){ensureStyle(); c=c||ctx(); return `<div class="cooking-panel cook-v27-panel"><div class="cook-v27-head"><div class="cook-v27-title">생선변환</div><div class="cook-v27-count">${h(c.fish.length)}개</div><button type="button" class="cooking-mini-btn primary" onclick="openCookingFishEdit('','')">생선 추가</button></div><div class="cook-v27-tools"><input id="cookingFishSearchInput" class="form-input" placeholder="생선명, 흰살, 분홍살 검색" value="${h(window.axeCookingFishSearch||'')}" autocomplete="off" oncompositionstart="window.axeCookingFishSearchComposing=true" oncompositionend="finishCookingFishSearchComposition(this)" oninput="handleCookingFishSearchInput(this)"></div><div class="fish-v27-head"><div>생선명</div><div>투입</div><div>결과</div><div>시간</div><div>비고</div><div>관리</div></div><div id="cookingFishListBox" class="fish-v27">${renderFishList(c)}</div></div>`;};
+  window.renderCurrentCookingView=function(c){c=c||ctx(); if(window.axeCookingView==='recipes')return window.renderRecipesView(c); if(window.axeCookingView==='processed')return window.renderProcessesView(c); if(window.axeCookingView==='fish')return window.renderFishView(c); if(window.axeCookingView==='prices')return window.renderPricesView(c); return (typeof renderCalculatorV20==='function'?renderCalculatorV20(c):(typeof renderCalculator==='function'?renderCalculator(c):'<div class="cooking-empty">계산기 화면을 불러올 수 없습니다.</div>'));};
+  window.axeCookingV27Debug=function(){const c=ctx();return {version:VERSION,view:window.axeCookingView,materials:c.materials.length,processes:c.processes.length,fish:c.fish.length};};
+  ensureStyle();
+})();
+</script>
+
