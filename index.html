@@ -22966,7 +22966,7 @@ function axeModBookFilterV34Debug(){
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
   const VERSION='AXE_NET_PLIKA_QUICK_V95_TOAST_CENTER';
-  const LATEST_API='https://script.google.com/macros/s/AKfycbxm4uaj8ZLb1tBRzh-ER9H9jTEbfDLE2rNyWaI4wd6gebNI7KFD-HjX4aWK5ukyOSit2Q/exec';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbxY5oVkShkEI143EM6Y3Xs2eEoRKyqUWJgZIzQ_dzw7HIS_QuTYJ8tTgnTyLmdyqqIdjw/exec';
   let collapsedState=true;
   let didForceFetch=false;
   let plikaSearchKeyword='';
@@ -25259,3 +25259,180 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
   .cooking-fav-box-v20 .cooking-favorite-pill{max-width:100%!important}
 }
 </style>
+
+<script>
+/* AXE COOKING HELPER V24: material list readability + data editor wording/layout cleanup */
+(function(){
+  const VERSION="v24_material_recipe_editor_balance";
+  function has(fn){return typeof window[fn]==="function";}
+  function h(v){return typeof esc==="function"?esc(v):String(v??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function q(v){return typeof js==="function"?js(v):String(v??"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");}
+  function n(v){return typeof num==="function"?num(v):(Number(String(v??"").replace(/,/g,""))||0);}
+  function m(v){return typeof money==="function"?money(v):((Math.round(Number(v||0)*100)/100).toLocaleString('ko-KR')+'원');}
+  function f(v){return typeof fmt==="function"?fmt(v):(Math.round(Number(v||0)*100)/100).toLocaleString('ko-KR');}
+  function rid(row){return typeof rowId==="function"?rowId(row):String(row&&row.id||"");}
+  function active(row){return typeof isActive==="function"?isActive(row):String(row&&row["사용여부"]||"TRUE").toUpperCase()!=="FALSE";}
+  function food(row){return typeof foodName==="function"?foodName(row):String(row&&row["요리명"]||"");}
+  function cook(row){return typeof getCookTime==="function"?getCookTime(row):String(row&&row["조리시간"]||row&&row["중간수치"]||"");}
+  function setPrice(row){return typeof getSetPrice==="function"?getSetPrice(row):n(row&&row["세트판매가"]);}
+  function std(name,aliases){return typeof standardName==="function"?standardName(name,aliases):String(name||"");}
+  function matPri(row){return typeof materialPriority==="function"?materialPriority(row):String(row&& (row["우선구매"]||row["우선"]) ||"").toUpperCase()==="TRUE";}
+
+  function ensureCookingV24Style(){
+    if(document.getElementById('axeCookingV24Style'))return;
+    const style=document.createElement('style');
+    style.id='axeCookingV24Style';
+    style.textContent=`
+      .cooking-panel.v24-tight{padding:14px!important;border-radius:16px!important}
+      .cooking-panel-title.v24-title{align-items:center!important;margin-bottom:10px!important}
+      .cooking-panel-title.v24-title .cooking-panel-actions{display:flex!important;gap:6px!important;align-items:center!important;flex-wrap:wrap!important}
+      .cooking-panel-title.v24-title .cooking-mini-btn{height:30px!important;padding:0 9px!important;font-size:11px!important;border-radius:9px!important}
+      .cooking-toolbar.v24-toolbar{display:grid!important;grid-template-columns:minmax(160px,300px) 150px auto!important;gap:8px!important;align-items:center!important;margin-bottom:10px!important}
+      .cooking-toolbar.v24-toolbar .form-input{height:34px!important;font-size:12px!important;padding:0 10px!important}
+      .cooking-view-stable-list.v24-list{max-height:620px!important;overflow:auto!important;padding-right:3px!important;display:grid!important;gap:8px!important}
+      .cooking-info-card.v24{padding:11px 12px!important;border-radius:13px!important;background:rgba(0,0,0,.18)!important;border:1px solid rgba(255,255,255,.075)!important}
+      .cooking-info-card.v24 .cooking-info-name{font-size:15px!important;line-height:1.25!important}
+      .cooking-info-card.v24 .cooking-info-meta{font-size:11.5px!important;line-height:1.45!important;color:#989898!important;margin-top:5px!important}
+      .cooking-recipe-box-v24{margin:8px 0;padding:8px 9px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+      .cooking-recipe-box-title-v24{font-size:11px;font-weight:950;color:#ffcf75;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+      .cooking-recipe-line-v24{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 0;border-top:1px solid rgba(255,255,255,.045);font-size:12px;line-height:1.3;color:#ddd}
+      .cooking-recipe-line-v24:first-of-type{border-top:0}.cooking-recipe-line-v24 strong{color:#ffcf75}.cooking-recipe-line-v24 button{height:24px!important;padding:0 7px!important;font-size:10.5px!important;border-radius:8px!important}
+      .cooking-card-actions.v24{display:flex!important;gap:6px!important;flex-wrap:wrap!important;margin-top:8px!important}
+      .cooking-card-actions.v24 .cooking-mini-btn{height:29px!important;padding:0 9px!important;font-size:11px!important;border-radius:9px!important}
+      .cooking-material-tools-v24{display:grid;grid-template-columns:minmax(190px,300px) auto;gap:8px;align-items:center;margin-bottom:9px}
+      .cooking-material-tools-v24 .form-input{height:34px!important;font-size:12px!important;padding:0 10px!important}
+      .cooking-material-list-v24{display:grid;gap:5px;max-height:640px;overflow:auto;padding-right:3px}
+      .mat-compare-head-v24,.mat-row-v24{display:grid;grid-template-columns:122px minmax(0,1fr) minmax(0,1fr);gap:5px;align-items:stretch}
+      .mat-compare-head-v24{position:sticky;top:0;z-index:5;padding:5px 6px;border:1px solid rgba(255,255,255,.075);border-radius:10px;background:rgba(7,7,7,.98);color:#858585;font-size:10.5px;font-weight:950;line-height:1.1}
+      .mat-name-v24{display:flex;align-items:center;min-width:0;padding:7px 8px;border-radius:10px;background:rgba(255,181,46,.045);border:1px solid rgba(255,181,46,.13);font-size:12px;font-weight:950;color:#f1f1f1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .mat-card-v24{min-width:0;border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.20);border-radius:10px;padding:7px 8px;display:grid;gap:5px;min-height:56px}
+      .mat-card-v24.empty{opacity:.24;border-style:dashed;background:rgba(255,255,255,.012)}
+      .mat-card-head-v24{display:flex;align-items:center;justify-content:space-between;gap:7px;min-width:0}
+      .mat-source-v24{display:flex;align-items:center;gap:5px;min-width:0;font-size:11.5px;font-weight:950;color:#ddd;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .mat-source-badge-v24{height:18px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);color:#bbb;font-size:9.5px;font-weight:950;display:inline-flex;align-items:center;flex:none}
+      .mat-source-badge-v24.priority{color:#ffcf75;background:rgba(255,181,46,.11);border-color:rgba(255,181,46,.30)}
+      .mat-edit-v24{height:24px!important;padding:0 7px!important;border-radius:8px!important;font-size:10.5px!important;flex:none}
+      .mat-price-grid-v24{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+      .mat-price-line-v24{min-width:0;padding:5px 6px;border-radius:8px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.045);font-size:10.8px;line-height:1.25;color:#9a9a9a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .mat-price-line-v24 strong{color:#ffcf75;font-weight:950}.mat-price-line-v24.unit strong{color:#6ee7a8}.mat-price-line-v24.single strong{color:#9fc7ff}
+      .mat-note-v24{font-size:10.5px;color:#858585;line-height:1.35;padding-top:4px;border-top:1px solid rgba(255,255,255,.045);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .mat-other-title-v24{margin:10px 0 5px;color:#777;font-size:10.5px;font-weight:950}.mat-other-grid-v24{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+      .cooking-process-list-v24{display:grid;gap:6px;max-height:620px;overflow:auto;padding-right:3px}.cooking-process-card-v24{border:1px solid rgba(255,255,255,.075);background:rgba(0,0,0,.18);border-radius:12px;padding:9px 10px}
+      .cooking-process-head-v24{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}.cooking-process-name-v24{font-size:14px;font-weight:950;color:#fff}.cooking-process-meta-v24{margin-top:3px;color:#888;font-size:11px;line-height:1.35}
+      .cooking-process-line-v24{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border-top:1px solid rgba(255,255,255,.045);padding:5px 0;font-size:12px;color:#ddd}.cooking-process-line-v24 strong{color:#ffcf75}.cooking-process-line-v24 button{height:24px!important;padding:0 7px!important;font-size:10.5px!important;border-radius:8px!important}
+      .cooking-edit-box-v22{width:min(920px,calc(100vw - 24px))!important;max-height:88vh!important}.cooking-edit-grid-v22{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}.cooking-edit-field-v22 label{font-size:11.5px!important;margin-bottom:5px!important}.cooking-edit-field-v22 input,.cooking-edit-field-v22 select{height:38px!important;font-size:13px!important}.cooking-edit-field-v22 textarea{min-height:96px!important;font-size:13px!important}.cooking-edit-full-v22{grid-column:1/-1!important}
+      @media(max-width:940px){.mat-compare-head-v24,.mat-row-v24{grid-template-columns:100px minmax(0,1fr) minmax(0,1fr)}.mat-price-grid-v24{grid-template-columns:1fr}.mat-other-grid-v24{grid-template-columns:1fr}.cooking-toolbar.v24-toolbar{grid-template-columns:1fr 130px}.cooking-toolbar.v24-toolbar .cooking-panel-actions{grid-column:1/-1}.cooking-edit-grid-v22{grid-template-columns:1fr 1fr!important}}
+      @media(max-width:680px){.mat-compare-head-v24{display:none}.mat-row-v24{grid-template-columns:1fr}.mat-name-v24{background:rgba(255,181,46,.075)}.cooking-material-tools-v24{grid-template-columns:1fr}.cooking-edit-grid-v22{grid-template-columns:1fr!important}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function materialRowsForV24(ctx){
+    const aliases=ctx.aliases||{};
+    const qtext=String(window.axeCookingPriceSearch||'').trim().toLowerCase().replace(/\s+/g,'');
+    const groups={};
+    (ctx.materials||[]).filter(active).forEach(function(row){
+      const name=std(row['재료명'],aliases); if(!name)return;
+      const text=[name,row['구매처'],row['묶음수량'],row['묶음가격'],row['개당가격'],row['비고']].join(' ').toLowerCase().replace(/\s+/g,'');
+      if(qtext && text.indexOf(qtext)===-1)return;
+      const g=groups[name]||(groups[name]={name:name,market:null,street:null,others:[]});
+      const source=String(row['구매처']||'').trim();
+      if(source.indexOf('마트')!==-1 && !g.market)g.market=row;
+      else if(source.indexOf('노점')!==-1 && !g.street)g.street=row;
+      else g.others.push(row);
+    });
+    const list=Object.values(groups).sort(function(a,b){return a.name.localeCompare(b.name,'ko');});
+    return {paired:list.filter(g=>g.market&&g.street),single:list.filter(g=>(g.market||g.street)&&!(g.market&&g.street)),other:list.filter(g=>!g.market&&!g.street)};
+  }
+
+  function saleUnitText(row){
+    const bq=n(row&&row['묶음수량']);
+    const bp=n(row&&row['묶음가격']);
+    const unitRaw=n(row&&row['개당가격']);
+    let unit=unitRaw||0;
+    if(!unit && bq && bp)unit=bp/bq;
+    if(bq>1)return {type:`${f(bq)}개 묶음`, price:bp?m(bp):'가격 미확인', unit:unit?m(unit):'개당 미확인', mode:'bundle'};
+    if(bq===1 && bp)return {type:'낱개 판매', price:m(bp), unit:m(unit||bp), mode:'single'};
+    if(unit)return {type:'낱개/표기없음', price:'묶음 없음', unit:m(unit), mode:'single'};
+    if(bp)return {type:'낱개/표기없음', price:m(bp), unit:'개당 미확인', mode:'single'};
+    return {type:'판매단위 미확인', price:'가격 미확인', unit:'개당 미확인', mode:'unknown'};
+  }
+
+  function materialCardV24(row,ctx,label){
+    if(!row)return `<div class="mat-card-v24 empty"><div class="mat-source-v24">${h(label)} 없음</div></div>`;
+    const name=std(row['재료명'],ctx.aliases); const s=saleUnitText(row); const source=String(row['구매처']||label||'').trim()||label;
+    const note=String(row['비고']||'').trim(); const priority=matPri(row);
+    return `<div class="mat-card-v24"><div class="mat-card-head-v24"><div class="mat-source-v24"><span>${h(source)}</span>${priority?`<span class="mat-source-badge-v24 priority">우선</span>`:''}</div><button type="button" class="cooking-mini-btn mat-edit-v24" onclick="openCookingMaterialEdit('${q(rid(row))}','${q(name)}','${q(source)}')">수정</button></div><div class="mat-price-grid-v24"><div class="mat-price-line-v24 ${s.mode==='single'?'single':''}">단위 <strong>${h(s.type)}</strong></div><div class="mat-price-line-v24">가격 <strong>${h(s.price)}</strong></div><div class="mat-price-line-v24 unit">개당 <strong>${h(s.unit)}</strong></div><div class="mat-price-line-v24">수량 <strong>${h(row['묶음수량']||'-')}</strong></div></div>${note?`<div class="mat-note-v24">${h(note)}</div>`:''}</div>`;
+  }
+
+  function renderMaterialCompareContentV24(ctx){
+    const rows=materialRowsForV24(ctx); let count=0;
+    let html='<div class="mat-compare-head-v24"><div>재료</div><div>마트</div><div>노점상</div></div>';
+    function row(g){count++;return `<div class="mat-row-v24"><div class="mat-name-v24" title="${h(g.name)}">${h(g.name)}</div>${materialCardV24(g.market,ctx,'마트')}${materialCardV24(g.street,ctx,'노점상')}</div>`;}
+    html+=rows.paired.map(row).join('')+rows.single.map(row).join('');
+    const other=[]; rows.other.forEach(g=>{(g.others||[]).forEach(r=>other.push(r));});
+    if(other.length){count+=other.length;html+=`<div class="mat-other-title-v24">기타 구매처</div><div class="mat-other-grid-v24">${other.map(r=>materialCardV24(r,ctx,r['구매처']||'기타')).join('')}</div>`;}
+    if(!count)return '<div class="cooking-empty">검색 결과가 없습니다.</div>';
+    return html;
+  }
+
+  window.handleCookingPriceSearchInput=function(input){
+    window.axeCookingPriceSearch=String(input&&input.value||'');
+    if(window.axeCookingPriceSearchComposing)return;
+    const box=document.getElementById('cookingMaterialListBox');
+    if(box)box.innerHTML=renderMaterialCompareContentV24(buildContext());
+  };
+  window.finishCookingPriceSearchComposition=function(input){
+    window.axeCookingPriceSearchComposing=false;
+    window.axeCookingPriceSearch=String(input&&input.value||'');
+    const box=document.getElementById('cookingMaterialListBox');
+    if(box)box.innerHTML=renderMaterialCompareContentV24(buildContext());
+  };
+  window.updateCookingPriceRows=function(){const box=document.getElementById('cookingMaterialListBox');if(box)box.innerHTML=renderMaterialCompareContentV24(buildContext());};
+
+  window.renderPricesView=function(ctx){
+    ensureCookingV24Style();
+    return `<div class="cooking-panel v24-tight"><div class="cooking-panel-title v24-title">재료목록 <span>${h((ctx.materials||[]).length)}개</span><div class="cooking-panel-actions"><button type="button" class="cooking-mini-btn primary" onclick="openCookingMaterialEdit('','','')">물품 추가</button></div></div><div class="cooking-material-tools-v24"><input id="cookingPriceSearchInput" class="form-input" placeholder="재료명, 구매처, 비고 검색" value="${h(window.axeCookingPriceSearch||'')}" autocomplete="off" oncompositionstart="window.axeCookingPriceSearchComposing=true" oncompositionend="finishCookingPriceSearchComposition(this)" oninput="handleCookingPriceSearchInput(this)"></div><div id="cookingMaterialListBox" class="cooking-material-list-v24">${renderMaterialCompareContentV24(ctx)}</div></div>`;
+  };
+
+  function recipeLineListV24(name,ctx){
+    const rows=(ctx.recipeMap&&ctx.recipeMap[name])||[];
+    if(!rows.length)return `<div class="cooking-recipe-box-v24"><div class="cooking-recipe-box-title-v24">레시피 <span>미확인</span></div><div class="bad">등록된 레시피 재료가 없습니다.</div></div>`;
+    return `<div class="cooking-recipe-box-v24"><div class="cooking-recipe-box-title-v24">레시피 <span>${rows.length}개 재료</span></div>${rows.map(r=>`<div class="cooking-recipe-line-v24"><span>${h(std(r['재료명'],ctx.aliases))} <strong>${h(r['필요수량']||'')}</strong></span><button type="button" class="cooking-mini-btn" onclick="openCookingRecipeEdit('${q(rid(r))}','${q(name)}')">수정</button></div>`).join('')}</div>`;
+  }
+  window.renderRecipesListStable=function(ctx){
+    const qv=String(window.axeCookingRecipeSearch||'').trim().toLowerCase().replace(/\s+/g,'');
+    const grade=String(window.axeCookingGradeFilter||'').trim();
+    const rows=(ctx.types||[]).filter(function(row){
+      const name=food(row); const recipeRows=(ctx.recipeMap&&ctx.recipeMap[name])||[];
+      const text=[name,row['등급'],row['효과'],row['지속시간'],cook(row)].concat(recipeRows.map(r=>[r['재료명'],r['필요수량']].join(' '))).join(' ').toLowerCase().replace(/\s+/g,'');
+      return (!qv||text.indexOf(qv)!==-1)&&(!grade||String(row['등급']||'')===grade);
+    });
+    return rows.map(function(row){
+      const name=food(row); const fav=typeof isFavorite==='function'?isFavorite(name):false; const canEdit=typeof window.isCurrentAdmin!=="function"||window.isCurrentAdmin(); const sp=setPrice(row);
+      return `<div class="cooking-info-card v24"><div class="cooking-info-top"><div><div class="cooking-info-name">${h(name)}</div><div class="cooking-info-meta">1세트 ${h(row['1세트수량']||'미입력')}개 · 세트가 ${sp?m(sp):'미입력'} · 조리시간 ${h(cook(row)||'미확인')} · 효과지속 ${h(row['지속시간']||'미확인')}</div></div><span class="cooking-grade-badge">${h(row['등급']||'미확인')}</span></div>${recipeLineListV24(name,ctx)}<div class="cooking-info-meta">효과: ${h(row['효과']||'미확인')}${row['비고']?'<br>비고: '+h(row['비고']):''}</div><div class="cooking-card-actions v24"><button type="button" class="cooking-mini-btn primary" onclick="addCookingOrder('${q(name)}',1)">계산기에 추가</button><button type="button" class="cooking-mini-btn" onclick="toggleCookingFavorite('${q(name)}')">${fav?'★ 즐겨찾기':'☆ 즐겨찾기'}</button>${canEdit?`<button type="button" class="cooking-mini-btn" onclick="openCookingTypeEditor('${q(name)}')">요리 정보 수정</button><button type="button" class="cooking-mini-btn" onclick="openCookingRecipeEdit('', '${q(name)}')">레시피 재료 추가</button>`:''}</div></div>`;
+    }).join('')||'<div class="cooking-empty">검색 결과가 없습니다.</div>';
+  };
+  window.renderRecipesView=function(ctx){
+    ensureCookingV24Style();
+    const grade=String(window.axeCookingGradeFilter||'');
+    return `<div class="cooking-panel v24-tight"><div class="cooking-panel-title v24-title">요리·레시피 <span>${h((ctx.types||[]).length)}종</span><div class="cooking-panel-actions"><button type="button" class="cooking-mini-btn primary" onclick="openCookingTypeEditor('')">새 요리 추가</button></div></div><div class="cooking-toolbar v24-toolbar"><input id="cookingRecipeSearchInput" class="form-input" placeholder="요리명, 재료, 효과 검색" value="${h(window.axeCookingRecipeSearch||'')}" autocomplete="off" oncompositionstart="window.axeCookingRecipeSearchComposing=true;markCookingTyping&&markCookingTyping();" oncompositionend="finishCookingRecipeSearchComposition(this);" oninput="handleCookingRecipeSearchInput(this);"><select class="form-input" onchange="window.axeCookingGradeFilter=this.value;updateCookingRecipeList&&updateCookingRecipeList();"><option value="">전체 등급</option><option value="맛있는" ${grade==='맛있는'?'selected':''}>맛있는</option><option value="무난한" ${grade==='무난한'?'selected':''}>무난한</option><option value="미확인" ${grade==='미확인'?'selected':''}>미확인</option><option value="역겨운" ${grade==='역겨운'?'selected':''}>역겨운</option></select></div><div id="cookingRecipeListBox" class="cooking-view-stable-list v24-list">${window.renderRecipesListStable(ctx)}</div></div>`;
+  };
+
+  function processGroupsV24(ctx){
+    const qv=String(window.axeCookingProcessSearch||'').trim().toLowerCase().replace(/\s+/g,'');
+    const groups={}; (ctx.processes||[]).filter(active).forEach(function(r){const name=std(r['가공재료명'],ctx.aliases);if(!name)return;(groups[name]=groups[name]||[]).push(r);});
+    return Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ko')).map(name=>({name,rows:groups[name].sort((a,b)=>n(a['정렬'])-n(b['정렬']))})).filter(g=>{const text=[g.name].concat(g.rows.map(r=>[r['하위재료명'],r['필요수량'],r['결과수량'],r['가공시간'],r['비고']].join(' '))).join(' ').toLowerCase().replace(/\s+/g,'');return !qv||text.indexOf(qv)!==-1;});
+  }
+  function renderProcessListV24(groups,ctx){
+    return groups.map(g=>{const first=g.rows[0]||{};return `<div class="cooking-process-card-v24"><div class="cooking-process-head-v24"><div><div class="cooking-process-name-v24">${h(g.name)}</div><div class="cooking-process-meta-v24">1회 결과 ${h(first['결과수량']||'1')}개${first['가공시간']?' · 가공시간 '+h(first['가공시간']):''}</div></div><button type="button" class="cooking-mini-btn" onclick="openCookingProcessEdit('', '${q(g.name)}')">하위재료 추가</button></div>${g.rows.map(r=>`<div class="cooking-process-line-v24"><span>${h(std(r['하위재료명'],ctx.aliases))} <strong>${h(r['필요수량']||'')}</strong></span><button type="button" class="cooking-mini-btn" onclick="openCookingProcessEdit('${q(rid(r))}','${q(g.name)}')">수정</button></div>`).join('')}</div>`;}).join('')||'<div class="cooking-empty">검색 결과가 없습니다.</div>';
+  }
+  window.updateCookingProcessListV23=function(){const box=document.getElementById('cookingProcessListBox');if(!box)return;box.innerHTML=renderProcessListV24(processGroupsV24(buildContext()),buildContext());};
+  window.renderProcessesView=function(ctx){ensureCookingV24Style();const groups=processGroupsV24(ctx);return `<div class="cooking-panel v24-tight"><div class="cooking-panel-title v24-title">가공재료 <span>${groups.length}종</span><div class="cooking-panel-actions"><button type="button" class="cooking-mini-btn primary" onclick="openCookingProcessEdit('', '')">가공재료 추가</button></div></div><div class="cooking-toolbar v24-toolbar" style="grid-template-columns:minmax(160px,300px) auto"><input id="cookingProcessSearchInput" class="form-input" placeholder="가공재료, 하위재료 검색" value="${h(window.axeCookingProcessSearch||'')}" oninput="window.axeCookingProcessSearch=this.value;updateCookingProcessListV23();"></div><div id="cookingProcessListBox" class="cooking-process-list-v24">${renderProcessListV24(groups,ctx)}</div></div>`;};
+
+  window.renderCookingSubtabs=function(){const tabs=[["calculator","계산기"],["recipes","요리·레시피"],["processed","가공재료"],["fish","생선변환"],["prices","재료목록"]];return `<div class="cooking-subtabs">${tabs.map(t=>`<button type="button" class="${window.axeCookingView===t[0]?'active':''}" onclick="setCookingView('${t[0]}')">${t[1]}</button>`).join('')}</div>`;};
+  window.renderCurrentCookingView=function(ctx){if(window.axeCookingView==='recipes')return window.renderRecipesView(ctx);if(window.axeCookingView==='processed')return window.renderProcessesView(ctx);if(window.axeCookingView==='fish')return renderFishView(ctx);if(window.axeCookingView==='prices')return window.renderPricesView(ctx);return (typeof renderCalculatorV20==='function'?renderCalculatorV20(ctx):renderCalculator(ctx));};
+
+  window.axeCookingV24Debug=function(){return {version:VERSION,view:window.axeCookingView,materials:(buildContext().materials||[]).length};};
+})();
+</script>
