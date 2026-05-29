@@ -4586,7 +4586,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwgGXGKr3tufKmGrGraHdMCBv4zjBrEFIGef0rN7XjdzmjXnZFiHaH21n8L2VDmnNrXPw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwfgxSIT86Q24N2nQZJuTLXOcD08sv7Kl4JiIs3cTSS2seqWYV12A5bKNjUveOfeea-SA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -22945,7 +22945,7 @@ function axeModBookFilterV34Debug(){
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
   const VERSION='AXE_NET_PLIKA_QUICK_V95_TOAST_CENTER';
-  const LATEST_API='https://script.google.com/macros/s/AKfycbw_0pVG15VYEj3W6yDtKVG2zNcLMyDdII9f2xU_C1CXHtUweKURPZZsRAgvjyoeKKKhqQ/exec';
+  const LATEST_API='https://script.google.com/macros/s/AKfycbwgGXGKr3tufKmGrGraHdMCBv4zjBrEFIGef0rN7XjdzmjXnZFiHaH21n8L2VDmnNrXPw/exec';
   let collapsedState=true;
   let didForceFetch=false;
   let plikaSearchKeyword='';
@@ -24224,13 +24224,25 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 .cooking-process-edit-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07)}
 .cooking-process-edit-help{color:#888;font-size:11px;line-height:1.4}
 @media(max-width:760px){.cooking-toolbar{grid-template-columns:1fr}.cooking-subtabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.cooking-subtabs button{flex:0 0 auto;height:36px;font-size:12px;padding:0 12px}.cooking-process-grid{grid-template-columns:1fr}.cooking-info-top{display:block}.cooking-grade-badge{margin-top:7px}.cooking-card-list{max-height:none}}
+.cooking-type-edit-modal{position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.78)}
+.cooking-type-edit-modal.active{display:flex}
+.cooking-type-edit-box{width:min(760px,100%);max-height:92vh;overflow:auto;border:1px solid rgba(255,181,46,.28);background:#0d0d0d;border-radius:18px;box-shadow:0 20px 70px rgba(0,0,0,.55)}
+.cooking-type-edit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.cooking-type-edit-title{font-weight:950;color:#ffb52e}
+.cooking-type-edit-body{padding:16px}
+.cooking-type-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cooking-type-edit-grid .full{grid-column:1/-1}
+.cooking-type-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.cooking-type-edit-help{margin-top:8px;color:#888;font-size:12px;line-height:1.45}
+@media(max-width:680px){.cooking-type-edit-grid{grid-template-columns:1fr}.cooking-type-edit-actions{display:grid;grid-template-columns:1fr 1fr}.cooking-type-edit-actions button{width:100%}}
+
 </style>
 
 
 <script id="axe-cooking-helper-v3-script">
 /* AXE NET COOKING HELPER V3: 시트 기반 계산기 + 자료조회 + 즐겨찾기 */
 (function(){
-    const VERSION="AXE_COOKING_HELPER_V4_PROCESS_RESULT_EDIT";
+    const VERSION="AXE_COOKING_HELPER_V5_FOOD_EDIT";
     const DATA_KEY=(typeof DATA_CACHE_KEY!=="undefined")?DATA_CACHE_KEY:"axeNetDataCache_v1";
     const FAVORITE_KEY="axeCookingHelperFavorites_v1";
     window.axeCookingOrders=Array.isArray(window.axeCookingOrders)?window.axeCookingOrders:[];
@@ -24331,7 +24343,57 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 
     function renderFavoriteStrip(){const list=favorites();if(!list.length)return `<div class="hint">즐겨찾기한 요리가 없습니다. 요리 자료에서 별표를 눌러 저장하세요.</div>`;return `<div class="cooking-favorite-strip">${list.map(function(name){return `<div class="cooking-fav-pill" onclick="addCookingOrder('${js(name)}',1)">★ ${esc(name)}</div>`;}).join("")}</div>`;}
     function renderCalculator(ctx){const selected=foodName(ctx.types[0]||{});return `<div class="cooking-panel"><div class="cooking-panel-title">요리 추가 <span>세트 단위로 추가</span></div><div class="cooking-add-grid"><div class="cooking-search-zone"><div class="form-label">요리 검색</div><input id="cookingSearchInput" class="form-input" value="${esc(window.axeCookingSearch||"")}" placeholder="요리명, 재료, 효과 검색" oninput="window.axeCookingSearch=this.value;renderCookingHelper();">${renderSearchResults(ctx)}</div><div><div class="form-label">세트 수</div><input id="cookingAddSets" class="form-input" type="number" min="1" value="1"></div><div><div class="form-label">추가</div><button class="cooking-mini-btn primary" style="width:100%;height:42px" onclick="addCookingOrder(document.getElementById('cookingQuickSelect').value, Number(document.getElementById('cookingAddSets').value)||1)">추가</button></div></div><div style="margin-top:8px"><select id="cookingQuickSelect" class="form-input">${ctx.types.map(function(row){const name=foodName(row);return `<option value="${esc(name)}" ${name===selected?"selected":""}>${esc(name)} · 1세트 ${esc(row["1세트수량"]||"?")}개</option>`;}).join("")}</select></div><div style="margin-top:10px"><div class="form-label">즐겨찾기 빠른 추가</div>${renderFavoriteStrip()}</div></div><div class="cooking-panel"><div class="cooking-panel-title">주문 입력 <span>${window.axeCookingOrders.length}개 요리</span></div>${renderOrderRows(ctx)}<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button class="cooking-mini-btn danger" onclick="clearCookingOrders()">초기화</button><button class="cooking-mini-btn primary" onclick="renderCookingHelper()">계산하기</button></div></div>${renderResults(ctx)}`;}
-    function renderRecipesView(ctx){const q=String(window.axeCookingRecipeSearch||"").trim().toLowerCase();const grade=String(window.axeCookingGradeFilter||"").trim();const rows=ctx.types.filter(function(row){return (!q||recipeText(row,ctx).includes(q))&&(!grade||String(row["등급"]||"")===grade);});return `<div class="cooking-panel"><div class="cooking-panel-title">요리 자료 <span>${rows.length}개</span></div><div class="cooking-toolbar"><input class="form-input" placeholder="요리명, 재료, 효과 검색" value="${esc(window.axeCookingRecipeSearch)}" oninput="window.axeCookingRecipeSearch=this.value;renderCookingHelper();"><select class="form-input" onchange="window.axeCookingGradeFilter=this.value;renderCookingHelper();"><option value="">전체 등급</option><option value="맛있는" ${grade==="맛있는"?"selected":""}>맛있는</option><option value="무난한" ${grade==="무난한"?"selected":""}>무난한</option><option value="미확인" ${grade==="미확인"?"selected":""}>미확인</option></select></div><div class="cooking-card-list">${rows.map(function(row){const name=foodName(row);const recipe=(ctx.recipeMap[name]||[]).map(function(r){return esc(standardName(r["재료명"],ctx.aliases))+" "+esc(r["필요수량"]);}).join(" · ");const fav=isFavorite(name);return `<div class="cooking-info-card"><div class="cooking-info-top"><div><div class="cooking-info-name">${esc(name)}</div><div class="cooking-info-meta">1세트 ${esc(row["1세트수량"]||"?")}개 · 세트가 ${getSetPrice(row)?money(getSetPrice(row)):"미입력"} · 지속 ${esc(row["지속시간"]||"미확인")}</div></div><span class="cooking-grade-badge ${gradeClass(row["등급"])}">${esc(row["등급"]||"미확인")}</span></div><div class="cooking-info-ing">${recipe||"<span class='bad'>레시피 미확인</span>"}</div><div class="cooking-info-meta">효과: ${esc(row["효과"]||"미확인")}<br>중간수치: ${esc(row["중간수치"]||"미확인")}${row["비고"]?"<br>비고: "+esc(row["비고"]):""}</div><div class="cooking-info-actions"><button class="cooking-mini-btn primary" onclick="addCookingOrder('${js(name)}',1)">계산기에 추가</button><button class="cooking-mini-btn ${fav?"primary":""}" onclick="toggleCookingFavorite('${js(name)}')">${fav?"★ 즐겨찾기":"☆ 즐겨찾기"}</button></div></div>`;}).join("")||`<div class="cooking-empty">검색 결과가 없습니다.</div>`}</div></div>`;}
+
+    function cookingRowId(row){return String(row&&row.id||row&&row.ID||row&&row.Id||"").trim();}
+    function closeCookingTypeEditor(){const modal=document.getElementById("cookingTypeEditModal");if(modal)modal.remove();}
+    function openCookingTypeEditor(name){
+        const ctx=buildContext();
+        const row=findType(name,ctx);
+        if(!row){alert("요리 정보를 찾을 수 없습니다.");return;}
+        if(typeof window.isCurrentAdmin==="function"&&!window.isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+        closeCookingTypeEditor();
+        const modal=document.createElement("div");
+        modal.id="cookingTypeEditModal";
+        modal.className="cooking-type-edit-modal active";
+        modal.innerHTML=`<div class="cooking-type-edit-box" onclick="event.stopPropagation()"><div class="cooking-type-edit-head"><div class="cooking-type-edit-title">요리 정보 수정</div><button class="form-close" onclick="closeCookingTypeEditor()">×</button></div><div class="cooking-type-edit-body"><div class="cooking-type-edit-grid"><div><div class="form-label">요리명</div><input id="cookEditName" class="form-input" value="${esc(foodName(row))}"></div><div><div class="form-label">등급</div><select id="cookEditGrade" class="form-input"><option value="맛있는" ${String(row["등급"]||"")==="맛있는"?"selected":""}>맛있는</option><option value="무난한" ${String(row["등급"]||"")==="무난한"?"selected":""}>무난한</option><option value="미확인" ${String(row["등급"]||"")==="미확인"?"selected":""}>미확인</option><option value="역겨운" ${String(row["등급"]||"")==="역겨운"?"selected":""}>역겨운</option></select></div><div><div class="form-label">1세트수량</div><input id="cookEditSetSize" class="form-input" type="number" min="1" value="${esc(row["1세트수량"]||"")}"></div><div><div class="form-label">세트판매가</div><input id="cookEditSetPrice" class="form-input" type="number" min="0" value="${esc(row["세트판매가"]||"")}"></div><div><div class="form-label">지속시간</div><input id="cookEditDuration" class="form-input" value="${esc(row["지속시간"]||"")}"></div><div><div class="form-label">중간수치</div><input id="cookEditScore" class="form-input" value="${esc(row["중간수치"]||"")}"></div><div><div class="form-label">사용여부</div><select id="cookEditUse" class="form-input"><option value="TRUE" ${isActive(row)?"selected":""}>TRUE</option><option value="FALSE" ${!isActive(row)?"selected":""}>FALSE</option></select></div><div><div class="form-label">정렬</div><input id="cookEditOrder" class="form-input" type="number" min="0" value="${esc(row["정렬"]||"")}"></div><div class="full"><div class="form-label">효과</div><textarea id="cookEditEffect" class="form-textarea" style="min-height:72px">${esc(row["효과"]||"")}</textarea></div><div class="full"><div class="form-label">비고</div><textarea id="cookEditNote" class="form-textarea" style="min-height:72px">${esc(row["비고"]||"")}</textarea></div></div><div class="cooking-type-edit-help">요리명을 변경하면 요리레시피 시트의 같은 요리명도 함께 변경됩니다.</div><div class="cooking-type-edit-actions"><button class="cooking-mini-btn" onclick="closeCookingTypeEditor()">취소</button><button class="cooking-mini-btn primary" onclick="saveCookingTypeEditor('${js(cookingRowId(row))}','${js(foodName(row))}')">저장</button></div></div></div>`;
+        modal.onclick=closeCookingTypeEditor;
+        document.body.appendChild(modal);
+    }
+    function saveCookingTypeEditor(id,originalName){
+        const payload={
+            type:"cooking_type_update",
+            id:id||"",
+            original_name:originalName||"",
+            "요리명":document.getElementById("cookEditName").value,
+            "등급":document.getElementById("cookEditGrade").value,
+            "1세트수량":document.getElementById("cookEditSetSize").value,
+            "세트판매가":document.getElementById("cookEditSetPrice").value,
+            "효과":document.getElementById("cookEditEffect").value,
+            "지속시간":document.getElementById("cookEditDuration").value,
+            "중간수치":document.getElementById("cookEditScore").value,
+            "사용여부":document.getElementById("cookEditUse").value,
+            "정렬":document.getElementById("cookEditOrder").value,
+            "비고":document.getElementById("cookEditNote").value
+        };
+        const runner=typeof window.adminApi==="function"?window.adminApi:api;
+        runner(payload).then(function(data){
+            if(data&&data.result==="success"){
+                setCookingGlobals(data);
+                closeCookingTypeEditor();
+                if(typeof requestPartialRefresh==="function"){
+                    requestPartialRefresh("utility",{force:true}).then(function(res){setCookingGlobals((res&&res.data)||res||{});renderCookingHelper();}).catch(function(){renderCookingHelper();});
+                }else renderCookingHelper();
+                alert(data.message||"요리 정보가 수정되었습니다.");
+            }else{
+                alert((data&&data.message)||"요리 정보 수정 중 오류가 발생했습니다.");
+            }
+        }).catch(function(){alert("요리 정보 수정 중 오류가 발생했습니다.");});
+    }
+    window.openCookingTypeEditor=openCookingTypeEditor;
+    window.closeCookingTypeEditor=closeCookingTypeEditor;
+    window.saveCookingTypeEditor=saveCookingTypeEditor;
+
+    function renderRecipesView(ctx){const q=String(window.axeCookingRecipeSearch||"").trim().toLowerCase();const grade=String(window.axeCookingGradeFilter||"").trim();const rows=ctx.types.filter(function(row){return (!q||recipeText(row,ctx).includes(q))&&(!grade||String(row["등급"]||"")===grade);});return `<div class="cooking-panel"><div class="cooking-panel-title">요리 자료 <span>${rows.length}개</span></div><div class="cooking-toolbar"><input class="form-input" placeholder="요리명, 재료, 효과 검색" value="${esc(window.axeCookingRecipeSearch)}" oninput="window.axeCookingRecipeSearch=this.value;renderCookingHelper();"><select class="form-input" onchange="window.axeCookingGradeFilter=this.value;renderCookingHelper();"><option value="">전체 등급</option><option value="맛있는" ${grade==="맛있는"?"selected":""}>맛있는</option><option value="무난한" ${grade==="무난한"?"selected":""}>무난한</option><option value="미확인" ${grade==="미확인"?"selected":""}>미확인</option><option value="역겨운" ${grade==="역겨운"?"selected":""}>역겨운</option></select></div><div class="cooking-card-list">${rows.map(function(row){const name=foodName(row);const recipe=(ctx.recipeMap[name]||[]).map(function(r){return esc(standardName(r["재료명"],ctx.aliases))+" "+esc(r["필요수량"]);}).join(" · ");const fav=isFavorite(name);const canEdit=typeof window.isCurrentAdmin!=="function"||window.isCurrentAdmin();return `<div class="cooking-info-card"><div class="cooking-info-top"><div><div class="cooking-info-name">${esc(name)}</div><div class="cooking-info-meta">1세트 ${esc(row["1세트수량"]||"?")}개 · 세트가 ${getSetPrice(row)?money(getSetPrice(row)):"미입력"} · 지속 ${esc(row["지속시간"]||"미확인")}</div></div><span class="cooking-grade-badge ${gradeClass(row["등급"])}">${esc(row["등급"]||"미확인")}</span></div><div class="cooking-info-ing">${recipe||"<span class='bad'>레시피 미확인</span>"}</div><div class="cooking-info-meta">효과: ${esc(row["효과"]||"미확인")}<br>중간수치: ${esc(row["중간수치"]||"미확인")}${row["비고"]?"<br>비고: "+esc(row["비고"]):""}</div><div class="cooking-info-actions"><button class="cooking-mini-btn primary" onclick="addCookingOrder('${js(name)}',1)">계산기에 추가</button><button class="cooking-mini-btn ${fav?"primary":""}" onclick="toggleCookingFavorite('${js(name)}')">${fav?"★ 즐겨찾기":"☆ 즐겨찾기"}</button>${canEdit?`<button class="cooking-mini-btn" onclick="openCookingTypeEditor('${js(name)}')">수정</button>`:""}</div></div>`;}).join("")||`<div class="cooking-empty">검색 결과가 없습니다.</div>`}</div></div>`;}
     function renderProcessesView(ctx){const q=String(window.axeCookingProcessSearch||"").trim().toLowerCase();const groups={};ctx.processes.forEach(function(row){const name=standardName(row["가공재료명"],ctx.aliases);if(!name)return;(groups[name]=groups[name]||[]).push(row);});const names=Object.keys(groups).sort(function(a,b){return a.localeCompare(b,"ko");}).filter(function(name){const text=[name].concat(groups[name].map(function(r){return [r["하위재료명"],r["필요수량"],r["결과수량"],r["가공시간"],r["비고"]].join(" ");})).join(" ").toLowerCase();return !q||text.includes(q);});return `<div class="cooking-panel"><div class="cooking-panel-title">가공재료 <span>${names.length}종</span></div><div class="cooking-toolbar" style="grid-template-columns:1fr"><input class="form-input" placeholder="가공재료명, 하위 재료 검색" value="${esc(window.axeCookingProcessSearch)}" oninput="window.axeCookingProcessSearch=this.value;renderCookingHelper();"></div><div class="cooking-process-grid">${names.map(function(name){const rows=groups[name];const time=rows.find(function(r){return r["가공시간"];});const resultQty=getProcessResultQty(rows);return `<div class="cooking-process-card"><div class="cooking-process-head"><div class="cooking-process-title">${esc(name)}</div><div class="cooking-process-result-pill">결과 ${fmt(resultQty)}개</div></div><div class="cooking-process-recipe">${rows.map(function(r){return esc(standardName(r["하위재료명"],ctx.aliases))+" "+esc(r["필요수량"]);}).join(" · ")}</div><div class="cooking-process-time">가공시간: ${esc(time&&time["가공시간"]||"미확인")}</div>${rows.map(function(r){return r["비고"]?`<div class="cooking-info-meta">${esc(r["비고"])}</div>`:"";}).join("")}<div class="cooking-process-edit-line"><div class="cooking-process-edit-help">같은 가공재료명 행 전체에 결과수량을 반영합니다.</div><button class="cooking-mini-btn" onclick="updateCookingProcessResultQty('${js(name)}','${js(resultQty)}')">결과수량 수정</button></div></div>`;}).join("")||`<div class="cooking-empty">검색 결과가 없습니다.</div>`}</div></div>`;}
     function renderFishView(ctx){const q=String(window.axeCookingFishSearch||"").trim().toLowerCase();const rows=ctx.fish.filter(function(r){return !q||[r["생선명"],r["결과재료"],r["비고"]].join(" ").toLowerCase().includes(q);});return `<div class="cooking-panel"><div class="cooking-panel-title">생선 변환 <span>${rows.length}개</span></div><div class="cooking-toolbar" style="grid-template-columns:1fr"><input class="form-input" placeholder="생선명, 흰살, 분홍살 검색" value="${esc(window.axeCookingFishSearch)}" oninput="window.axeCookingFishSearch=this.value;renderCookingHelper();"></div><div class="cooking-view-table-wrap"><table class="cooking-view-table"><thead><tr><th>생선명</th><th class="num">투입</th><th>결과</th><th>시간</th><th>비고</th></tr></thead><tbody>${rows.map(function(r){return `<tr><td>${esc(r["생선명"])}</td><td class="num">${esc(r["투입수량"])}개</td><td>${esc(r["결과재료"])} ${esc(r["결과수량"])}개</td><td>${esc(r["가공시간"]||"")}</td><td>${esc(r["비고"]||"")}</td></tr>`;}).join("")}</tbody></table></div></div>`;}
     function renderPricesView(ctx){const q=String(window.axeCookingPriceSearch||"").trim().toLowerCase();const rows=ctx.materials.slice().sort(function(a,b){return standardName(a["재료명"],ctx.aliases).localeCompare(standardName(b["재료명"],ctx.aliases),"ko")||String(a["구매처"]||"").localeCompare(String(b["구매처"]||""),"ko");}).filter(function(r){return !q||[r["재료명"],r["구매처"],r["획득구분"],r["비고"]].join(" ").toLowerCase().includes(q);});return `<div class="cooking-panel"><div class="cooking-panel-title">가격표 <span>${rows.length}개</span></div><div class="cooking-toolbar" style="grid-template-columns:1fr"><input class="form-input" placeholder="재료명, 구매처 검색" value="${esc(window.axeCookingPriceSearch)}" oninput="window.axeCookingPriceSearch=this.value;renderCookingHelper();"></div><div class="cooking-view-table-wrap"><table class="cooking-view-table"><thead><tr><th>재료</th><th>구매처</th><th class="num">묶음수량</th><th class="num">묶음가격</th><th class="num">개당가격</th><th>우선</th><th>비고</th></tr></thead><tbody>${rows.map(function(r){return `<tr><td>${esc(standardName(r["재료명"],ctx.aliases))}</td><td>${esc(r["구매처"]||"")}</td><td class="num">${fmt(num(r["묶음수량"]))}</td><td class="num strong">${money(num(r["묶음가격"]))}</td><td class="num">${num(r["개당가격"])?money(num(r["개당가격"])):"-"}</td><td>${String(r["우선구매"]||"").toLowerCase()==="true"?"기본":"참고"}</td><td>${esc(r["비고"]||"")}</td></tr>`;}).join("")}</tbody></table></div></div>`;}
