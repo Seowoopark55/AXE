@@ -25013,3 +25013,81 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 })();
 </script>
 
+
+
+<style id="axe-cooking-helper-v21-favorite-wrap-fix">
+/* AXE COOKING HELPER V21: 즐겨찾기 한눈보기 보강 */
+.cooking-add-shell-v20{
+  grid-template-columns:minmax(0,1fr) minmax(300px,380px)!important;
+  gap:9px!important;
+  align-items:stretch!important;
+}
+.cooking-add-controls-v20{
+  grid-template-columns:minmax(150px,220px) minmax(125px,170px) 52px 58px 60px!important;
+  gap:5px!important;
+}
+.cooking-fav-box-v20{
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:0!important;
+  max-height:none!important;
+  height:100%!important;
+  padding:7px 8px!important;
+  overflow:hidden!important;
+}
+.cooking-fav-box-v20 .form-label{
+  margin-bottom:5px!important;
+  flex:0 0 auto!important;
+}
+.cooking-fav-box-v20 .cooking-favorite-strip{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-content:flex-start!important;
+  gap:5px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  max-height:72px!important;
+  padding:0 2px 1px 0!important;
+  white-space:normal!important;
+  scrollbar-width:thin!important;
+}
+.cooking-fav-box-v20 .cooking-fav-pill,
+.cooking-fav-box-v20 .cooking-favorite-pill{
+  flex:0 0 auto!important;
+  max-width:116px!important;
+  height:25px!important;
+  padding:0 8px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  font-size:11px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.cooking-fav-box-v20 .hint{
+  margin:0!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+  color:#858585!important;
+}
+@media(max-width:1120px){
+  .cooking-add-shell-v20{grid-template-columns:1fr!important}
+  .cooking-fav-box-v20{height:auto!important;max-height:none!important}
+  .cooking-fav-box-v20 .cooking-favorite-strip{max-height:74px!important}
+}
+@media(max-width:760px){
+  .cooking-add-controls-v20{grid-template-columns:1fr 1fr 56px!important}
+  .cooking-fav-box-v20 .cooking-favorite-strip{max-height:86px!important}
+  .cooking-fav-box-v20 .cooking-fav-pill,
+  .cooking-fav-box-v20 .cooking-favorite-pill{max-width:132px!important}
+}
+@media(max-width:480px){
+  .cooking-add-controls-v20{grid-template-columns:1fr!important}
+  .cooking-fav-box-v20 .cooking-favorite-strip{max-height:116px!important}
+  .cooking-fav-box-v20 .cooking-fav-pill,
+  .cooking-fav-box-v20 .cooking-favorite-pill{max-width:100%!important}
+}
+</style>
