@@ -26721,3 +26721,121 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
   window.axePermissionV36Debug=function(){return {version:VERSION,nickname:currentNick(),admin:isAdmin(),chefRows:chefRows(),cookingAccess:hasCookingAccess(),memoCount:Array.isArray(window.memos)?window.memos.length:null};};
 })();
 </script>
+
+<script id="axe-permission-v38-chef-entry-hardfix">
+(function(){
+  const VERSION='v38-chef-entry-hardfix';
+  const CACHE_KEY=(typeof DATA_CACHE_KEY!=='undefined')?DATA_CACHE_KEY:'axeNetDataCache_v1';
+  function safe(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c;});}
+  function readCache(){try{return JSON.parse(sessionStorage.getItem(CACHE_KEY)||'{}')||{};}catch(e){return {};}}
+  function user(){
+    try{if(typeof getCurrentUser==='function'){const u=getCurrentUser();if(u)return u;}}catch(e){}
+    try{if(window.currentUser)return window.currentUser;}catch(e){}
+    try{return JSON.parse(localStorage.getItem(typeof AUTH_STORAGE_KEY!=='undefined'?AUTH_STORAGE_KEY:'axe_net_current_user')||'null')||null;}catch(e){return null;}
+  }
+  function nick(){const u=user();return String((u&&u.nickname)||'').trim();}
+  function isAdmin(){
+    try{if(typeof isCurrentAdmin==='function'&&isCurrentAdmin())return true;}catch(e){}
+    const u=user()||{};
+    const role=String(u.role||'').toLowerCase();
+    const badge=String(u.badge||'').toLowerCase();
+    const status=String(u.status||'').toLowerCase();
+    return role==='admin'||badge==='admin'||u.is_admin===true||u.admin===true||status==='admin';
+  }
+  function chefRows(){
+    const c=readCache();
+    const src=Array.isArray(window.cookingChefs)?window.cookingChefs:(Array.isArray(c.cookingChefs)?c.cookingChefs:[]);
+    return src.map(function(r){return {nickname:String(r.nickname||r['닉네임']||'').trim(),enabled:String(r.enabled!==undefined?r.enabled:(r['사용여부']!==undefined?r['사용여부']:'TRUE')).toLowerCase()!=='false',note:String(r.note||r['비고']||'')};}).filter(function(r){return r.nickname;});
+  }
+  function mergeLocal(data){
+    if(!data)return;
+    if(data.cookingChefs!==undefined)window.cookingChefs=data.cookingChefs||[];
+    try{const c=readCache(); if(data.cookingChefs!==undefined){c.cookingChefs=data.cookingChefs||[];sessionStorage.setItem(CACHE_KEY,JSON.stringify(c));}}catch(e){}
+  }
+  function ensureStyle(){
+    if(document.getElementById('ct38ChefStyle'))return;
+    const st=document.createElement('style');st.id='ct38ChefStyle';st.textContent=`
+      .ct38-chef-entry{display:flex;justify-content:flex-end;margin:8px 0 12px;gap:8px;align-items:center}
+      .ct38-chef-btn{height:38px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,181,46,.42);background:rgba(255,181,46,.10);color:#ffcf75;font-size:13px;font-weight:950;cursor:pointer;transition:.16s ease;white-space:nowrap}
+      .ct38-chef-btn:hover{background:rgba(255,181,46,.17);border-color:rgba(255,181,46,.72);transform:translateY(-1px)}
+      .ct38-chef-modal{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;padding:18px}
+      .ct38-chef-box{width:min(760px,96vw);max-height:86vh;overflow:auto;background:#101010;border:1px solid rgba(255,181,46,.34);border-radius:18px;padding:18px;color:#f5f5f5;box-shadow:0 22px 80px rgba(0,0,0,.6)}
+      .ct38-chef-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+      .ct38-chef-title{font-size:20px;font-weight:1000;color:#ffb52e}.ct38-chef-sub{margin-top:4px;color:#aaa;font-size:12px;line-height:1.45}
+      .ct38-chef-close{width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font-size:20px;cursor:pointer}
+      .ct38-chef-form{display:grid;grid-template-columns:1fr 1.5fr auto;gap:8px;margin-bottom:14px}
+      .ct38-chef-form input{height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.14);background:#181818;color:#fff;padding:0 11px;outline:none}
+      .ct38-chef-form input:focus{border-color:rgba(255,181,46,.65)}
+      .ct38-chef-primary{height:38px;border:0;border-radius:11px;background:#ffb52e;color:#111;font-weight:1000;cursor:pointer;padding:0 14px;white-space:nowrap}
+      .ct38-chef-list{display:grid;gap:7px}.ct38-chef-item{display:grid;grid-template-columns:1fr 70px 62px;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.025);padding:9px 10px}
+      .ct38-chef-item.off{opacity:.5}.ct38-chef-name{font-weight:950;color:#fff}.ct38-chef-note{margin-top:3px;color:#999;font-size:12px;line-height:1.35}.ct38-chef-status{font-size:12px;font-weight:950;color:#ffcf75;text-align:center}
+      .ct38-chef-small{height:30px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#ccc;font-size:12px;font-weight:900;cursor:pointer}.ct38-chef-small:hover{color:#ff7a7a;border-color:rgba(255,107,107,.45)}
+      .ct38-chef-empty{padding:16px;border:1px dashed rgba(255,255,255,.16);border-radius:13px;color:#888;text-align:center;font-size:13px}
+      @media(max-width:620px){.ct38-chef-form{grid-template-columns:1fr}.ct38-chef-item{grid-template-columns:1fr}.ct38-chef-status{text-align:left}}
+    `;document.head.appendChild(st);
+  }
+  function requestApi(payload){
+    payload=payload||{};
+    if(typeof adminApi==='function')return adminApi(payload);
+    if(typeof api==='function')return api(payload);
+    if(typeof API_URL==='undefined')return Promise.reject(new Error('API_URL 없음'));
+    return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(function(r){return r.json();});
+  }
+  function utilityVisible(){
+    const c=document.getElementById('content');
+    if(!c)return false;
+    if(c.querySelector('[data-utility-tab]'))return true;
+    const txt=(c.textContent||'');
+    return txt.includes('편의기능')||txt.includes('메모장')||txt.includes('플리카 계산기')||txt.includes('그래픽 패치')||txt.includes('요리 도우미');
+  }
+  function ensureChefEntry(){
+    ensureStyle();
+    if(!isAdmin())return;
+    if(!utilityVisible())return;
+    if(document.getElementById('ct38ChefEntry'))return;
+    const target=document.querySelector('.utility-category-wrap')||document.querySelector('.utility-category-tabs')?.parentElement||document.getElementById('utilityContent')||document.getElementById('content');
+    if(!target)return;
+    const entry=document.createElement('div');entry.className='ct38-chef-entry';entry.id='ct38ChefEntry';
+    entry.innerHTML='<button type="button" class="ct38-chef-btn" onclick="openCookingChefManagerV38()">요리사 관리</button>';
+    if(target.classList&&target.classList.contains('utility-category-wrap'))target.appendChild(entry);
+    else target.parentNode?target.parentNode.insertBefore(entry,target):target.appendChild(entry);
+  }
+  window.openCookingChefManagerV38=function(){
+    if(!isAdmin()){alert('관리자 권한이 필요합니다.');return;}
+    ensureStyle();
+    const old=document.getElementById('ct38ChefModal');if(old)old.remove();
+    const rows=chefRows();
+    const modal=document.createElement('div');modal.className='ct38-chef-modal';modal.id='ct38ChefModal';
+    modal.innerHTML=`<div class="ct38-chef-box"><div class="ct38-chef-head"><div><div class="ct38-chef-title">요리사 관리</div><div class="ct38-chef-sub">요리사로 등록된 사용자와 admin만 요리 도우미를 이용할 수 있습니다.</div></div><button class="ct38-chef-close" onclick="document.getElementById('ct38ChefModal')?.remove()">×</button></div><div class="ct38-chef-form"><input id="ct38ChefNick" placeholder="회원 닉네임"><input id="ct38ChefNote" placeholder="비고"><button class="ct38-chef-primary" onclick="saveCookingChefV38()">등록/수정</button></div><div class="ct38-chef-list">${rows.length?rows.map(function(r){return `<div class="ct38-chef-item ${r.enabled?'':'off'}"><div><div class="ct38-chef-name">${safe(r.nickname)}</div><div class="ct38-chef-note">${safe(r.note||'')}</div></div><div class="ct38-chef-status">${r.enabled?'사용':'해제'}</div><button class="ct38-chef-small" onclick="deleteCookingChefV38('${safe(r.nickname)}')">해제</button></div>`;}).join(''):'<div class="ct38-chef-empty">등록된 요리사가 없습니다.</div>'}</div></div>`;
+    document.body.appendChild(modal);
+  };
+  window.saveCookingChefV38=function(){
+    const n=(document.getElementById('ct38ChefNick')||{}).value||'';
+    const note=(document.getElementById('ct38ChefNote')||{}).value||'';
+    if(!n.trim()){alert('닉네임을 입력하세요.');return;}
+    requestApi({type:'cooking_chef_save',target_nickname:n.trim(),note:note,enabled:true}).then(function(data){
+      if(data&&data.result==='success'){mergeLocal(data);alert(data.message||'저장되었습니다.');document.getElementById('ct38ChefModal')?.remove();openCookingChefManagerV38();setTimeout(ensureChefEntry,0);}else alert((data&&data.message)||'저장 실패');
+    }).catch(function(err){alert('저장 중 오류가 발생했습니다.');console.error(err);});
+  };
+  window.deleteCookingChefV38=function(n){
+    if(!confirm(n+' 요리사 권한을 해제할까요?'))return;
+    requestApi({type:'cooking_chef_delete',target_nickname:n}).then(function(data){
+      if(data&&data.result==='success'){mergeLocal(data);document.getElementById('ct38ChefModal')?.remove();openCookingChefManagerV38();setTimeout(ensureChefEntry,0);}else alert((data&&data.message)||'해제 실패');
+    }).catch(function(err){alert('해제 중 오류가 발생했습니다.');console.error(err);});
+  };
+  const oldNav=window.navigateSubTab;
+  if(typeof oldNav==='function'&&!oldNav.__ct38Wrapped){
+    const wrapped=function(){const ret=oldNav.apply(this,arguments);setTimeout(ensureChefEntry,30);setTimeout(ensureChefEntry,300);return ret;};
+    wrapped.__ct38Wrapped=true;window.navigateSubTab=wrapped;
+  }
+  const oldShow=window.showUtility;
+  if(typeof oldShow==='function'&&!oldShow.__ct38Wrapped){
+    const wrapped=function(){const ret=oldShow.apply(this,arguments);setTimeout(ensureChefEntry,30);setTimeout(ensureChefEntry,300);return ret;};
+    wrapped.__ct38Wrapped=true;window.showUtility=wrapped;
+  }
+  try{new MutationObserver(function(){ensureChefEntry();}).observe(document.body,{childList:true,subtree:true});}catch(e){}
+  setInterval(ensureChefEntry,1500);
+  setTimeout(function(){ensureChefEntry();try{if(typeof requestPartialRefresh==='function')requestPartialRefresh('utility',{force:true}).then(function(){ensureChefEntry();}).catch(function(){});}catch(e){}},400);
+  window.axePermissionV38Debug=function(){return {version:VERSION,admin:isAdmin(),user:user(),nickname:nick(),utilityVisible:utilityVisible(),button:!!document.getElementById('ct38ChefEntry'),tabs:[...document.querySelectorAll('[data-utility-tab]')].map(function(b){return {tab:b.dataset.utilityTab,text:b.textContent,display:getComputedStyle(b).display};}),chefRows:chefRows()};};
+})();
+</script>
