@@ -24226,6 +24226,7 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
     function findType(name,ctx){return ctx.types.find(function(row){return foodName(row)===name;})||null;}
     function getSetSize(row){return Math.max(1,num(row&&row["1세트수량"])||1);}
     function getSetPrice(row){return num(row&&row["세트판매가"]);}
+    function getCookingTime(row){return String((row&&(row["조리시간"]!==undefined?row["조리시간"]:row["중간수치"]))||"").trim();}
     function recipeSearchText(row,ctx){const name=foodName(row);const recipe=(ctx.recipeMap[name]||[]).map(function(r){return [r["재료명"],r["필요수량"]].join(" ");}).join(" ");return [name,row["등급"],row["효과"],row["지속시간"],recipe].join(" ").toLowerCase();}
 
     function ensureCookingTab(active){const tabs=document.querySelector(".utility-category-tabs");if(!tabs)return;if(!tabs.querySelector('[data-utility-tab="cooking"]')){const btn=document.createElement("button");btn.type="button";btn.dataset.utilityTab="cooking";btn.textContent="요리 도우미";btn.onclick=function(){if(typeof window.navigateSubTab==="function")window.navigateSubTab("utility","cooking");};tabs.appendChild(btn);}tabs.querySelectorAll("button").forEach(function(btn){btn.classList.toggle("active",btn.dataset.utilityTab===(active||"cooking"));});}
