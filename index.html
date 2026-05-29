@@ -4607,7 +4607,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxswMLghsXsNWaZvwYBhZTovgRDB09zcB7ARd1ogZbVVVK9Ms5hGTKL4zxlfTK9QjnzIw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwzEkxnv8nZffdTbvtw0zv-Rnli9ax1tA0CK1zvv84ZVPhLzmjHWMiNMdz_RNh1dOn-YA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -26839,3 +26839,85 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
   window.axePermissionV38Debug=function(){return {version:VERSION,admin:isAdmin(),user:user(),nickname:nick(),utilityVisible:utilityVisible(),button:!!document.getElementById('ct38ChefEntry'),tabs:[...document.querySelectorAll('[data-utility-tab]')].map(function(b){return {tab:b.dataset.utilityTab,text:b.textContent,display:getComputedStyle(b).display};}),chefRows:chefRows()};};
 })();
 </script>
+
+
+<script>
+/* AXE NET CookingTool v39: 레시피 재료 추가 시 id 자동할당 UI
+   - 신규 레시피 재료 추가 화면에서 id 입력칸을 숨김
+   - Apps Script가 저장 시 자동 id를 생성하도록 빈 id로 전송
+   - 기존 수정 화면에서는 참고용 id만 표시 */
+(function(){
+  const VERSION="v39-recipe-auto-id";
+  function h(v){return String(v==null?"":v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function q(v){return String(v==null?"":v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
+  function rowId(r){return String((r&&(r.id||r.ID||r["id"]||r["ID"]))||"").trim();}
+  function field(id,label,value,type){
+    return '<label><span>'+h(label)+'</span><input id="'+h(id)+'" '+(type?'type="'+h(type)+'"':'')+' value="'+h(value||'')+'"></label>';
+  }
+  function selectBool(id,label,value){
+    const v=String(value||'TRUE').toUpperCase()==='FALSE'?'FALSE':'TRUE';
+    return '<label><span>'+h(label)+'</span><select id="'+h(id)+'"><option value="TRUE" '+(v==='TRUE'?'selected':'')+'>TRUE</option><option value="FALSE" '+(v==='FALSE'?'selected':'')+'>FALSE</option></select></label>';
+  }
+  function area(id,label,value){
+    return '<label class="ct39-full"><span>'+h(label)+'</span><textarea id="'+h(id)+'">'+h(value||'')+'</textarea></label>';
+  }
+  function showModal(title,body,saveCall){
+    let m=document.getElementById('ct30Modal');
+    if(!m){m=document.createElement('div');m.id='ct30Modal';m.className='ct30-modal';document.body.appendChild(m);}
+    m.innerHTML='<div class="ct30-modal-box ct39-modal-box"><div class="ct30-modal-head"><b>'+h(title)+'</b><button type="button" onclick="CookingTool30.closeModal()">×</button></div><div class="ct30-modal-body">'+body+'</div><div class="ct30-modal-actions"><button type="button" onclick="CookingTool30.closeModal()">취소</button><button type="button" class="primary" onclick="'+saveCall+'">저장</button></div></div>';
+    m.classList.add('active');
+  }
+  function ctx(){
+    try{
+      if(window.CookingTool30&&typeof window.CookingTool30.ctx==='function')return window.CookingTool30.ctx();
+    }catch(e){}
+    return {recipes:[]};
+  }
+  function install(){
+    if(!window.CookingTool30||typeof window.CookingTool30.saveRecipe!=='function')return false;
+    window.CookingTool30.openRecipeEditor=function(id,food){
+      const c=ctx();
+      const targetId=String(id||'').trim();
+      const r=targetId?(c.recipes||[]).find(function(x){return rowId(x)===targetId;})||{}:{};
+      const editing=!!rowId(r);
+      const foodName=food||r['요리명']||'';
+      const idBlock=editing
+        ? '<div class="ct39-id-box"><span>id</span><b>'+h(rowId(r))+'</b></div><input type="hidden" id="r_id" value="'+h(rowId(r))+'">'
+        : '<div class="ct39-id-box auto"><span>id</span><b>저장 시 자동할당</b></div><input type="hidden" id="r_id" value="">';
+      showModal(editing?'레시피 재료 수정':'레시피 재료 추가',
+        '<div class="ct39-recipe-form">'+
+          idBlock+
+          field('r_food','요리명',foodName)+
+          field('r_mat','재료명',r['재료명']||'')+
+          field('r_qty','필요수량',r['필요수량']||'','number')+
+          field('r_type','재료구분',r['재료구분']||'')+
+          selectBool('r_use','사용여부',r['사용여부'])+
+          field('r_order','정렬',r['정렬']||'','number')+
+          area('r_note','비고',r['비고']||'')+
+        '</div>',
+        'CookingTool30.saveRecipe()'
+      );
+    };
+    window.openCookingRecipeEdit=function(id,food){window.CookingTool30.openRecipeEditor(id,food);};
+    window.openCookingRecipeEditorV23=function(food,id){window.CookingTool30.openRecipeEditor(id,food);};
+    window.axeCookingV39Debug=function(){return {version:VERSION, installed:true, hasCookingTool:!!window.CookingTool30, autoId:true};};
+    return true;
+  }
+  function ensure(){if(!install())setTimeout(ensure,350);}
+  ensure();
+})();
+</script>
+<style>
+#ct30Modal .ct39-modal-box{width:min(720px,calc(100vw - 34px))!important;}
+#ct30Modal .ct39-recipe-form{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+#ct30Modal .ct39-recipe-form label{display:grid!important;gap:5px!important;color:#9aa3b3!important;font-size:11px!important;font-weight:950!important;}
+#ct30Modal .ct39-recipe-form input,#ct30Modal .ct39-recipe-form select,#ct30Modal .ct39-recipe-form textarea{width:100%!important;border:1px solid rgba(255,255,255,.11)!important;background:#151515!important;color:#fff!important;border-radius:9px!important;outline:none!important;font-size:13px!important;}
+#ct30Modal .ct39-recipe-form input,#ct30Modal .ct39-recipe-form select{height:34px!important;padding:0 9px!important;}
+#ct30Modal .ct39-recipe-form textarea{min-height:64px!important;padding:8px 9px!important;resize:vertical!important;}
+#ct30Modal .ct39-full{grid-column:1/-1!important;}
+#ct30Modal .ct39-id-box{grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-height:34px!important;padding:7px 10px!important;border-radius:10px!important;border:1px solid rgba(255,181,46,.22)!important;background:rgba(255,181,46,.055)!important;}
+#ct30Modal .ct39-id-box span{color:#8d97a8!important;font-size:11px!important;font-weight:950!important;}
+#ct30Modal .ct39-id-box b{color:#ffcf75!important;font-size:12px!important;font-weight:950!important;}
+#ct30Modal .ct39-id-box.auto b{color:#8de0b3!important;}
+@media(max-width:640px){#ct30Modal .ct39-recipe-form{grid-template-columns:1fr!important;}}
+</style>
