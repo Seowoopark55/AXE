@@ -27148,3 +27148,52 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 .ct43-empty{min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px dashed rgba(255,255,255,.075)!important;border-radius:8px!important;color:#596273!important;background:rgba(255,255,255,.012)!important;font-size:12px!important;}.ct43-muted{color:#8e98a8!important}.ct43-no{padding:10px!important;border:1px dashed rgba(255,255,255,.11)!important;border-radius:10px!important;color:#9da7b7!important;}
 @media(max-width:900px){.ct43-wrap{max-width:100%!important}.ct43-head,.ct43-row{grid-template-columns:88px 220px 220px!important;width:max-content!important;min-width:100%!important}}
 </style>
+
+
+<script id="axe-cooking-tool-v44-tab-active-fix">
+(function(){
+  const VERSION='v44-material-tab-active-fix';
+  function setActive(view){
+    try{
+      const root=document.querySelector('.ct30');
+      if(!root)return;
+      root.querySelectorAll('.ct30-tabs button').forEach(function(btn){
+        const txt=(btn.textContent||'').trim();
+        const key = txt.includes('작업')?'calculator':txt.includes('요리')?'foods':txt.includes('재료목록')?'materials':txt.includes('가공')?'processes':txt.includes('생선')?'fish':'';
+        btn.classList.toggle('active', key===view);
+      });
+    }catch(e){}
+  }
+  function install(){
+    if(!window.CookingTool30||!window.CookingTool30.state)return false;
+    const tool=window.CookingTool30;
+    const prevSet=tool.setView;
+    const prevRenderMaterials=tool.renderMaterials;
+    tool.setView=function(v){
+      this.state.view=v||'calculator';
+      const res=typeof prevSet==='function'?prevSet.call(this,v):undefined;
+      setTimeout(()=>setActive(this.state.view),0);
+      return res;
+    };
+    if(typeof prevRenderMaterials==='function'){
+      tool.renderMaterials=function(){
+        const res=prevRenderMaterials.apply(this,arguments);
+        setTimeout(()=>setActive('materials'),0);
+        return res;
+      };
+    }
+    const prevRender=tool.render;
+    if(typeof prevRender==='function'){
+      tool.render=function(){
+        const res=prevRender.apply(this,arguments);
+        setTimeout(()=>setActive(this.state&&this.state.view||'calculator'),0);
+        return res;
+      };
+    }
+    window.axeCookingV44Debug=function(){return {version:VERSION, view:tool.state&&tool.state.view, active:[...document.querySelectorAll('.ct30-tabs button.active')].map(b=>b.textContent.trim())};};
+    setTimeout(()=>setActive(tool.state&&tool.state.view||'calculator'),0);
+    return true;
+  }
+  function ensure(){if(!install())setTimeout(ensure,250);}ensure();
+})();
+</script>
