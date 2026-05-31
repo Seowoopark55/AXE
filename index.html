@@ -17677,23 +17677,28 @@ function formatFundRangeDate(d){
 function getFundWeekRanges(month){
     const info=getFundMonthParts(month);
     const first=new Date(info.year,info.monthIndex,1);
-    const last=new Date(info.year,info.monthIndex+1,0);
+    const firstDow=first.getDay();
+    let start=new Date(info.year,info.monthIndex,1-firstDow);
+    // AXE NET 공금 주차 운영 기준:
+    // - 항상 4주만 운영
+    // - 일요일~토요일 단위
+    // - 해당 월의 1일이 포함된 주가 금/토 시작으로 4일 미만만 해당 월에 걸치면 다음 일요일부터 1주차
+    // - 반대로 전월 말일이 포함되어도 해당 주 대부분이 이번 달이면 이번 달 1주차로 처리
+    if(firstDow===5 || firstDow===6){
+        start=new Date(info.year,info.monthIndex,1+(7-firstDow));
+    }
     const ranges=[];
-    let start=new Date(first);
-    while(start<=last){
-        const end=new Date(start);
-        const day=start.getDay();
-        const daysUntilSunday=(7-day)%7;
-        end.setDate(start.getDate()+daysUntilSunday);
-        if(end>last)end.setTime(last.getTime());
+    for(let i=0;i<4;i++){
+        const s=new Date(start);
+        s.setDate(start.getDate()+i*7);
+        const e=new Date(s);
+        e.setDate(s.getDate()+6);
         ranges.push({
-            week:String(ranges.length+1),
-            start:new Date(start),
-            end:new Date(end),
-            label:formatFundRangeDate(start)+"~"+formatFundRangeDate(end)
+            week:String(i+1),
+            start:new Date(s),
+            end:new Date(e),
+            label:formatFundRangeDate(s)+"~"+formatFundRangeDate(e)
         });
-        start=new Date(end);
-        start.setDate(end.getDate()+1);
     }
     return ranges;
 }
@@ -18015,7 +18020,7 @@ function renderFundStatus(){
         </div>
 
     </div>
-    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월 1일부터 말일까지 월별 기준으로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
+    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 일요일~토요일 기준으로 매월 4주만 운영합니다. 전월 말일 또는 다음월 초일이 포함될 수 있습니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
 function renderFundSubmitterField(user){
     const currentName=String(user&&user.nickname||"").trim();
@@ -27216,4 +27221,12 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
   }
   function ensure(){if(!install())setTimeout(ensure,250);}ensure();
 })();
+
+window.axeFundWeekV47Debug=function(month){
+    const target=normalizeFundMonth(month)||getFundCurrentMonth();
+    const ranges=getFundWeekRanges(target).map(r=>({week:r.week,label:r.label,start:r.start,end:r.end}));
+    const result={version:"fund-week-v47-sunday-4weeks",month:target,ranges};
+    console.log(result);
+    return result;
+};
 </script>
