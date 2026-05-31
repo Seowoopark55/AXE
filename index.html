@@ -17664,34 +17664,54 @@ function getFundCurrentMonth(){
     if(selected)return selected;
     return getFundTodayMonth();
 }
-function getFundWeekCount(){return Math.max(1,Math.min(6,Number(getFundSetting("week_count",4)||4)));}
-function getFundFirstSunday(month){
+function getFundMonthParts(month){
     const normalized=normalizeFundMonth(month)||getFundTodayMonth();
     const parts=String(normalized).split("-");
     const year=Number(parts[0])||new Date().getFullYear();
     const monthIndex=(Number(parts[1])||1)-1;
-    const first=new Date(year,monthIndex,1);
-    const offset=(7-first.getDay())%7;
-    return new Date(year,monthIndex,1+offset);
+    return {normalized,year,monthIndex};
 }
+function formatFundRangeDate(d){
+    return String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
+}
+function getFundWeekRanges(month){
+    const info=getFundMonthParts(month);
+    const first=new Date(info.year,info.monthIndex,1);
+    const last=new Date(info.year,info.monthIndex+1,0);
+    const ranges=[];
+    let start=new Date(first);
+    while(start<=last){
+        const end=new Date(start);
+        const day=start.getDay();
+        const daysUntilSunday=(7-day)%7;
+        end.setDate(start.getDate()+daysUntilSunday);
+        if(end>last)end.setTime(last.getTime());
+        ranges.push({
+            week:String(ranges.length+1),
+            start:new Date(start),
+            end:new Date(end),
+            label:formatFundRangeDate(start)+"~"+formatFundRangeDate(end)
+        });
+        start=new Date(end);
+        start.setDate(end.getDate()+1);
+    }
+    return ranges;
+}
+function getFundWeekCount(month){return getFundWeekRanges(month).length;}
 function getFundWeekRange(month,week){
-    const start=getFundFirstSunday(month);
-    start.setDate(start.getDate()+(Number(week||1)-1)*7);
-    const end=new Date(start);
-    end.setDate(start.getDate()+6);
-    const startText=String(start.getDate()).padStart(2,"0");
-    const endText=String(end.getDate()).padStart(2,"0");
-    const sameMonth=start.getMonth()===end.getMonth();
-    if(sameMonth)return startText+"~"+endText+"일";
-    return String(start.getMonth()+1).padStart(2,"0")+"/"+startText+"~"+String(end.getMonth()+1).padStart(2,"0")+"/"+endText;
+    const ranges=getFundWeekRanges(month);
+    const idx=Math.max(0,Math.min(ranges.length-1,(Number(week||1)||1)-1));
+    return ranges[idx]?ranges[idx].label:"";
 }
 function renderFundWeekHeader(month,week){
     return `<span class="fund-week-head"><span class="fund-week-title">${safe(week)}주차</span><span class="fund-week-range">${safe(getFundWeekRange(month,week))}</span></span>`;
 }
 function renderFundWeekOptions(month,selected){
-    const current=String(selected||"1");
     const normalized=normalizeFundMonth(month)||getFundCurrentMonth();
-    return Array.from({length:getFundWeekCount()},(_,i)=>String(i+1)).map(w=>`<option value="${w}" ${w===current?'selected':''}>${w}주차 (${safe(getFundWeekRange(normalized,w))})</option>`).join("");
+    const ranges=getFundWeekRanges(normalized);
+    let current=String(selected||"1");
+    if(!ranges.some(r=>r.week===current))current="1";
+    return ranges.map(r=>`<option value="${r.week}" ${r.week===current?'selected':''}>${r.week}주차 (${safe(r.label)})</option>`).join("");
 }
 function refreshFundSubmitWeekOptions(month){
     const select=document.getElementById("fundSubmitWeek");
@@ -17967,7 +17987,7 @@ function renderFundMonthToolbar(extra){
 }
 function renderFundStatus(){
     const month=getFundCurrentMonth();
-    const weeks=Array.from({length:getFundWeekCount()},(_,i)=>String(i+1));
+    const weeks=getFundWeekRanges(month).map(r=>r.week);
     const members=getFundActiveMembers();
     let totalUnpaid=0;
     let totalPaid=0;
@@ -17995,7 +18015,7 @@ function renderFundStatus(){
         </div>
 
     </div>
-    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월의 첫 일요일부터 7일 단위로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
+    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 선택월 1일부터 말일까지 월별 기준으로 표시합니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
 function renderFundSubmitterField(user){
     const currentName=String(user&&user.nickname||"").trim();
