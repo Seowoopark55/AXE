@@ -17719,10 +17719,48 @@ function renderFundWeekOptions(month,selected){
     return ranges.map(r=>`<option value="${r.week}" ${r.week===current?'selected':''}>${r.week}주차 (${safe(r.label)})</option>`).join("");
 }
 function refreshFundSubmitWeekOptions(month){
+    const normalized=normalizeFundMonth(month)||getFundCurrentMonth();
     const select=document.getElementById("fundSubmitWeek");
-    if(select)select.innerHTML=renderFundWeekOptions(normalizeFundMonth(month),select.value);
+    if(select){
+        const keep=select.value||getFundDefaultWeekForMonth(normalized);
+        select.innerHTML=renderFundWeekOptions(normalized,keep);
+        if(!select.value)select.value=getFundDefaultWeekForMonth(normalized);
+    }
+    updateFundSubmitAmountByWeek();
 }
-function getFundWeeklyFee(){return Number(getFundSetting("weekly_fee",fundSummary&&fundSummary.weekly_fee||20000)||20000);}
+function getFundBaseWeeklyFee(){return Number(getFundSetting("weekly_fee",fundSummary&&fundSummary.weekly_fee||20000)||20000);}
+function fundDateYmd(d){
+    if(!(d instanceof Date)||isNaN(d.getTime()))return "";
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function getFundWeekRangeObject(month,week){
+    const ranges=getFundWeekRanges(month);
+    const target=String(week||"1");
+    return ranges.find(r=>r.week===target)||ranges[0]||null;
+}
+function getFundWeeklyFee(month,week){
+    const base=getFundBaseWeeklyFee();
+    const normalized=normalizeFundMonth(month||getFundCurrentMonth());
+    const range=getFundWeekRangeObject(normalized,week||"1");
+    const startKey=range&&range.start?fundDateYmd(range.start):"";
+    if(startKey && startKey>="2026-06-07")return 10000;
+    return base;
+}
+function getFundDefaultWeekForMonth(month){
+    const ranges=getFundWeekRanges(month||getFundCurrentMonth());
+    const today=new Date();
+    const todayKey=fundDateYmd(today);
+    const found=ranges.find(r=>fundDateYmd(r.start)<=todayKey&&todayKey<=fundDateYmd(r.end));
+    return found?found.week:"1";
+}
+function updateFundSubmitAmountByWeek(){
+    const month=normalizeFundMonth(document.getElementById("fundSubmitMonth")&&document.getElementById("fundSubmitMonth").value)||getFundCurrentMonth();
+    const week=String(document.getElementById("fundSubmitWeek")&&document.getElementById("fundSubmitWeek").value||getFundDefaultWeekForMonth(month));
+    const amount=document.getElementById("fundSubmitAmount");
+    if(amount)amount.value=getFundWeeklyFee(month,week);
+    const feeBox=document.getElementById("fundSubmitFeePreview");
+    if(feeBox)feeBox.textContent=fundMoney(getFundWeeklyFee(month,week));
+}
 function fundMonthOffset(month,offset){
     const base=normalizeFundMonth(month)||getFundTodayMonth();
     const parts=base.split("-");
@@ -17988,7 +18026,7 @@ function renderFundTab(){
     box.innerHTML=renderFundStatus();
 }
 function renderFundMonthToolbar(extra){
-    return `<div class="fund-toolbar"><div class="fund-toolbar-left">${renderFundMonthSelect("fundMonthView",getFundCurrentMonth(),`onchange="fundSelectedMonth=this.value;renderFundTab();"`)}${extra||""}</div><div class="fund-toolbar-right"><span class="fund-help">기본 주간 공금: ${fundMoney(getFundWeeklyFee())}</span></div></div>`;
+    return `<div class="fund-toolbar"><div class="fund-toolbar-left">${renderFundMonthSelect("fundMonthView",getFundCurrentMonth(),`onchange="fundSelectedMonth=this.value;renderFundTab();"`)}${extra||""}</div><div class="fund-toolbar-right"><span class="fund-help">공금 기준: 2026.06.07부터 10,000원</span></div></div>`;
 }
 function renderFundStatus(){
     const month=getFundCurrentMonth();
@@ -18052,7 +18090,7 @@ function renderFundSubmit(){
                 <div class="fund-submit-title">공금납부</div>
                 <div class="fund-submit-desc">납부자, 월/주차, 입금 위치, 증빙만 확인해서 제출하면 운영진 검수 후 월별현황에 반영됩니다.</div>
             </div>
-            <div class="fund-submit-fee"><span>기본 주간 공금</span><strong>${fundMoney(getFundWeeklyFee())}</strong></div>
+            <div class="fund-submit-fee"><span>선택 주차 공금</span><strong id="fundSubmitFeePreview">${fundMoney(getFundWeeklyFee(month,getFundDefaultWeekForMonth(month)))}</strong></div>
         </div>
         <div class="fund-submit-layout">
             <div class="fund-submit-section">
@@ -18060,9 +18098,9 @@ function renderFundSubmit(){
                 <div class="fund-submit-compact-grid">
                     <div class="fund-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
                     <div class="fund-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}</div>
-                    <div class="fund-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek">${renderFundWeekOptions(month,"1")}</select></div>
+                    <div class="fund-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek" onchange="updateFundSubmitAmountByWeek()">${renderFundWeekOptions(month,getFundDefaultWeekForMonth(month))}</select></div>
                     <div class="fund-field"><div class="fund-label">입금 위치</div><select class="fund-select" id="fundSubmitAccount"><option>공용계좌</option><option>회사잔고</option></select></div>
-                    <div class="fund-field fund-field-amount"><div class="fund-label">금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${getFundWeeklyFee()}"></div>
+                    <div class="fund-field fund-field-amount"><div class="fund-label">금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${getFundWeeklyFee(month,getFundDefaultWeekForMonth(month))}"></div>
                 </div>
                 <div class="fund-submit-note-inline">전월 미납분도 대상 월에서 선택할 수 있습니다. 주차 옆 날짜 범위를 확인하세요.</div>
             </div>
@@ -27226,6 +27264,14 @@ window.axeFundWeekV47Debug=function(month){
     const target=normalizeFundMonth(month)||getFundCurrentMonth();
     const ranges=getFundWeekRanges(target).map(r=>({week:r.week,label:r.label,start:r.start,end:r.end}));
     const result={version:"fund-week-v47-sunday-4weeks",month:target,ranges};
+    console.log(result);
+    return result;
+};
+
+window.axeFundFeeV48Debug=function(month){
+    const m=normalizeFundMonth(month)||getFundCurrentMonth();
+    const weeks=getFundWeekRanges(m).map(r=>({week:r.week,label:r.label,start:fundDateYmd(r.start),fee:getFundWeeklyFee(m,r.week)}));
+    const result={version:"fund-fee-v48",month:m,weeks};
     console.log(result);
     return result;
 };
