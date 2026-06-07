@@ -27276,3 +27276,112 @@ window.axeFundFeeV48Debug=function(month){
     return result;
 };
 </script>
+
+
+<script id="axe-fund-fee-v49-submit-amount-fix">
+/* AXE NET 공금 v49: 주차 선택 기준 총 납부금액/분할납부/공용계좌/회사잔고 금액 동기화 */
+(function(){
+  const VERSION='fund-fee-v49-submit-amount-sync';
+  function normMonth(v){
+    try{return normalizeFundMonth(v)||getFundCurrentMonth();}
+    catch(e){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0');}
+  }
+  function currentMonth(){
+    try{return getFundCurrentMonth();}
+    catch(e){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0');}
+  }
+  function defaultWeek(month){
+    try{return String(getFundDefaultWeekForMonth(month)||'1');}
+    catch(e){return '1';}
+  }
+  function feeFor(month,week){
+    try{return Number(getFundWeeklyFee(normMonth(month),String(week||'1'))||0)||0;}
+    catch(e){try{return Number(getFundBaseWeeklyFee()||20000)||20000;}catch(_){return 20000;}}
+  }
+  function money(n){try{return fundMoney(n);}catch(e){return (Number(n)||0).toLocaleString('ko-KR')+'원';}}
+  function syncSplitByMode(fee){
+    const mode=document.getElementById('fundSubmitPaymentMode')?.value||'공용계좌';
+    const pub=document.getElementById('fundSubmitPublicAmount');
+    const comp=document.getElementById('fundSubmitCompanyAmount');
+    const total=document.getElementById('fundSplitTotal');
+    if(mode==='공용계좌'){
+      if(pub)pub.value=fee;
+      if(comp)comp.value=0;
+    }else if(mode==='회사잔고'){
+      if(pub)pub.value=0;
+      if(comp)comp.value=fee;
+    }
+    const p=Number(pub&&pub.value||0)||0;
+    const c=Number(comp&&comp.value||0)||0;
+    if(total)total.textContent='합계 '+money(p+c)+' / 기준 '+money(fee);
+  }
+  window.updateFundSubmitAmountByWeek=function(){
+    const month=normMonth(document.getElementById('fundSubmitMonth')?.value||currentMonth());
+    const week=String(document.getElementById('fundSubmitWeek')?.value||defaultWeek(month));
+    const fee=feeFor(month,week);
+    const amount=document.getElementById('fundSubmitAmount');
+    if(amount)amount.value=fee;
+    const feeBox=document.getElementById('fundSubmitFeePreview');
+    if(feeBox)feeBox.textContent=money(fee);
+    syncSplitByMode(fee);
+    return fee;
+  };
+  window.refreshFundSubmitWeekOptions=function(month){
+    const normalized=normMonth(month||currentMonth());
+    const select=document.getElementById('fundSubmitWeek');
+    if(select){
+      const selected=defaultWeek(normalized);
+      try{select.innerHTML=renderFundWeekOptions(normalized,selected);}catch(e){}
+      select.value=selected;
+    }
+    window.updateFundSubmitAmountByWeek();
+  };
+  const prevUpdate=window.updateFundPaymentModeUI;
+  window.updateFundPaymentModeUI=function(){
+    const amountEl=document.getElementById('fundSubmitAmount');
+    const fee=Number(amountEl&&amountEl.value||0)||window.updateFundSubmitAmountByWeek?.()||0;
+    const splitBox=document.getElementById('fundSplitBox');
+    const mode=document.getElementById('fundSubmitPaymentMode')?.value||'공용계좌';
+    if(splitBox)splitBox.classList.toggle('active',mode==='분할납부');
+    syncSplitByMode(fee);
+    if(typeof prevUpdate==='function'){
+      try{ /* 기존 함수가 있어도 최종 값은 아래에서 다시 맞춤 */ prevUpdate(); }catch(e){}
+      syncSplitByMode(fee);
+    }
+  };
+  window.renderFundSubmit=function(){
+    const user=(typeof getCurrentUser==='function')&&getCurrentUser();
+    if(!user)return `<div class="fund-empty">로그인 후 공금 증빙을 제출할 수 있습니다.</div>`;
+    const month=currentMonth();
+    const week=defaultWeek(month);
+    const fee=feeFor(month,week);
+    return `<div class="fund-form-card fund-submit-card-compact"><div class="fund-form-title">공금 납부 증빙 제출</div>
+      <div class="fund-submit-compact-grid">
+        <div class="fund-submit-compact-field"><div class="fund-label">제출자</div>${renderFundSubmitterField(user)}</div>
+        <div class="fund-submit-compact-field"><div class="fund-label">대상 월</div>${renderFundMonthSelect("fundSubmitMonth",month,`onchange="refreshFundSubmitWeekOptions(this.value)"`)}</div>
+        <div class="fund-submit-compact-field"><div class="fund-label">대상 주차</div><select class="fund-select" id="fundSubmitWeek" onchange="updateFundSubmitAmountByWeek()">${renderFundWeekOptions(month,week)}</select></div>
+        <div class="fund-submit-compact-field"><div class="fund-label">납부 방식</div><select class="fund-select" id="fundSubmitPaymentMode" onchange="updateFundPaymentModeUI()"><option value="공용계좌">공용계좌 전액</option><option value="회사잔고">회사잔고 전액</option><option value="분할납부">분할납부</option></select></div>
+        <div class="fund-submit-compact-field"><div class="fund-label">총 납부금액</div><input class="fund-input" id="fundSubmitAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
+        <div class="fund-submit-compact-field"><div class="fund-label">증빙 스크린샷</div><input class="fund-file" id="fundSubmitFile" type="file" accept="image/*"></div>
+        <div id="fundSplitBox" class="fund-split-box">
+          <div class="fund-split-grid">
+            <div><div class="fund-label">공용계좌 입금액</div><input class="fund-input" id="fundSubmitPublicAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
+            <div><div class="fund-label">회사잔고 입금액</div><input class="fund-input" id="fundSubmitCompanyAmount" type="number" value="0" oninput="updateFundPaymentModeUI()"></div>
+            <div><div class="fund-label">합계 확인</div><div class="fund-split-total" id="fundSplitTotal">합계 ${money(fee)} / 기준 ${money(fee)}</div></div>
+          </div>
+          <div class="fund-split-help">분할납부는 한 번만 제출합니다. 예: 공용 6,000원 + 잔고 4,000원</div>
+        </div>
+      </div>
+      <div class="fund-submit-memo-compact"><div class="fund-label">메모</div><textarea class="fund-textarea" id="fundSubmitMemo" placeholder="예: 공용 6,000원, 잔고 4,000원으로 분할 납부했습니다."></textarea></div>
+      <div class="fund-submit-action-row"><button class="fund-btn primary" id="fundSubmitBtn" onclick="submitFundRequest(this)">증빙 제출</button><div class="fund-submit-status" id="fundSubmitStatus"><span class="fund-submit-spinner"></span><span id="fundSubmitStatusText">제출 중입니다. 잠시만 기다려주세요.</span></div></div>
+      <div class="fund-help">제출 즉시 납부완료가 아니라 검수대기 상태가 됩니다. 운영진 승인 후 월별현황에 반영됩니다.</div>
+    </div>`;
+  };
+  window.axeFundFeeV49Debug=function(month){
+    const m=normMonth(month||currentMonth());
+    let weeks=[];
+    try{weeks=getFundWeekRanges(m).map(r=>({week:r.week,label:r.label,start:fundDateYmd(r.start),fee:feeFor(m,r.week)}));}catch(e){}
+    return {version:VERSION,month:m,weeks,selected:{month:document.getElementById('fundSubmitMonth')?.value,week:document.getElementById('fundSubmitWeek')?.value,amount:document.getElementById('fundSubmitAmount')?.value}};
+  };
+})();
+</script>
