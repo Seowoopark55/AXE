@@ -4607,7 +4607,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbz4Qn2PwDUmrmJmO6-WJ0gNXmrmAygV6rwrJWMT_LznlITwWD7oXtypnrMPrZIGrbpt1Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw79466dL9q9Yt04aDMzCeDqwOqCUtVkEqBgC__yC3UicS7FmskOg40F-zLf0jDF0pMIA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -17787,7 +17787,7 @@ function getFundActiveMembers(){
 
     function isInactive(item){
         const status=String(item&&item.status||"active").toLowerCase();
-        return status==="inactive"||status==="탈퇴"||status==="정지";
+        return status==="inactive"||status==="resigned"||status==="퇴사"||status==="탈퇴"||status==="정지";
     }
     function isAdminMember(item){
         const role=String(item&&item.role||"").toLowerCase();
@@ -17798,6 +17798,8 @@ function getFundActiveMembers(){
         if(!item)return false;
         const nickname=String(item.nickname||item.name||"").trim();
         if(!nickname||seen[nickname])return false;
+        const accountMember=(adminMembers||[]).concat(rankings||[]).find(function(x){return String(x&&x.nickname||"").trim()===nickname;});
+        if(accountMember&&isInactive(accountMember))return false;
         if(isInactive(item))return false;
         seen[nickname]=true;
         list.push({
@@ -27383,5 +27385,163 @@ window.axeFundFeeV48Debug=function(month){
     try{weeks=getFundWeekRanges(m).map(r=>({week:r.week,label:r.label,start:fundDateYmd(r.start),fee:feeFor(m,r.week)}));}catch(e){}
     return {version:VERSION,month:m,weeks,selected:{month:document.getElementById('fundSubmitMonth')?.value,week:document.getElementById('fundSubmitWeek')?.value,amount:document.getElementById('fundSubmitAmount')?.value}};
   };
+})();
+</script>
+
+
+<script id="axe-member-resignation-v50">
+/* AXE NET V50: 회원관리 퇴사자 관리/편집 정리 */
+(function(){
+    const VERSION="member-resignation-v50";
+    window.axeMemberAdminFilter=window.axeMemberAdminFilter||"active";
+    window.axeMemberAdminSearch=window.axeMemberAdminSearch||"";
+
+    function text(v){return String(v??"").trim();}
+    function lower(v){return text(v).toLowerCase();}
+    function isResignedStatus(v){const s=lower(v);return s==="resigned"||s==="퇴사";}
+    function isInactiveStatus(v){const s=lower(v);return s==="inactive"||s==="resigned"||s==="퇴사"||s==="탈퇴"||s==="정지";}
+    function dateOnly(v){
+        const s=text(v);
+        if(!s)return "";
+        if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+        const d=new Date(s);
+        if(!isNaN(d.getTime())){
+            const y=d.getFullYear();
+            const m=String(d.getMonth()+1).padStart(2,"0");
+            const day=String(d.getDate()).padStart(2,"0");
+            return `${y}-${m}-${day}`;
+        }
+        return s.replace(/\./g,"-").replace(/\s+/g," ").slice(0,10);
+    }
+    function today(){
+        const d=new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    function getMemberKey(member){return domSafeId((member&&member.id)||((member&&member.nickname)||"member"));}
+    function getFilteredMembers(){
+        const q=lower(window.axeMemberAdminSearch||"");
+        const f=String(window.axeMemberAdminFilter||"active");
+        return (adminMembers||[]).filter(function(m){
+            const status=lower(m.status||"active");
+            const resigned=isResignedStatus(status);
+            if(f==="active"&&resigned)return false;
+            if(f==="resigned"&&!resigned)return false;
+            if(q){
+                const hay=[m.nickname,m.id,m.role,m.status,m.badge,m.memo,m.resigned_at].map(text).join(" ").toLowerCase();
+                if(hay.indexOf(q)===-1)return false;
+            }
+            return true;
+        });
+    }
+    window.axeSetMemberAdminFilter=function(filter){
+        window.axeMemberAdminFilter=filter||"all";
+        if(typeof renderAdminMembers==="function")renderAdminMembers();
+    };
+    window.axeSetMemberAdminSearch=function(value){
+        window.axeMemberAdminSearch=value||"";
+        const body=document.getElementById("adminMemberTableBodyV50");
+        if(body)body.innerHTML=getFilteredMembers().map(function(member){return renderAdminMemberRow(member);}).join("")||`<tr><td colspan="11"><div class="ready">조건에 맞는 회원이 없습니다.</div></td></tr>`;
+        const summary=document.getElementById("adminMemberSummaryV50");
+        if(summary)summary.textContent=`표시 ${getFilteredMembers().length}명 / 전체 ${(adminMembers||[]).length}명`;
+    };
+    window.axeQuickResignMember=function(memberId,safeId){
+        const status=document.getElementById("adminStatus_"+safeId);
+        const date=document.getElementById("adminResignedAt_"+safeId);
+        const memo=document.getElementById("adminMemo_"+safeId);
+        if(status)status.value="resigned";
+        if(date&&!text(date.value))date.value=today();
+        if(memo&&!text(memo.value))memo.value="퇴사 처리";
+    };
+    window.axeRestoreMember=function(memberId,safeId){
+        const status=document.getElementById("adminStatus_"+safeId);
+        const date=document.getElementById("adminResignedAt_"+safeId);
+        if(status)status.value="active";
+        if(date)date.value="";
+    };
+    window.renderAdminMembers=function(){
+        const box=document.getElementById("adminMemberBox");
+        if(!box)return;
+        const total=(adminMembers||[]).length;
+        const active=(adminMembers||[]).filter(m=>!isResignedStatus(m.status||"active")).length;
+        const resigned=(adminMembers||[]).filter(m=>isResignedStatus(m.status)).length;
+        const rows=getFilteredMembers();
+        if(!total){box.innerHTML=`<div class="ready">등록된 회원이 없습니다.</div>`;return;}
+        box.innerHTML=`
+            <div class="admin-toolbar member-admin-v50-toolbar">
+                <div class="admin-summary" id="adminMemberSummaryV50">표시 ${rows.length}명 / 전체 ${total}명</div>
+                <div class="member-admin-v50-actions">
+                    <button class="admin-mini-btn ${window.axeMemberAdminFilter==='active'?'active':''}" onclick="axeSetMemberAdminFilter('active')">재직 ${active}</button>
+                    <button class="admin-mini-btn ${window.axeMemberAdminFilter==='resigned'?'active':''}" onclick="axeSetMemberAdminFilter('resigned')">퇴사 ${resigned}</button>
+                    <button class="admin-mini-btn ${window.axeMemberAdminFilter==='all'?'active':''}" onclick="axeSetMemberAdminFilter('all')">전체 ${total}</button>
+                    <input class="admin-small-input member-admin-v50-search" placeholder="닉네임, 상태, 메모 검색" value="${escapeAttr(window.axeMemberAdminSearch||'')}" oninput="axeSetMemberAdminSearch(this.value)">
+                </div>
+            </div>
+            <div class="admin-table-wrap member-admin-v50-wrap">
+                <table class="admin-table member-admin-v50-table">
+                    <thead>
+                        <tr>
+                            <th>닉네임</th><th>권한</th><th>상태</th><th>퇴사일</th><th>메모</th><th>뱃지</th><th>포인트</th><th>포인트 조정</th><th>가입일</th><th>최근 로그인</th><th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminMemberTableBodyV50">
+                        ${rows.map(member=>renderAdminMemberRow(member)).join("")||`<tr><td colspan="11"><div class="ready">조건에 맞는 회원이 없습니다.</div></td></tr>`}
+                    </tbody>
+                </table>
+            </div>`;
+    };
+    window.renderAdminMemberRow=function(member){
+        const safeId=getMemberKey(member);
+        const role=lower(member.role||"user")==="admin"?"admin":"user";
+        const status=lower(member.status||"active");
+        const badge=normalizeBadge(member.badge||"bronze");
+        const resigned=isResignedStatus(status);
+        const rowClass=resigned?" member-admin-v50-resigned":"";
+        return `
+        <tr class="${rowClass}">
+            <td><div class="admin-member-name">${renderWriterName(member.nickname||"익명",badge)}${resigned?'<span class="member-resigned-pill">퇴사</span>':''}</div><div class="admin-member-id">${safe(member.id||"")}</div></td>
+            <td><select class="admin-select" id="adminRole_${safeId}"><option value="user" ${role==="user"?"selected":""}>user</option><option value="admin" ${role==="admin"?"selected":""}>admin</option></select></td>
+            <td><select class="admin-select" id="adminStatus_${safeId}"><option value="active" ${status==="active"?"selected":""}>active</option><option value="inactive" ${status==="inactive"?"selected":""}>inactive</option><option value="resigned" ${resigned?"selected":""}>resigned</option></select></td>
+            <td><input class="admin-small-input member-date-input" id="adminResignedAt_${safeId}" type="date" value="${escapeAttr(dateOnly(member.resigned_at||member.resign_date||''))}"></td>
+            <td><input class="admin-small-input member-memo-input" id="adminMemo_${safeId}" type="text" value="${escapeAttr(member.memo||member.note||'')}" placeholder="퇴사 처리 메모"></td>
+            <td><select class="admin-select" id="adminBadge_${safeId}"><option value="bronze" ${badge==="bronze"?"selected":""}>bronze</option><option value="silver" ${badge==="silver"?"selected":""}>silver</option><option value="gold" ${badge==="gold"?"selected":""}>gold</option><option value="admin" ${badge==="admin"?"selected":""}>admin</option><option value="black" ${badge==="black"?"selected":""}>black</option><option value="legend" ${badge==="legend"?"selected":""}>legend</option></select></td>
+            <td class="admin-point-cell"><span class="admin-point-pill">P ${Number(member.points||0)}</span></td>
+            <td><div class="admin-point-adjust-box"><input class="admin-small-input admin-point-input" id="adminPoint_${safeId}" type="number" step="1" placeholder="+50 / -10"><input class="admin-small-input admin-reason-input" id="adminReason_${safeId}" type="text" placeholder="사유"><button class="admin-mini-btn admin-point-apply" onclick="adjustAdminMemberPoints('${escapeText(member.id)}','${safeId}',this)">적용</button></div></td>
+            <td>${formatDate(member.created_at)}</td>
+            <td>${formatDate(member.last_login)}</td>
+            <td><div class="admin-action-line member-admin-v50-line"><button class="admin-mini-btn" onclick="saveAdminMember('${escapeText(member.id)}','${safeId}',this)">저장</button><button class="admin-mini-btn danger" onclick="axeQuickResignMember('${escapeText(member.id)}','${safeId}')">퇴사</button><button class="admin-mini-btn" onclick="axeRestoreMember('${escapeText(member.id)}','${safeId}')">재직</button><input class="admin-small-input member-pw-input" id="adminPw_${safeId}" type="text" placeholder="새 비밀번호"><button class="admin-mini-btn" onclick="resetAdminMemberPassword('${escapeText(member.id)}','${safeId}',this)">초기화</button></div></td>
+        </tr>`;
+    };
+    window.axeAdminDisableMemberInputs=function(safeId,disabled){
+        ["adminRole_","adminStatus_","adminBadge_","adminPoint_","adminReason_","adminPw_","adminResignedAt_","adminMemo_"].forEach(function(prefix){const el=document.getElementById(prefix+safeId);if(el)el.disabled=!!disabled;});
+    };
+    window.saveAdminMember=function(memberId,safeId,btn){
+        if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
+        const role=document.getElementById("adminRole_"+safeId)?.value||"user";
+        const status=document.getElementById("adminStatus_"+safeId)?.value||"active";
+        const badge=document.getElementById("adminBadge_"+safeId)?.value||"bronze";
+        let resignedAt=document.getElementById("adminResignedAt_"+safeId)?.value||"";
+        const memo=document.getElementById("adminMemo_"+safeId)?.value||"";
+        if(status==="resigned"&&!resignedAt)resignedAt=today();
+        if(status!=="resigned")resignedAt="";
+        const state=typeof axeBeginProcessing==="function"?axeBeginProcessing("admin_member_save",memberId,btn,"저장 중..."):null;
+        axeAdminDisableMemberInputs(safeId,true);
+        adminApi({type:"admin_member_update",member_id:memberId,role:role,status:status,badge:badge,resigned_at:resignedAt,memo:memo})
+        .then(function(data){
+            if(data.result==="success"){
+                axeAdminPatchMember(memberId,{role:role,status:status,badge:badge,resigned_at:resignedAt,memo:memo});
+                renderAdminMembers();
+                try{refreshData().then(function(){refreshCurrentUserProfileAfterApi({result:"success"});});}catch(e){}
+            }else alert(data.message||"회원 정보 저장 중 오류가 발생했습니다.");
+        })
+        .catch(function(){alert("회원 정보 저장 중 오류가 발생했습니다.");})
+        .finally(function(){axeAdminDisableMemberInputs(safeId,false);if(typeof axeEndProcessing==="function")axeEndProcessing(state);});
+    };
+    const css=document.createElement("style");
+    css.id="axe-member-resignation-v50-style";
+    css.textContent=`
+    .member-admin-v50-toolbar{align-items:flex-start;gap:10px;flex-wrap:wrap}.member-admin-v50-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.member-admin-v50-actions .active{background:#ffb52e;color:#111;border-color:#ffb52e}.member-admin-v50-search{width:210px!important}.member-admin-v50-wrap{max-height:620px;overflow:auto}.member-admin-v50-table th,.member-admin-v50-table td{padding:7px 6px!important;vertical-align:middle}.member-admin-v50-table th:nth-child(1){min-width:130px}.member-admin-v50-table th:nth-child(4){width:122px}.member-admin-v50-table th:nth-child(5){min-width:150px}.member-date-input{width:118px!important}.member-memo-input{width:160px!important}.member-pw-input{width:105px!important}.member-admin-v50-line{gap:4px;flex-wrap:wrap}.member-resigned-pill{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:999px;background:rgba(255,100,100,.14);border:1px solid rgba(255,100,100,.25);color:#ff9ca3;font-size:10px;font-weight:950}.member-admin-v50-resigned{opacity:.72}.member-admin-v50-resigned td{background:rgba(255,255,255,.015)}
+    `;
+    if(!document.getElementById(css.id))document.head.appendChild(css);
+    window.axeMemberResignationV50Debug=function(){return {version:VERSION,total:(adminMembers||[]).length,active:(adminMembers||[]).filter(m=>!isResignedStatus(m.status)).length,resigned:(adminMembers||[]).filter(m=>isResignedStatus(m.status)).length,filter:window.axeMemberAdminFilter};};
 })();
 </script>
