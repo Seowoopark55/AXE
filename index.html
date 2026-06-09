@@ -27547,61 +27547,56 @@ window.axeFundFeeV48Debug=function(month){
 </script>
 
 
-<!-- AXE NET member management v52 renderer replacement -->
-<style id="axe-member-v52-style">
+<!-- AXE NET member management v53 compact renderer replacement -->
+<style id="axe-member-v53-style">
 #adminMemberBox{overflow:visible!important;max-width:100%!important;}
-#adminMemberBox .admin-table-wrap{display:none!important;}
-.member-v52-wrap{width:100%;max-width:100%;overflow:visible!important;}
-.member-v52-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
-.member-v52-title{display:grid;gap:4px;min-width:180px;}
-.member-v52-title strong{font-size:22px;color:#ffb52e;font-weight:950;letter-spacing:-.04em;}
-.member-v52-count{font-size:12px;color:#aaa;font-weight:850;}
-.member-v52-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
-.member-v52-filter{height:38px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-size:13px;font-weight:950;cursor:pointer;}
-.member-v52-filter.active{background:#ffb52e;border-color:#ffb52e;color:#111;}
-.member-v52-search{width:min(260px,52vw);height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#fff;padding:0 12px;font-size:13px;outline:none;}
-.member-v52-search:focus{border-color:rgba(255,181,46,.48);box-shadow:0 0 0 2px rgba(255,181,46,.08);}
-.member-v52-list{display:grid;gap:10px;max-height:650px;overflow-y:auto;overflow-x:hidden;padding:2px 4px 4px 0;}
-.member-v52-card{border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border-radius:16px;padding:12px 13px;display:grid;gap:10px;max-width:100%;}
-.member-v52-card.resigned{border-color:rgba(255,120,120,.18);background:linear-gradient(180deg,rgba(255,60,60,.045),rgba(255,255,255,.012));opacity:.88;}
-.member-v52-main{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:9px;}
-.member-v52-name{min-width:0;font-size:15px;font-weight:950;color:#fff;display:flex;align-items:center;gap:7px;}
-.member-v52-name .writer-with-badge{font-size:15px;}
-.member-v52-sub{font-size:11px;color:#888;margin-top:3px;line-height:1.35;}
-.member-v52-pills{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
-.member-v52-pill{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-size:11px;font-weight:950;white-space:nowrap;}
-.member-v52-pill.point{border-color:rgba(255,181,46,.35);background:rgba(255,181,46,.10);color:#ffcf75;}
-.member-v52-pill.resigned{border-color:rgba(255,100,100,.32);background:rgba(255,100,100,.10);color:#ffb4b4;}
-.member-v52-grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:8px;align-items:end;}
-.member-v52-field{display:grid;gap:4px;min-width:0;}
-.member-v52-field label{font-size:10.5px;color:#888;font-weight:950;}
-.member-v52-field input,.member-v52-field select{width:100%;height:36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;padding:0 10px;font-size:12px;font-weight:850;outline:none;min-width:0;}
-.member-v52-field input:focus,.member-v52-field select:focus{border-color:rgba(255,181,46,.45);box-shadow:0 0 0 2px rgba(255,181,46,.08);}
-.member-v52-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;border-top:1px solid rgba(255,255,255,.07);padding-top:9px;}
-.member-v52-btn{height:34px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#ddd;font-size:12px;font-weight:950;cursor:pointer;}
-.member-v52-btn:hover{border-color:rgba(255,181,46,.38);color:#ffcf75;}
-.member-v52-btn.primary{background:#ffb52e;border-color:#ffb52e;color:#111;}
-.member-v52-btn.danger{background:rgba(255,85,85,.12);border-color:rgba(255,85,85,.25);color:#ffb4b4;}
-.member-v52-btn.good{background:rgba(90,230,160,.10);border-color:rgba(90,230,160,.25);color:#8de0b3;}
-.member-v52-empty{border:1px dashed rgba(255,255,255,.14);border-radius:14px;padding:22px;text-align:center;color:#888;font-size:13px;font-weight:850;}
-@media(max-width:1080px){.member-v52-grid{grid-template-columns:repeat(3,minmax(130px,1fr));}}
-@media(max-width:760px){.member-v52-head{display:grid}.member-v52-toolbar{justify-content:flex-start}.member-v52-search{width:100%}.member-v52-main{display:grid}.member-v52-pills{justify-content:flex-start}.member-v52-grid{grid-template-columns:1fr 1fr}.member-v52-actions{justify-content:stretch}.member-v52-btn{flex:1;}}
-@media(max-width:520px){.member-v52-grid{grid-template-columns:1fr}.member-v52-card{padding:11px}.member-v52-list{max-height:none;}}
+#adminMemberBox .admin-table-wrap,#adminMemberBox table{display:none!important;}
+.member-v53-wrap{width:100%;max-width:100%;overflow:visible!important;}
+.member-v53-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
+.member-v53-count{font-size:12px;color:#9aa4b5;font-weight:850;white-space:nowrap;}
+.member-v53-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.member-v53-filter{height:34px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-size:12px;font-weight:950;cursor:pointer;}
+.member-v53-filter.active{background:#ffb52e;border-color:#ffb52e;color:#111;}
+.member-v53-search{width:min(240px,48vw);height:34px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#fff;padding:0 11px;font-size:12px;outline:none;}
+.member-v53-list{display:grid;gap:7px;max-height:650px;overflow-y:auto;overflow-x:hidden;padding-right:3px;}
+.member-v53-row{border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.012));border-radius:13px;padding:9px 10px;display:grid;gap:8px;max-width:100%;}
+.member-v53-row.resigned{border-color:rgba(255,120,120,.20);background:linear-gradient(180deg,rgba(255,70,70,.045),rgba(255,255,255,.012));opacity:.86;}
+.member-v53-top{display:grid;grid-template-columns:minmax(150px,1.15fr) auto;gap:8px;align-items:center;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:7px;}
+.member-v53-name{font-size:14px;font-weight:950;color:#fff;display:flex;align-items:center;gap:6px;min-width:0;}
+.member-v53-name .writer-with-badge{font-size:14px;}
+.member-v53-meta{font-size:10.5px;color:#8d96a6;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-v53-pills{display:flex;align-items:center;gap:5px;justify-content:flex-end;flex-wrap:wrap;}
+.member-v53-pill{display:inline-flex;align-items:center;height:23px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-size:10.5px;font-weight:950;white-space:nowrap;}
+.member-v53-pill.point{border-color:rgba(255,181,46,.35);background:rgba(255,181,46,.10);color:#ffcf75;}
+.member-v53-pill.resigned{border-color:rgba(255,100,100,.32);background:rgba(255,100,100,.10);color:#ffb4b4;}
+.member-v53-form{display:grid;grid-template-columns:95px 110px 110px 120px minmax(170px,1fr) 92px 105px 105px;gap:6px;align-items:end;}
+.member-v53-field{display:grid;gap:3px;min-width:0;}
+.member-v53-field label{font-size:10px;color:#8d96a6;font-weight:950;}
+.member-v53-field input,.member-v53-field select{width:100%;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.24);color:#fff;padding:0 8px;font-size:11.5px;font-weight:850;outline:none;min-width:0;}
+.member-v53-field input:focus,.member-v53-field select:focus{border-color:rgba(255,181,46,.45);box-shadow:0 0 0 2px rgba(255,181,46,.08);}
+.member-v53-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.06);padding-top:7px;}
+.member-v53-btn{height:31px;padding:0 10px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#ddd;font-size:11.5px;font-weight:950;cursor:pointer;}
+.member-v53-btn:hover{border-color:rgba(255,181,46,.38);color:#ffcf75;}
+.member-v53-btn.primary{background:#ffb52e;border-color:#ffb52e;color:#111;}
+.member-v53-empty{border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:18px;text-align:center;color:#888;font-size:12px;font-weight:850;}
+@media(max-width:1280px){.member-v53-form{grid-template-columns:90px 105px 105px 118px minmax(160px,1fr) 90px 100px;}.member-v53-field.pw{grid-column:span 2;}}
+@media(max-width:980px){.member-v53-top{grid-template-columns:1fr}.member-v53-pills{justify-content:flex-start}.member-v53-form{grid-template-columns:repeat(3,minmax(0,1fr));}.member-v53-field.memo{grid-column:span 2}.member-v53-field.pw{grid-column:span 1}}
+@media(max-width:620px){.member-v53-toolbar{display:grid}.member-v53-controls{justify-content:flex-start}.member-v53-search{width:100%}.member-v53-form{grid-template-columns:1fr 1fr}.member-v53-field.memo,.member-v53-field.pw{grid-column:1/-1}.member-v53-actions{justify-content:stretch}.member-v53-btn{flex:1}.member-v53-list{max-height:none;}}
 </style>
-<script id="axe-member-v52-renderer-replace">
+<script id="axe-member-v53-renderer-replace">
 (function(){
-  if(window.__axeMemberV52Installed)return;
-  window.__axeMemberV52Installed=true;
+  if(window.__axeMemberV53Installed)return;
+  window.__axeMemberV53Installed=true;
   const state={filter:'active',query:''};
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const attr=s=>esc(s).replace(/`/g,'&#96;');
   const idSafe=s=>String(s||'x').replace(/[^a-zA-Z0-9_-]/g,'_');
   const norm=s=>String(s||'').trim().toLowerCase();
-  const today=()=>{const d=new Date(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`;};
+  const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
   function fmtDate(v){try{return typeof formatDate==='function'?formatDate(v):(v||'-');}catch(e){return v||'-';}}
   function badgeOf(m){try{return typeof normalizeBadge==='function'?normalizeBadge(m.badge||'bronze'):(m.badge||'bronze');}catch(e){return m.badge||'bronze';}}
   function nameHtml(m){try{return typeof renderWriterName==='function'?renderWriterName(m.nickname||'익명',badgeOf(m)):esc(m.nickname||'익명');}catch(e){return esc(m.nickname||'익명');}}
-  function members(){return Array.isArray(window.adminMembers)?window.adminMembers:(Array.isArray(adminMembers)?adminMembers:[]);}
+  function members(){try{if(Array.isArray(window.adminMembers))return window.adminMembers;if(typeof adminMembers!=='undefined'&&Array.isArray(adminMembers))return adminMembers;}catch(e){}return [];}
   function counts(list){return {total:list.length,active:list.filter(m=>norm(m.status||'active')!=='resigned').length,resigned:list.filter(m=>norm(m.status)==='resigned').length};}
   function filtered(){
     let list=members(); const q=norm(state.query);
@@ -27611,72 +27606,66 @@ window.axeFundFeeV48Debug=function(month){
     return list;
   }
   function option(v,label,current){return `<option value="${attr(v)}" ${norm(current)===norm(v)?'selected':''}>${esc(label||v)}</option>`;}
-  function renderToolbar(list,shown){const c=counts(list); return `
-    <div class="member-v52-head">
-      <div class="member-v52-title"><strong>회원 관리</strong><div class="member-v52-count">표시 ${shown.length}명 / 전체 ${c.total}명</div></div>
-      <div class="member-v52-toolbar">
-        <button class="member-v52-filter ${state.filter==='active'?'active':''}" onclick="setMemberV52Filter('active')">재직 ${c.active}</button>
-        <button class="member-v52-filter ${state.filter==='resigned'?'active':''}" onclick="setMemberV52Filter('resigned')">퇴사 ${c.resigned}</button>
-        <button class="member-v52-filter ${state.filter==='all'?'active':''}" onclick="setMemberV52Filter('all')">전체 ${c.total}</button>
-        <input class="member-v52-search" value="${attr(state.query)}" placeholder="닉네임, 상태, 메모 검색" oninput="setMemberV52Query(this.value)">
+  function statusLabel(v){v=norm(v||'active'); if(v==='resigned')return '퇴사'; if(v==='inactive')return '비활성'; return '재직';}
+  function renderToolbar(list,shown){const c=counts(list); return `<div class="member-v53-toolbar">
+      <div class="member-v53-count">표시 ${shown.length}명 / 전체 ${c.total}명</div>
+      <div class="member-v53-controls">
+        <button class="member-v53-filter ${state.filter==='active'?'active':''}" onclick="setMemberV53Filter('active')">재직 ${c.active}</button>
+        <button class="member-v53-filter ${state.filter==='resigned'?'active':''}" onclick="setMemberV53Filter('resigned')">퇴사 ${c.resigned}</button>
+        <button class="member-v53-filter ${state.filter==='all'?'active':''}" onclick="setMemberV53Filter('all')">전체 ${c.total}</button>
+        <input class="member-v53-search" value="${attr(state.query)}" placeholder="닉네임, 상태, 메모 검색" oninput="setMemberV53Query(this.value)">
       </div>
     </div>`;}
-  function renderCard(m){
+  function renderRow(m){
     const sid=idSafe(m.id||m.nickname); const resigned=norm(m.status)==='resigned'; const mid=String(m.id||''); const midArg=JSON.stringify(mid); const sidArg=JSON.stringify(sid);
-    return `<div class="member-v52-card ${resigned?'resigned':''}">
-      <div class="member-v52-main">
-        <div><div class="member-v52-name">${nameHtml(m)}</div><div class="member-v52-sub">ID ${esc(m.id||'-')} · 가입 ${esc(fmtDate(m.created_at))} · 최근 ${esc(fmtDate(m.last_login))}</div></div>
-        <div class="member-v52-pills"><span class="member-v52-pill ${resigned?'resigned':''}">${resigned?'퇴사':'재직'}</span><span class="member-v52-pill">${esc(m.role||'user')}</span><span class="member-v52-pill point">P ${Number(m.points||0)}</span></div>
+    return `<div class="member-v53-row ${resigned?'resigned':''}">
+      <div class="member-v53-top">
+        <div><div class="member-v53-name">${nameHtml(m)}</div><div class="member-v53-meta">ID ${esc(m.id||'-')} · 가입 ${esc(fmtDate(m.created_at))} · 최근 ${esc(fmtDate(m.last_login))}</div></div>
+        <div class="member-v53-pills"><span class="member-v53-pill ${resigned?'resigned':''}">${statusLabel(m.status)}</span><span class="member-v53-pill">${esc(m.role||'user')}</span><span class="member-v53-pill point">P ${Number(m.points||0)}</span></div>
       </div>
-      <div class="member-v52-grid">
-        <div class="member-v52-field"><label>권한</label><select id="adminRole_${sid}">${option('user','user',m.role||'user')}${option('admin','admin',m.role||'user')}</select></div>
-        <div class="member-v52-field"><label>상태</label><select id="adminStatus_${sid}">${option('active','active',m.status||'active')}${option('inactive','inactive',m.status||'active')}${option('resigned','resigned',m.status||'active')}</select></div>
-        <div class="member-v52-field"><label>뱃지</label><select id="adminBadge_${sid}">${['bronze','silver','gold','admin','black','legend'].map(b=>option(b,b,badgeOf(m))).join('')}</select></div>
-        <div class="member-v52-field"><label>퇴사일</label><input id="adminResignedAt_${sid}" type="date" value="${attr(String(m.resigned_at||'').slice(0,10))}"></div>
-        <div class="member-v52-field" style="grid-column:span 2"><label>메모</label><input id="adminMemo_${sid}" type="text" value="${attr(m.memo||'')}" placeholder="퇴사 처리 메모"></div>
-        <div class="member-v52-field"><label>포인트 조정</label><input id="adminPoint_${sid}" type="number" step="1" placeholder="+50 / -10"></div>
-        <div class="member-v52-field"><label>조정 사유</label><input id="adminReason_${sid}" type="text" placeholder="사유 입력"></div>
-        <div class="member-v52-field"><label>새 비밀번호</label><input id="adminPw_${sid}" type="text" placeholder="새 비밀번호"></div>
+      <div class="member-v53-form">
+        <div class="member-v53-field"><label>권한</label><select id="adminRole_${sid}">${option('user','user',m.role||'user')}${option('admin','admin',m.role||'user')}</select></div>
+        <div class="member-v53-field"><label>상태</label><select id="adminStatus_${sid}">${option('active','재직',m.status||'active')}${option('resigned','퇴사',m.status||'active')}${option('inactive','비활성',m.status||'active')}</select></div>
+        <div class="member-v53-field"><label>뱃지</label><select id="adminBadge_${sid}">${['bronze','silver','gold','admin','black','legend'].map(b=>option(b,b,badgeOf(m))).join('')}</select></div>
+        <div class="member-v53-field"><label>퇴사일</label><input id="adminResignedAt_${sid}" type="date" value="${attr(String(m.resigned_at||'').slice(0,10))}"></div>
+        <div class="member-v53-field memo"><label>메모</label><input id="adminMemo_${sid}" type="text" value="${attr(m.memo||'')}" placeholder="퇴사 처리 메모"></div>
+        <div class="member-v53-field"><label>포인트</label><input id="adminPoint_${sid}" type="number" step="1" placeholder="+50 / -10"></div>
+        <div class="member-v53-field"><label>사유</label><input id="adminReason_${sid}" type="text" placeholder="사유"></div>
+        <div class="member-v53-field pw"><label>새 비밀번호</label><input id="adminPw_${sid}" type="text" placeholder="새 비밀번호"></div>
       </div>
-      <div class="member-v52-actions">
-        <button class="member-v52-btn primary" onclick="saveAdminMember(${midArg},${sidArg})">저장</button>
-        <button class="member-v52-btn" onclick="adjustAdminMemberPoints(${midArg},${sidArg})">포인트 적용</button>
-        <button class="member-v52-btn danger" onclick="setMemberV52Resigned(${midArg},${sidArg})">퇴사</button>
-        <button class="member-v52-btn good" onclick="setMemberV52Active(${midArg},${sidArg})">재직</button>
-        <button class="member-v52-btn" onclick="resetAdminMemberPassword(${midArg},${sidArg})">비밀번호 초기화</button>
+      <div class="member-v53-actions">
+        <button class="member-v53-btn primary" onclick="saveAdminMember(${midArg},${sidArg})">저장</button>
+        <button class="member-v53-btn" onclick="adjustAdminMemberPoints(${midArg},${sidArg})">포인트</button>
+        <button class="member-v53-btn" onclick="resetAdminMemberPassword(${midArg},${sidArg})">비밀번호 초기화</button>
       </div>
     </div>`;
   }
-  window.setMemberV52Filter=function(v){state.filter=v||'active'; renderAdminMembers();};
-  window.setMemberV52Query=function(v){state.query=v||''; renderAdminMembers();};
+  window.setMemberV53Filter=function(v){state.filter=v||'active'; renderAdminMembers();};
+  window.setMemberV53Query=function(v){state.query=v||''; renderAdminMembers();};
   window.renderAdminMembers=function(){
     const box=document.getElementById('adminMemberBox'); if(!box)return;
     const list=members(); const shown=filtered();
     if(!list.length){box.innerHTML='<div class="ready">등록된 회원이 없습니다.</div>';return;}
-    box.innerHTML=`<div class="member-v52-wrap">${renderToolbar(list,shown)}<div class="member-v52-list">${shown.length?shown.map(renderCard).join(''):'<div class="member-v52-empty">조건에 맞는 회원이 없습니다.</div>'}</div></div>`;
+    box.innerHTML=`<div class="member-v53-wrap">${renderToolbar(list,shown)}<div class="member-v53-list">${shown.length?shown.map(renderRow).join(''):'<div class="member-v53-empty">조건에 맞는 회원이 없습니다.</div>'}</div></div>`;
   };
   window.saveAdminMember=function(memberId,safeId){
     const role=document.getElementById('adminRole_'+safeId)?.value||'user';
     const status=document.getElementById('adminStatus_'+safeId)?.value||'active';
     const badge=document.getElementById('adminBadge_'+safeId)?.value||'bronze';
-    const resigned_at=document.getElementById('adminResignedAt_'+safeId)?.value||'';
-    const memo=document.getElementById('adminMemo_'+safeId)?.value||'';
-    adminApi({type:'admin_member_update',member_id:memberId,role,status,badge,resigned_at,memo}).then(data=>{
-      if(data.result==='success'){alert('회원 정보가 저장되었습니다.'); return loadAdminMembers();}
-      alert(data.message||'회원 정보 저장 중 오류가 발생했습니다.');
-    }).catch(()=>{});
+    let resigned_at=document.getElementById('adminResignedAt_'+safeId)?.value||'';
+    let memo=document.getElementById('adminMemo_'+safeId)?.value||'';
+    if(status==='resigned'&&!resigned_at)resigned_at=today();
+    if(status==='resigned'&&!memo)memo='퇴사 처리';
+    if(status!=='resigned')resigned_at='';
+    const payload={type:'admin_member_update',member_id:memberId,role,status,badge,resigned_at,memo};
+    adminApi(payload).then(data=>{
+      if(data.result==='success'){
+        try{const list=members(); const i=list.findIndex(x=>String(x.id)===String(memberId)); if(i>=0)Object.assign(list[i],{role,status,badge,resigned_at,memo});}catch(e){}
+        renderAdminMembers();
+        try{if(typeof loadAdminMembers==='function')loadAdminMembers();}catch(e){}
+      }else alert(data.message||'회원 정보 저장 중 오류가 발생했습니다.');
+    }).catch(()=>alert('회원 정보 저장 중 오류가 발생했습니다.'));
   };
-  window.setMemberV52Resigned=function(memberId,safeId){
-    const st=document.getElementById('adminStatus_'+safeId); if(st)st.value='resigned';
-    const d=document.getElementById('adminResignedAt_'+safeId); if(d&&!d.value)d.value=today();
-    const memo=document.getElementById('adminMemo_'+safeId); if(memo&&!memo.value)memo.value='퇴사 처리';
-    saveAdminMember(memberId,safeId);
-  };
-  window.setMemberV52Active=function(memberId,safeId){
-    const st=document.getElementById('adminStatus_'+safeId); if(st)st.value='active';
-    const d=document.getElementById('adminResignedAt_'+safeId); if(d)d.value='';
-    saveAdminMember(memberId,safeId);
-  };
-  window.axeMemberV52Debug=function(){const list=members();return {renderer:'member-v52-direct-replace',counts:counts(list),shown:filtered().length,box:!!document.getElementById('adminMemberBox')};};
+  window.axeMemberV53Debug=function(){const list=members();return {renderer:'member-v53-compact-status-select',counts:counts(list),shown:filtered().length,box:!!document.getElementById('adminMemberBox')};};
 })();
 </script>
