@@ -28088,3 +28088,117 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
   };
 })();
 </script>
+
+
+<!-- AXE NET asset v60-safe: category/method select only, from stable v59-safe -->
+<style id="axe-asset-v60-safe-category-method-style">
+.asset-form-input.asset-form-select{appearance:auto;background:#151515;color:#fff;cursor:pointer}
+.asset-form-input.asset-form-select option{background:#151515;color:#fff}
+</style>
+<script id="axe-asset-v60-safe-category-method-select">
+/* AXE NET v60-safe: 자산 등록/수정창 자산 종류/획득 방식 드롭다운만 적용. 서버/API/저장 구조 변경 없음. */
+(function(){
+  if(window.__axeAssetV60SafeInstalled)return;
+  window.__axeAssetV60SafeInstalled=true;
+  const VERSION='asset-v60-safe-category-method-select-only';
+  const CATEGORY_DEFAULTS=['총기류','차량','장비','소모품','기타'];
+  const METHOD_DEFAULTS=['보스','무법지대','구매','지원','이벤트','퇴사자 반납','기타'];
+  function text(v){return String(v==null?'':v).trim();}
+  function escapeHtml(v){
+    return String(v==null?'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
+  }
+  function getRows(){
+    if(Array.isArray(window.companyAssets))return window.companyAssets;
+    try{if(typeof companyAssets!=='undefined'&&Array.isArray(companyAssets))return companyAssets;}catch(e){}
+    return [];
+  }
+  function getField(row,names){
+    if(typeof assetField==='function'){
+      try{return assetField(row,names);}catch(e){}
+    }
+    row=row||{};
+    for(var i=0;i<names.length;i++){
+      if(Object.prototype.hasOwnProperty.call(row,names[i]))return row[names[i]];
+    }
+    return '';
+  }
+  function uniqueFromAssets(names){
+    const set=new Set();
+    getRows().forEach(function(row){
+      const v=text(getField(row,names));
+      if(v)set.add(v);
+    });
+    return Array.from(set);
+  }
+  function optionList(defaults,assetValues,current){
+    const out=[];
+    function add(v){v=text(v); if(v&&out.indexOf(v)<0)out.push(v);}
+    defaults.forEach(add);
+    assetValues.forEach(add);
+    add(current);
+    return out;
+  }
+  function makeSelect(old,id,defaults,assetValues,current){
+    if(!old)return null;
+    current=text(current||old.value||old.getAttribute('value')||'');
+    const values=optionList(defaults,assetValues,current);
+    const html=values.map(function(v){return '<option value="'+escapeHtml(v)+'"'+(v===current?' selected':'')+'>'+escapeHtml(v)+'</option>';}).join('');
+    if(old.tagName==='SELECT'){
+      old.innerHTML=html;
+      old.value=current;
+      old.classList.add('asset-form-select');
+      return old;
+    }
+    const sel=document.createElement('select');
+    sel.id=id;
+    sel.className=(old.className||'asset-form-input')+' asset-form-select';
+    sel.innerHTML=html;
+    sel.value=current;
+    old.replaceWith(sel);
+    return sel;
+  }
+  function applyCategoryMethodSelectV60Safe(){
+    const categoryEl=document.getElementById('assetFormCategory');
+    const methodEl=document.getElementById('assetFormMethod');
+    const categoryValues=uniqueFromAssets(['자산 분류','분류','자산 종류','종류','category','type']);
+    const methodValues=uniqueFromAssets(['획득 방식','획득방식','method','source']);
+    const category=makeSelect(categoryEl,'assetFormCategory',CATEGORY_DEFAULTS,categoryValues,categoryEl?categoryEl.value:'');
+    const method=makeSelect(methodEl,'assetFormMethod',METHOD_DEFAULTS,methodValues,methodEl?methodEl.value:'');
+    return {category:category,method:method};
+  }
+  function wrapOpen(fnName){
+    const original=window[fnName];
+    if(typeof original!=='function' || original.__v60SafeWrapped)return;
+    const wrapped=function(){
+      const result=original.apply(this,arguments);
+      setTimeout(applyCategoryMethodSelectV60Safe,0);
+      return result;
+    };
+    wrapped.__v60SafeWrapped=true;
+    wrapped.__v60SafeOriginal=original;
+    window[fnName]=wrapped;
+  }
+  wrapOpen('openAssetCreateModalV20');
+  wrapOpen('openAssetEditModalV20');
+  wrapOpen('openAssetAssignModalV58Safe');
+  window.applyAssetCategoryMethodSelectV60Safe=applyCategoryMethodSelectV60Safe;
+  window.axeAssetV60SafeDebug=function(){
+    const categoryEl=document.getElementById('assetFormCategory');
+    const methodEl=document.getElementById('assetFormMethod');
+    let base=null;
+    try{base=typeof axeAssetV59SafeDebug==='function'?axeAssetV59SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)}}
+    return {
+      renderer:VERSION,
+      basedOn:base&&base.renderer,
+      serverTouched:false,
+      apiUrl:(typeof API_URL!=='undefined'?API_URL:''),
+      categorySelect:categoryEl?categoryEl.tagName:null,
+      methodSelect:methodEl?methodEl.tagName:null,
+      categoryValue:categoryEl?categoryEl.value:null,
+      methodValue:methodEl?methodEl.value:null,
+      categoryOptions:categoryEl&&categoryEl.options?Array.from(categoryEl.options).map(function(o){return o.value;}):CATEGORY_DEFAULTS.slice(),
+      methodOptions:methodEl&&methodEl.options?Array.from(methodEl.options).map(function(o){return o.value;}):METHOD_DEFAULTS.slice()
+    };
+  };
+})();
+</script>
