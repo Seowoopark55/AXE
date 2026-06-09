@@ -28232,3 +28232,210 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
   };
 })();
 </script>
+
+<!-- AXE NET asset v61-safe: owner select only, from stable v60-safe -->
+<style id="axe-asset-v61-safe-owner-style">
+.asset-form-input.asset-form-select{appearance:auto;background:#151515;color:#fff;cursor:pointer}
+.asset-form-input.asset-form-select option{background:#151515;color:#fff}
+.asset-owner-select-unassigned{border-color:rgba(255,180,35,.45)!important}
+</style>
+<script id="axe-asset-v61-safe-owner-select">
+/* AXE NET v61-safe: 자산 등록/수정창 이름 드롭다운만 적용. 서버/API/저장 구조 변경 없음. */
+(function(){
+  const VERSION='asset-v61-safe-owner-select-only';
+  const UNASSIGNED='미배정';
+  function text(v){return String(v==null?'':v).trim();}
+  function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function normalizeStatus(v){
+    v=text(v);
+    if(v==='미배정'||v==='회사보관'||v==='남는장비'||v==='남는 장비'||v==='퇴사자반납'||v==='퇴사자 반납')return '미배정 총기';
+    return v||'보유중';
+  }
+  function getRows(){
+    if(Array.isArray(window.companyAssets))return window.companyAssets;
+    try{if(typeof companyAssets!=='undefined'&&Array.isArray(companyAssets))return companyAssets;}catch(e){}
+    return [];
+  }
+  function getMembers(){
+    if(Array.isArray(window.adminMembers))return window.adminMembers;
+    try{if(typeof adminMembers!=='undefined'&&Array.isArray(adminMembers))return adminMembers;}catch(e){}
+    return [];
+  }
+  function getField(row,names){
+    if(typeof assetField==='function'){
+      try{return assetField(row,names);}catch(e){}
+    }
+    row=row||{};
+    for(var i=0;i<names.length;i++){
+      if(Object.prototype.hasOwnProperty.call(row,names[i]))return row[names[i]];
+    }
+    return '';
+  }
+  function addUnique(list,value){
+    value=text(value);
+    if(value&&list.indexOf(value)<0)list.push(value);
+  }
+  function activeMemberNames(){
+    const out=[];
+    getMembers().forEach(function(m){
+      const nick=text(m&&m.nickname);
+      const status=text((m&&m.status)||'active').toLowerCase();
+      if(nick&&status!=='resigned'&&status!=='퇴사')addUnique(out,nick);
+    });
+    return out;
+  }
+  function assetOwnerNames(){
+    const out=[];
+    getRows().forEach(function(row){
+      const owner=text(getField(row,['이름','보유자','담당자','owner','name']));
+      if(owner&&owner!==UNASSIGNED)addUnique(out,owner);
+    });
+    return out;
+  }
+  function buildOwnerOptions(current){
+    const out=[];
+    addUnique(out,'회원 선택');
+    addUnique(out,UNASSIGNED);
+    activeMemberNames().forEach(function(v){addUnique(out,v);});
+    assetOwnerNames().forEach(function(v){addUnique(out,v);});
+    if(current&&current!==UNASSIGNED)addUnique(out,current);
+    return out;
+  }
+  function ownerField(){return document.getElementById('assetFormName');}
+  function statusField(){return document.getElementById('assetFormStatus');}
+  function currentStatus(){const st=statusField();return normalizeStatus(st?st.value:'보유중');}
+  function currentOwnerFromField(el){
+    const raw=text(el?(el.value||el.getAttribute('value')||''):'');
+    if(raw==='회원 선택')return '';
+    return raw;
+  }
+  function replaceOwnerWithSelect(){
+    const old=ownerField();
+    if(!old)return null;
+    let current=currentOwnerFromField(old);
+    if(currentStatus()==='미배정 총기')current=UNASSIGNED;
+    const options=buildOwnerOptions(current);
+    const html=options.map(function(v){
+      const value=(v==='회원 선택')?'':v;
+      const selected=(current?value===current:value==='')?' selected':'';
+      return '<option value="'+escapeHtml(value)+'"'+selected+'>'+escapeHtml(v)+'</option>';
+    }).join('');
+    if(old.tagName==='SELECT'){
+      old.innerHTML=html;
+      old.value=current||'';
+      old.classList.add('asset-form-input','asset-form-select');
+      syncOwnerByStatus();
+      return old;
+    }
+    const sel=document.createElement('select');
+    sel.id='assetFormName';
+    sel.className=(old.className||'asset-form-input')+' asset-form-select';
+    sel.innerHTML=html;
+    sel.value=current||'';
+    old.replaceWith(sel);
+    sel.addEventListener('change',syncStatusByOwner,false);
+    syncOwnerByStatus();
+    return sel;
+  }
+  function syncOwnerByStatus(){
+    const owner=ownerField();
+    const status=statusField();
+    if(!owner||!status)return;
+    const st=normalizeStatus(status.value);
+    if(st==='미배정 총기'){
+      if(!Array.from(owner.options||[]).some(function(o){return o.value===UNASSIGNED;})){
+        owner.insertAdjacentHTML('beforeend','<option value="'+escapeHtml(UNASSIGNED)+'">'+escapeHtml(UNASSIGNED)+'</option>');
+      }
+      owner.value=UNASSIGNED;
+      owner.classList.add('asset-owner-select-unassigned');
+    }else{
+      owner.classList.remove('asset-owner-select-unassigned');
+      if(st==='보유중'&&owner.value===UNASSIGNED)owner.value='';
+    }
+  }
+  function syncStatusByOwner(){
+    const owner=ownerField();
+    const status=statusField();
+    if(!owner||!status)return;
+    if(owner.value===UNASSIGNED){
+      status.value='미배정 총기';
+      syncOwnerByStatus();
+    }
+  }
+  function attachStatusListener(){
+    const st=statusField();
+    if(st&&!st.__v61OwnerStatusBound){
+      st.__v61OwnerStatusBound=true;
+      st.addEventListener('change',syncOwnerByStatus,false);
+    }
+  }
+  function applyOwnerSelectV61Safe(){
+    const sel=replaceOwnerWithSelect();
+    attachStatusListener();
+    syncOwnerByStatus();
+    return sel;
+  }
+  function scheduleApply(){[0,30,120,300].forEach(function(ms){setTimeout(applyOwnerSelectV61Safe,ms);});}
+  function wrapOpen(fnName){
+    const original=window[fnName];
+    if(typeof original!=='function'||original.__v61SafeOwnerWrapped)return;
+    const wrapped=function(){
+      const result=original.apply(this,arguments);
+      scheduleApply();
+      return result;
+    };
+    wrapped.__v61SafeOwnerWrapped=true;
+    wrapped.__v61SafeOwnerOriginal=original;
+    window[fnName]=wrapped;
+  }
+  ['openAssetCreateModalV20','openAssetEditModalV20','openAssetAssignModalV58Safe','openAssetAssignModalV57','openAssetAssignModal'].forEach(wrapOpen);
+  const originalSave=window.saveAssetFromModalV20;
+  if(typeof originalSave==='function'&&!originalSave.__v61SafeOwnerWrapped){
+    const wrappedSave=function(){
+      syncOwnerByStatus();
+      const owner=ownerField();
+      const status=normalizeStatus(statusField()?statusField().value:'보유중');
+      const ownerValue=text(owner?owner.value:'');
+      if(status==='보유중'&&(!ownerValue||ownerValue===UNASSIGNED)){
+        alert('보유중 상태에서는 보유 회원을 선택해야 합니다.');
+        return;
+      }
+      return originalSave.apply(this,arguments);
+    };
+    wrappedSave.__v61SafeOwnerWrapped=true;
+    wrappedSave.__v61SafeOwnerOriginal=originalSave;
+    window.saveAssetFromModalV20=wrappedSave;
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target&&e.target.closest?e.target.closest('button'):null;
+    if(!btn)return;
+    const label=text(btn.textContent);
+    if(label==='수정'||label==='배정'||label.indexOf('자산 추가')>=0||label.indexOf('등록')>=0)scheduleApply();
+  },true);
+  if(window.MutationObserver){
+    const obs=new MutationObserver(function(){
+      const modal=document.getElementById('assetEditModal');
+      if(modal&&modal.classList&&modal.classList.contains('active'))scheduleApply();
+    });
+    obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  }
+  window.applyAssetOwnerSelectV61Safe=applyOwnerSelectV61Safe;
+  window.axeAssetV61SafeDebug=function(){
+    const owner=ownerField();
+    let base=null;
+    try{base=typeof axeAssetV60SafeDebug==='function'?axeAssetV60SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)};}
+    return {
+      renderer:VERSION,
+      basedOn:base&&base.renderer,
+      serverTouched:false,
+      apiUrl:(typeof API_URL!=='undefined'?API_URL:''),
+      ownerSelect:owner?owner.tagName:null,
+      ownerValue:owner?owner.value:null,
+      statusValue:statusField()?statusField().value:null,
+      activeMembers:activeMemberNames().length,
+      assetOwners:assetOwnerNames().length,
+      ownerOptions:owner&&owner.options?Array.from(owner.options).map(function(o){return o.value||o.textContent;}):[]
+    };
+  };
+})();
+</script>
