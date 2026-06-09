@@ -27875,7 +27875,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 </script>
 
 <!-- AXE NET asset v59: unassigned actions + modal dropdown repair -->
-<style id="axe-net-asset-v59-unassigned-style">
+<style id="axe-net-asset-v60-owner-dropdown-style">
 .asset-summary-card.unassigned{border-color:rgba(124,211,255,.28)!important;background:linear-gradient(180deg,rgba(124,211,255,.08),rgba(0,0,0,.24))!important}
 .asset-summary-card.unassigned .asset-summary-value{color:#c9efff!important}
 .asset-table tr.asset-unassigned-row{background:rgba(124,211,255,.035)!important}
@@ -27892,10 +27892,10 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 @media(max-width:760px){.asset-summary-grid{grid-template-columns:repeat(2,1fr)!important}.asset-manage-cell{width:auto!important}}
 </style>
 
-<script id="axe-net-asset-v59-unassigned-script">
+<script id="axe-net-asset-v60-owner-dropdown-script">
 
 (function(){
-  const VERSION='asset-v59-asset-actions-dropdowns';
+  const VERSION='asset-v60-owner-dropdown-actions';
   const STATUS_OWNED='보유중';
   const STATUS_UNASSIGNED='미배정';
   const esc=function(v){
@@ -27975,7 +27975,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     const unassigned=isUnassignedStatus(status)||ownerRaw==='미배정';
     const owner=ownerRaw||'미배정';
     const manage=unassigned
-      ? '<div class="asset-manage-stack"><button class="asset-action-btn assign main" onclick="openAssetAssignModalV59(\''+esc(no)+'\')">배정</button><div class="asset-manage-row"><button class="asset-action-btn" onclick="openAssetEditModalV20(\''+esc(no)+'\')">수정</button><button class="asset-action-btn danger" onclick="deleteAssetV20(\''+esc(no)+'\')">삭제</button></div></div>'
+      ? '<div class="asset-manage-stack"><button class="asset-action-btn assign main" onclick="openAssetAssignModalV60(\''+esc(no)+'\')">배정</button><div class="asset-manage-row"><button class="asset-action-btn" onclick="openAssetEditModalV20(\''+esc(no)+'\')">수정</button><button class="asset-action-btn danger" onclick="deleteAssetV20(\''+esc(no)+'\')">삭제</button></div></div>'
       : '<div class="asset-manage-inline"><button class="asset-action-btn" onclick="openAssetEditModalV20(\''+esc(no)+'\')">수정</button><button class="asset-action-btn danger" onclick="deleteAssetV20(\''+esc(no)+'\')">삭제</button></div>';
     return '<tr class="'+(unassigned?'asset-unassigned-row':'')+'"><td>'+html(no)+'</td><td><span class="asset-name '+(unassigned?'asset-owner-unassigned':'')+'">'+html(owner)+'</span></td><td><span class="asset-pill gold">'+html(type)+'</span></td><td>'+html(assetName)+'</td><td><span class="asset-pill">'+html(method)+'</span></td><td>'+html(date)+'</td><td>'+html(money(cost))+'</td><td><span class="asset-pill '+statusClass(status)+'">'+html(status||'-')+'</span></td><td>'+html(note)+'</td><td class="asset-manage-cell">'+manage+'</td></tr>';
   }
@@ -28010,17 +28010,55 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
   }
   function assetCategoryOptions(current){return optionList(uniq(rows(),['자산 분류','분류','category','type']),['총기류','차량','장비류','소모품','기타'],current);}
   function assetMethodOptions(current){return optionList(uniq(rows(),['획득 방식','획득방식','method','source']),['보스','무법지대','구매','지원','이벤트','기타'],current);}
+  function memberList(){
+    let list=[];
+    try{if(Array.isArray(window.adminMembers))list=list.concat(window.adminMembers);}
+    catch(e){}
+    try{if(typeof adminMembers!=='undefined'&&Array.isArray(adminMembers)&&adminMembers!==window.adminMembers)list=list.concat(adminMembers);}
+    catch(e){}
+    try{if(Array.isArray(window.fundMembers))list=list.concat(window.fundMembers);}
+    catch(e){}
+    try{if(typeof fundMembers!=='undefined'&&Array.isArray(fundMembers)&&fundMembers!==window.fundMembers)list=list.concat(fundMembers);}
+    catch(e){}
+    const seen=new Set();
+    return list.filter(function(m){
+      const nick=t(m&& (m.nickname||m.name||m['닉네임']||m['이름']));
+      if(!nick||seen.has(nick))return false;
+      seen.add(nick);
+      const st=t(m&&(m.status||m['상태']||m.use||m['사용여부']));
+      return st!=='resigned'&&st!=='퇴사';
+    });
+  }
+  function ownerOptionsHtml(current){
+    current=t(current);
+    const out=[];
+    function add(v){v=t(v);if(v&&out.indexOf(v)===-1)out.push(v);}
+    memberList().forEach(function(m){add(m.nickname||m.name||m['닉네임']||m['이름']);});
+    rows().forEach(function(r){const owner=t(f(r,['이름','보유자','담당자','owner','name']));if(owner&&owner!=='미배정')add(owner);});
+    if(current&&current!=='미배정')add(current);
+    return '<option value="" '+(!current?'selected':'')+'>회원 선택</option><option value="미배정" '+(current==='미배정'?'selected':'')+'>미배정</option>'+out.map(function(v){return '<option value="'+esc(v)+'" '+(current===v?'selected':'')+'>'+html(v)+'</option>';}).join('');
+  }
+  window.syncAssetOwnerStatusV60=function(){
+    const name=document.getElementById('assetFormName');
+    const st=document.getElementById('assetFormStatus');
+    if(!name||!st)return;
+    if(st.value===STATUS_UNASSIGNED){name.value='미배정';}
+    if(st.value===STATUS_OWNED&&name.value==='미배정'){name.value='';}
+  };
 
   function ensureModal(){
     const old=document.getElementById('assetEditModal'); if(old)old.remove();
     const categoryOptions=optionsHtml(assetCategoryOptions('총기류'),'총기류');
     const methodOptions=optionsHtml(assetMethodOptions('보스'),'보스');
-    document.body.insertAdjacentHTML('beforeend','<div class="asset-modal" id="assetEditModal"><div class="asset-modal-box"><div class="asset-modal-head"><div class="asset-modal-title" id="assetEditModalTitle">회사 자산 등록</div><button class="asset-modal-close" onclick="closeAssetEditModalV20()">×</button></div><div class="asset-modal-body"><div class="asset-form-grid"><input type="hidden" id="assetFormNo"><div><div class="asset-form-label">이름</div><input class="asset-form-input" id="assetFormName" placeholder="보유자 / 미배정"></div><div><div class="asset-form-label">자산 종류</div><select class="asset-form-select" id="assetFormCategory">'+categoryOptions+'</select></div><div class="asset-form-full"><div class="asset-form-label">자산명</div><input class="asset-form-input" id="assetFormAssetName" placeholder="자산명"></div><div><div class="asset-form-label">획득 방식</div><select class="asset-form-select" id="assetFormMethod">'+methodOptions+'</select></div><div><div class="asset-form-label">취득일</div><input class="asset-form-input" id="assetFormDate" placeholder="예: 26/05"></div><div><div class="asset-form-label">개인 부담 비용</div><input class="asset-form-input" id="assetFormCost" placeholder="예: 35000"></div><div><div class="asset-form-label">현재 상태</div><select class="asset-form-select" id="assetFormStatus"><option value="보유중">보유중</option><option value="미배정">미배정</option><option value="분실">분실</option><option value="폐기">폐기</option></select></div><div class="asset-form-full"><div class="asset-form-label">비고</div><input class="asset-form-input" id="assetFormNote" placeholder="비고"></div></div><div class="asset-form-help">미배정 총기는 이름을 비워도 저장 시 이름이 미배정으로 정리됩니다. 다른 사람이 사용하게 되면 이름을 입력하고 상태를 보유중으로 저장하세요.</div><div class="asset-form-actions"><button class="asset-action-btn" onclick="closeAssetEditModalV20()">취소</button><button class="asset-action-btn primary" id="assetSaveBtn" onclick="saveAssetFromModalV20()">저장</button></div></div></div></div>');
+    const ownerOptions=ownerOptionsHtml('');
+    document.body.insertAdjacentHTML('beforeend','<div class="asset-modal" id="assetEditModal"><div class="asset-modal-box"><div class="asset-modal-head"><div class="asset-modal-title" id="assetEditModalTitle">회사 자산 등록</div><button class="asset-modal-close" onclick="closeAssetEditModalV20()">×</button></div><div class="asset-modal-body"><div class="asset-form-grid"><input type="hidden" id="assetFormNo"><div><div class="asset-form-label">이름</div><select class="asset-form-select" id="assetFormName" onchange="syncAssetOwnerStatusV60()">'+ownerOptions+'</select></div><div><div class="asset-form-label">자산 종류</div><select class="asset-form-select" id="assetFormCategory">'+categoryOptions+'</select></div><div class="asset-form-full"><div class="asset-form-label">자산명</div><input class="asset-form-input" id="assetFormAssetName" placeholder="자산명"></div><div><div class="asset-form-label">획득 방식</div><select class="asset-form-select" id="assetFormMethod">'+methodOptions+'</select></div><div><div class="asset-form-label">취득일</div><input class="asset-form-input" id="assetFormDate" placeholder="예: 26/05"></div><div><div class="asset-form-label">개인 부담 비용</div><input class="asset-form-input" id="assetFormCost" placeholder="예: 35000"></div><div><div class="asset-form-label">현재 상태</div><select class="asset-form-select" id="assetFormStatus" onchange="syncAssetOwnerStatusV60()"><option value="보유중">보유중</option><option value="미배정">미배정</option><option value="분실">분실</option><option value="폐기">폐기</option></select></div><div class="asset-form-full"><div class="asset-form-label">비고</div><input class="asset-form-input" id="assetFormNote" placeholder="비고"></div></div><div class="asset-form-help">이름은 회원 목록에서 선택합니다. 미배정 상태는 이름이 자동으로 미배정 처리되며, 보유중 상태는 재직 회원 선택이 필요합니다.</div><div class="asset-form-actions"><button class="asset-action-btn" onclick="closeAssetEditModalV20()">취소</button><button class="asset-action-btn primary" id="assetSaveBtn" onclick="saveAssetFromModalV20()">저장</button></div></div></div></div>');
   }
   window.closeAssetEditModalV20=function(){const m=document.getElementById('assetEditModal'); if(m)m.classList.remove('active');};
   function setForm(row){
     document.getElementById('assetFormNo').value=editingNo;
-    document.getElementById('assetFormName').value=t(f(row,['이름','보유자','담당자','owner','name']));
+    const owner=t(f(row,['이름','보유자','담당자','owner','name']));
+    document.getElementById('assetFormName').innerHTML=ownerOptionsHtml(owner);
+    document.getElementById('assetFormName').value=(owner==='미배정'?'미배정':owner);
     const category=t(f(row,['자산 분류','분류','category','type']))||'총기류';
     document.getElementById('assetFormCategory').innerHTML=optionsHtml(assetCategoryOptions(category),category);
     document.getElementById('assetFormAssetName').value=t(f(row,['자산명','asset_name','assetName','item']));
@@ -28031,17 +28069,19 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     let st=t(f(row,['현재 상태','상태','status']))||STATUS_OWNED;
     if(isUnassignedStatus(st))st=STATUS_UNASSIGNED;
     document.getElementById('assetFormStatus').value=st;
+    syncAssetOwnerStatusV60();
     document.getElementById('assetFormNote').value=t(f(row,['비고','메모','note']));
   }
   window.openAssetCreateModalV20=function(){ensureModal();editingNo='';document.getElementById('assetEditModalTitle').textContent='회사 자산 등록';setForm({});document.getElementById('assetFormStatus').value=STATUS_OWNED;document.getElementById('assetEditModal').classList.add('active');};
   window.openAssetEditModalV20=function(no){ensureModal();const row=rowByNo(no);if(!row){alert('수정할 자산을 찾을 수 없습니다.');return;}editingNo=t(no);document.getElementById('assetEditModalTitle').textContent='회사 자산 수정';setForm(row);document.getElementById('assetEditModal').classList.add('active');};
-  window.openAssetAssignModalV59=function(no){openAssetEditModalV20(no);setTimeout(function(){const name=document.getElementById('assetFormName');const st=document.getElementById('assetFormStatus');if(st)st.value=STATUS_OWNED;if(name){name.value='';name.placeholder='새 보유자 입력';name.focus();}const title=document.getElementById('assetEditModalTitle');if(title)title.textContent='미배정 총기 배정';},0);};
+  window.openAssetAssignModalV60=function(no){openAssetEditModalV20(no);setTimeout(function(){const name=document.getElementById('assetFormName');const st=document.getElementById('assetFormStatus');if(st)st.value=STATUS_OWNED;if(name){name.value='';name.focus();}const title=document.getElementById('assetEditModalTitle');if(title)title.textContent='미배정 총기 배정';},0);};
+  window.openAssetAssignModalV59=window.openAssetAssignModalV60;
   window.openAssetAssignModalV58=window.openAssetAssignModalV59;
   window.saveAssetFromModalV20=function(){
     const status=t(document.getElementById('assetFormStatus').value)||STATUS_OWNED;
     let name=t(document.getElementById('assetFormName').value);
-    if(status===STATUS_UNASSIGNED&&!name)name='미배정';
-    if(status===STATUS_OWNED&&!name){alert('보유중 상태는 이름을 입력해야 합니다.');return;}
+    if(status===STATUS_UNASSIGNED)name='미배정';
+    if(status===STATUS_OWNED&&(!name||name==='미배정')){alert('보유중 상태는 재직 회원을 선택해야 합니다.');return;}
     const p={no:t(document.getElementById('assetFormNo').value)||editingNo,name:name,category:t(document.getElementById('assetFormCategory').value),asset_name:t(document.getElementById('assetFormAssetName').value),method:t(document.getElementById('assetFormMethod').value),date:t(document.getElementById('assetFormDate').value),cost:t(document.getElementById('assetFormCost').value),status:status,note:t(document.getElementById('assetFormNote').value)};
     if(!p.asset_name){alert('자산명을 입력하세요.');return;}
     const btn=document.getElementById('assetSaveBtn'); if(btn){btn.disabled=true;btn.textContent='저장 중...';}
@@ -28057,8 +28097,9 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
   const prevSetTab=window.setAssetSubTabV18;
   window.setAssetSubTabV18=function(tab){if(tab==='returns'&&typeof prevSetTab==='function')return prevSetTab(tab);renderCompanyAssets(false);};
   window.showCompanyAssets=function(){if(typeof isCurrentAdmin==='function'&&!isCurrentAdmin()){alert('관리자 전용 메뉴입니다.'); if(typeof navigateMain==='function')navigateMain('home'); return;} if(typeof enterMainSection==='function')enterMainSection('asset'); try{currentMainSection='asset';}catch(e){} if(typeof setActiveMainMenu==='function')setActiveMainMenu('asset'); renderCompanyAssets(false);};
-  window.axeAssetV59Debug=function(){const list=rows();return {renderer:VERSION,total:list.length,owned:list.filter(function(r){return isOwnedStatus(f(r,['현재 상태','상태','status']));}).length,unassigned:list.filter(function(r){return isUnassignedStatus(f(r,['현재 상태','상태','status']))||t(f(r,['이름','보유자','담당자','owner','name']))==='미배정';}).length,statusSelect:!!document.getElementById('assetFormStatus')&&document.getElementById('assetFormStatus').tagName,categorySelect:!!document.getElementById('assetFormCategory')&&document.getElementById('assetFormCategory').tagName,methodSelect:!!document.getElementById('assetFormMethod')&&document.getElementById('assetFormMethod').tagName};};
-  window.axeAssetV58Debug=window.axeAssetV59Debug;
+  window.axeAssetV60Debug=function(){const list=rows();return {renderer:VERSION,total:list.length,owned:list.filter(function(r){return isOwnedStatus(f(r,['현재 상태','상태','status']));}).length,unassigned:list.filter(function(r){return isUnassignedStatus(f(r,['현재 상태','상태','status']))||t(f(r,['이름','보유자','담당자','owner','name']))==='미배정';}).length,statusSelect:!!document.getElementById('assetFormStatus')&&document.getElementById('assetFormStatus').tagName,categorySelect:!!document.getElementById('assetFormCategory')&&document.getElementById('assetFormCategory').tagName,methodSelect:!!document.getElementById('assetFormMethod')&&document.getElementById('assetFormMethod').tagName,ownerSelect:!!document.getElementById('assetFormName')&&document.getElementById('assetFormName').tagName,ownerOptionCount:(document.getElementById('assetFormName')||{}).options?document.getElementById('assetFormName').options.length:0};};
+  window.axeAssetV59Debug=window.axeAssetV60Debug;
+  window.axeAssetV58Debug=window.axeAssetV60Debug;
 })();
 
 </script>
