@@ -28003,3 +28003,88 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
   };
 })();
 </script>
+
+
+<!-- AXE NET asset v59-safe: status select only, from stable v58-safe -->
+<style id="axe-asset-v59-safe-status-select-style">
+.asset-form-input.asset-form-select{appearance:auto;background:#151515;color:#fff;cursor:pointer}
+.asset-form-input.asset-form-select option{background:#151515;color:#fff}
+</style>
+<script id="axe-asset-v59-safe-status-select">
+/* AXE NET v59-safe: 자산 등록/수정창 현재 상태 드롭다운만 적용. 서버/API/저장 구조 변경 없음. */
+(function(){
+  const VERSION='asset-v59-safe-status-select-only';
+  const STATUS_OPTIONS=['보유중','미배정 총기','분실','폐기'];
+  const STATUS_ALIASES={
+    '미배정':'미배정 총기',
+    '회사보관':'미배정 총기',
+    '남는장비':'미배정 총기',
+    '남는 장비':'미배정 총기',
+    '퇴사자반납':'미배정 총기',
+    '퇴사자 반납':'미배정 총기',
+    '처분':'폐기'
+  };
+  function normalizeStatus(v){
+    v=String(v==null?'':v).trim();
+    if(!v)return '보유중';
+    return STATUS_ALIASES[v]||v;
+  }
+  function escapeHtml(v){
+    return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
+  }
+  function collectStatusOptions(current){
+    const list=STATUS_OPTIONS.slice();
+    current=normalizeStatus(current);
+    if(current && list.indexOf(current)<0)list.push(current);
+    return list;
+  }
+  function applyStatusSelectV59Safe(){
+    const old=document.getElementById('assetFormStatus');
+    if(!old)return null;
+    const current=normalizeStatus(old.value||old.getAttribute('value')||'보유중');
+    if(old.tagName==='SELECT'){
+      old.innerHTML=collectStatusOptions(current).map(function(v){return '<option value="'+escapeHtml(v)+'"'+(v===current?' selected':'')+'>'+escapeHtml(v)+'</option>';}).join('');
+      old.value=current;
+      old.classList.add('asset-form-select');
+      return old;
+    }
+    const sel=document.createElement('select');
+    sel.id='assetFormStatus';
+    sel.className=(old.className||'asset-form-input')+' asset-form-select';
+    sel.innerHTML=collectStatusOptions(current).map(function(v){return '<option value="'+escapeHtml(v)+'"'+(v===current?' selected':'')+'>'+escapeHtml(v)+'</option>';}).join('');
+    sel.value=current;
+    old.replaceWith(sel);
+    return sel;
+  }
+  function wrapOpen(fnName){
+    const original=window[fnName];
+    if(typeof original!=='function' || original.__v59SafeWrapped)return;
+    const wrapped=function(){
+      const result=original.apply(this,arguments);
+      setTimeout(applyStatusSelectV59Safe,0);
+      return result;
+    };
+    wrapped.__v59SafeWrapped=true;
+    wrapped.__v59SafeOriginal=original;
+    window[fnName]=wrapped;
+  }
+  wrapOpen('openAssetCreateModalV20');
+  wrapOpen('openAssetEditModalV20');
+  wrapOpen('openAssetAssignModalV58Safe');
+  window.applyAssetStatusSelectV59Safe=applyStatusSelectV59Safe;
+  window.axeAssetV59SafeDebug=function(){
+    const statusEl=document.getElementById('assetFormStatus');
+    let base=null;
+    try{base=typeof axeAssetV58SafeDebug==='function'?axeAssetV58SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)}}
+    return {
+      renderer:VERSION,
+      basedOn:base&&base.renderer,
+      serverTouched:false,
+      apiUrl:(typeof API_URL!=='undefined'?API_URL:''),
+      statusSelect:statusEl?statusEl.tagName:null,
+      statusValue:statusEl?statusEl.value:null,
+      statusOptions:statusEl?Array.from(statusEl.options||[]).map(function(o){return o.value;}):STATUS_OPTIONS.slice()
+    };
+  };
+})();
+</script>
