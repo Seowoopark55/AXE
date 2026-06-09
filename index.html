@@ -28096,13 +28096,13 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 .asset-form-input.asset-form-select option{background:#151515;color:#fff}
 </style>
 <script id="axe-asset-v60-safe-category-method-select">
-/* AXE NET v60-safe-fix: 자산 종류/획득 방식 드롭다운만 안정 적용. 서버/API/저장 구조 변경 없음. */
+/* AXE NET v60-safe-syntax-fix: 자산 종류/획득 방식 드롭다운만 안정 적용. 서버/API/저장 구조 변경 없음. */
 (function(){
-  const VERSION='asset-v60-safe-category-method-select-robust';
+  const VERSION='asset-v60-safe-syntax-fixed-category-method-select';
   const CATEGORY_DEFAULTS=['총기류','차량','장비','소모품','기타'];
   const METHOD_DEFAULTS=['보스','무법지대','구매','지원','이벤트','퇴사자 반납','기타'];
   function text(v){return String(v==null?'':v).trim();}
-  function escapeHtml(v){return String(v==null?'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function getRows(){
     if(Array.isArray(window.companyAssets))return window.companyAssets;
     try{if(typeof companyAssets!=='undefined'&&Array.isArray(companyAssets))return companyAssets;}catch(e){}
