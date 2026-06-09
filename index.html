@@ -28004,438 +28004,389 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 })();
 </script>
 
-
-<!-- AXE NET asset v59-safe: status select only, from stable v58-safe -->
-<style id="axe-asset-v59-safe-status-select-style">
-.asset-form-input.asset-form-select{appearance:auto;background:#151515;color:#fff;cursor:pointer}
-.asset-form-input.asset-form-select option{background:#151515;color:#fff}
+<!-- AXE NET asset v62-safe: custom picker modal, no native dropdowns, from stable v58-safe -->
+<style id="axe-asset-v62-safe-picker-style">
+.axe-asset-pick-control{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+  min-height:42px;
+  padding:0 8px 0 13px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  background:#151515;
+  color:#fff;
+  box-sizing:border-box;
+}
+.axe-asset-pick-value{
+  min-width:0;
+  flex:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:14px;
+  font-weight:800;
+}
+.axe-asset-pick-value.empty{
+  color:#777;
+  font-weight:700;
+}
+.axe-asset-pick-btn{
+  flex:0 0 auto;
+  height:30px;
+  padding:0 10px;
+  border:1px solid rgba(255,180,35,.35);
+  border-radius:10px;
+  background:rgba(255,180,35,.10);
+  color:#ffb423;
+  font-size:12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.axe-asset-pick-btn:hover{background:rgba(255,180,35,.18)}
+.axe-asset-pick-modal{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(0,0,0,.62);
+  backdrop-filter:blur(4px);
+}
+.axe-asset-pick-modal.active{display:flex}
+.axe-asset-pick-box{
+  width:min(460px,calc(100vw - 32px));
+  max-height:min(640px,calc(100vh - 42px));
+  border:1px solid rgba(255,180,35,.32);
+  border-radius:18px;
+  background:#101010;
+  box-shadow:0 22px 70px rgba(0,0,0,.55);
+  overflow:hidden;
+}
+.axe-asset-pick-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px 18px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.axe-asset-pick-title{
+  color:#ffb423;
+  font-size:17px;
+  font-weight:950;
+}
+.axe-asset-pick-close{
+  width:34px;
+  height:34px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  background:#242424;
+  color:#fff;
+  cursor:pointer;
+  font-size:18px;
+  font-weight:900;
+}
+.axe-asset-pick-body{padding:14px 16px 16px}
+.axe-asset-pick-search{
+  width:100%;
+  height:42px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  background:#171717;
+  color:#fff;
+  padding:0 13px;
+  font-size:14px;
+  font-weight:750;
+  box-sizing:border-box;
+  outline:none;
+}
+.axe-asset-pick-list{
+  margin-top:12px;
+  display:grid;
+  gap:7px;
+  max-height:420px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.axe-asset-pick-option{
+  min-height:38px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:11px;
+  background:#171717;
+  color:#f3f3f3;
+  text-align:left;
+  padding:0 12px;
+  font-size:14px;
+  font-weight:850;
+  cursor:pointer;
+}
+.axe-asset-pick-option:hover{border-color:rgba(255,180,35,.42);background:#202020}
+.axe-asset-pick-option.active{border-color:#ffb423;background:rgba(255,180,35,.16);color:#ffcf70}
+.axe-asset-pick-option.muted{color:#9b9b9b}
+.axe-asset-pick-option.custom{border-color:rgba(76,174,255,.35);color:#a7d9ff;background:rgba(76,174,255,.08)}
+.axe-asset-pick-empty{padding:14px;color:#888;font-size:13px;text-align:center}
 </style>
-<script id="axe-asset-v59-safe-status-select">
-/* AXE NET v59-safe: 자산 등록/수정창 현재 상태 드롭다운만 적용. 서버/API/저장 구조 변경 없음. */
+<script id="axe-asset-v62-safe-picker-script">
+/* AXE NET v62-safe: 자산 등록/수정창의 native select를 전부 제거하고 선택 버튼+검색 모달로 처리. 서버/API/저장 구조 변경 없음. */
 (function(){
-  const VERSION='asset-v59-safe-status-select-only';
+  const VERSION='asset-v62-safe-picker-modal-no-native-select';
+  const UNASSIGNED='미배정';
   const STATUS_OPTIONS=['보유중','미배정 총기','분실','폐기'];
-  const STATUS_ALIASES={
-    '미배정':'미배정 총기',
-    '회사보관':'미배정 총기',
-    '남는장비':'미배정 총기',
-    '남는 장비':'미배정 총기',
-    '퇴사자반납':'미배정 총기',
-    '퇴사자 반납':'미배정 총기',
-    '처분':'폐기'
-  };
-  function normalizeStatus(v){
-    v=String(v==null?'':v).trim();
-    if(!v)return '보유중';
-    return STATUS_ALIASES[v]||v;
-  }
-  function escapeHtml(v){
-    return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
-  }
-  function collectStatusOptions(current){
-    const list=STATUS_OPTIONS.slice();
-    current=normalizeStatus(current);
-    if(current && list.indexOf(current)<0)list.push(current);
-    return list;
-  }
-  function applyStatusSelectV59Safe(){
-    const old=document.getElementById('assetFormStatus');
-    if(!old)return null;
-    const current=normalizeStatus(old.value||old.getAttribute('value')||'보유중');
-    if(old.tagName==='SELECT'){
-      old.innerHTML=collectStatusOptions(current).map(function(v){return '<option value="'+escapeHtml(v)+'"'+(v===current?' selected':'')+'>'+escapeHtml(v)+'</option>';}).join('');
-      old.value=current;
-      old.classList.add('asset-form-select');
-      return old;
-    }
-    const sel=document.createElement('select');
-    sel.id='assetFormStatus';
-    sel.className=(old.className||'asset-form-input')+' asset-form-select';
-    sel.innerHTML=collectStatusOptions(current).map(function(v){return '<option value="'+escapeHtml(v)+'"'+(v===current?' selected':'')+'>'+escapeHtml(v)+'</option>';}).join('');
-    sel.value=current;
-    old.replaceWith(sel);
-    return sel;
-  }
-  function wrapOpen(fnName){
-    const original=window[fnName];
-    if(typeof original!=='function' || original.__v59SafeWrapped)return;
-    const wrapped=function(){
-      const result=original.apply(this,arguments);
-      setTimeout(applyStatusSelectV59Safe,0);
-      return result;
-    };
-    wrapped.__v59SafeWrapped=true;
-    wrapped.__v59SafeOriginal=original;
-    window[fnName]=wrapped;
-  }
-  wrapOpen('openAssetCreateModalV20');
-  wrapOpen('openAssetEditModalV20');
-  wrapOpen('openAssetAssignModalV58Safe');
-  window.applyAssetStatusSelectV59Safe=applyStatusSelectV59Safe;
-  window.axeAssetV59SafeDebug=function(){
-    const statusEl=document.getElementById('assetFormStatus');
-    let base=null;
-    try{base=typeof axeAssetV58SafeDebug==='function'?axeAssetV58SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)}}
-    return {
-      renderer:VERSION,
-      basedOn:base&&base.renderer,
-      serverTouched:false,
-      apiUrl:(typeof API_URL!=='undefined'?API_URL:''),
-      statusSelect:statusEl?statusEl.tagName:null,
-      statusValue:statusEl?statusEl.value:null,
-      statusOptions:statusEl?Array.from(statusEl.options||[]).map(function(o){return o.value;}):STATUS_OPTIONS.slice()
-    };
-  };
-})();
-</script>
-
-
-<!-- AXE NET asset v60-safe-fix: category/method select robust, from stable v59-safe -->
-<style id="axe-asset-v60-safe-category-method-style">
-.asset-form-input.asset-form-select{appearance:auto;background:#151515;color:#fff;cursor:pointer}
-.asset-form-input.asset-form-select option{background:#151515;color:#fff}
-</style>
-<script id="axe-asset-v60-safe-category-method-select">
-/* AXE NET v60-safe-syntax-fix: 자산 종류/획득 방식 드롭다운만 안정 적용. 서버/API/저장 구조 변경 없음. */
-(function(){
-  const VERSION='asset-v60-safe-syntax-fixed-category-method-select';
   const CATEGORY_DEFAULTS=['총기류','차량','장비','소모품','기타'];
   const METHOD_DEFAULTS=['보스','무법지대','구매','지원','이벤트','퇴사자 반납','기타'];
-  function text(v){return String(v==null?'':v).trim();}
-  function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
-  function getRows(){
-    if(Array.isArray(window.companyAssets))return window.companyAssets;
-    try{if(typeof companyAssets!=='undefined'&&Array.isArray(companyAssets))return companyAssets;}catch(e){}
-    return [];
-  }
-  function getField(row,names){
-    if(typeof assetField==='function'){
-      try{return assetField(row,names);}catch(e){}
-    }
-    row=row||{};
-    for(var i=0;i<names.length;i++){
-      if(Object.prototype.hasOwnProperty.call(row,names[i]))return row[names[i]];
-    }
-    return '';
-  }
-  function uniqueFromAssets(names){
-    const out=[];
-    getRows().forEach(function(row){
-      const v=text(getField(row,names));
-      if(v&&out.indexOf(v)<0)out.push(v);
-    });
-    return out;
-  }
-  function optionList(defaults,assetValues,current){
-    const out=[];
-    function add(v){v=text(v);if(v&&out.indexOf(v)<0)out.push(v);}
-    defaults.forEach(add);
-    assetValues.forEach(add);
-    add(current);
-    return out;
-  }
-  function modalRoot(){return document.getElementById('assetEditModal')||document;}
-  function findField(ids,labelWords){
-    for(var i=0;i<ids.length;i++){
-      const el=document.getElementById(ids[i]);
-      if(el)return el;
-    }
-    const root=modalRoot();
-    const labels=Array.from(root.querySelectorAll('.asset-form-label,label'));
-    for(var j=0;j<labels.length;j++){
-      const labelText=text(labels[j].textContent);
-      if(labelWords.some(function(w){return labelText.indexOf(w)>=0;})){
-        const box=labels[j].parentElement||root;
-        const direct=box.querySelector('input,select,textarea');
-        if(direct)return direct;
-        const next=labels[j].nextElementSibling;
-        if(next&&/^(INPUT|SELECT|TEXTAREA)$/.test(next.tagName))return next;
-      }
-    }
-    return null;
-  }
-  function makeSelect(old,id,defaults,assetValues,current){
-    if(!old)return null;
-    current=text(current||old.value||old.getAttribute('value')||'');
-    if(!current)current=defaults[0]||'';
-    const values=optionList(defaults,assetValues,current);
-    const html=values.map(function(v){return '<option value="'+escapeHtml(v)+'"'+(v===current?' selected':'')+'>'+escapeHtml(v)+'</option>';}).join('');
-    if(old.tagName==='SELECT'){
-      old.id=id;
-      old.innerHTML=html;
-      old.value=current;
-      old.classList.add('asset-form-input','asset-form-select');
-      return old;
-    }
-    const sel=document.createElement('select');
-    sel.id=id;
-    sel.className=(old.className||'asset-form-input')+' asset-form-select';
-    sel.innerHTML=html;
-    sel.value=current;
-    old.replaceWith(sel);
-    return sel;
-  }
-  function applyCategoryMethodSelectV60Safe(){
-    const categoryEl=findField(['assetFormCategory','assetFormType','assetFormAssetCategory'],['자산 분류','자산 종류','분류','종류']);
-    const methodEl=findField(['assetFormMethod','assetFormAcquire','assetFormSource'],['획득 방식','획득방식','획득','취득 방식']);
-    const categoryValues=uniqueFromAssets(['자산 분류','분류','자산 종류','종류','category','type']);
-    const methodValues=uniqueFromAssets(['획득 방식','획득방식','method','source']);
-    const category=makeSelect(categoryEl,'assetFormCategory',CATEGORY_DEFAULTS,categoryValues,categoryEl?categoryEl.value:'');
-    const method=makeSelect(methodEl,'assetFormMethod',METHOD_DEFAULTS,methodValues,methodEl?methodEl.value:'');
-    return {category:category,method:method};
-  }
-  function scheduleApply(){[0,30,120,300].forEach(function(ms){setTimeout(applyCategoryMethodSelectV60Safe,ms);});}
-  function wrapOpen(fnName){
-    const original=window[fnName];
-    if(typeof original!=='function' || original.__v60SafeRobustWrapped)return;
-    const wrapped=function(){
-      const result=original.apply(this,arguments);
-      scheduleApply();
-      return result;
-    };
-    wrapped.__v60SafeRobustWrapped=true;
-    wrapped.__v60SafeOriginal=original;
-    window[fnName]=wrapped;
-  }
-  ['openAssetCreateModalV20','openAssetEditModalV20','openAssetAssignModalV58Safe','openAssetAssignModalV57','openAssetAssignModal'].forEach(wrapOpen);
-  document.addEventListener('click',function(e){
-    const btn=e.target&&e.target.closest?e.target.closest('button'):null;
-    if(!btn)return;
-    const label=text(btn.textContent);
-    if(label==='수정'||label==='배정'||label.indexOf('자산 추가')>=0||label.indexOf('등록')>=0)scheduleApply();
-  },true);
-  if(window.MutationObserver){
-    const obs=new MutationObserver(function(){
-      const modal=document.getElementById('assetEditModal');
-      if(modal&&modal.classList&&modal.classList.contains('active'))scheduleApply();
-    });
-    obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-  }
-  window.applyAssetCategoryMethodSelectV60Safe=applyCategoryMethodSelectV60Safe;
-  window.axeAssetV60SafeDebug=function(){
-    const categoryEl=document.getElementById('assetFormCategory')||findField(['assetFormType','assetFormAssetCategory'],['자산 분류','자산 종류','분류','종류']);
-    const methodEl=document.getElementById('assetFormMethod')||findField(['assetFormAcquire','assetFormSource'],['획득 방식','획득방식','획득','취득 방식']);
-    let base=null;
-    try{base=typeof axeAssetV59SafeDebug==='function'?axeAssetV59SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)}}
-    return {
-      renderer:VERSION,
-      basedOn:base&&base.renderer,
-      serverTouched:false,
-      apiUrl:(typeof API_URL!=='undefined'?API_URL:''),
-      categorySelect:categoryEl?categoryEl.tagName:null,
-      methodSelect:methodEl?methodEl.tagName:null,
-      categoryValue:categoryEl?categoryEl.value:null,
-      methodValue:methodEl?methodEl.value:null,
-      categoryOptions:categoryEl&&categoryEl.options?Array.from(categoryEl.options).map(function(o){return o.value;}):CATEGORY_DEFAULTS.slice(),
-      methodOptions:methodEl&&methodEl.options?Array.from(methodEl.options).map(function(o){return o.value;}):METHOD_DEFAULTS.slice()
-    };
+  const FIELD_META={
+    assetFormName:{key:'owner',title:'보유자 선택',placeholder:'회원 선택',search:'회원명 검색',custom:false},
+    assetFormCategory:{key:'category',title:'자산 종류 선택',placeholder:'자산 종류 선택',search:'자산 종류 검색',custom:true},
+    assetFormMethod:{key:'method',title:'획득 방식 선택',placeholder:'획득 방식 선택',search:'획득 방식 검색',custom:true},
+    assetFormStatus:{key:'status',title:'현재 상태 선택',placeholder:'현재 상태 선택',search:'상태 검색',custom:false}
   };
-})();
-</script>
-
-<!-- AXE NET asset v61-safe: owner select only, from stable v60-safe -->
-<style id="axe-asset-v61-safe-owner-style">
-.asset-form-input.asset-form-select{appearance:auto;background:#151515;color:#fff;cursor:pointer}
-.asset-form-input.asset-form-select option{background:#151515;color:#fff}
-.asset-owner-select-unassigned{border-color:rgba(255,180,35,.45)!important}
-</style>
-<script id="axe-asset-v61-safe-owner-select">
-/* AXE NET v61-safe: 자산 등록/수정창 이름 드롭다운만 적용. 서버/API/저장 구조 변경 없음. */
-(function(){
-  const VERSION='asset-v61-safe-owner-select-only';
-  const UNASSIGNED='미배정';
   function text(v){return String(v==null?'':v).trim();}
-  function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function normalizeStatus(v){
     v=text(v);
-    if(v==='미배정'||v==='회사보관'||v==='남는장비'||v==='남는 장비'||v==='퇴사자반납'||v==='퇴사자 반납')return '미배정 총기';
-    return v||'보유중';
+    if(!v)return '보유중';
+    if(['미배정','회사보관','남는장비','남는 장비','퇴사자반납','퇴사자 반납'].indexOf(v)>=0)return '미배정 총기';
+    if(v==='처분')return '폐기';
+    return v;
   }
-  function getRows(){
+  function rows(){
     if(Array.isArray(window.companyAssets))return window.companyAssets;
     try{if(typeof companyAssets!=='undefined'&&Array.isArray(companyAssets))return companyAssets;}catch(e){}
     return [];
   }
-  function getMembers(){
-    if(Array.isArray(window.adminMembers))return window.adminMembers;
-    try{if(typeof adminMembers!=='undefined'&&Array.isArray(adminMembers))return adminMembers;}catch(e){}
-    return [];
+  function members(){
+    const pools=[];
+    try{if(Array.isArray(window.adminMembers))pools.push(window.adminMembers);}catch(e){}
+    try{if(typeof adminMembers!=='undefined'&&Array.isArray(adminMembers))pools.push(adminMembers);}catch(e){}
+    try{if(Array.isArray(window.fundMembers))pools.push(window.fundMembers);}catch(e){}
+    try{if(typeof fundMembers!=='undefined'&&Array.isArray(fundMembers))pools.push(fundMembers);}catch(e){}
+    try{if(Array.isArray(window.rankings))pools.push(window.rankings);}catch(e){}
+    try{if(typeof rankings!=='undefined'&&Array.isArray(rankings))pools.push(rankings);}catch(e){}
+    return [].concat.apply([],pools);
   }
-  function getField(row,names){
+  function field(row,names){
+    row=row||{};
     if(typeof assetField==='function'){
       try{return assetField(row,names);}catch(e){}
     }
-    row=row||{};
-    for(var i=0;i<names.length;i++){
-      if(Object.prototype.hasOwnProperty.call(row,names[i]))return row[names[i]];
+    for(let i=0;i<names.length;i++){
+      if(Object.prototype.hasOwnProperty.call(row,names[i])&&text(row[names[i]])!=='')return row[names[i]];
     }
     return '';
   }
-  function addUnique(list,value){
+  function add(list,v){v=text(v);if(v&&list.indexOf(v)<0)list.push(v);}
+  function uniqueFromRows(names){const out=[];rows().forEach(function(r){add(out,field(r,names));});return out;}
+  function memberNames(){
+    const out=[];
+    members().forEach(function(m){
+      const name=text(m&&((m.nickname!=null?m.nickname:m.name)||m.닉네임||m.이름));
+      const st=text((m&&((m.status!=null?m.status:m.상태)||''))||'active').toLowerCase();
+      if(name&&st!=='resigned'&&st!=='퇴사')add(out,name);
+    });
+    rows().forEach(function(r){
+      const owner=text(field(r,['이름','보유자','담당자','owner','name']));
+      if(owner&&owner!==UNASSIGNED)add(out,owner);
+    });
+    return out;
+  }
+  function optionsFor(id){
+    const current=text(getHidden(id)&&getHidden(id).value);
+    const out=[];
+    if(id==='assetFormName'){
+      add(out,UNASSIGNED);
+      memberNames().forEach(function(v){add(out,v);});
+      if(current&&current!==UNASSIGNED)add(out,current);
+      return out;
+    }
+    if(id==='assetFormCategory'){
+      CATEGORY_DEFAULTS.forEach(function(v){add(out,v);});
+      uniqueFromRows(['자산 분류','분류','category','type']).forEach(function(v){add(out,v);});
+      if(current)add(out,current);
+      return out;
+    }
+    if(id==='assetFormMethod'){
+      METHOD_DEFAULTS.forEach(function(v){add(out,v);});
+      uniqueFromRows(['획득 방식','획득방식','method','source']).forEach(function(v){add(out,v);});
+      if(current)add(out,current);
+      return out;
+    }
+    if(id==='assetFormStatus'){
+      STATUS_OPTIONS.forEach(function(v){add(out,v);});
+      uniqueFromRows(['현재 상태','상태','status']).forEach(function(v){add(out,normalizeStatus(v));});
+      if(current)add(out,normalizeStatus(current));
+      return out;
+    }
+    return [];
+  }
+  function getHidden(id){return document.getElementById(id);}
+  function displayValue(id){
+    const hidden=getHidden(id);
+    const v=text(hidden&&hidden.value);
+    if(id==='assetFormStatus')return normalizeStatus(v);
+    return v;
+  }
+  function updateControl(id){
+    const hidden=getHidden(id); if(!hidden)return;
+    const wrap=document.querySelector('.axe-asset-pick-control[data-for="'+id+'"]'); if(!wrap)return;
+    const meta=FIELD_META[id]||{};
+    const val=displayValue(id);
+    const span=wrap.querySelector('.axe-asset-pick-value');
+    if(span){span.textContent=val||meta.placeholder||'선택';span.classList.toggle('empty',!val);}
+  }
+  function setValue(id,value,skipSync){
+    const hidden=getHidden(id); if(!hidden)return;
     value=text(value);
-    if(value&&list.indexOf(value)<0)list.push(value);
+    if(id==='assetFormStatus')value=normalizeStatus(value);
+    hidden.value=value;
+    hidden.setAttribute('value',value);
+    try{hidden.dispatchEvent(new Event('input',{bubbles:true}));hidden.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
+    updateControl(id);
+    if(!skipSync)syncRules(id);
   }
-  function activeMemberNames(){
-    const out=[];
-    getMembers().forEach(function(m){
-      const nick=text(m&&m.nickname);
-      const status=text((m&&m.status)||'active').toLowerCase();
-      if(nick&&status!=='resigned'&&status!=='퇴사')addUnique(out,nick);
-    });
-    return out;
-  }
-  function assetOwnerNames(){
-    const out=[];
-    getRows().forEach(function(row){
-      const owner=text(getField(row,['이름','보유자','담당자','owner','name']));
-      if(owner&&owner!==UNASSIGNED)addUnique(out,owner);
-    });
-    return out;
-  }
-  function buildOwnerOptions(current){
-    const out=[];
-    addUnique(out,'회원 선택');
-    addUnique(out,UNASSIGNED);
-    activeMemberNames().forEach(function(v){addUnique(out,v);});
-    assetOwnerNames().forEach(function(v){addUnique(out,v);});
-    if(current&&current!==UNASSIGNED)addUnique(out,current);
-    return out;
-  }
-  function ownerField(){return document.getElementById('assetFormName');}
-  function statusField(){return document.getElementById('assetFormStatus');}
-  function currentStatus(){const st=statusField();return normalizeStatus(st?st.value:'보유중');}
-  function currentOwnerFromField(el){
-    const raw=text(el?(el.value||el.getAttribute('value')||''):'');
-    if(raw==='회원 선택')return '';
-    return raw;
-  }
-  function replaceOwnerWithSelect(){
-    const old=ownerField();
-    if(!old)return null;
-    let current=currentOwnerFromField(old);
-    if(currentStatus()==='미배정 총기')current=UNASSIGNED;
-    const options=buildOwnerOptions(current);
-    const html=options.map(function(v){
-      const value=(v==='회원 선택')?'':v;
-      const selected=(current?value===current:value==='')?' selected':'';
-      return '<option value="'+escapeHtml(value)+'"'+selected+'>'+escapeHtml(v)+'</option>';
-    }).join('');
-    if(old.tagName==='SELECT'){
-      old.innerHTML=html;
-      old.value=current||'';
-      old.classList.add('asset-form-input','asset-form-select');
-      syncOwnerByStatus();
-      return old;
+  function syncRules(source){
+    const st=normalizeStatus(displayValue('assetFormStatus'));
+    const owner=displayValue('assetFormName');
+    if(source==='assetFormStatus'){
+      if(st==='미배정 총기')setValue('assetFormName',UNASSIGNED,true);
+      if(st==='보유중'&&owner===UNASSIGNED)setValue('assetFormName','',true);
     }
-    const sel=document.createElement('select');
-    sel.id='assetFormName';
-    sel.className=(old.className||'asset-form-input')+' asset-form-select';
-    sel.innerHTML=html;
-    sel.value=current||'';
-    old.replaceWith(sel);
-    sel.addEventListener('change',syncStatusByOwner,false);
-    syncOwnerByStatus();
-    return sel;
+    if(source==='assetFormName'){
+      if(owner===UNASSIGNED)setValue('assetFormStatus','미배정 총기',true);
+    }
+    ['assetFormName','assetFormStatus'].forEach(updateControl);
   }
-  function syncOwnerByStatus(){
-    const owner=ownerField();
-    const status=statusField();
-    if(!owner||!status)return;
-    const st=normalizeStatus(status.value);
-    if(st==='미배정 총기'){
-      if(!Array.from(owner.options||[]).some(function(o){return o.value===UNASSIGNED;})){
-        owner.insertAdjacentHTML('beforeend','<option value="'+escapeHtml(UNASSIGNED)+'">'+escapeHtml(UNASSIGNED)+'</option>');
-      }
-      owner.value=UNASSIGNED;
-      owner.classList.add('asset-owner-select-unassigned');
+  function makePickerField(id){
+    const old=document.getElementById(id); if(!old)return null;
+    const meta=FIELD_META[id]||{};
+    let val=text(old.value||old.getAttribute('value')||'');
+    if(id==='assetFormStatus')val=normalizeStatus(val);
+    let hidden=old;
+    if(old.type!=='hidden'){
+      hidden=document.createElement('input');
+      hidden.type='hidden';
+      hidden.id=id;
+      hidden.value=val;
+      hidden.setAttribute('value',val);
+      old.replaceWith(hidden);
     }else{
-      owner.classList.remove('asset-owner-select-unassigned');
-      if(st==='보유중'&&owner.value===UNASSIGNED)owner.value='';
+      hidden.value=val;
+      hidden.setAttribute('value',val);
     }
-  }
-  function syncStatusByOwner(){
-    const owner=ownerField();
-    const status=statusField();
-    if(!owner||!status)return;
-    if(owner.value===UNASSIGNED){
-      status.value='미배정 총기';
-      syncOwnerByStatus();
+    let wrap=document.querySelector('.axe-asset-pick-control[data-for="'+id+'"]');
+    if(!wrap){
+      wrap=document.createElement('div');
+      wrap.className='axe-asset-pick-control';
+      wrap.setAttribute('data-for',id);
+      wrap.innerHTML='<span class="axe-asset-pick-value"></span><button type="button" class="axe-asset-pick-btn">선택</button>';
+      hidden.insertAdjacentElement('afterend',wrap);
+      wrap.querySelector('.axe-asset-pick-btn').addEventListener('click',function(){openPicker(id);});
+      wrap.addEventListener('click',function(e){if(e.target.classList.contains('axe-asset-pick-btn'))return;openPicker(id);});
     }
+    updateControl(id);
+    return hidden;
   }
-  function attachStatusListener(){
-    const st=statusField();
-    if(st&&!st.__v61OwnerStatusBound){
-      st.__v61OwnerStatusBound=true;
-      st.addEventListener('change',syncOwnerByStatus,false);
+  function applyPickers(){
+    ['assetFormName','assetFormCategory','assetFormMethod','assetFormStatus'].forEach(makePickerField);
+    syncRules('init');
+  }
+  function ensurePickerModal(){
+    let modal=document.getElementById('axeAssetPickerModal');
+    if(modal)return modal;
+    document.body.insertAdjacentHTML('beforeend','<div class="axe-asset-pick-modal" id="axeAssetPickerModal"><div class="axe-asset-pick-box"><div class="axe-asset-pick-head"><div class="axe-asset-pick-title" id="axeAssetPickerTitle">선택</div><button type="button" class="axe-asset-pick-close" id="axeAssetPickerClose">×</button></div><div class="axe-asset-pick-body"><input class="axe-asset-pick-search" id="axeAssetPickerSearch" placeholder="검색"><div class="axe-asset-pick-list" id="axeAssetPickerList"></div></div></div></div>');
+    modal=document.getElementById('axeAssetPickerModal');
+    document.getElementById('axeAssetPickerClose').addEventListener('click',closePicker);
+    modal.addEventListener('click',function(e){if(e.target===modal)closePicker();});
+    document.getElementById('axeAssetPickerSearch').addEventListener('input',function(){renderPickerList();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')closePicker();});
+    return modal;
+  }
+  let activeFieldId='';
+  function openPicker(id){
+    activeFieldId=id;
+    const meta=FIELD_META[id]||{};
+    const modal=ensurePickerModal();
+    document.getElementById('axeAssetPickerTitle').textContent=meta.title||'선택';
+    const search=document.getElementById('axeAssetPickerSearch');
+    search.value='';
+    search.placeholder=meta.search||'검색';
+    renderPickerList();
+    modal.classList.add('active');
+    setTimeout(function(){search.focus();},30);
+  }
+  function closePicker(){const modal=document.getElementById('axeAssetPickerModal');if(modal)modal.classList.remove('active');activeFieldId='';}
+  function renderPickerList(){
+    const list=document.getElementById('axeAssetPickerList'); if(!list||!activeFieldId)return;
+    const meta=FIELD_META[activeFieldId]||{};
+    const current=displayValue(activeFieldId);
+    const q=text(document.getElementById('axeAssetPickerSearch')&&document.getElementById('axeAssetPickerSearch').value).toLowerCase();
+    let opts=optionsFor(activeFieldId);
+    if(q)opts=opts.filter(function(v){return String(v).toLowerCase().indexOf(q)>=0;});
+    let html='';
+    if(activeFieldId==='assetFormName'){
+      html+='<button type="button" class="axe-asset-pick-option muted" data-value="">회원 선택</button>';
     }
+    opts.forEach(function(v){
+      html+='<button type="button" class="axe-asset-pick-option '+(v===current?'active':'')+'" data-value="'+esc(v)+'">'+esc(v)+'</button>';
+    });
+    if(meta.custom&&q&&opts.indexOf(text(document.getElementById('axeAssetPickerSearch').value))<0){
+      const raw=text(document.getElementById('axeAssetPickerSearch').value);
+      html+='<button type="button" class="axe-asset-pick-option custom" data-value="'+esc(raw)+'">직접 사용: '+esc(raw)+'</button>';
+    }
+    if(!html)html='<div class="axe-asset-pick-empty">선택할 항목이 없습니다.</div>';
+    list.innerHTML=html;
+    Array.from(list.querySelectorAll('button[data-value]')).forEach(function(btn){
+      btn.addEventListener('click',function(){setValue(activeFieldId,btn.getAttribute('data-value')||'');closePicker();});
+    });
   }
-  function applyOwnerSelectV61Safe(){
-    const sel=replaceOwnerWithSelect();
-    attachStatusListener();
-    syncOwnerByStatus();
-    return sel;
-  }
-  function scheduleApply(){[0,30,120,300].forEach(function(ms){setTimeout(applyOwnerSelectV61Safe,ms);});}
+  function scheduleApply(){[0,30,120,320,650].forEach(function(ms){setTimeout(applyPickers,ms);});}
   function wrapOpen(fnName){
     const original=window[fnName];
-    if(typeof original!=='function'||original.__v61SafeOwnerWrapped)return;
-    const wrapped=function(){
-      const result=original.apply(this,arguments);
-      scheduleApply();
-      return result;
-    };
-    wrapped.__v61SafeOwnerWrapped=true;
-    wrapped.__v61SafeOwnerOriginal=original;
+    if(typeof original!=='function'||original.__v62PickerWrapped)return;
+    const wrapped=function(){const result=original.apply(this,arguments);scheduleApply();return result;};
+    wrapped.__v62PickerWrapped=true;
+    wrapped.__v62PickerOriginal=original;
     window[fnName]=wrapped;
   }
   ['openAssetCreateModalV20','openAssetEditModalV20','openAssetAssignModalV58Safe','openAssetAssignModalV57','openAssetAssignModal'].forEach(wrapOpen);
   const originalSave=window.saveAssetFromModalV20;
-  if(typeof originalSave==='function'&&!originalSave.__v61SafeOwnerWrapped){
+  if(typeof originalSave==='function'&&!originalSave.__v62PickerWrapped){
     const wrappedSave=function(){
-      syncOwnerByStatus();
-      const owner=ownerField();
-      const status=normalizeStatus(statusField()?statusField().value:'보유중');
-      const ownerValue=text(owner?owner.value:'');
-      if(status==='보유중'&&(!ownerValue||ownerValue===UNASSIGNED)){
-        alert('보유중 상태에서는 보유 회원을 선택해야 합니다.');
-        return;
-      }
+      applyPickers();
+      const st=normalizeStatus(displayValue('assetFormStatus'));
+      let owner=displayValue('assetFormName');
+      if(st==='미배정 총기'&&!owner){setValue('assetFormName',UNASSIGNED,true);owner=UNASSIGNED;}
+      if(st==='보유중'&&(!owner||owner===UNASSIGNED)){alert('보유중 상태에서는 보유 회원을 선택해야 합니다.');return;}
       return originalSave.apply(this,arguments);
     };
-    wrappedSave.__v61SafeOwnerWrapped=true;
-    wrappedSave.__v61SafeOwnerOriginal=originalSave;
+    wrappedSave.__v62PickerWrapped=true;
+    wrappedSave.__v62PickerOriginal=originalSave;
     window.saveAssetFromModalV20=wrappedSave;
   }
   document.addEventListener('click',function(e){
-    const btn=e.target&&e.target.closest?e.target.closest('button'):null;
-    if(!btn)return;
+    const btn=e.target&&e.target.closest?e.target.closest('button'):null; if(!btn)return;
     const label=text(btn.textContent);
     if(label==='수정'||label==='배정'||label.indexOf('자산 추가')>=0||label.indexOf('등록')>=0)scheduleApply();
   },true);
   if(window.MutationObserver){
     const obs=new MutationObserver(function(){
       const modal=document.getElementById('assetEditModal');
-      if(modal&&modal.classList&&modal.classList.contains('active'))scheduleApply();
+      if(modal&&modal.classList&&modal.classList.contains('active'))setTimeout(applyPickers,30);
     });
     obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   }
-  window.applyAssetOwnerSelectV61Safe=applyOwnerSelectV61Safe;
-  window.axeAssetV61SafeDebug=function(){
-    const owner=ownerField();
+  window.applyAssetPickerV62Safe=applyPickers;
+  window.axeAssetV62SafeDebug=function(){
+    const ids=['assetFormName','assetFormCategory','assetFormMethod','assetFormStatus'];
     let base=null;
-    try{base=typeof axeAssetV60SafeDebug==='function'?axeAssetV60SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)};}
-    return {
-      renderer:VERSION,
-      basedOn:base&&base.renderer,
-      serverTouched:false,
-      apiUrl:(typeof API_URL!=='undefined'?API_URL:''),
-      ownerSelect:owner?owner.tagName:null,
-      ownerValue:owner?owner.value:null,
-      statusValue:statusField()?statusField().value:null,
-      activeMembers:activeMemberNames().length,
-      assetOwners:assetOwnerNames().length,
-      ownerOptions:owner&&owner.options?Array.from(owner.options).map(function(o){return o.value||o.textContent;}):[]
-    };
+    try{base=typeof axeAssetV58SafeDebug==='function'?axeAssetV58SafeDebug():null;}catch(e){base={error:String(e&&e.message||e)};}
+    const fields={};
+    ids.forEach(function(id){const el=document.getElementById(id);fields[id]={tag:el?el.tagName:null,type:el?el.type:null,value:el?el.value:null,control:!!document.querySelector('.axe-asset-pick-control[data-for="'+id+'"]')};});
+    return {renderer:VERSION,basedOn:base&&base.renderer,serverTouched:false,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),fields:fields,memberOptions:memberNames().length,assetRows:rows().length};
   };
 })();
 </script>
