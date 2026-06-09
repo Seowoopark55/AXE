@@ -27669,3 +27669,81 @@ window.axeFundFeeV48Debug=function(month){
   window.axeMemberV53Debug=function(){const list=members();return {renderer:'member-v53-compact-status-select',counts:counts(list),shown:filtered().length,box:!!document.getElementById('adminMemberBox')};};
 })();
 </script>
+
+
+<!-- AXE NET member management v54 compact memo-modal renderer -->
+<style id="axe-member-v54-style">
+#adminMemberBox{overflow:visible!important;max-height:none!important;}
+#adminMemberBox .member-v53-wrap,#adminMemberBox .member-v54-wrap{overflow:visible!important;max-height:none!important;}
+#adminMemberBox .member-v53-list,#adminMemberBox .member-v54-list{max-height:none!important;overflow:visible!important;padding-right:0!important;}
+.member-v54-wrap{width:100%;max-width:100%;overflow:visible!important;}
+.member-v54-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 9px;}
+.member-v54-count{font-size:12px;color:#9aa4b5;font-weight:850;white-space:nowrap;}
+.member-v54-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.member-v54-filter{height:32px;padding:0 11px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-size:12px;font-weight:950;cursor:pointer;}
+.member-v54-filter.active{background:#ffb52e;border-color:#ffb52e;color:#111;}
+.member-v54-search{width:min(230px,48vw);height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#fff;padding:0 10px;font-size:12px;outline:none;}
+.member-v54-list{display:grid;gap:6px;max-height:none!important;overflow:visible!important;}
+.member-v54-row{border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.01));border-radius:12px;padding:8px 10px;display:grid;gap:7px;max-width:100%;}
+.member-v54-row.resigned{border-color:rgba(255,120,120,.20);background:linear-gradient(180deg,rgba(255,70,70,.04),rgba(255,255,255,.01));opacity:.88;}
+.member-v54-top{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:8px;align-items:center;border-bottom:1px solid rgba(255,255,255,.065);padding-bottom:6px;}
+.member-v54-name{font-size:14px;font-weight:950;color:#fff;display:flex;align-items:center;gap:6px;min-width:0;}
+.member-v54-name .writer-with-badge{font-size:14px;}
+.member-v54-meta{font-size:10.5px;color:#8d96a6;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-v54-pills{display:flex;align-items:center;gap:5px;justify-content:flex-end;flex-wrap:wrap;}
+.member-v54-pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#ddd;font-size:10.5px;font-weight:950;white-space:nowrap;}
+.member-v54-pill.point{border-color:rgba(255,181,46,.35);background:rgba(255,181,46,.10);color:#ffcf75;}
+.member-v54-pill.resigned{border-color:rgba(255,100,100,.32);background:rgba(255,100,100,.10);color:#ffb4b4;}
+.member-v54-form{display:grid;grid-template-columns:100px 112px 112px 124px 92px minmax(110px,1fr) minmax(120px,1fr);gap:6px;align-items:end;}
+.member-v54-field{display:grid;gap:3px;min-width:0;}
+.member-v54-field label{font-size:10px;color:#8d96a6;font-weight:950;}
+.member-v54-field input,.member-v54-field select{width:100%;height:31px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.24);color:#fff;padding:0 8px;font-size:11.5px;font-weight:850;outline:none;min-width:0;}
+.member-v54-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.055);padding-top:6px;}
+.member-v54-btn{height:30px;padding:0 10px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#ddd;font-size:11.5px;font-weight:950;cursor:pointer;}
+.member-v54-btn:hover{border-color:rgba(255,181,46,.38);color:#ffcf75;}
+.member-v54-btn.primary{background:#ffb52e;border-color:#ffb52e;color:#111;}
+.member-v54-btn.memo{border-color:rgba(124,211,255,.22);background:rgba(124,211,255,.07);color:#c9efff;}
+.member-v54-empty{border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:16px;text-align:center;color:#888;font-size:12px;font-weight:850;}
+.member-v54-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;}
+.member-v54-modal{width:min(560px,96vw);border:1px solid rgba(255,181,46,.32);background:#0d0d0e;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden;}
+.member-v54-modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.member-v54-modal-title{color:#ffcf75;font-size:17px;font-weight:950;}
+.member-v54-modal-close{width:32px;height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;font-weight:950;cursor:pointer;}
+.member-v54-modal-body{padding:14px 16px;display:grid;gap:8px;}
+.member-v54-modal-body textarea{width:100%;min-height:160px;resize:vertical;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:#fff;padding:12px;font-size:13px;line-height:1.5;outline:none;}
+.member-v54-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);}
+@media(max-width:1180px){.member-v54-form{grid-template-columns:repeat(4,minmax(0,1fr));}.member-v54-field.reason,.member-v54-field.pw{grid-column:span 2;}}
+@media(max-width:720px){.member-v54-toolbar{display:grid}.member-v54-search{width:100%}.member-v54-top{grid-template-columns:1fr}.member-v54-pills{justify-content:flex-start}.member-v54-form{grid-template-columns:1fr 1fr}.member-v54-field.reason,.member-v54-field.pw{grid-column:1/-1}.member-v54-actions{justify-content:stretch}.member-v54-btn{flex:1;}}
+</style>
+<script id="axe-member-v54-renderer-replace">
+(function(){
+  if(window.__axeMemberV54Installed)return;
+  window.__axeMemberV54Installed=true;
+  const state=window.__axeMemberV54State||{filter:'active',query:''};
+  window.__axeMemberV54State=state;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const attr=s=>esc(s).replace(/`/g,'&#96;');
+  const idSafe=s=>String(s||'x').replace(/[^a-zA-Z0-9_-]/g,'_');
+  const norm=s=>String(s||'').trim().toLowerCase();
+  const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+  function fmtDate(v){try{return typeof formatDate==='function'?formatDate(v):(v||'-');}catch(e){return v||'-';}}
+  function badgeOf(m){try{return typeof normalizeBadge==='function'?normalizeBadge(m.badge||'bronze'):(m.badge||'bronze');}catch(e){return m.badge||'bronze';}}
+  function nameHtml(m){try{return typeof renderWriterName==='function'?renderWriterName(m.nickname||'익명',badgeOf(m)):esc(m.nickname||'익명');}catch(e){return esc(m.nickname||'익명');}}
+  function members(){try{if(Array.isArray(window.adminMembers))return window.adminMembers;if(typeof adminMembers!=='undefined'&&Array.isArray(adminMembers))return adminMembers;}catch(e){}return []}
+  function counts(list){return {total:list.length,active:list.filter(m=>norm(m.status||'active')!=='resigned').length,resigned:list.filter(m=>norm(m.status)==='resigned').length};}
+  function filtered(){let list=members();const q=norm(state.query);if(state.filter==='active')list=list.filter(m=>norm(m.status||'active')!=='resigned');if(state.filter==='resigned')list=list.filter(m=>norm(m.status)==='resigned');if(q)list=list.filter(m=>[m.nickname,m.status,m.role,m.badge,m.memo,m.resigned_at].some(v=>norm(v).includes(q)));return list;}
+  function option(v,label,current){return `<option value="${attr(v)}" ${norm(current)===norm(v)?'selected':''}>${esc(label||v)}</option>`;}
+  function statusLabel(v){v=norm(v||'active');if(v==='resigned')return '퇴사';if(v==='inactive')return '비활성';return '재직';}
+  function renderToolbar(list,shown){const c=counts(list);return `<div class="member-v54-toolbar"><div class="member-v54-count">표시 ${shown.length}명 / 전체 ${c.total}명</div><div class="member-v54-controls"><button class="member-v54-filter ${state.filter==='active'?'active':''}" onclick="setMemberV54Filter('active')">재직 ${c.active}</button><button class="member-v54-filter ${state.filter==='resigned'?'active':''}" onclick="setMemberV54Filter('resigned')">퇴사 ${c.resigned}</button><button class="member-v54-filter ${state.filter==='all'?'active':''}" onclick="setMemberV54Filter('all')">전체 ${c.total}</button><input class="member-v54-search" value="${attr(state.query)}" placeholder="닉네임, 상태, 메모 검색" oninput="setMemberV54Query(this.value)"></div></div>`;}
+  function renderRow(m){const sid=idSafe(m.id||m.nickname);const resigned=norm(m.status)==='resigned';const mid=String(m.id||'');const midArg=JSON.stringify(mid);const sidArg=JSON.stringify(sid);const memo=String(m.memo||'').trim();return `<div class="member-v54-row ${resigned?'resigned':''}"><div class="member-v54-top"><div><div class="member-v54-name">${nameHtml(m)}</div><div class="member-v54-meta">ID ${esc(m.id||'-')} · 가입 ${esc(fmtDate(m.created_at))} · 최근 ${esc(fmtDate(m.last_login))}</div></div><div class="member-v54-pills"><span class="member-v54-pill ${resigned?'resigned':''}">${statusLabel(m.status)}</span><span class="member-v54-pill">${esc(m.role||'user')}</span><span class="member-v54-pill point">P ${Number(m.points||0)}</span></div></div><div class="member-v54-form"><div class="member-v54-field"><label>권한</label><select id="adminRole_${sid}">${option('user','user',m.role||'user')}${option('admin','admin',m.role||'user')}</select></div><div class="member-v54-field"><label>상태</label><select id="adminStatus_${sid}">${option('active','재직',m.status||'active')}${option('resigned','퇴사',m.status||'active')}${option('inactive','비활성',m.status||'active')}</select></div><div class="member-v54-field"><label>뱃지</label><select id="adminBadge_${sid}">${['bronze','silver','gold','admin','black','legend'].map(b=>option(b,b,badgeOf(m))).join('')}</select></div><div class="member-v54-field"><label>퇴사일</label><input id="adminResignedAt_${sid}" type="date" value="${attr(String(m.resigned_at||'').slice(0,10))}"></div><div class="member-v54-field"><label>포인트</label><input id="adminPoint_${sid}" type="number" step="1" placeholder="+50 / -10"></div><div class="member-v54-field reason"><label>사유</label><input id="adminReason_${sid}" type="text" placeholder="사유"></div><div class="member-v54-field pw"><label>새 비밀번호</label><input id="adminPw_${sid}" type="text" placeholder="새 비밀번호"></div></div><div class="member-v54-actions"><button class="member-v54-btn memo" onclick="openMemberV54Memo(${midArg},${sidArg})">${memo?'메모보기':'메모작성'}</button><button class="member-v54-btn primary" onclick="saveAdminMember(${midArg},${sidArg})">저장</button><button class="member-v54-btn" onclick="adjustAdminMemberPoints(${midArg},${sidArg})">포인트</button><button class="member-v54-btn" onclick="resetAdminMemberPassword(${midArg},${sidArg})">비밀번호 초기화</button></div></div>`;}
+  window.setMemberV54Filter=function(v){state.filter=v||'active';renderAdminMembers();};
+  window.setMemberV54Query=function(v){state.query=v||'';renderAdminMembers();};
+  window.renderAdminMembers=function(){const box=document.getElementById('adminMemberBox');if(!box)return;const list=members();const shown=filtered();if(!list.length){box.innerHTML='<div class="ready">등록된 회원이 없습니다.</div>';return;}box.innerHTML=`<div class="member-v54-wrap">${renderToolbar(list,shown)}<div class="member-v54-list">${shown.length?shown.map(renderRow).join(''):'<div class="member-v54-empty">조건에 맞는 회원이 없습니다.</div>'}</div></div>`;};
+  function findMember(memberId){return members().find(x=>String(x.id)===String(memberId));}
+  window.openMemberV54Memo=function(memberId,safeId){const m=findMember(memberId)||{};const current=String(m.memo||'');const old=document.getElementById('memberV54MemoModal');if(old)old.remove();const div=document.createElement('div');div.id='memberV54MemoModal';div.className='member-v54-modal-backdrop';div.innerHTML=`<div class="member-v54-modal"><div class="member-v54-modal-head"><div class="member-v54-modal-title">퇴사 메모 · ${esc(m.nickname||'회원')}</div><button class="member-v54-modal-close" onclick="closeMemberV54Memo()">×</button></div><div class="member-v54-modal-body"><textarea id="memberV54MemoText" placeholder="퇴사 처리 메모">${esc(current)}</textarea></div><div class="member-v54-modal-actions"><button class="member-v54-btn" onclick="closeMemberV54Memo()">취소</button><button class="member-v54-btn primary" onclick="saveMemberV54Memo(${JSON.stringify(memberId)},${JSON.stringify(safeId)})">저장</button></div></div>`;document.body.appendChild(div);setTimeout(()=>document.getElementById('memberV54MemoText')?.focus(),30);};
+  window.closeMemberV54Memo=function(){document.getElementById('memberV54MemoModal')?.remove();};
+  window.saveMemberV54Memo=function(memberId,safeId){const memo=document.getElementById('memberV54MemoText')?.value||'';const role=document.getElementById('adminRole_'+safeId)?.value||findMember(memberId)?.role||'user';const status=document.getElementById('adminStatus_'+safeId)?.value||findMember(memberId)?.status||'active';const badge=document.getElementById('adminBadge_'+safeId)?.value||findMember(memberId)?.badge||'bronze';let resigned_at=document.getElementById('adminResignedAt_'+safeId)?.value||findMember(memberId)?.resigned_at||'';if(status==='resigned'&&!resigned_at)resigned_at=today();if(status!=='resigned')resigned_at='';adminApi({type:'admin_member_update',member_id:memberId,role,status,badge,resigned_at,memo}).then(data=>{if(data.result==='success'){const m=findMember(memberId);if(m)Object.assign(m,{role,status,badge,resigned_at,memo});closeMemberV54Memo();renderAdminMembers();try{if(typeof loadAdminMembers==='function')loadAdminMembers();}catch(e){}}else alert(data.message||'메모 저장 중 오류가 발생했습니다.');}).catch(()=>alert('메모 저장 중 오류가 발생했습니다.'));};
+  window.saveAdminMember=function(memberId,safeId){const role=document.getElementById('adminRole_'+safeId)?.value||'user';const status=document.getElementById('adminStatus_'+safeId)?.value||'active';const badge=document.getElementById('adminBadge_'+safeId)?.value||'bronze';let resigned_at=document.getElementById('adminResignedAt_'+safeId)?.value||'';let memo=findMember(memberId)?.memo||'';if(status==='resigned'&&!resigned_at)resigned_at=today();if(status==='resigned'&&!memo)memo='퇴사 처리';if(status!=='resigned')resigned_at='';adminApi({type:'admin_member_update',member_id:memberId,role,status,badge,resigned_at,memo}).then(data=>{if(data.result==='success'){const m=findMember(memberId);if(m)Object.assign(m,{role,status,badge,resigned_at,memo});renderAdminMembers();try{if(typeof loadAdminMembers==='function')loadAdminMembers();}catch(e){}}else alert(data.message||'회원 정보 저장 중 오류가 발생했습니다.');}).catch(()=>alert('회원 정보 저장 중 오류가 발생했습니다.'));};
+  window.axeMemberV54Debug=function(){const list=members();return {renderer:'member-v54-compact-memo-modal-no-inner-scroll',counts:counts(list),shown:filtered().length,box:!!document.getElementById('adminMemberBox')};};
+})();
+</script>
