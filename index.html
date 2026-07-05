@@ -4607,7 +4607,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwD1Ai3vr7l6nm6t3c9VyEEEt2Mh1BYq4_OlN_fd_MFGUIHRNsEU6sqZN4Jk_Ko4jOguw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyWaA901EGhINB0UcQHFEM0K73-5fxZTvC_ZypKEYvwnjlRfzOpt_9oKKstgyOFVazEuA/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -5225,6 +5225,7 @@ function hydrateData(data){
     rankings=data.rankings||[];
     companyAssets=data.companyAssets||data.company_assets||data.assets||[];
     companyAssetReturns=data.companyAssetReturns||data.company_asset_returns||data.assetReturns||data.retiredAssetReturns||[];
+    window.companyAssetLoadError=data.companyAssetLoadError||"";
     plikaAccounts=data.plikaAccounts||data.plika_accounts||data.plikaAccountRows||[];
     window.plikaAccounts=plikaAccounts;
     if(typeof window.renderPlikaQuickV81==="function") setTimeout(window.renderPlikaQuickV81,0);
@@ -5323,6 +5324,9 @@ function applyPartialData(source,scope){
     if(data.fundBalanceChecks!==undefined||data.fund_balance_checks!==undefined)fundBalanceChecks=data.fundBalanceChecks||data.fund_balance_checks||[];
     if(data.fundSettings!==undefined||data.fund_settings!==undefined)fundSettings=data.fundSettings||data.fund_settings||[];
     if(data.fundSummary!==undefined||data.fund_summary!==undefined)fundSummary=data.fundSummary||data.fund_summary||{};
+    if(data.companyAssets!==undefined||data.company_assets!==undefined||data.assets!==undefined)companyAssets=data.companyAssets||data.company_assets||data.assets||[];
+    if(data.companyAssetReturns!==undefined||data.company_asset_returns!==undefined||data.assetReturns!==undefined||data.retiredAssetReturns!==undefined)companyAssetReturns=data.companyAssetReturns||data.company_asset_returns||data.assetReturns||data.retiredAssetReturns||[];
+    if(data.companyAssetLoadError!==undefined)window.companyAssetLoadError=data.companyAssetLoadError||"";
     mergeCachePartial(data);
     return data;
 }
@@ -18401,19 +18405,32 @@ function renderFundLedger(){
 function deleteFundLedger(ledgerId,btn,ledgerKey){
     if(!isCurrentAdmin()){alert("관리자 권한이 필요합니다.");return;}
     if(btn&&btn.disabled)return;
-    const reason=prompt("이 공금내역을 삭제 처리할까요? 삭제 사유를 입력해주세요.\n예: 중복 등록 건 정리");
+    const reason=prompt("이 공금내역을 삭제할까요? 연결된 공금신청도 시트에서 함께 삭제됩니다.\n삭제 사유를 입력해주세요.\n예: 중복 등록 건 정리");
     if(reason===null)return;
     if(!String(reason).trim()){alert("삭제 사유를 입력해야 합니다.");return;}
-    if(!confirm("삭제 처리하면 일반 공금내역 목록에서 숨겨집니다. 계속할까요?"))return;
+    if(!confirm("공금내역과 연결된 공금신청 행을 실제 시트에서 삭제합니다. 계속할까요?"))return;
     if(btn){btn.disabled=true;btn.textContent="처리중";}
-    fundAdminApi({type:"fund_ledger_delete",ledger_id:ledgerId,ledger_key:ledgerKey||"",delete_reason:String(reason).trim()})
+    let keyPayload={};
+    try{keyPayload=ledgerKey?JSON.parse(String(ledgerKey)):{};}catch(e){keyPayload={};}
+    fundAdminApi(Object.assign({},keyPayload,{
+        type:"fund_ledger_delete",
+        ledger_id:ledgerId,
+        id:ledgerId,
+        ledger_key:ledgerKey||"",
+        reason:String(reason).trim(),
+        delete_reason:String(reason).trim()
+    }))
         .then(data=>{
-            if(data&&data.result==="success"){alert(data.message||"삭제 처리되었습니다.");return;}
-            alert(data&&data.message||"삭제 처리 중 오류가 발생했습니다.");
+            if(data&&data.result==="success"){
+                alert(data.message||"삭제되었습니다.");
+                try{renderFundTab();}catch(e){}
+                return;
+            }
+            alert(data&&data.message||"삭제 중 오류가 발생했습니다.");
             if(btn){btn.disabled=false;btn.textContent="삭제";}
         })
         .catch(()=>{
-            alert("삭제 처리 중 오류가 발생했습니다.");
+            alert("삭제 중 오류가 발생했습니다.");
             if(btn){btn.disabled=false;btn.textContent="삭제";}
         });
 }
