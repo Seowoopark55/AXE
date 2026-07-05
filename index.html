@@ -4607,7 +4607,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbze4OjDzfxfx81SRgzRL_r1tT8XZABw99oW-yFZaY1OFX26N_NLMlbybeSsUYIK7Mkewg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwWUmUWCB378jUidqvdqkrL4pBZ8fIGoDXaBhu21z6hFahuAajkKKSCpMig6xuUjZVz/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -17732,7 +17732,11 @@ function refreshFundSubmitWeekOptions(month){
     }
     updateFundSubmitAmountByWeek();
 }
-function getFundBaseWeeklyFee(){return Number(getFundSetting("weekly_fee",fundSummary&&fundSummary.weekly_fee||20000)||20000);}
+function getFundBaseWeeklyFee(){
+    const raw=getFundSetting("weekly_fee",fundSummary&&fundSummary.weekly_fee_fallback||fundSummary&&fundSummary.weekly_fee||20000);
+    const n=Number(String(raw||0).replace(/[$,\s]/g,""));
+    return isFinite(n)&&n>0?Math.round(n):20000;
+}
 function fundDateYmd(d){
     if(!(d instanceof Date)||isNaN(d.getTime()))return "";
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -17742,13 +17746,56 @@ function getFundWeekRangeObject(month,week){
     const target=String(week||"1");
     return ranges.find(r=>r.week===target)||ranges[0]||null;
 }
+function fundMonthWeekOrder(month,week){
+    const normalized=normalizeFundMonth(month);
+    const parts=String(normalized||"").split("-");
+    const y=Number(parts[0]);
+    const m=Number(parts[1]);
+    const w=Number(String(week||"1").match(/\d+/)?.[0]||1);
+    if(!isFinite(y)||!isFinite(m)||m<1||m>12||!isFinite(w))return 0;
+    return y*1000+m*10+w;
+}
+function isFundWeeklyFeeRuleEnabled(value){
+    const text=String(value===undefined||value===null?"":value).trim().toLowerCase();
+    if(!text)return true;
+    return ["y","yes","true","1","사용","사용함","활성","active"].includes(text);
+}
+function getFundWeeklyFeeRules(){
+    const fromSummary=Array.isArray(fundSummary&&fundSummary.weekly_fee_history)?fundSummary.weekly_fee_history:[];
+    const fromSettings=(fundSettings||[]).map(row=>{
+        const month=normalizeFundMonth(row["적용시작월"]||row.start_month||row.month);
+        const week=String(row["적용시작주차"]||row.start_week||row.week||"").match(/\d+/)?.[0]||"";
+        const fee=Number(String(row["주간공금"]||row.weekly_fee||row.value||"").replace(/[$,\s]/g,""));
+        const enabled=isFundWeeklyFeeRuleEnabled(row["사용여부"]||row.enabled||row.use);
+        if(!month||!week||!isFinite(fee)||fee<=0||!enabled)return null;
+        return {month:month,week:String(Number(week)),weekly_fee:Math.round(fee),order:fundMonthWeekOrder(month,week)};
+    }).filter(Boolean);
+    const merged=[...fromSummary,...fromSettings].map(rule=>{
+        const month=normalizeFundMonth(rule.month||rule["적용시작월"]);
+        const week=String(rule.week||rule["적용시작주차"]||"").match(/\d+/)?.[0]||"";
+        const fee=Number(String(rule.weekly_fee||rule["주간공금"]||"").replace(/[$,\s]/g,""));
+        if(!month||!week||!isFinite(fee)||fee<=0)return null;
+        return {month:month,week:String(Number(week)),weekly_fee:Math.round(fee),order:fundMonthWeekOrder(month,week)};
+    }).filter(Boolean);
+    const byKey={};
+    merged.forEach(rule=>{byKey[rule.month+"|"+rule.week]=rule;});
+    return Object.values(byKey).sort((a,b)=>a.order-b.order);
+}
 function getFundWeeklyFee(month,week){
-    const base=getFundBaseWeeklyFee();
     const normalized=normalizeFundMonth(month||getFundCurrentMonth());
-    const range=getFundWeekRangeObject(normalized,week||"1");
-    const startKey=range&&range.start?fundDateYmd(range.start):"";
-    if(startKey && startKey>="2026-06-07")return 10000;
-    return base;
+    const targetOrder=fundMonthWeekOrder(normalized,week||"1");
+    const rules=getFundWeeklyFeeRules();
+    let selected=null;
+    rules.forEach(rule=>{if(rule.order<=targetOrder)selected=rule;});
+    return selected?Number(selected.weekly_fee||0):getFundBaseWeeklyFee();
+}
+function renderFundFeeRuleSummary(month){
+    const normalized=normalizeFundMonth(month||getFundCurrentMonth());
+    const ranges=getFundWeekRanges(normalized);
+    const fees=ranges.map(r=>({week:r.week,fee:getFundWeeklyFee(normalized,r.week)}));
+    const unique=[...new Set(fees.map(x=>x.fee))];
+    if(unique.length<=1)return `선택월 공금 기준: ${fundMoney(unique[0]||getFundBaseWeeklyFee())}`;
+    return `선택월 주차별 기준: ${fees.map(x=>x.week+"주차 "+fundMoney(x.fee)).join(" · ")}`;
 }
 function getFundDefaultWeekForMonth(month){
     const ranges=getFundWeekRanges(month||getFundCurrentMonth());
@@ -17904,6 +17951,7 @@ function fundStatusClass(status){
     if(status==="분할")return "split";
     if(status==="대기")return "pending";
     if(status==="반려")return "reject";
+    if(status==="부족")return "short";
     if(status==="면제")return "exempt";
     return "";
 }
@@ -18032,7 +18080,7 @@ function renderFundTab(){
     box.innerHTML=renderFundStatus();
 }
 function renderFundMonthToolbar(extra){
-    return `<div class="fund-toolbar"><div class="fund-toolbar-left">${renderFundMonthSelect("fundMonthView",getFundCurrentMonth(),`onchange="fundSelectedMonth=this.value;renderFundTab();"`)}${extra||""}</div><div class="fund-toolbar-right"><span class="fund-help">공금 기준: 2026.06.07부터 10,000원</span></div></div>`;
+    return `<div class="fund-toolbar"><div class="fund-toolbar-left">${renderFundMonthSelect("fundMonthView",getFundCurrentMonth(),`onchange="fundSelectedMonth=this.value;renderFundTab();"`)}${extra||""}</div><div class="fund-toolbar-right"><span class="fund-help">${safe(renderFundFeeRuleSummary(getFundCurrentMonth()))}</span></div></div>`;
 }
 function renderFundStatus(){
     const month=getFundCurrentMonth();
@@ -18045,7 +18093,7 @@ function renderFundStatus(){
         let unpaid=0;
         const cells=weeks.map(w=>{
             const st=getFundWeekStatus(m,month,w);
-            if(st==="미납"||st==="반려")unpaid++;
+            if(st==="미납"||st==="반려"||st==="부족")unpaid++;
             if(st==="공용"||st==="잔고"||st==="분할"||st==="면제")totalPaid++;
             if(st==="대기")totalPending++;
             return `<td>${fundStatusPill(st)}</td>`;
@@ -19096,6 +19144,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 .fund-split-help{margin-top:8px;color:#999;font-size:12px;font-weight:850;line-height:1.45}
 .fund-payment-detail{display:block;margin-top:4px;color:#888;font-size:11.5px;font-weight:850;line-height:1.35}
 .fund-status-pill.paid{color:#6ee7a8;background:rgba(110,231,168,.10);border-color:rgba(110,231,168,.30)}
+.fund-status-pill.short{color:#ffcf75;background:rgba(255,181,46,.10);border-color:rgba(255,181,46,.34)}
 
 /* AXE NET V16.1: 공금 납부제출 입력 박스 균형 정리 */
 .fund-submit-grid{
@@ -19176,23 +19225,53 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         if(mode==="회사잔고")return `회사잔고 <span class="fund-payment-detail">잔고 ${fundMoney(comp||row.amount)}</span>`;
         return `공용계좌 <span class="fund-payment-detail">공용 ${fundMoney(pub||row.amount)}</span>`;
     };
-    window.fundApprovedDetailFor=function(nickname,month,week){
-        const rows=(fundRequests||[]).filter(x=>String(x.nickname||"")===String(nickname)&&normalizeFundMonth(x.month)===normalizeFundMonth(month)&&String(x.week||"")===String(week)&&String(x.status||"")==="승인");
+    window.fundIsActivePaymentLedgerRow=function(row){
+        if(!row)return false;
+        const status=String(row.status||row.delete_status||"").trim();
+        const deleted=String(row.deleted||"").trim().toUpperCase();
+        if(status==="삭제"||status==="deleted"||deleted==="TRUE")return false;
+        if(String(row.type||"").trim()!=="공금납부")return false;
+        if(String(row.direction||"수입").trim()==="지출")return false;
+        return true;
+    };
+    window.fundLedgerPaymentRowsFor=function(nickname,month,week){
+        return (fundLedger||[]).filter(x=>String(x.nickname||"")===String(nickname)&&normalizeFundMonth(x.month)===normalizeFundMonth(month)&&String(x.week||"")===String(week)&&fundIsActivePaymentLedgerRow(x));
+    };
+    window.fundApprovedPaymentSumsFor=function(nickname,month,week){
+        const ledgerRows=fundLedgerPaymentRowsFor(nickname,month,week);
         let pub=0,comp=0;
+        if(ledgerRows.length){
+            ledgerRows.forEach(r=>{
+                const amount=Number(String(r.amount||0).replace(/[$,\s]/g,""))||0;
+                const account=String(r.account||"").trim();
+                if(account==="회사잔고")comp+=Math.abs(amount);
+                else pub+=Math.abs(amount);
+            });
+            return {publicAmount:pub,companyAmount:comp,total:pub+comp,source:"ledger"};
+        }
+        const rows=(fundRequests||[]).filter(x=>String(x.nickname||"")===String(nickname)&&normalizeFundMonth(x.month)===normalizeFundMonth(month)&&String(x.week||"")===String(week)&&String(x.status||"")==="승인");
         rows.forEach(r=>{pub+=fundPublicAmountOf(r);comp+=fundCompanyAmountOf(r);});
-        if(pub&&comp)return "공용 "+fundMoney(pub)+" + 잔고 "+fundMoney(comp);
-        if(pub)return "공용 "+fundMoney(pub);
-        if(comp)return "잔고 "+fundMoney(comp);
-        return "";
+        return {publicAmount:pub,companyAmount:comp,total:pub+comp,source:"request"};
+    };
+    window.fundApprovedDetailFor=function(nickname,month,week){
+        const sums=fundApprovedPaymentSumsFor(nickname,month,week);
+        const standard=Number(getFundWeeklyFee(month,week)||0)||0;
+        const parts=[];
+        if(sums.publicAmount)parts.push("공용 "+fundMoney(sums.publicAmount));
+        if(sums.companyAmount)parts.push("잔고 "+fundMoney(sums.companyAmount));
+        if(!parts.length)return "";
+        const base=parts.join(" + ");
+        if(standard&&sums.total<standard)return base+" / 기준 "+fundMoney(standard)+" / 부족 "+fundMoney(standard-sums.total);
+        return base+" / 기준 "+fundMoney(standard||sums.total);
     };
     window.getFundWeekStatus=function(member,month,week){
         if(isFundExempt(member,week))return "면제";
         const rows=getFundRequestsFor(member.nickname,month,week);
-        const approved=rows.filter(x=>String(x.status||"")==="승인");
-        if(approved.length){
-            let pub=0,comp=0;
-            approved.forEach(r=>{pub+=fundPublicAmountOf(r);comp+=fundCompanyAmountOf(r);});
-            if(pub&&comp)return "분할";
+        const sums=fundApprovedPaymentSumsFor(member.nickname,month,week);
+        const standard=Number(getFundWeeklyFee(month,week)||0)||0;
+        if(sums.total>0){
+            if(standard&&sums.total<standard)return "부족";
+            if(sums.publicAmount&&sums.companyAmount)return "분할";
             return "납부완료";
         }
         if(rows.some(x=>String(x.status||"")==="검수대기"))return "대기";
@@ -28405,124 +28484,5 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     ids.forEach(function(id){const el=document.getElementById(id);fields[id]={tag:el?el.tagName:null,type:el?el.type:null,value:el?el.value:null,control:!!document.querySelector('.axe-asset-pick-control[data-for="'+id+'"]')};});
     return {renderer:VERSION,basedOn:base&&base.renderer,serverTouched:false,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),fields:fields,memberOptions:memberNames().length,assetRows:rows().length};
   };
-})();
-</script>
-
-<style id="axe-fund-delete-loading-v63-style">
-.axe-fund-busy-btn-v63{position:relative!important;opacity:.78!important;cursor:wait!important;pointer-events:none!important;padding-left:28px!important;}
-.axe-fund-busy-btn-v63::before{content:"";position:absolute;left:9px;top:50%;width:13px;height:13px;margin-top:-7px;border-radius:999px;border:2px solid rgba(255,255,255,.24);border-top-color:#fff;animation:axeFundDeleteSpinV63 .7s linear infinite;}
-@keyframes axeFundDeleteSpinV63{to{transform:rotate(360deg)}}
-.axe-fund-busy-toast-v63{position:fixed;left:50%;bottom:28px;z-index:12000;transform:translateX(-50%);display:flex;align-items:center;gap:10px;min-width:230px;max-width:calc(100vw - 32px);padding:12px 15px;border-radius:999px;border:1px solid rgba(255,181,46,.45);background:rgba(10,10,10,.96);box-shadow:0 14px 40px rgba(0,0,0,.45);color:#ffcf75;font-size:13px;font-weight:950;letter-spacing:-.1px;}
-.axe-fund-busy-toast-v63::before{content:"";width:15px;height:15px;border-radius:999px;border:2px solid rgba(255,181,46,.25);border-top-color:#ffb52e;animation:axeFundDeleteSpinV63 .7s linear infinite;flex:0 0 auto;}
-</style>
-<script id="axe-fund-delete-loading-optional-reason-v63">
-(function(){
-  const VERSION='AXE_NET_FUND_DELETE_LOADING_OPTIONAL_REASON_V63';
-  const locks=window.__AXE_FUND_DELETE_LOCKS_V63||(window.__AXE_FUND_DELETE_LOCKS_V63={});
-  function txt(v){return String(v==null?'':v).trim();}
-  function busy(msg){
-    let el=document.getElementById('axeFundBusyToastV63');
-    if(!el){el=document.createElement('div');el.id='axeFundBusyToastV63';el.className='axe-fund-busy-toast-v63';document.body.appendChild(el);}
-    el.textContent=msg||'공금내역 삭제 중입니다...';
-    el.style.display='flex';
-  }
-  function idle(){const el=document.getElementById('axeFundBusyToastV63'); if(el)el.style.display='none';}
-  function setBtn(btn,on,label){
-    if(!btn)return;
-    if(on){
-      if(!btn.dataset.axeFundDeleteTextV63)btn.dataset.axeFundDeleteTextV63=btn.textContent||'삭제';
-      btn.disabled=true;
-      btn.classList.add('axe-fund-busy-btn-v63');
-      btn.textContent=label||'삭제 중...';
-    }else{
-      btn.disabled=false;
-      btn.classList.remove('axe-fund-busy-btn-v63');
-      btn.textContent=btn.dataset.axeFundDeleteTextV63||'삭제';
-      delete btn.dataset.axeFundDeleteTextV63;
-    }
-  }
-  function applyResponse(data){
-    if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
-    if(data&&Array.isArray(data.fundRequests))window.fundRequests=data.fundRequests;
-    if(data&&data.fundSummary)window.fundSummary=data.fundSummary;
-    if(data&&data.summary)window.fundSummary=data.summary;
-    if(data&&data.fundPaymentStatus)window.fundPaymentStatus=data.fundPaymentStatus;
-    if(data&&data.fundIntegrity)window.fundIntegrity=data.fundIntegrity;
-    try{if(typeof DATA_CACHE_KEY!=='undefined')sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){}
-    try{if(typeof renderFundTab==='function')renderFundTab();else if(typeof renderFundLedgerFilteredOnly==='function')renderFundLedgerFilteredOnly();}catch(e){}
-  }
-  function adminPayload(extra){
-    const current=typeof getCurrentUser==='function'?getCurrentUser():window.currentUser;
-    const base={};
-    if(current&&current.nickname)base.admin_nickname=current.nickname;
-    if(current&&current.admin_token)base.admin_token=current.admin_token;
-    if(current&&current.token)base.admin_token=current.token;
-    return Object.assign(base,extra||{});
-  }
-  function parseKey(ledgerKey){
-    try{return ledgerKey?JSON.parse(String(ledgerKey)):{};}catch(e){return {};}
-  }
-  async function callFundDelete(payload){
-    const apiFn=typeof fundAdminApi==='function'?fundAdminApi:(typeof adminApi==='function'?adminApi:null);
-    if(!apiFn)throw new Error('관리자 API 함수를 찾을 수 없습니다.');
-    return await apiFn(payload);
-  }
-  window.deleteFundLedger=function(ledgerId,btn,ledgerKey){
-    if(typeof isCurrentAdmin==='function'&&!isCurrentAdmin()){alert('관리자 권한이 필요합니다.');return;}
-    const id=txt(ledgerId);
-    if(!id){alert('삭제할 공금내역 정보가 없습니다.');return;}
-    if(locks[id])return;
-    const reasonRaw=prompt('이 공금내역을 삭제할까요? 연결된 공금신청도 시트에서 함께 삭제됩니다.\n삭제 사유는 선택사항입니다. 비워두어도 삭제할 수 있습니다.\n예: 중복 등록 건 정리','');
-    if(reasonRaw===null)return;
-    const reason=txt(reasonRaw)||'관리자 삭제(사유 미기재)';
-    if(!confirm('공금내역과 연결된 공금신청 행을 실제 시트에서 삭제합니다. 계속할까요?'))return;
-    locks[id]=true;
-    setBtn(btn,true,'삭제 중...');
-    busy('공금내역 삭제 중입니다...');
-    const keyPayload=parseKey(ledgerKey);
-    const payload=adminPayload(Object.assign({},keyPayload,{type:'fund_ledger_delete',ledger_id:id,id:id,ledger_key:ledgerKey||'',reason:reason,delete_reason:reason,delete_memo:reason}));
-    callFundDelete(payload).then(function(data){
-      if(data&&data.result==='success'){
-        applyResponse(data);
-        if(typeof showToast==='function')showToast(data.message||'삭제되었습니다.'); else alert(data.message||'삭제되었습니다.');
-        return;
-      }
-      setBtn(btn,false);
-      alert((data&&data.message)||'삭제 중 오류가 발생했습니다.');
-    }).catch(function(err){
-      setBtn(btn,false);
-      alert('삭제 중 오류가 발생했습니다: '+String(err&&err.message?err.message:err));
-    }).finally(function(){delete locks[id]; idle();});
-  };
-  window.deleteFundLedgerFromEditV52=function(){
-    if(typeof isCurrentAdmin==='function'&&!isCurrentAdmin()){alert('관리자 권한이 필요합니다.');return;}
-    const input=document.getElementById('fundLedgerEditIdV52');
-    const id=txt(input&&input.value);
-    if(!id){alert('공금내역 정보가 없습니다.');return;}
-    if(locks['edit:'+id])return;
-    const reasonRaw=prompt('삭제 사유는 선택사항입니다. 비워두어도 삭제할 수 있습니다.','');
-    if(reasonRaw===null)return;
-    const reason=txt(reasonRaw)||'관리자 삭제(사유 미기재)';
-    if(!confirm('이 공금내역과 연결된 공금신청 행을 실제 시트에서 삭제할까요?'))return;
-    const btn=document.querySelector('.fund-ledger-edit-actions-v52 button.danger');
-    locks['edit:'+id]=true;
-    setBtn(btn,true,'삭제 중...');
-    busy('공금내역 삭제 중입니다...');
-    const payload=adminPayload({type:'fund_ledger_delete',ledger_id:id,id:id,reason:reason,delete_reason:reason,delete_memo:reason});
-    callFundDelete(payload).then(function(data){
-      if(data&&data.result==='success'){
-        try{if(typeof closeFundLedgerEditV52==='function')closeFundLedgerEditV52();}catch(e){}
-        applyResponse(data);
-        if(typeof showToast==='function')showToast(data.message||'삭제되었습니다.'); else alert(data.message||'삭제되었습니다.');
-        return;
-      }
-      setBtn(btn,false);
-      alert((data&&data.message)||'삭제에 실패했습니다.');
-    }).catch(function(err){
-      setBtn(btn,false);
-      alert('삭제 중 오류가 발생했습니다: '+String(err&&err.message?err.message:err));
-    }).finally(function(){delete locks['edit:'+id]; idle();});
-  };
-  window.axeFundDeleteV63Debug=function(){return {version:VERSION,locks:Object.keys(locks),toast:!!document.getElementById('axeFundBusyToastV63'),apiUrl:(typeof API_URL!=='undefined'?API_URL:'')};};
 })();
 </script>
