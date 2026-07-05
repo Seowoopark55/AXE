@@ -4607,7 +4607,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyWaA901EGhINB0UcQHFEM0K73-5fxZTvC_ZypKEYvwnjlRfzOpt_9oKKstgyOFVazEuA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbze4OjDzfxfx81SRgzRL_r1tT8XZABw99oW-yFZaY1OFX26N_NLMlbybeSsUYIK7Mkewg/exec";
 
 const categoryMap={ALL:"전체",SMG:"SMG",PISTOL:"피스톨",REVOLVER:"리볼버",KNIFE:"나이프",ETC:"기타"};
 
@@ -28405,5 +28405,124 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     ids.forEach(function(id){const el=document.getElementById(id);fields[id]={tag:el?el.tagName:null,type:el?el.type:null,value:el?el.value:null,control:!!document.querySelector('.axe-asset-pick-control[data-for="'+id+'"]')};});
     return {renderer:VERSION,basedOn:base&&base.renderer,serverTouched:false,apiUrl:(typeof API_URL!=='undefined'?API_URL:''),fields:fields,memberOptions:memberNames().length,assetRows:rows().length};
   };
+})();
+</script>
+
+<style id="axe-fund-delete-loading-v63-style">
+.axe-fund-busy-btn-v63{position:relative!important;opacity:.78!important;cursor:wait!important;pointer-events:none!important;padding-left:28px!important;}
+.axe-fund-busy-btn-v63::before{content:"";position:absolute;left:9px;top:50%;width:13px;height:13px;margin-top:-7px;border-radius:999px;border:2px solid rgba(255,255,255,.24);border-top-color:#fff;animation:axeFundDeleteSpinV63 .7s linear infinite;}
+@keyframes axeFundDeleteSpinV63{to{transform:rotate(360deg)}}
+.axe-fund-busy-toast-v63{position:fixed;left:50%;bottom:28px;z-index:12000;transform:translateX(-50%);display:flex;align-items:center;gap:10px;min-width:230px;max-width:calc(100vw - 32px);padding:12px 15px;border-radius:999px;border:1px solid rgba(255,181,46,.45);background:rgba(10,10,10,.96);box-shadow:0 14px 40px rgba(0,0,0,.45);color:#ffcf75;font-size:13px;font-weight:950;letter-spacing:-.1px;}
+.axe-fund-busy-toast-v63::before{content:"";width:15px;height:15px;border-radius:999px;border:2px solid rgba(255,181,46,.25);border-top-color:#ffb52e;animation:axeFundDeleteSpinV63 .7s linear infinite;flex:0 0 auto;}
+</style>
+<script id="axe-fund-delete-loading-optional-reason-v63">
+(function(){
+  const VERSION='AXE_NET_FUND_DELETE_LOADING_OPTIONAL_REASON_V63';
+  const locks=window.__AXE_FUND_DELETE_LOCKS_V63||(window.__AXE_FUND_DELETE_LOCKS_V63={});
+  function txt(v){return String(v==null?'':v).trim();}
+  function busy(msg){
+    let el=document.getElementById('axeFundBusyToastV63');
+    if(!el){el=document.createElement('div');el.id='axeFundBusyToastV63';el.className='axe-fund-busy-toast-v63';document.body.appendChild(el);}
+    el.textContent=msg||'공금내역 삭제 중입니다...';
+    el.style.display='flex';
+  }
+  function idle(){const el=document.getElementById('axeFundBusyToastV63'); if(el)el.style.display='none';}
+  function setBtn(btn,on,label){
+    if(!btn)return;
+    if(on){
+      if(!btn.dataset.axeFundDeleteTextV63)btn.dataset.axeFundDeleteTextV63=btn.textContent||'삭제';
+      btn.disabled=true;
+      btn.classList.add('axe-fund-busy-btn-v63');
+      btn.textContent=label||'삭제 중...';
+    }else{
+      btn.disabled=false;
+      btn.classList.remove('axe-fund-busy-btn-v63');
+      btn.textContent=btn.dataset.axeFundDeleteTextV63||'삭제';
+      delete btn.dataset.axeFundDeleteTextV63;
+    }
+  }
+  function applyResponse(data){
+    if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
+    if(data&&Array.isArray(data.fundRequests))window.fundRequests=data.fundRequests;
+    if(data&&data.fundSummary)window.fundSummary=data.fundSummary;
+    if(data&&data.summary)window.fundSummary=data.summary;
+    if(data&&data.fundPaymentStatus)window.fundPaymentStatus=data.fundPaymentStatus;
+    if(data&&data.fundIntegrity)window.fundIntegrity=data.fundIntegrity;
+    try{if(typeof DATA_CACHE_KEY!=='undefined')sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){}
+    try{if(typeof renderFundTab==='function')renderFundTab();else if(typeof renderFundLedgerFilteredOnly==='function')renderFundLedgerFilteredOnly();}catch(e){}
+  }
+  function adminPayload(extra){
+    const current=typeof getCurrentUser==='function'?getCurrentUser():window.currentUser;
+    const base={};
+    if(current&&current.nickname)base.admin_nickname=current.nickname;
+    if(current&&current.admin_token)base.admin_token=current.admin_token;
+    if(current&&current.token)base.admin_token=current.token;
+    return Object.assign(base,extra||{});
+  }
+  function parseKey(ledgerKey){
+    try{return ledgerKey?JSON.parse(String(ledgerKey)):{};}catch(e){return {};}
+  }
+  async function callFundDelete(payload){
+    const apiFn=typeof fundAdminApi==='function'?fundAdminApi:(typeof adminApi==='function'?adminApi:null);
+    if(!apiFn)throw new Error('관리자 API 함수를 찾을 수 없습니다.');
+    return await apiFn(payload);
+  }
+  window.deleteFundLedger=function(ledgerId,btn,ledgerKey){
+    if(typeof isCurrentAdmin==='function'&&!isCurrentAdmin()){alert('관리자 권한이 필요합니다.');return;}
+    const id=txt(ledgerId);
+    if(!id){alert('삭제할 공금내역 정보가 없습니다.');return;}
+    if(locks[id])return;
+    const reasonRaw=prompt('이 공금내역을 삭제할까요? 연결된 공금신청도 시트에서 함께 삭제됩니다.\n삭제 사유는 선택사항입니다. 비워두어도 삭제할 수 있습니다.\n예: 중복 등록 건 정리','');
+    if(reasonRaw===null)return;
+    const reason=txt(reasonRaw)||'관리자 삭제(사유 미기재)';
+    if(!confirm('공금내역과 연결된 공금신청 행을 실제 시트에서 삭제합니다. 계속할까요?'))return;
+    locks[id]=true;
+    setBtn(btn,true,'삭제 중...');
+    busy('공금내역 삭제 중입니다...');
+    const keyPayload=parseKey(ledgerKey);
+    const payload=adminPayload(Object.assign({},keyPayload,{type:'fund_ledger_delete',ledger_id:id,id:id,ledger_key:ledgerKey||'',reason:reason,delete_reason:reason,delete_memo:reason}));
+    callFundDelete(payload).then(function(data){
+      if(data&&data.result==='success'){
+        applyResponse(data);
+        if(typeof showToast==='function')showToast(data.message||'삭제되었습니다.'); else alert(data.message||'삭제되었습니다.');
+        return;
+      }
+      setBtn(btn,false);
+      alert((data&&data.message)||'삭제 중 오류가 발생했습니다.');
+    }).catch(function(err){
+      setBtn(btn,false);
+      alert('삭제 중 오류가 발생했습니다: '+String(err&&err.message?err.message:err));
+    }).finally(function(){delete locks[id]; idle();});
+  };
+  window.deleteFundLedgerFromEditV52=function(){
+    if(typeof isCurrentAdmin==='function'&&!isCurrentAdmin()){alert('관리자 권한이 필요합니다.');return;}
+    const input=document.getElementById('fundLedgerEditIdV52');
+    const id=txt(input&&input.value);
+    if(!id){alert('공금내역 정보가 없습니다.');return;}
+    if(locks['edit:'+id])return;
+    const reasonRaw=prompt('삭제 사유는 선택사항입니다. 비워두어도 삭제할 수 있습니다.','');
+    if(reasonRaw===null)return;
+    const reason=txt(reasonRaw)||'관리자 삭제(사유 미기재)';
+    if(!confirm('이 공금내역과 연결된 공금신청 행을 실제 시트에서 삭제할까요?'))return;
+    const btn=document.querySelector('.fund-ledger-edit-actions-v52 button.danger');
+    locks['edit:'+id]=true;
+    setBtn(btn,true,'삭제 중...');
+    busy('공금내역 삭제 중입니다...');
+    const payload=adminPayload({type:'fund_ledger_delete',ledger_id:id,id:id,reason:reason,delete_reason:reason,delete_memo:reason});
+    callFundDelete(payload).then(function(data){
+      if(data&&data.result==='success'){
+        try{if(typeof closeFundLedgerEditV52==='function')closeFundLedgerEditV52();}catch(e){}
+        applyResponse(data);
+        if(typeof showToast==='function')showToast(data.message||'삭제되었습니다.'); else alert(data.message||'삭제되었습니다.');
+        return;
+      }
+      setBtn(btn,false);
+      alert((data&&data.message)||'삭제에 실패했습니다.');
+    }).catch(function(err){
+      setBtn(btn,false);
+      alert('삭제 중 오류가 발생했습니다: '+String(err&&err.message?err.message:err));
+    }).finally(function(){delete locks['edit:'+id]; idle();});
+  };
+  window.axeFundDeleteV63Debug=function(){return {version:VERSION,locks:Object.keys(locks),toast:!!document.getElementById('axeFundBusyToastV63'),apiUrl:(typeof API_URL!=='undefined'?API_URL:'')};};
 })();
 </script>
