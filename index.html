@@ -4529,7 +4529,7 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
   <div class="axe-paste-sub">또는 아래 파일첨부 버튼으로 이미지 선택 · 최대 5장</div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('galleryImages')&&document.getElementById('galleryImages').click()">파일첨부</button></div>
-<input class="gallery-file-input axe-paste-native-file" id="galleryImages" type="file" accept="image/*" multiple onchange="previewGalleryFiles();axePasteUploadSyncPreview('galleryImages')">
+<input class="gallery-file-input axe-paste-native-file" id="galleryImages" type="file" accept="image/*" multiple>
             <div class="gallery-preview-list" id="galleryPreviewList"></div>
 
             <div class="form-label">삭제 비밀번호</div>
@@ -7484,11 +7484,14 @@ function previewGalleryFiles(){
     const input=document.getElementById("galleryImages");
     const box=document.getElementById("galleryPreviewList");
     if(!input||!box)return;
-    const files=Array.from(input.files||[]).slice(0,5);
+    window.__axeGalleryPreviewRun=(window.__axeGalleryPreviewRun||0)+1;
+    const runId=window.__axeGalleryPreviewRun;
+    const files=Array.from(input.files||[]).filter(file=>String(file.type||"").indexOf("image/")===0).slice(0,5);
     box.innerHTML="";
     files.forEach(file=>{
         const reader=new FileReader();
         reader.onload=function(e){
+            if(runId!==window.__axeGalleryPreviewRun)return;
             const img=document.createElement("img");
             img.src=e.target.result;
             box.appendChild(img);
@@ -18174,7 +18177,7 @@ function renderFundSubmit(){
   <div class="axe-paste-preview" data-preview-for="fundSubmitFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('fundSubmitFile')&&document.getElementById('fundSubmitFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('fundSubmitFile')">
+<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*">
                 <div class="fund-label">메모</div>
                 <textarea class="fund-textarea fund-textarea-premium" id="fundSubmitMemo" placeholder="예: 이번 주는 회사잔고로 납부했습니다."></textarea>
                 <button class="fund-btn primary fund-submit-main-btn" id="fundSubmitBtn" onclick="submitFundRequest(this)">증빙 제출</button>
@@ -18505,7 +18508,7 @@ function openFundLedgerForm(){
   <div class="axe-paste-preview" data-preview-for="ledgerFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('ledgerFile')&&document.getElementById('ledgerFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="ledgerFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('ledgerFile')"></div></div><div class="fund-label">메모</div><textarea class="fund-textarea" id="ledgerMemo"></textarea><button class="fund-btn primary" style="margin-top:10px" onclick="submitFundLedger()">등록</button></div>`;
+<input class="fund-file axe-paste-native-file" id="ledgerFile" type="file" accept="image/*"></div></div><div class="fund-label">메모</div><textarea class="fund-textarea" id="ledgerMemo"></textarea><button class="fund-btn primary" style="margin-top:10px" onclick="submitFundLedger()">등록</button></div>`;
 }
 function submitFundLedger(){
     const file=document.getElementById("ledgerFile")?.files?.[0];
@@ -18520,7 +18523,7 @@ function renderFundBalance(){
   <div class="axe-paste-preview" data-preview-for="balanceFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('balanceFile')&&document.getElementById('balanceFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="balanceFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('balanceFile')"><div class="fund-label">메모</div><textarea class="fund-textarea" id="balanceMemo"></textarea><button class="fund-btn primary" style="margin-top:10px" onclick="submitFundBalanceCheck()">점검 저장</button><div class="fund-help">회사잔고는 의뢰비 사용으로 수시 변동되므로 잔액검증 대상에서 제외합니다.</div></div><div class="fund-form-card"><div class="fund-form-title">최근 점검</div>${latest?`<div class="my-profile-line"><span>점검일</span><strong>${formatDate(latest.checked_at)}</strong></div><div class="my-profile-line"><span>사이트 잔액</span><strong>${fundMoney(latest.site_balance)}</strong></div><div class="my-profile-line"><span>인게임 잔액</span><strong>${fundMoney(latest.ingame_balance)}</strong></div><div class="my-profile-line"><span>차액</span><strong class="${Number(latest.difference||0)?'minus':'plus'}">${fundSignedMoney(latest.difference)}</strong></div><div class="my-profile-line"><span>증빙</span><strong>${fundEvidenceLink(latest.evidence_url)}</strong></div>`:`<div class="fund-empty">점검 기록이 없습니다.</div>`}</div></div>`;
+<input class="fund-file axe-paste-native-file" id="balanceFile" type="file" accept="image/*"><div class="fund-label">메모</div><textarea class="fund-textarea" id="balanceMemo"></textarea><button class="fund-btn primary" style="margin-top:10px" onclick="submitFundBalanceCheck()">점검 저장</button><div class="fund-help">회사잔고는 의뢰비 사용으로 수시 변동되므로 잔액검증 대상에서 제외합니다.</div></div><div class="fund-form-card"><div class="fund-form-title">최근 점검</div>${latest?`<div class="my-profile-line"><span>점검일</span><strong>${formatDate(latest.checked_at)}</strong></div><div class="my-profile-line"><span>사이트 잔액</span><strong>${fundMoney(latest.site_balance)}</strong></div><div class="my-profile-line"><span>인게임 잔액</span><strong>${fundMoney(latest.ingame_balance)}</strong></div><div class="my-profile-line"><span>차액</span><strong class="${Number(latest.difference||0)?'minus':'plus'}">${fundSignedMoney(latest.difference)}</strong></div><div class="my-profile-line"><span>증빙</span><strong>${fundEvidenceLink(latest.evidence_url)}</strong></div>`:`<div class="fund-empty">점검 기록이 없습니다.</div>`}</div></div>`;
 }
 function submitFundBalanceCheck(){
     const file=document.getElementById("balanceFile")?.files?.[0];
@@ -19112,7 +19115,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
   <div class="axe-paste-preview" data-preview-for="ledgerFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('ledgerFile')&&document.getElementById('ledgerFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="ledgerFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('ledgerFile')"></div>
+<input class="fund-file axe-paste-native-file" id="ledgerFile" type="file" accept="image/*"></div>
             </div>
             <div class="fund-label">메모</div>
             <textarea class="fund-textarea" id="ledgerMemo" placeholder="수입·지출 사유를 남겨주세요."></textarea>
@@ -19368,7 +19371,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
   <div class="axe-paste-preview" data-preview-for="fundSubmitFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('fundSubmitFile')&&document.getElementById('fundSubmitFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('fundSubmitFile')"></div>
+<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*"></div>
                 <div id="fundSplitBox" class="fund-split-box">
                     <div class="fund-split-grid">
                         <div><div class="fund-label">공용계좌 입금액</div><input class="fund-input" id="fundSubmitPublicAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
@@ -19858,7 +19861,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
   <div class="axe-paste-preview" data-preview-for="fundSubmitFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('fundSubmitFile')&&document.getElementById('fundSubmitFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('fundSubmitFile')"></div>
+<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*"></div>
                 <div id="fundSplitBox" class="fund-split-box">
                     <div class="fund-split-grid">
                         <div><div class="fund-label">공용계좌 입금액</div><input class="fund-input" id="fundSubmitPublicAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
@@ -27568,7 +27571,7 @@ window.axeFundFeeV48Debug=function(month){
   <div class="axe-paste-preview" data-preview-for="fundSubmitFile"></div>
 </div>
 <div class="axe-paste-actions"><button type="button" class="fund-btn" onclick="document.getElementById('fundSubmitFile')&&document.getElementById('fundSubmitFile').click()">파일첨부</button></div>
-<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*" onchange="axePasteUploadSyncPreview('fundSubmitFile')"></div>
+<input class="fund-file axe-paste-native-file" id="fundSubmitFile" type="file" accept="image/*"></div>
         <div id="fundSplitBox" class="fund-split-box">
           <div class="fund-split-grid">
             <div><div class="fund-label">공용계좌 입금액</div><input class="fund-input" id="fundSubmitPublicAmount" type="number" value="${fee}" oninput="updateFundPaymentModeUI()"></div>
@@ -28617,9 +28620,9 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 </style>
 <script id="axe-global-paste-upload-v3-script">
 (function(){
-  if(window.__AXE_GLOBAL_PASTE_UPLOAD_V3__)return;
-  window.__AXE_GLOBAL_PASTE_UPLOAD_V3__=true;
-  var VERSION='AXE_GLOBAL_PASTE_UPLOAD_V3';
+  if(window.__AXE_GLOBAL_PASTE_UPLOAD_V4__)return;
+  window.__AXE_GLOBAL_PASTE_UPLOAD_V4__=true;
+  var VERSION='AXE_GLOBAL_PASTE_UPLOAD_V4_DEDUP';
   var currentZone=null;
   function q(sel,root){return (root||document).querySelector(sel);} 
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));}
@@ -28640,7 +28643,6 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     var merged=existing.concat(list).slice(0,max);
     try{ input.files=dtWithFiles(merged).files; }catch(err){ alert('이 브라우저에서는 붙여넣기 파일 설정이 제한됩니다. 파일첨부 버튼을 이용해주세요.'); return false; }
     input.dispatchEvent(new Event('change',{bubbles:true}));
-    axePasteUploadSyncPreview(id);
     if(existing.length+list.length>max) alert('사진은 최대 '+max+'장까지 첨부됩니다. 앞의 '+max+'장만 사용됩니다.');
     return true;
   }
@@ -28686,14 +28688,17 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     zone.addEventListener('focus',function(){activateZone(zone);});
     zone.addEventListener('blur',function(){setTimeout(function(){if(currentZone===zone){zone.classList.remove('focused');currentZone=null;}},80);});
     zone.addEventListener('paste',function(e){
-      var id=zone.getAttribute('data-input-id'); var files=filesFromClipboard(e); if(files.length){e.preventDefault();setInputFiles(id,files,true);}
+      if(e.__axePasteUploadHandled)return;
+      var id=zone.getAttribute('data-input-id'); var files=filesFromClipboard(e); if(files.length){e.__axePasteUploadHandled=true;e.preventDefault();e.stopPropagation();setInputFiles(id,files,true);}
     });
   }
   function bindAll(){qa('.axe-paste-upload').forEach(bindZone);['fundSubmitFile','ledgerFile','balanceFile','galleryImages'].forEach(function(id){var input=inputById(id); if(input&&!input.__axePasteInputBound){input.__axePasteInputBound=true;input.addEventListener('change',function(){axePasteUploadSyncPreview(id);});}});}
   document.addEventListener('paste',function(e){
+    if(e.__axePasteUploadHandled)return;
     var target=e.target; var zone=target&&target.closest?target.closest('.axe-paste-upload'):null; if(!zone)zone=currentZone; if(!zone)return;
     var files=filesFromClipboard(e); if(!files.length)return;
-    e.preventDefault(); setInputFiles(zone.getAttribute('data-input-id'),files,true);
+    e.__axePasteUploadHandled=true;
+    e.preventDefault(); e.stopPropagation(); setInputFiles(zone.getAttribute('data-input-id'),files,true);
   },true);
   document.addEventListener('click',function(e){ if(!e.target.closest||!e.target.closest('.axe-paste-upload')){ if(currentZone){currentZone.classList.remove('focused');currentZone=null;} } },true);
   if(window.MutationObserver){new MutationObserver(function(){bindAll();}).observe(document.documentElement,{childList:true,subtree:true});}
