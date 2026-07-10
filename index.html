@@ -994,6 +994,15 @@ h1{margin:0;font-size:42px;font-weight:950;letter-spacing:.5px}
 .gallery-file-input{width:100%;border:1px dashed rgba(255,181,46,.35);background:#151515;color:#ddd;border-radius:12px;padding:12px;cursor:pointer}
 .gallery-preview-list{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
 .gallery-preview-list img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#000}
+.gallery-preview-card{position:relative;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.28);border-radius:12px;padding:7px;min-width:0}
+.gallery-preview-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:#000;cursor:zoom-in;display:block}
+.gallery-preview-meta{margin-top:6px;min-width:0}
+.gallery-preview-name{font-size:11px;font-weight:950;color:#eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gallery-preview-size{margin-top:2px;font-size:10px;color:#888}
+.gallery-preview-tools{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
+.gallery-preview-btn{height:26px;padding:0 5px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#aaa;font-size:10.5px;font-weight:900;cursor:pointer;white-space:nowrap}
+.gallery-preview-btn:hover{color:#ffb52e;border-color:rgba(255,181,46,.45)}
+.gallery-preview-btn.danger:hover{color:#ff6b6b;border-color:rgba(255,107,107,.55)}
 @media(max-width:920px){.gallery-grid{grid-template-columns:repeat(2,1fr)}.gallery-detail-images{grid-template-columns:1fr}}
 @media(max-width:768px){.gallery-grid{grid-template-columns:1fr}.gallery-preview-list{grid-template-columns:repeat(3,1fr)}.main-menu::after{display:none!important;content:none!important}}
 
@@ -7480,6 +7489,22 @@ function clearGalleryForm(){
     setGallerySubmitState(false,"");
 }
 
+function axeRemoveGalleryImage(index){
+    const input=document.getElementById("galleryImages");
+    if(!input)return;
+    const files=Array.from(input.files||[]).filter(file=>String(file.type||"").indexOf("image/")===0).slice(0,5);
+    const next=files.filter((file,i)=>i!==Number(index));
+    try{
+        const dt=new DataTransfer();
+        next.forEach(file=>dt.items.add(file));
+        input.files=dt.files;
+    }catch(err){
+        input.value="";
+        alert("이 브라우저에서는 일부 파일만 제거할 수 없어 첨부 목록을 초기화했습니다. 다시 첨부해주세요.");
+    }
+    previewGalleryFiles();
+}
+
 function previewGalleryFiles(){
     const input=document.getElementById("galleryImages");
     const box=document.getElementById("galleryPreviewList");
@@ -7488,13 +7513,48 @@ function previewGalleryFiles(){
     const runId=window.__axeGalleryPreviewRun;
     const files=Array.from(input.files||[]).filter(file=>String(file.type||"").indexOf("image/")===0).slice(0,5);
     box.innerHTML="";
-    files.forEach(file=>{
+    files.forEach((file,index)=>{
         const reader=new FileReader();
         reader.onload=function(e){
             if(runId!==window.__axeGalleryPreviewRun)return;
+            const card=document.createElement("div");
+            card.className="gallery-preview-card";
+
             const img=document.createElement("img");
             img.src=e.target.result;
-            box.appendChild(img);
+            img.onclick=function(){try{openImageModal(e.target.result);}catch(err){window.open(e.target.result,"_blank");}};
+
+            const meta=document.createElement("div");
+            meta.className="gallery-preview-meta";
+            const name=document.createElement("div");
+            name.className="gallery-preview-name";
+            name.textContent=file.name||("붙여넣기 이미지 "+(index+1));
+            const size=document.createElement("div");
+            size.className="gallery-preview-size";
+            const bytes=Number(file.size||0);
+            size.textContent=bytes<1024?bytes+"B":bytes<1024*1024?Math.round(bytes/1024)+"KB":(bytes/1024/1024).toFixed(1)+"MB";
+            meta.appendChild(name);
+            meta.appendChild(size);
+
+            const tools=document.createElement("div");
+            tools.className="gallery-preview-tools";
+            const openBtn=document.createElement("button");
+            openBtn.type="button";
+            openBtn.className="gallery-preview-btn";
+            openBtn.textContent="크게 보기";
+            openBtn.onclick=function(){try{openImageModal(e.target.result);}catch(err){window.open(e.target.result,"_blank");}};
+            const removeBtn=document.createElement("button");
+            removeBtn.type="button";
+            removeBtn.className="gallery-preview-btn danger";
+            removeBtn.textContent="삭제";
+            removeBtn.onclick=function(){axeRemoveGalleryImage(index);};
+            tools.appendChild(openBtn);
+            tools.appendChild(removeBtn);
+
+            card.appendChild(img);
+            card.appendChild(meta);
+            card.appendChild(tools);
+            box.appendChild(card);
         };
         reader.readAsDataURL(file);
     });
@@ -28599,7 +28659,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 </script>
 
 <style id="axe-global-paste-upload-v3-style">
-/* AXE NET V3: 사진 첨부 전역 Ctrl+V 붙여넣기 UI */
+/* AXE NET V5: 사진 첨부 전역 Ctrl+V 붙여넣기 + 첨부 삭제 UI */
 .axe-paste-upload{width:100%;min-height:116px;border:1.5px dashed rgba(255,181,46,.38);background:linear-gradient(145deg,rgba(255,181,46,.045),rgba(255,255,255,.018)),rgba(10,10,10,.42);border-radius:14px;padding:16px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#ddd;cursor:text;outline:none;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease}
 .axe-paste-upload:hover{border-color:rgba(255,181,46,.65);background:rgba(255,181,46,.055)}
 .axe-paste-upload:focus,.axe-paste-upload.focused{border-color:#ffb52e;box-shadow:0 0 0 3px rgba(255,181,46,.11);background:rgba(255,181,46,.07)}
@@ -28622,7 +28682,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 (function(){
   if(window.__AXE_GLOBAL_PASTE_UPLOAD_V4__)return;
   window.__AXE_GLOBAL_PASTE_UPLOAD_V4__=true;
-  var VERSION='AXE_GLOBAL_PASTE_UPLOAD_V4_DEDUP';
+  var VERSION='AXE_GLOBAL_PASTE_UPLOAD_V5_DELETE';
   var currentZone=null;
   function q(sel,root){return (root||document).querySelector(sel);} 
   function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));}
@@ -28707,3 +28767,203 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
   window.axePasteUploadV3Debug=function(){return {version:VERSION,zones:qa('.axe-paste-upload').map(function(z){return z.getAttribute('data-input-id');}),apiUrl:(typeof API_URL!=='undefined'?API_URL:'')};};
 })();
 </script>
+
+<style id="axe-gallery-delete-v6-style">
+/* AXE NET V6: 갤러리 첨부 이미지 삭제 버튼 강제 표시 */
+.gallery-preview-list{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin-top:12px!important;
+}
+.gallery-preview-card{
+  position:relative!important;
+  display:block!important;
+  min-width:0!important;
+  padding:7px!important;
+  border-radius:13px!important;
+  border:1px solid rgba(255,255,255,.1)!important;
+  background:rgba(0,0,0,.28)!important;
+  overflow:hidden!important;
+}
+.gallery-preview-card img{
+  width:100%!important;
+  aspect-ratio:1/1!important;
+  object-fit:cover!important;
+  border-radius:10px!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:#000!important;
+  display:block!important;
+}
+.gallery-preview-remove-btn{
+  position:absolute!important;
+  top:9px!important;
+  right:9px!important;
+  z-index:5!important;
+  height:27px!important;
+  min-width:44px!important;
+  padding:0 9px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(255,80,80,.75)!important;
+  background:rgba(20,0,0,.82)!important;
+  color:#ff8a8a!important;
+  font-size:11px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  cursor:pointer!important;
+  box-shadow:0 6px 16px rgba(0,0,0,.45)!important;
+}
+.gallery-preview-remove-btn:hover{
+  color:#fff!important;
+  background:rgba(255,70,70,.9)!important;
+  border-color:rgba(255,120,120,.95)!important;
+}
+.gallery-preview-open-btn{
+  width:100%!important;
+  height:28px!important;
+  margin-top:6px!important;
+  padding:0 8px!important;
+  border-radius:9px!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  background:rgba(255,255,255,.045)!important;
+  color:#aaa!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+}
+.gallery-preview-open-btn:hover{
+  color:#ffb52e!important;
+  border-color:rgba(255,181,46,.45)!important;
+}
+.gallery-preview-info{
+  margin-top:6px!important;
+  min-width:0!important;
+}
+.gallery-preview-info-name{
+  font-size:11px!important;
+  font-weight:950!important;
+  color:#eee!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.gallery-preview-info-size{
+  margin-top:2px!important;
+  font-size:10px!important;
+  color:#888!important;
+}
+@media(max-width:920px){.gallery-preview-list{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:520px){.gallery-preview-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
+<script id="axe-gallery-delete-v6-script">
+(function(){
+  if(window.__AXE_GALLERY_DELETE_V6__)return;
+  window.__AXE_GALLERY_DELETE_V6__=true;
+
+  function fmtSize(bytes){
+    bytes=Number(bytes||0);
+    if(bytes<1024)return bytes+'B';
+    if(bytes<1024*1024)return Math.round(bytes/1024)+'KB';
+    return (bytes/1024/1024).toFixed(1)+'MB';
+  }
+  function getGalleryFiles(){
+    var input=document.getElementById('galleryImages');
+    if(!input)return [];
+    return Array.prototype.slice.call(input.files||[]).filter(function(file){
+      return String(file&&file.type||'').indexOf('image/')===0;
+    }).slice(0,5);
+  }
+  function setGalleryFiles(files){
+    var input=document.getElementById('galleryImages');
+    if(!input)return;
+    try{
+      var dt=new DataTransfer();
+      Array.prototype.slice.call(files||[]).slice(0,5).forEach(function(file){dt.items.add(file);});
+      input.files=dt.files;
+    }catch(err){
+      try{input.value='';}catch(e){}
+      alert('이 브라우저에서는 개별 삭제가 제한되어 첨부 목록을 초기화했습니다. 다시 첨부해주세요.');
+    }
+    try{input.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
+  }
+
+  window.axeRemoveGalleryImage=function(index){
+    var files=getGalleryFiles().filter(function(file,i){return i!==Number(index);});
+    setGalleryFiles(files);
+    window.previewGalleryFiles();
+  };
+
+  window.previewGalleryFiles=function(){
+    var input=document.getElementById('galleryImages');
+    var box=document.getElementById('galleryPreviewList');
+    if(!input||!box)return;
+    window.__axeGalleryPreviewRun=(window.__axeGalleryPreviewRun||0)+1;
+    var runId=window.__axeGalleryPreviewRun;
+    var files=getGalleryFiles();
+    box.innerHTML='';
+    if((input.files||[]).length>5)alert('사진은 최대 5장까지 업로드됩니다. 앞의 5장만 사용됩니다.');
+
+    files.forEach(function(file,index){
+      var card=document.createElement('div');
+      card.className='gallery-preview-card';
+
+      var img=document.createElement('img');
+      img.alt='첨부 이미지 '+(index+1);
+
+      var del=document.createElement('button');
+      del.type='button';
+      del.className='gallery-preview-remove-btn';
+      del.textContent='삭제';
+      del.onclick=function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        window.axeRemoveGalleryImage(index);
+      };
+
+      var open=document.createElement('button');
+      open.type='button';
+      open.className='gallery-preview-open-btn';
+      open.textContent='크게 보기';
+
+      var info=document.createElement('div');
+      info.className='gallery-preview-info';
+      var name=document.createElement('div');
+      name.className='gallery-preview-info-name';
+      name.textContent=file.name||('붙여넣기 이미지 '+(index+1));
+      var size=document.createElement('div');
+      size.className='gallery-preview-info-size';
+      size.textContent=fmtSize(file.size);
+      info.appendChild(name);
+      info.appendChild(size);
+
+      card.appendChild(img);
+      card.appendChild(del);
+      card.appendChild(open);
+      card.appendChild(info);
+      box.appendChild(card);
+
+      var reader=new FileReader();
+      reader.onload=function(ev){
+        if(runId!==window.__axeGalleryPreviewRun)return;
+        var dataUrl=ev.target.result;
+        img.src=dataUrl;
+        img.onclick=function(){try{openImageModal(dataUrl);}catch(e){window.open(dataUrl,'_blank');}};
+        open.onclick=function(e){e.preventDefault();e.stopPropagation();try{openImageModal(dataUrl);}catch(err){window.open(dataUrl,'_blank');}};
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  function bind(){
+    var input=document.getElementById('galleryImages');
+    if(input&&!input.__axeGalleryDeleteV6Bound){
+      input.__axeGalleryDeleteV6Bound=true;
+      input.addEventListener('change',function(){setTimeout(function(){window.previewGalleryFiles();},0);});
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind); else bind();
+  [50,200,700,1500].forEach(function(ms){setTimeout(bind,ms);});
+  window.axeGalleryDeleteV6Debug=function(){return {version:'AXE_GALLERY_DELETE_V6',count:getGalleryFiles().length};};
+})();
+</script>
+
