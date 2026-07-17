@@ -4948,6 +4948,40 @@ function normalizeMainPage(page){
     return mainPageKeys.includes(page)?page:"home";
 }
 
+/* AXE NET V14.3.1: 공금 화면 지연 로드 안전장치
+   - 공금 UI 함수는 하단 스크립트에서 정의되므로, #fund 상태의 브라우저 새로고침에서
+     showFund가 준비되기 전에 호출되는 문제를 막습니다.
+   - AXE BOT / Apps Script API에는 영향을 주지 않습니다. */
+const AXE_FUND_RENDER_READY_MAX_RETRIES=160;
+let axeFundRenderReadyRetryCount=0;
+let axeFundRenderReadyTimer=null;
+function renderFundWhenReady(){
+    if(typeof window.showFund==="function"){
+        if(axeFundRenderReadyTimer){clearTimeout(axeFundRenderReadyTimer);axeFundRenderReadyTimer=null;}
+        axeFundRenderReadyRetryCount=0;
+        window.showFund(currentFundTab||"status",false);
+        return;
+    }
+
+    axeFundRenderReadyRetryCount+=1;
+    const contentEl=document.getElementById("content");
+    if(contentEl&&axeFundRenderReadyRetryCount===1){
+        contentEl.innerHTML=`<div class="ready">공금 화면을 준비하는 중입니다.</div>`;
+    }
+
+    if(axeFundRenderReadyRetryCount>=AXE_FUND_RENDER_READY_MAX_RETRIES){
+        if(axeFundRenderReadyTimer){clearTimeout(axeFundRenderReadyTimer);axeFundRenderReadyTimer=null;}
+        console.error("AXE NET: showFund renderer load timeout");
+        if(contentEl){
+            contentEl.innerHTML=`<div class="ready">공금 화면을 불러오지 못했습니다. 브라우저를 한 번 새로고침해주세요.</div>`;
+        }
+        return;
+    }
+
+    if(axeFundRenderReadyTimer)clearTimeout(axeFundRenderReadyTimer);
+    axeFundRenderReadyTimer=setTimeout(renderFundWhenReady,50);
+}
+
 function renderMainPage(page){
     const target=normalizeMainPage(page);
     currentHistoryPage=target;
@@ -4966,7 +5000,7 @@ function renderMainPage(page){
         setTimeout(function(){renderMainPage("food");},80);
         return;
     }
-    if(target==="fund"){showFund();return;}
+    if(target==="fund"){renderFundWhenReady();return;}
     if(target==="asset"){showCompanyAssets();return;}
     if(target==="my"){showMyPage();return;}
     if(target==="board"){showBoard();return;}
@@ -5359,9 +5393,11 @@ function requestPartialRefresh(scope,options){
     axePartialRefreshStartedAtMap[requestKey]=Date.now();
     const payload=getPartialRefreshPayload(scope);
     const controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    // AXE NET V14.3.1: 공금은 여러 시트를 조합하므로 Apps Script 응답 여유를 더 줍니다.
+    const requestTimeoutMs=requestKey==="fund"?45000:20000;
     const timeoutId = controller ? setTimeout(function(){
         try{ controller.abort(); }catch(e){}
-    }, 12000) : null;
+    }, requestTimeoutMs) : null;
 
     const requestPromise=fetch(API_URL,{
         method:"POST",
@@ -5414,7 +5450,7 @@ function rerenderCurrentPageScope(scope){
     if(key==="quest"){showQuest();return;}
     if(key==="process"){showProcess();return;}
     if(key==="skillrank"){showSkillRanks();return;}
-    if(key==="fund"){showFund(currentFundTab||"status",false);return;}
+    if(key==="fund"){renderFundWhenReady();return;}
     if(key==="board"){if(selectedBoardId){openBoardDetail(selectedBoardId,false,false);}else{showBoard();}return;}
     if(key==="tube"){if(selectedTubeId){openTubeDetail(selectedTubeId,false,false);}else{showTube();}return;}
     if(key==="gallery"){if(selectedGalleryId){openGalleryDetail(selectedGalleryId,false,false);}else{showGallery();}return;}
@@ -5479,11 +5515,12 @@ function refreshCurrentPageOnly(scope){
     pageRefreshNoticeTypeMap[key]="";
     setPageRefreshButtonState(key,true);
 
+    const hardUnlockMs=key==="fund"?55000:30000;
     const hardUnlockTimer=setTimeout(function(){
         if(pageRefreshBusyMap[key]){
             finishPageRefresh(key,"응답 지연 · 다시 시도 가능","err");
         }
-    },30000);
+    },hardUnlockMs);
 
     // AXE NET V14: 정보형 데이터는 관리자가 시트 입력 후 검수할 때만 수동 갱신합니다.
     // 제작/퀘스트/가공·재련/개조서/스킬랭크는 부분갱신 범위가 일정하지 않으므로,
@@ -5495,6 +5532,12 @@ function refreshCurrentPageOnly(scope){
     runRefresh
         .then(function(){finishPageRefresh(key,infoFullRefreshScopes[key]?"시트 자료 최신 반영됨":"최신 자료 반영됨","ok");})
         .catch(function(err){
+            const aborted=!!(err&&(err.name==="AbortError"||/aborted without reason|signal is aborted/i.test(String(err.message||err))));
+            if(aborted){
+                console.warn("page refresh timed out",key,err);
+                finishPageRefresh(key,"응답 시간이 오래 걸렸습니다 · 다시 시도해주세요","err");
+                return;
+            }
             console.error("page refresh failed",err);
             if(key!=="modbook"&&PAGE_REFRESH_USE_FULL_FALLBACK){
                 refreshData()
