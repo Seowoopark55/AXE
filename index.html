@@ -29030,6 +29030,8 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 .fund-test-badge{color:#a9d3ff;border:1px solid rgba(91,169,255,.45);background:rgba(72,145,255,.12)}
 .fund-exempt-badge{color:#c9c9c9;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
 .fund-issue-badge{color:#ffb7b7;border:1px solid rgba(255,100,100,.36);background:rgba(255,80,80,.1)}
+.fund-recommend-badge{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;color:#9de0bb;border:1px solid rgba(71,205,133,.34);background:rgba(71,205,133,.08);font-size:11px;font-weight:950}
+.fund-fee-rule-current{border-color:rgba(255,181,46,.34)!important;background:rgba(255,181,46,.055)!important}
 .fund-v144-grid{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(360px,1.2fr);gap:14px}
 .fund-v144-card{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);border-radius:16px;padding:15px}
 .fund-v144-title{font-size:16px;font-weight:950;color:#ffb52e;margin-bottom:10px}
@@ -29043,7 +29045,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
 </style>
 <script id="axe-fund-v144-final">
 (function(){
-    const AXE_FUND_V144="fund-v14.4-integrity-exemption";
+    const AXE_FUND_V144="fund-v14.4.1-fee-history-bidirectional-integrity";
 
     function normText(v){return String(v==null?"":v).trim();}
     function normBool(v){return ["y","yes","true","1","테스트"].includes(normText(v).toLowerCase());}
@@ -29204,6 +29206,37 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         fundAdminApi({type:"fund_exemption_delete",exemption_id:id}).then(function(data){alert(data.message||"처리되었습니다.");});
     };
 
+    function getFundFeeRuleRowsForAdmin(){
+        const rows=Array.isArray(fundSummary&&fundSummary.weekly_fee_history)?fundSummary.weekly_fee_history.slice():[];
+        return rows.filter(function(r){return r&&r.month&&r.week&&Number(r.weekly_fee||0)>0;}).sort(function(a,b){return periodOrder(b.month,b.week)-periodOrder(a.month,a.week);});
+    }
+    window.renderFundFeeRules=function(){
+        const rows=getFundFeeRuleRowsForAdmin();
+        const currentMonth=getFundCurrentMonth();
+        return `<div class="fund-v144-grid"><div class="fund-v144-card"><div class="fund-v144-title">공금 요율 이력 등록</div><div class="fund-v144-form"><div><div class="fund-label">적용 시작 월</div><input class="fund-input" type="month" id="fundFeeStartMonth" value="${escapeAttr(currentMonth)}"></div><div><div class="fund-label">적용 시작 주차</div><select class="fund-select" id="fundFeeStartWeek">${weekOptions(1)}</select></div><div><div class="fund-label">주간 공금</div><input class="fund-input" id="fundFeeAmount" type="number" min="1" step="1000" value="${Number(getFundWeeklyFee(currentMonth,1)||20000)}"></div><div><div class="fund-label">변경 사유</div><input class="fund-input" id="fundFeeNote" placeholder="예: 7월 2주차부터 2만원"></div><div class="wide"><button class="fund-btn primary" onclick="saveFundFeeRule()">요율 저장</button></div></div><div class="fund-v144-note">등록한 금액은 선택한 시작 주차부터 다음 요율이 시작되기 전까지 적용됩니다. 과거 신청·내역 금액을 자동 변경하지는 않습니다.</div></div><div class="fund-v144-card"><div class="fund-v144-title">등록된 요율 이력 ${rows.length}건</div><div class="fund-v144-list">${rows.map(function(r){const removable=r.source==="공금요율"&&r.id;return `<div class="fund-v144-row ${periodOrder(r.month,r.week)<=periodOrder(currentMonth,getFundDefaultWeekForMonth(currentMonth))?'fund-fee-rule-current':''}"><div class="fund-v144-row-head"><div><div class="fund-v144-row-title">${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차부터 · ${fundMoney(r.weekly_fee)}</div><div class="fund-v144-row-meta">${safe(r.note||"사유 없음")} · ${safe(r.source||"공금요율")}</div></div>${removable?`<button class="fund-btn danger" onclick="deleteFundFeeRule('${escapeText(r.id)}','${escapeText(fundMonthLabel(r.month)+' '+r.week+'주차')}')">삭제</button>`:'<span class="fund-issue-badge">구형 설정</span>'}</div></div>`;}).join("")||'<div class="fund-empty">등록된 요율 이력이 없습니다.</div>'}</div></div></div>`;
+    };
+    window.saveFundFeeRule=function(){
+        const payload={type:"fund_fee_rule_save",start_month:document.getElementById("fundFeeStartMonth")?.value||"",start_week:document.getElementById("fundFeeStartWeek")?.value||"",weekly_fee:document.getElementById("fundFeeAmount")?.value||"",note:document.getElementById("fundFeeNote")?.value||""};
+        if(!payload.start_month||!payload.start_week||!Number(payload.weekly_fee)){alert("시작 월·주차와 주간 공금 금액을 입력해주세요.");return;}
+        fundAdminApi(payload).then(function(data){
+            alert(data.message||"처리되었습니다.");
+            if(data.result!=="success")return;
+            try{applyPartialData(data,"fund");}catch(e){}
+            if(data.fundSummary)fundSummary=data.fundSummary;
+            currentFundTab="fees";renderFundTab();
+        });
+    };
+    window.deleteFundFeeRule=function(id,label){
+        if(!confirm(label+"부터 적용되는 요율 이력을 삭제할까요?\n이후 기간은 직전 요율 또는 기본 요율을 사용합니다."))return;
+        fundAdminApi({type:"fund_fee_rule_delete",rule_id:id}).then(function(data){
+            alert(data.message||"처리되었습니다.");
+            if(data.result!=="success")return;
+            try{applyPartialData(data,"fund");}catch(e){}
+            if(data.fundSummary)fundSummary=data.fundSummary;
+            currentFundTab="fees";renderFundTab();
+        });
+    };
+
     function integrityDate(v){try{return formatDate(v);}catch(e){return safe(v||"");}}
     window.loadFundIntegrityAudit=function(){
         const box=document.getElementById("fundIntegrityContent");
@@ -29222,17 +29255,38 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         });
     };
     window.repairFundIntegrityRequest=function(id,label){
-        if(!confirm("선택한 승인 신청 금액을 기준으로 연결 공금내역을 다시 만듭니다.\n\n"+label+"\n요청 ID: "+id+"\n\n잔액이 바뀔 수 있으므로 신청 금액과 계좌 구분을 확인했습니다. 계속할까요?"))return;
+        if(!confirm("신청에 적힌 금액을 기준으로 연결 공금내역을 다시 맞춥니다.\n\n"+label+"\n요청 ID: "+id+"\n\n공금 잔액이 바뀔 수 있습니다. 신청 금액이 실제 납부액임을 확인했나요?"))return;
         fundAdminApi({type:"fund_integrity_repair_request",request_id:id}).then(function(data){
+            alert(data.message||"처리되었습니다.");fundIntegrity=data.fundIntegrity||fundIntegrity;if(currentFundTab==="integrity")renderFundTab();
+        });
+    };
+    window.alignFundIntegrityRequestToLedger=function(id,label,actualPublic,actualCompany){
+        const total=Number(actualPublic||0)+Number(actualCompany||0);
+        if(!total){alert("연결된 실제 공금내역이 없어 신청을 맞출 수 없습니다.");return;}
+        if(!confirm("실제 연결 공금내역을 기준으로 신청 금액을 맞춥니다.\n\n"+label+"\n변경 후 신청 금액: "+fundMoney(total)+"\n공금 잔액 변화: 없음\n\n실제 납부내역이 맞는지 확인했나요?"))return;
+        fundAdminApi({type:"fund_integrity_align_request_to_ledger",request_id:id,expected_actual_public:Number(actualPublic||0),expected_actual_company:Number(actualCompany||0)}).then(function(data){
             alert(data.message||"처리되었습니다.");fundIntegrity=data.fundIntegrity||fundIntegrity;if(currentFundTab==="integrity")renderFundTab();
         });
     };
     window.renderFundIntegrity=function(){
         const a=fundIntegrity;
         if(!a)return `<div id="fundIntegrityContent" class="fund-v144-card"><div class="fund-v144-title">공금 정합성 점검</div><div class="fund-v144-note">공금신청과 공금내역을 요청 ID·멤버·월·주차·계좌별 금액으로 대조합니다. 점검만으로 데이터가 변경되지는 않습니다.</div><button class="fund-btn primary" style="margin-top:12px" onclick="loadFundIntegrityAudit()">점검 실행</button></div>`;
-        const dup=a.duplicate_periods||[],issues=a.request_issues||[],orphans=a.orphan_ledgers||[],unlinked=a.unlinked_payment_ledgers||[];
+        const dup=a.duplicate_periods||[],issues=a.request_issues||[],orphans=a.orphan_ledgers||[];
         const issueCount=Number(a.issue_count||0);
-        return `<div id="fundIntegrityContent"><div class="fund-integrity-summary"><div class="fund-integrity-stat"><strong>${fundMoney(a.calculated_balance||0)}</strong><span>공용계좌 계산 잔액</span></div><div class="fund-integrity-stat"><strong>${Number(a.duplicate_period_count||0)}</strong><span>중복 활성 기간</span></div><div class="fund-integrity-stat"><strong>${Number(a.request_issue_count||0)}</strong><span>승인-내역 불일치</span></div><div class="fund-integrity-stat"><strong>${Number(a.orphan_ledger_count||0)}</strong><span>원본 없는 연결내역</span></div></div><div class="fund-v144-note">점검 시각 ${integrityDate(a.generated_at)} · 연결 ID가 없는 과거 수동 납부내역 ${Number(a.unlinked_payment_ledger_count||0)}건은 자동 오류로 간주하지 않습니다.</div>${issueCount===0?'<div class="fund-integrity-ok" style="margin-top:12px">활성 요청과 연결 공금내역에서 자동 판정 가능한 정합성 오류가 없습니다.</div>':""}<div class="fund-integrity-section"><h4>중복 활성 기간</h4><div class="fund-v144-list">${dup.map(function(group){return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(group.nickname)} · ${safe(fundMonthLabel(group.month))} ${safe(group.week)}주차 <span class="fund-issue-badge">${group.requests.length}건</span></div><div class="fund-v144-row-meta">같은 기간에 검수대기·보류·승인 요청이 둘 이상 존재합니다. 정상 요청을 확인한 뒤 잘못된 요청만 삭제하세요.</div>${(group.requests||[]).map(function(r){const label=group.nickname+" / "+fundMonthLabel(group.month)+" "+group.week+"주차 / "+r.status+" / "+fundMoney(r.amount);return `<div class="fund-integrity-actions"><span class="fund-issue-badge">${safe(r.status)}</span><span class="fund-v144-row-meta">${safe(r.id)} · ${fundMoney(r.amount)} · ${integrityDate(r.created_at)}</span><button class="fund-btn danger" onclick="deleteFundIntegrityRequest('${escapeText(r.id)}','${escapeText(label)}')">이 요청만 제외</button></div>`;}).join("")}</div>`;}).join("")||'<div class="fund-empty">중복 활성 기간이 없습니다.</div>'}</div></div><div class="fund-integrity-section"><h4>승인 신청과 공금내역 불일치</h4><div class="fund-v144-list">${issues.map(function(r){const label=r.nickname+" / "+fundMonthLabel(r.month)+" "+r.week+"주차";return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(label)} <span class="fund-issue-badge">${safe(r.issue)}</span></div><div class="fund-v144-row-meta">공용계좌 예상 ${fundMoney(r.expected_public)} / 실제 ${fundMoney(r.actual_public)}<br>회사잔고 예상 ${fundMoney(r.expected_company)} / 실제 ${fundMoney(r.actual_company)}<br>요청 ID ${safe(r.request_id)}</div><div class="fund-integrity-actions"><button class="fund-btn primary" onclick="repairFundIntegrityRequest('${escapeText(r.request_id)}','${escapeText(label)}')">신청 기준으로 정확 복구</button></div></div>`;}).join("")||'<div class="fund-empty">승인-내역 금액 불일치가 없습니다.</div>'}</div></div><div class="fund-integrity-section"><h4>원본 요청 없는 연결내역</h4><div class="fund-v144-list">${orphans.map(function(r){return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(r.nickname)} · ${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차</div><div class="fund-v144-row-meta">내역 ID ${safe(r.ledger_id)} · 원본 요청 ID ${safe(r.source_request_id)} · ${fundMoney(r.amount)} · ${safe(r.account)}</div></div>`;}).join("")||'<div class="fund-empty">원본 요청 없는 연결내역이 없습니다.</div>'}</div></div><div class="fund-integrity-actions" style="margin-top:14px"><button class="fund-btn" onclick="loadFundIntegrityAudit()">다시 점검</button></div></div>`;
+        const duplicateHtml=dup.map(function(group){
+            return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(group.nickname)} · ${safe(fundMonthLabel(group.month))} ${safe(group.week)}주차 <span class="fund-issue-badge">${group.requests.length}건</span></div><div class="fund-v144-row-meta">같은 기간에 검수대기·보류·승인 요청이 둘 이상 존재합니다. 정상 요청을 확인한 뒤 잘못된 요청만 제외하세요.</div>${(group.requests||[]).map(function(r){const label=group.nickname+" / "+fundMonthLabel(group.month)+" "+group.week+"주차 / "+r.status+" / "+fundMoney(r.amount);return `<div class="fund-integrity-actions"><span class="fund-issue-badge">${safe(r.status)}</span><span class="fund-v144-row-meta">${safe(r.id)} · ${fundMoney(r.amount)} · ${integrityDate(r.created_at)}</span><button class="fund-btn danger" onclick="deleteFundIntegrityRequest('${escapeText(r.id)}','${escapeText(label)}')">이 요청만 제외</button></div>`;}).join("")}</div>`;
+        }).join("")||'<div class="fund-empty">중복 활성 기간이 없습니다.</div>';
+        const issueHtml=issues.map(function(r){
+            const label=r.nickname+" / "+fundMonthLabel(r.month)+" "+r.week+"주차";
+            const expectedTotal=Number(r.expected_total!==undefined?r.expected_total:Number(r.expected_public||0)+Number(r.expected_company||0));
+            const actualTotal=Number(r.actual_total!==undefined?r.actual_total:Number(r.actual_public||0)+Number(r.actual_company||0));
+            const policyFee=Number(r.policy_fee||0);
+            const recommended=r.recommended_direction==="ledger_to_request"?'<span class="fund-recommend-badge">내역 기준 정정 권장</span>':r.recommended_direction==="request_to_ledger"?'<span class="fund-recommend-badge">신청 기준 복구 권장</span>':'';
+            const alignButton=actualTotal>0?`<button class="fund-btn" onclick="alignFundIntegrityRequestToLedger('${escapeText(r.request_id)}','${escapeText(label)}',${Number(r.actual_public||0)},${Number(r.actual_company||0)})">내역 ${fundMoney(actualTotal)}으로 신청 맞추기</button>`:'';
+            return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(label)} <span class="fund-issue-badge">${safe(r.issue)}</span> ${recommended}</div><div class="fund-v144-row-meta">해당 주차 등록 요율 ${policyFee?fundMoney(policyFee):'미등록'}<br>신청 기준 합계 ${fundMoney(expectedTotal)} · 공용 ${fundMoney(r.expected_public)} / 회사 ${fundMoney(r.expected_company)}<br>연결 내역 합계 ${fundMoney(actualTotal)} · 공용 ${fundMoney(r.actual_public)} / 회사 ${fundMoney(r.actual_company)}<br>요청 ID ${safe(r.request_id)}</div><div class="fund-integrity-actions"><button class="fund-btn primary" onclick="repairFundIntegrityRequest('${escapeText(r.request_id)}','${escapeText(label)}')">신청 ${fundMoney(expectedTotal)}으로 내역 맞추기</button>${alignButton}</div></div>`;
+        }).join("")||'<div class="fund-empty">승인-내역 금액 불일치가 없습니다.</div>';
+        const orphanHtml=orphans.map(function(r){return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(r.nickname)} · ${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차</div><div class="fund-v144-row-meta">내역 ID ${safe(r.ledger_id)} · 원본 요청 ID ${safe(r.source_request_id)} · ${fundMoney(r.amount)} · ${safe(r.account)}</div></div>`;}).join("")||'<div class="fund-empty">원본 요청 없는 연결내역이 없습니다.</div>';
+        return `<div id="fundIntegrityContent"><div class="fund-integrity-summary"><div class="fund-integrity-stat"><strong>${fundMoney(a.calculated_balance||0)}</strong><span>공용계좌 계산 잔액</span></div><div class="fund-integrity-stat"><strong>${Number(a.duplicate_period_count||0)}</strong><span>중복 활성 기간</span></div><div class="fund-integrity-stat"><strong>${Number(a.request_issue_count||0)}</strong><span>승인-내역 불일치</span></div><div class="fund-integrity-stat"><strong>${Number(a.orphan_ledger_count||0)}</strong><span>원본 없는 연결내역</span></div></div><div class="fund-v144-note">점검 시각 ${integrityDate(a.generated_at)} · 연결 ID가 없는 과거 수동 납부내역 ${Number(a.unlinked_payment_ledger_count||0)}건은 자동 오류로 간주하지 않습니다. 두 맞춤 버튼 중 실제 사실에 맞는 방향을 선택하세요.</div>${issueCount===0?'<div class="fund-integrity-ok" style="margin-top:12px">활성 요청과 연결 공금내역에서 자동 판정 가능한 정합성 오류가 없습니다.</div>':""}<div class="fund-integrity-section"><h4>중복 활성 기간</h4><div class="fund-v144-list">${duplicateHtml}</div></div><div class="fund-integrity-section"><h4>승인 신청과 공금내역 불일치</h4><div class="fund-v144-list">${issueHtml}</div></div><div class="fund-integrity-section"><h4>원본 요청 없는 연결내역</h4><div class="fund-v144-list">${orphanHtml}</div></div><div class="fund-integrity-actions" style="margin-top:14px"><button class="fund-btn" onclick="loadFundIntegrityAudit()">다시 점검</button></div></div>`;
     };
 
     window.submitFundLedger=function(){
@@ -29262,9 +29316,9 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         prefetchFundAdminMembersIfNeeded();
         const tabs=[
             ["status","월별현황"],["submit","공금납부"],["mine","내 제출"],
-            ...(admin?[["review","검수대기"],["ledger","공금내역"],["balance","잔액점검"],["exemptions","면제관리"],["integrity","정합성점검"],["members","멤버관리"]]:[])
+            ...(admin?[["review","검수대기"],["ledger","공금내역"],["balance","잔액점검"],["fees","요율관리"],["exemptions","면제관리"],["integrity","정합성점검"],["members","멤버관리"]]:[])
         ];
-        if(!admin&&["review","ledger","balance","exemptions","integrity","members"].includes(currentFundTab))currentFundTab="status";
+        if(!admin&&["review","ledger","balance","fees","exemptions","integrity","members"].includes(currentFundTab))currentFundTab="status";
         const content=document.getElementById("content");
         if(!content)return;
         content.innerHTML=`<div class="section-head fund-page-head"><div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">증빙 제출, 검수, 기간 면제, 공금내역과 잔액 정합성을 통합 관리합니다.</div></div>${renderFundManualRefreshArea()}</div><div class="fund-summary-grid fund-summary-grid-premium"><div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div><div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">전체 검수대기·보류</div></div><div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div><div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.active_exemption_count||activeExemptions().length)}</div><div class="fund-summary-label">활성 면제</div></div></div><div class="fund-tabs">${tabs.map(function(t){return `<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`;}).join("")}</div><div id="fundContent"></div>`;
@@ -29279,6 +29333,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         if(currentFundTab==="review"){box.innerHTML=renderFundReview();return;}
         if(currentFundTab==="ledger"){box.innerHTML=renderFundLedger();return;}
         if(currentFundTab==="balance"){box.innerHTML=renderFundBalance();return;}
+        if(currentFundTab==="fees"){box.innerHTML=renderFundFeeRules();return;}
         if(currentFundTab==="exemptions"){box.innerHTML=renderFundExemptions();return;}
         if(currentFundTab==="integrity"){box.innerHTML=renderFundIntegrity();return;}
         if(currentFundTab==="members"){box.innerHTML=renderFundMembers();return;}
@@ -29290,6 +29345,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
             version:AXE_FUND_V144,
             exemptions:(fundExemptions||[]).length,
             activeExemptions:activeExemptions().length,
+            feeRules:getFundFeeRuleRowsForAdmin().length,
             integrity:fundIntegrity,
             pending:(fundRequests||[]).filter(function(r){return !isTestRequest(r)&&["검수대기","보류"].includes(normText(r.status));}).length
         };
