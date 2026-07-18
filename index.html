@@ -29382,3 +29382,304 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     };
 })();
 </script>
+
+
+<style id="axe-fund-ledger-v1443-style">
+#fundLedgerNewEntryBtnV1443{display:none}
+#fundLedgerNewEntryBtnV1443.active{display:inline-flex}
+.fund-ledger-submit-line[data-submit-state="done"] #fundLedgerSubmitBtn{
+  opacity:.78!important;
+  cursor:default!important;
+}
+</style>
+
+<script id="axe-fund-ledger-v1443-script">
+/* AXE NET V14.4.3
+   - 공금내역 등록 버튼 1회 잠금
+   - 동일 입력 재전송 시 같은 operation_key 재사용
+   - 성공 후 새 내역 입력을 눌러야 다음 등록 가능
+   - 삭제 시 정확한 ledger_id + 행 정보 전달
+*/
+(function(){
+  if(window.__AXE_FUND_LEDGER_V1443__)return;
+  window.__AXE_FUND_LEDGER_V1443__=true;
+
+  function text(v){return String(v===undefined||v===null?"":v);}
+  function trim(v){return text(v).trim();}
+  function makeOperationKey(){
+    return "axe_ledger_"+Date.now()+"_"+Math.random().toString(36).slice(2,12);
+  }
+  function getFormCard(){
+    const btn=document.getElementById("fundLedgerSubmitBtn");
+    return btn&&btn.closest?btn.closest(".fund-form-card"):document.getElementById("fundLedgerForm");
+  }
+  function getOperationInput(){
+    let input=document.getElementById("fundLedgerOperationKeyV1443");
+    const card=getFormCard();
+    if(!input&&card){
+      input=document.createElement("input");
+      input.type="hidden";
+      input.id="fundLedgerOperationKeyV1443";
+      input.value=makeOperationKey();
+      card.appendChild(input);
+    }
+    if(input&&!trim(input.value))input.value=makeOperationKey();
+    return input;
+  }
+  function setInputsLocked(locked){
+    ["ledgerDate","ledgerDirection","ledgerAccount","ledgerAmount","ledgerCategory","ledgerRegisteredBy","ledgerMonth","ledgerFile","ledgerMemo"].forEach(function(id){
+      const el=document.getElementById(id);
+      if(el)el.disabled=!!locked;
+    });
+  }
+  function setStatus(message,type){
+    const el=document.getElementById("fundLedgerSubmitStatus");
+    if(!el)return;
+    el.classList.remove("active","done","error");
+    el.textContent=message||"";
+    if(message)el.classList.add("active");
+    if(type)el.classList.add(type);
+  }
+  function setSubmitState(state,message){
+    const card=getFormCard();
+    const line=document.querySelector(".fund-ledger-submit-line");
+    const btn=document.getElementById("fundLedgerSubmitBtn");
+    const newBtn=document.getElementById("fundLedgerNewEntryBtnV1443");
+    if(card)card.dataset.axeLedgerSubmitState=state||"";
+    if(line)line.dataset.submitState=state||"";
+
+    if(state==="submitting"){
+      if(btn){btn.disabled=true;btn.classList.add("processing");btn.textContent="등록 중...";}
+      if(newBtn)newBtn.classList.remove("active");
+      setInputsLocked(true);
+      setStatus(message||"공금내역을 등록 중입니다.","");
+      if(typeof fundSetActionBusy==="function")fundSetActionBusy(true,message||"공금내역을 등록 중입니다.");
+      return;
+    }
+
+    if(state==="done"){
+      if(btn){btn.disabled=true;btn.classList.remove("processing");btn.textContent="등록 완료";}
+      if(newBtn)newBtn.classList.add("active");
+      setInputsLocked(true);
+      setStatus(message||"등록이 완료되었습니다.","done");
+      if(typeof fundSetActionBusy==="function")fundSetActionBusy(false,message||"등록이 완료되었습니다.","done");
+      return;
+    }
+
+    if(btn){btn.disabled=false;btn.classList.remove("processing");btn.textContent="등록";}
+    if(newBtn)newBtn.classList.remove("active");
+    setInputsLocked(false);
+    if(message)setStatus(message,"error"); else setStatus("","");
+    if(typeof fundSetActionBusy==="function"&&message)fundSetActionBusy(false,message,"error");
+  }
+
+  const baseOpenFundLedgerForm=window.openFundLedgerForm;
+  window.openFundLedgerForm=function(){
+    const result=typeof baseOpenFundLedgerForm==="function"
+      ? baseOpenFundLedgerForm.apply(this,arguments)
+      : undefined;
+
+    const card=getFormCard();
+    if(card){
+      card.dataset.axeLedgerSubmitState="";
+      const input=getOperationInput();
+      if(input)input.value=makeOperationKey();
+    }
+
+    const line=document.querySelector(".fund-ledger-submit-line");
+    if(line&&!document.getElementById("fundLedgerNewEntryBtnV1443")){
+      const newBtn=document.createElement("button");
+      newBtn.id="fundLedgerNewEntryBtnV1443";
+      newBtn.type="button";
+      newBtn.className="fund-btn";
+      newBtn.textContent="새 내역 입력";
+      newBtn.onclick=function(){window.openFundLedgerForm();};
+      line.appendChild(newBtn);
+    }
+    setSubmitState("","");
+    return result;
+  };
+
+  window.submitFundLedger=function(btn){
+    btn=btn||document.getElementById("fundLedgerSubmitBtn");
+    const card=getFormCard();
+    const state=card?String(card.dataset.axeLedgerSubmitState||""):"";
+    if(state==="submitting")return Promise.resolve({result:"blocked",message:"이미 등록 처리 중입니다."});
+    if(state==="done"){
+      alert("이 내역은 이미 등록되었습니다. 다른 내역을 입력하려면 '새 내역 입력'을 눌러주세요.");
+      return Promise.resolve({result:"blocked",message:"이미 등록 완료"});
+    }
+    if(!(typeof isCurrentAdmin==="function"&&isCurrentAdmin())){
+      alert("관리자 권한이 필요합니다.");
+      return Promise.resolve({result:"fail"});
+    }
+
+    const date=document.getElementById("ledgerDate")?.value||"";
+    const direction=document.getElementById("ledgerDirection")?.value||"지출";
+    const account=document.getElementById("ledgerAccount")?.value||"공용계좌";
+    const amount=document.getElementById("ledgerAmount")?.value||"";
+    const category=document.getElementById("ledgerCategory")?.value||"기타";
+    const registeredBy=trim(document.getElementById("ledgerRegisteredBy")?.value||"");
+    const month=typeof normalizeFundMonth==="function"
+      ? normalizeFundMonth(document.getElementById("ledgerMonth")?.value||"")
+      : trim(document.getElementById("ledgerMonth")?.value||"");
+    const memo=document.getElementById("ledgerMemo")?.value||"";
+    const file=document.getElementById("ledgerFile")?.files?.[0];
+
+    if(!date){alert("발생일을 선택하세요.");return Promise.resolve({result:"fail"});}
+    if(!amount||Number(amount)===0){alert("금액을 입력하세요.");return Promise.resolve({result:"fail"});}
+    if(!registeredBy){alert("등록자를 입력하세요.");return Promise.resolve({result:"fail"});}
+    if(direction==="조정"&&!confirm("잔액조정은 실제 수입·지출이 아니라 잔액 정정용입니다. 계속 등록할까요?")){
+      return Promise.resolve({result:"cancel"});
+    }
+    if(file&&file.size>3*1024*1024){
+      alert("증빙 이미지는 3MB 이하로 첨부해주세요.");
+      return Promise.resolve({result:"fail"});
+    }
+
+    const operationInput=getOperationInput();
+    const operationKey=operationInput?trim(operationInput.value):makeOperationKey();
+    setSubmitState("submitting","공금내역을 등록 중입니다. 버튼을 다시 누르지 않아도 됩니다.");
+
+    const api=typeof fundAdminFastApi==="function"
+      ? fundAdminFastApi
+      : function(payload){
+          return fundAdminApi(payload).then(function(data){
+            if(!data||data.result!=="success")throw new Error((data&&data.message)||"등록 중 오류가 발생했습니다.");
+            return data;
+          });
+        };
+
+    return Promise.resolve(typeof fileToBase64==="function"?fileToBase64(file):{})
+      .then(function(img){
+        return api(Object.assign({
+          type:"fund_ledger_create",
+          date:date,
+          direction:direction,
+          account:account,
+          amount:amount,
+          category:category,
+          registered_by:registeredBy,
+          handled_by:registeredBy,
+          month:month,
+          memo:memo,
+          operation_key:operationKey,
+          client_request_id:operationKey
+        },img||{}));
+      })
+      .then(function(data){
+        const msg=(data&&data.message)||"공금내역이 등록되었습니다.";
+        setSubmitState("done",msg);
+
+        const refresh=typeof requestPartialRefresh==="function"
+          ? requestPartialRefresh("fund")
+          : Promise.resolve();
+        return Promise.resolve(refresh).catch(function(){}).then(function(){
+          try{if(currentFundTab==="ledger"&&typeof renderFundTab==="function")renderFundTab();}catch(e){}
+          return data;
+        });
+      })
+      .catch(function(err){
+        const msg=(err&&err.message)||"공금내역 등록 중 오류가 발생했습니다.";
+        // 같은 operation_key를 유지해 재시도 시 서버에서 중복 여부를 판별합니다.
+        setSubmitState("error",msg);
+        alert(msg);
+        return {result:"fail",message:msg};
+      });
+  };
+  window.submitFundLedger.__axeProtectedV1443=true;
+
+  function getEditRow(id){
+    id=String(id||"");
+    if(window.__fundLedgerEditStoreV52&&window.__fundLedgerEditStoreV52[id]){
+      return window.__fundLedgerEditStoreV52[id];
+    }
+    if(Array.isArray(window.fundLedger)){
+      for(let i=0;i<window.fundLedger.length;i++){
+        const row=window.fundLedger[i]||{};
+        const rid=typeof getFundLedgerId==="function"
+          ? String(getFundLedgerId(row,i))
+          : String(row.id||i);
+        if(rid===id)return row;
+      }
+    }
+    return null;
+  }
+
+  window.deleteFundLedgerFromEditV52=function(){
+    const id=trim(document.getElementById("fundLedgerEditIdV52")?.value||"");
+    if(!id){alert("공금내역 정보가 없습니다.");return Promise.resolve({result:"fail"});}
+    const reason=prompt("삭제 사유를 입력해주세요.\n예: 중복 등록 건 정리");
+    if(reason===null)return Promise.resolve({result:"cancel"});
+    if(!trim(reason)){alert("삭제 사유를 입력해야 합니다.");return Promise.resolve({result:"fail"});}
+    if(!confirm("선택한 공금내역 1건을 삭제 처리할까요?"))return Promise.resolve({result:"cancel"});
+
+    const row=getEditRow(id)||{};
+    const modal=document.getElementById("fundLedgerEditModalV52");
+    const deleteBtn=modal?modal.querySelector(".fund-ledger-edit-actions-v52 .danger"):null;
+    if(deleteBtn&&deleteBtn.disabled)return Promise.resolve({result:"blocked"});
+    if(deleteBtn){deleteBtn.disabled=true;deleteBtn.dataset.oldText=deleteBtn.textContent||"삭제";deleteBtn.textContent="삭제 중...";}
+
+    const payload={
+      type:"fund_ledger_delete",
+      ledger_id:id,
+      id:id,
+      operation_key:row.operation_key||"",
+      source_request_id:row.source_request_id||"",
+      ledger_key:typeof makeFundLedgerKey==="function"?makeFundLedgerKey(row):"",
+      row:row,
+      delete_memo:trim(reason),
+      delete_reason:trim(reason),
+      reason:trim(reason)
+    };
+
+    const api=typeof fundAdminFastApi==="function"
+      ? fundAdminFastApi
+      : function(body){
+          return fundAdminApi(body).then(function(data){
+            if(!data||data.result!=="success")throw new Error((data&&data.message)||"삭제 중 오류가 발생했습니다.");
+            return data;
+          });
+        };
+
+    return api(payload)
+      .then(function(data){
+        if(typeof closeFundLedgerEditV52==="function")closeFundLedgerEditV52();
+        if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
+        if(data&&data.fundSummary)window.fundSummary=data.fundSummary;
+
+        const refresh=typeof requestPartialRefresh==="function"
+          ? requestPartialRefresh("fund")
+          : Promise.resolve();
+        return Promise.resolve(refresh).catch(function(){}).then(function(){
+          try{if(typeof renderFundTab==="function")renderFundTab();}catch(e){}
+          const msg=(data&&data.message)||"공금내역이 삭제 처리되었습니다.";
+          if(typeof showToast==="function")showToast(msg); else alert(msg);
+          return data;
+        });
+      })
+      .catch(function(err){
+        const msg=(err&&err.message)||"삭제 중 오류가 발생했습니다.";
+        alert(msg);
+        return {result:"fail",message:msg};
+      })
+      .finally(function(){
+        if(deleteBtn){
+          deleteBtn.disabled=false;
+          deleteBtn.textContent=deleteBtn.dataset.oldText||"삭제";
+          delete deleteBtn.dataset.oldText;
+        }
+      });
+  };
+
+  window.axeFundLedgerV1443Debug=function(){
+    const card=getFormCard();
+    return {
+      version:"14.4.3",
+      submitState:card?card.dataset.axeLedgerSubmitState:"",
+      operationKey:document.getElementById("fundLedgerOperationKeyV1443")?.value||"",
+      deleteOverride:typeof window.deleteFundLedgerFromEditV52==="function"
+    };
+  };
+})();
+</script>
