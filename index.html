@@ -20683,13 +20683,71 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         try{return (fundLedger||[]).filter(r=>!isDeleted(r)).filter(r=>rowMonthOk(r,month));}
         catch(e){return [];}
     }
+    function fundLedgerParseTimeV1444(value){
+        const raw=String(value===undefined||value===null?"":value).trim();
+        if(!raw)return 0;
+
+        const korean=raw.match(/^(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})(?:\s+(오전|오후|AM|PM)?\s*(\d{1,2})(?::(\d{1,2}))?(?::(\d{1,2}))?)?/i);
+        if(korean){
+            const year=Number(korean[1]);
+            const month=Number(korean[2])-1;
+            const day=Number(korean[3]);
+            const marker=String(korean[4]||"").toUpperCase();
+            let hour=Number(korean[5]||0);
+            const minute=Number(korean[6]||0);
+            const second=Number(korean[7]||0);
+            if(marker==="오후"||marker==="PM"){
+                if(hour<12)hour+=12;
+            }else if(marker==="오전"||marker==="AM"){
+                if(hour===12)hour=0;
+            }
+            const time=new Date(year,month,day,hour,minute,second).getTime();
+            return Number.isFinite(time)?time:0;
+        }
+
+        const parsed=Date.parse(raw);
+        return Number.isFinite(parsed)?parsed:0;
+    }
+    function fundLedgerIdTimeV1444(row){
+        const candidates=[
+            row&&row.id,row&&row.ledger_id,row&&row.row_id,row&&row.operation_key,
+            row&&row.client_request_id,row&&row.source_request_id
+        ];
+        for(let i=0;i<candidates.length;i++){
+            const text=String(candidates[i]||"");
+            const match=text.match(/(?:^|_)(1\d{12})(?:_|$)/);
+            if(match){
+                const time=Number(match[1]);
+                if(Number.isFinite(time)&&time>0)return time;
+            }
+        }
+        return 0;
+    }
+    function fundLedgerCreatedTimeV1444(row){
+        // 등록 ID에는 밀리초가 포함돼 같은 초에 등록된 항목도 정확히 정렬할 수 있습니다.
+        return fundLedgerIdTimeV1444(row)
+            ||fundLedgerParseTimeV1444(row&&row.created_at)
+            ||fundLedgerParseTimeV1444(row&&row.date)
+            ||0;
+    }
+    function compareFundLedgerNewestFirstV1444(a,b){
+        const timeDiff=fundLedgerCreatedTimeV1444(b)-fundLedgerCreatedTimeV1444(a);
+        if(timeDiff)return timeDiff;
+
+        const dateDiff=fundLedgerParseTimeV1444(b&&b.date)-fundLedgerParseTimeV1444(a&&a.date);
+        if(dateDiff)return dateDiff;
+
+        const bId=String((b&&(b.id||b.ledger_id||b.row_id))||"");
+        const aId=String((a&&(a.id||a.ledger_id||a.row_id))||"");
+        return bId.localeCompare(aId,"ko");
+    }
     function getFilteredRows(){
         const s=state();
         return getBaseRows()
             .filter(r=>passPerson(r,s.person))
             .filter(r=>passKind(r,s.kind))
             .filter(r=>passAccount(r,s.account))
-            .sort((a,b)=>new Date(b.date||b.created_at||0)-new Date(a.date||a.created_at||0));
+            .sort(compareFundLedgerNewestFirstV1444);
     }
     function uniqueNames(rows){
         const seen={};
@@ -20784,7 +20842,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
                 </select></div>
                 <div class="fund-ledger-filter-field"><div class="fund-label">초기화</div><button class="fund-btn fund-ledger-filter-reset" type="button" onclick="resetFundLedgerFiltersV19()">필터 초기화</button></div>
             </div>
-            <div class="fund-ledger-filter-summary click-filter" id="fundLedgerFilterSummary">선택월 전체 ${total}건 중 ${shown}건 표시</div>
+            <div class="fund-ledger-filter-summary click-filter" id="fundLedgerFilterSummary">선택월 전체 ${total}건 중 ${shown}건 표시 · 최신 등록순</div>
         </div>`;
     }
     window.renderFundLedger=function(){
@@ -20799,7 +20857,7 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         const rows=getFilteredRows();
         body.innerHTML=renderRows(rows);
         const summary=document.getElementById("fundLedgerFilterSummary");
-        if(summary)summary.textContent=`선택월 전체 ${base.length}건 중 ${rows.length}건 표시`;
+        if(summary)summary.textContent=`선택월 전체 ${base.length}건 중 ${rows.length}건 표시 · 최신 등록순`;
     };
     window.setFundLedgerPersonFilterV19=function(value){state().person=String(value||"all");renderFundLedgerFilteredOnly();};
     window.setFundLedgerKindFilterV19=function(value){state().kind=String(value||"all");renderFundLedgerFilteredOnly();};
@@ -29682,4 +29740,14 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     };
   };
 })();
+</script>
+
+
+<script id="axe-fund-ledger-v1444-sort-marker">
+/* AXE NET V14.4.4: 공금내역을 거래일이 아닌 등록 최신순으로 안정 정렬 */
+window.__AXE_FUND_LEDGER_V1444__={
+  version:"14.4.4",
+  order:"created_desc",
+  note:"등록 ID → 등록일시 → 거래일 순으로 최신 항목을 상단에 표시"
+};
 </script>
