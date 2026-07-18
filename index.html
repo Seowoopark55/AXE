@@ -18827,12 +18827,13 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
 </style>
 
 <script>
-/* AXE NET 공금 검수 편의 개선 v2 */
+/* AXE NET 공금 검수 편의 개선 v2 · V14.4.2 audit timeout optimization */
 (function(){
     const ADMIN_PERSIST_KEY="axe_net_admin_password_persist";
     const ADMIN_TOKEN_KEY="axe_net_admin_token_persist";
     const FUND_REVIEW_SELECTED_KEY="axe_net_fund_review_selected";
     const FUND_ACTION_TIMEOUT_MS=45000;
+    const FUND_AUDIT_TIMEOUT_MS=120000;
     let fundActionBusy=false;
     let fundActionHardTimer=null;
 
@@ -18898,11 +18899,27 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         return Object.assign({},payload||{}, {admin_nickname:user.nickname, admin_password:password, admin_token:token});
     }
 
+    function isFundAbortLikeError(err){
+        const name=String(err&&err.name||"");
+        const message=String(err&&err.message||err||"");
+        return name==="AbortError"||/signal is aborted|aborted without reason|operation was aborted/i.test(message);
+    }
+
     function fetchJsonWithTimeout(body,timeoutMs){
+        const timeout=Number(timeoutMs||FUND_ACTION_TIMEOUT_MS);
         const controller=(typeof AbortController!=="undefined")?new AbortController():null;
-        const timer=setTimeout(()=>{try{if(controller)controller.abort();}catch(e){}},timeoutMs||FUND_ACTION_TIMEOUT_MS);
+        const timer=setTimeout(()=>{try{if(controller)controller.abort();}catch(e){}},timeout);
         return fetch(API_URL,{method:"POST",body:JSON.stringify(body),signal:controller?controller.signal:undefined})
-        .then(res=>res.json())
+        .then(res=>{
+            if(!res.ok)throw new Error("HTTP "+res.status);
+            return res.json();
+        })
+        .catch(err=>{
+            if(isFundAbortLikeError(err)){
+                throw new Error("요청 처리 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.");
+            }
+            throw err;
+        })
         .finally(()=>clearTimeout(timer));
     }
 
@@ -18929,6 +18946,15 @@ function disableFundMember(nickname){if(!confirm(nickname+" 님을 공금멤버�
         });
     }
     window.fundAdminFastApi=fundAdminFastApi;
+
+    window.fundAdminAuditApi=function(payload){
+        let body;
+        try{body=getAdminPayload(payload);}catch(err){return Promise.reject(err);}
+        return fetchJsonWithTimeout(body,FUND_AUDIT_TIMEOUT_MS).then(data=>{
+            if(!data||data.result!=="success")throw new Error((data&&data.message)||"정합성 점검 중 오류가 발생했습니다.");
+            return data;
+        });
+    };
 
     window.fundAdminApi=function(payload){
         fundSetActionBusy(true,"공금 자료를 처리 중입니다.");
@@ -29240,10 +29266,14 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     function integrityDate(v){try{return formatDate(v);}catch(e){return safe(v||"");}}
     window.loadFundIntegrityAudit=function(){
         const box=document.getElementById("fundIntegrityContent");
-        if(box)box.innerHTML='<div class="fund-empty">공금신청과 공금내역을 대조하는 중입니다.</div>';
-        fundAdminApi({type:"fund_integrity_audit"}).then(function(data){
-            if(data.result!=="success"){alert(data.message||"점검 실패");return;}
+        if(box)box.innerHTML='<div class="fund-empty">공금신청과 공금내역을 대조하는 중입니다.<br><span style="font-size:12px;color:#8f8f8f">검사 중에는 다시 누르지 말아주세요.</span></div>';
+        const runner=(typeof window.fundAdminAuditApi==="function")?window.fundAdminAuditApi:fundAdminApi;
+        runner({type:"fund_integrity_audit"}).then(function(data){
             fundIntegrity=data.fundIntegrity||null;
+            if(currentFundTab==="integrity")renderFundTab();
+        }).catch(function(err){
+            const message=String(err&&err.message||err||"정합성 점검 중 오류가 발생했습니다.");
+            alert(/signal is aborted|aborted without reason/i.test(message)?"정합성 점검 시간이 초과되었습니다. 잠시 후 다시 실행해주세요.":message);
             if(currentFundTab==="integrity")renderFundTab();
         });
     };
@@ -29286,7 +29316,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
             return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(label)} <span class="fund-issue-badge">${safe(r.issue)}</span> ${recommended}</div><div class="fund-v144-row-meta">해당 주차 등록 요율 ${policyFee?fundMoney(policyFee):'미등록'}<br>신청 기준 합계 ${fundMoney(expectedTotal)} · 공용 ${fundMoney(r.expected_public)} / 회사 ${fundMoney(r.expected_company)}<br>연결 내역 합계 ${fundMoney(actualTotal)} · 공용 ${fundMoney(r.actual_public)} / 회사 ${fundMoney(r.actual_company)}<br>요청 ID ${safe(r.request_id)}</div><div class="fund-integrity-actions"><button class="fund-btn primary" onclick="repairFundIntegrityRequest('${escapeText(r.request_id)}','${escapeText(label)}')">신청 ${fundMoney(expectedTotal)}으로 내역 맞추기</button>${alignButton}</div></div>`;
         }).join("")||'<div class="fund-empty">승인-내역 금액 불일치가 없습니다.</div>';
         const orphanHtml=orphans.map(function(r){return `<div class="fund-v144-row"><div class="fund-v144-row-title">${safe(r.nickname)} · ${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차</div><div class="fund-v144-row-meta">내역 ID ${safe(r.ledger_id)} · 원본 요청 ID ${safe(r.source_request_id)} · ${fundMoney(r.amount)} · ${safe(r.account)}</div></div>`;}).join("")||'<div class="fund-empty">원본 요청 없는 연결내역이 없습니다.</div>';
-        return `<div id="fundIntegrityContent"><div class="fund-integrity-summary"><div class="fund-integrity-stat"><strong>${fundMoney(a.calculated_balance||0)}</strong><span>공용계좌 계산 잔액</span></div><div class="fund-integrity-stat"><strong>${Number(a.duplicate_period_count||0)}</strong><span>중복 활성 기간</span></div><div class="fund-integrity-stat"><strong>${Number(a.request_issue_count||0)}</strong><span>승인-내역 불일치</span></div><div class="fund-integrity-stat"><strong>${Number(a.orphan_ledger_count||0)}</strong><span>원본 없는 연결내역</span></div></div><div class="fund-v144-note">점검 시각 ${integrityDate(a.generated_at)} · 연결 ID가 없는 과거 수동 납부내역 ${Number(a.unlinked_payment_ledger_count||0)}건은 자동 오류로 간주하지 않습니다. 두 맞춤 버튼 중 실제 사실에 맞는 방향을 선택하세요.</div>${issueCount===0?'<div class="fund-integrity-ok" style="margin-top:12px">활성 요청과 연결 공금내역에서 자동 판정 가능한 정합성 오류가 없습니다.</div>':""}<div class="fund-integrity-section"><h4>중복 활성 기간</h4><div class="fund-v144-list">${duplicateHtml}</div></div><div class="fund-integrity-section"><h4>승인 신청과 공금내역 불일치</h4><div class="fund-v144-list">${issueHtml}</div></div><div class="fund-integrity-section"><h4>원본 요청 없는 연결내역</h4><div class="fund-v144-list">${orphanHtml}</div></div><div class="fund-integrity-actions" style="margin-top:14px"><button class="fund-btn" onclick="loadFundIntegrityAudit()">다시 점검</button></div></div>`;
+        return `<div id="fundIntegrityContent"><div class="fund-integrity-summary"><div class="fund-integrity-stat"><strong>${fundMoney(a.calculated_balance||0)}</strong><span>공용계좌 계산 잔액</span></div><div class="fund-integrity-stat"><strong>${Number(a.duplicate_period_count||0)}</strong><span>중복 활성 기간</span></div><div class="fund-integrity-stat"><strong>${Number(a.request_issue_count||0)}</strong><span>승인-내역 불일치</span></div><div class="fund-integrity-stat"><strong>${Number(a.orphan_ledger_count||0)}</strong><span>원본 없는 연결내역</span></div></div><div class="fund-v144-note">점검 시각 ${integrityDate(a.generated_at)} · 처리시간 ${Math.max(0,Number(a.duration_ms||0)/1000).toFixed(2)}초 · 연결 ID가 없는 과거 수동 납부내역 ${Number(a.unlinked_payment_ledger_count||0)}건은 자동 오류로 간주하지 않습니다. 두 맞춤 버튼 중 실제 사실에 맞는 방향을 선택하세요.</div>${issueCount===0?'<div class="fund-integrity-ok" style="margin-top:12px">활성 요청과 연결 공금내역에서 자동 판정 가능한 정합성 오류가 없습니다.</div>':""}<div class="fund-integrity-section"><h4>중복 활성 기간</h4><div class="fund-v144-list">${duplicateHtml}</div></div><div class="fund-integrity-section"><h4>승인 신청과 공금내역 불일치</h4><div class="fund-v144-list">${issueHtml}</div></div><div class="fund-integrity-section"><h4>원본 요청 없는 연결내역</h4><div class="fund-v144-list">${orphanHtml}</div></div><div class="fund-integrity-actions" style="margin-top:14px"><button class="fund-btn" onclick="loadFundIntegrityAudit()">다시 점검</button></div></div>`;
     };
 
     window.submitFundLedger=function(){
