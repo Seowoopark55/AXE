@@ -1,3 +1,4 @@
+<!-- AXE NET V14.5.0-R1 · 계좌 별칭 통합 정정 패키지 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -23429,7 +23430,7 @@ function axeModBookFilterV34Debug(){
 
 /* AXE NET V84: 플리카 계좌 검색 한글 IME 안정화 + 기본 접힘/AXE TODAY 배치 유지 */
 (function(){
-  const VERSION='AXE_NET_PLIKA_QUICK_V95_TOAST_CENTER';
+  const VERSION='AXE_NET_PLIKA_QUICK_V100_ACCOUNT_ALIAS';
   const LATEST_API='https://script.google.com/macros/s/AKfycbztqQayx8kwsPncOVIPaUTtzY7cffu7weBL6OVSosURH6_DfPrUngkVANSZ4PmbrPJPRg/exec';
   let collapsedState=true;
   let didForceFetch=false;
@@ -23464,14 +23465,19 @@ function axeModBookFilterV34Debug(){
   function rowNo(r,i){return txt(r['번호']||r.no||r.number||(i+1));}
   function rowName(r){return txt(r['멤버명']||r.member||r.name||r.nickname||r['이름']);}
   function rowAccount(r){return normalizeAccount(r['계좌']||r.account||r.plika_account||r['계좌번호']);}
+  function rowAliases(r){
+    const raw=r['별칭']!==undefined?r['별칭']:(r.aliases!==undefined?r.aliases:r.alias);
+    if(Array.isArray(raw)) return raw.map(txt).filter(Boolean);
+    return txt(raw).split(/[,|]/).map(txt).filter(Boolean);
+  }
   function rowEnabled(r){
     const v=txt(r['사용여부']!==undefined?r['사용여부']:(r.enabled!==undefined?r.enabled:'TRUE')).toLowerCase();
     return !['false','n','no','0','사용안함','비활성'].includes(v);
   }
-  function rows(){return rawRows().filter(rowEnabled).map((r,i)=>({raw:r,no:rowNo(r,i),name:rowName(r),account:rowAccount(r),note:txt(r['비고']||r.note||r.memo)})).filter(r=>r.name||r.account);}
+  function rows(){return rawRows().filter(rowEnabled).map((r,i)=>({raw:r,no:rowNo(r,i),name:rowName(r),account:rowAccount(r),aliases:rowAliases(r),note:txt(r['비고']||r.note||r.memo)})).filter(r=>r.name||r.account);}
   function filteredRows(){
     const q=txt(plikaSearchKeyword).toLowerCase();
-    return rows().filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q));
+    return rows().filter(r=>!q||r.name.toLowerCase().includes(q)||r.account.includes(q)||r.aliases.some(a=>a.toLowerCase().includes(q)));
   }
   function toast(msg){
     const old=document.getElementById('axePlikaToastV81'); if(old) old.remove();
@@ -23504,8 +23510,9 @@ function axeModBookFilterV34Debug(){
   function rowHtml(r){
     const safeAccount=esc(r.account);
     const safeName=esc(r.name);
+    const aliasTitle=r.aliases.length?` · 별칭: ${r.aliases.map(esc).join(', ')}`:'';
     return `<div class="axe-plika-row-v81">
-      <div class="axe-plika-name-v81" title="${safeName}">${safeName||'-'}</div>
+      <div class="axe-plika-name-v81" title="${safeName}${aliasTitle}">${safeName||'-'}</div>
       <div class="axe-plika-account-v81 ${r.account?'':'empty'}" title="${esc(r.account||'미등록')}" onclick="${r.account?`axeCopyPlikaAccountV81('${safeAccount}','${safeName}')`:''}">${r.account?safeAccount:'미등록'}</div>
       <button class="axe-plika-copy-v81" ${r.account?'':'disabled'} onclick="axeCopyPlikaAccountV81('${safeAccount}','${safeName}')">복사</button>
     </div>`;
@@ -23531,7 +23538,7 @@ function axeModBookFilterV34Debug(){
           <div class="axe-plika-body-title-v89">플리카 계좌</div>
           <button type="button" class="axe-plika-body-close-v89" onclick="event.stopPropagation();axeClosePlikaQuickV85()" aria-label="플리카 계좌 닫기">×</button>
         </div>
-        <input id="axePlikaSearchV81" class="axe-plika-search-v81" data-axe-ime-safe="1" placeholder="멤버명/계좌 검색" value="${esc(plikaSearchKeyword)}" oncompositionstart="axePlikaSearchCompositionV84(true)" oncompositionend="axePlikaSearchCompositionV84(false,this)" oninput="axePlikaSearchInputV84(this)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input id="axePlikaSearchV81" class="axe-plika-search-v81" data-axe-ime-safe="1" placeholder="멤버명/별칭/계좌 검색" value="${esc(plikaSearchKeyword)}" oncompositionstart="axePlikaSearchCompositionV84(true)" oncompositionend="axePlikaSearchCompositionV84(false,this)" oninput="axePlikaSearchInputV84(this)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="axe-plika-list-v81">
           ${filtered.length?filtered.map(rowHtml).join(''):`<div class="axe-plika-empty-v81">표시할 계좌 정보가 없습니다.<br>시트명과 Apps Script 배포를 확인하세요.</div>`}
         </div>
