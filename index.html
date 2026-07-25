@@ -1,4 +1,4 @@
-<!-- AXE NET V14.5.0-R1 · 계좌 별칭 통합 정정 패키지 -->
+<!-- AXE NET V14.6.0 · 계좌 별칭 통합 정정 패키지 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -17748,9 +17748,29 @@ function normalizeFundMonth(value){
 
     return text;
 }
+
+function getFundOperationalPeriod(dateInput){
+    const src=dateInput instanceof Date&&!isNaN(dateInput.getTime())?dateInput:new Date();
+    const day=new Date(src.getFullYear(),src.getMonth(),src.getDate());
+    const start=new Date(day);
+    start.setDate(day.getDate()-day.getDay());
+    const end=new Date(start);
+    end.setDate(start.getDate()+6);
+    const month=end.getFullYear()+"-"+String(end.getMonth()+1).padStart(2,"0");
+    const ranges=getFundWeekRanges(month);
+    const endKey=fundDateYmd(end);
+    const found=ranges.find(r=>fundDateYmd(r.end)===endKey);
+    return {month,week:found?found.week:"1",start,end,periodKey:month+"|"+(found?found.week:"1")+"|"+endKey};
+}
+function getFundOperationalOrder(){
+    const p=getFundOperationalPeriod(new Date());
+    return fundMonthWeekOrder(p.month,p.week);
+}
+function isFundPeriodFuture(month,week){
+    return fundMonthWeekOrder(month,week)>getFundOperationalOrder();
+}
 function getFundTodayMonth(){
-    const now=new Date();
-    return now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+    return getFundOperationalPeriod(new Date()).month;
 }
 function fundMonthLabel(value){
     const month=normalizeFundMonth(value);
@@ -17778,26 +17798,20 @@ function formatFundRangeDate(d){
 function getFundWeekRanges(month){
     const info=getFundMonthParts(month);
     const first=new Date(info.year,info.monthIndex,1);
-    const firstDow=first.getDay();
-    let start=new Date(info.year,info.monthIndex,1-firstDow);
-    // AXE NET 공금 주차 운영 기준:
-    // - 항상 4주만 운영
-    // - 일요일~토요일 단위
-    // - 해당 월의 1일이 포함된 주가 금/토 시작으로 4일 미만만 해당 월에 걸치면 다음 일요일부터 1주차
-    // - 반대로 전월 말일이 포함되어도 해당 주 대부분이 이번 달이면 이번 달 1주차로 처리
-    if(firstDow===5 || firstDow===6){
-        start=new Date(info.year,info.monthIndex,1+(7-firstDow));
-    }
+    const last=new Date(info.year,info.monthIndex+1,0);
+    const firstSaturdayOffset=(6-first.getDay()+7)%7;
+    const firstSaturday=new Date(info.year,info.monthIndex,1+firstSaturdayOffset);
     const ranges=[];
-    for(let i=0;i<4;i++){
-        const s=new Date(start);
-        s.setDate(start.getDate()+i*7);
-        const e=new Date(s);
-        e.setDate(s.getDate()+6);
+    let week=1;
+    for(let end=new Date(firstSaturday);end<=last;end.setDate(end.getDate()+7)){
+        const e=new Date(end);
+        const s=new Date(e);
+        s.setDate(e.getDate()-6);
         ranges.push({
-            week:String(i+1),
+            week:String(week++),
             start:new Date(s),
             end:new Date(e),
+            dueDate:new Date(e),
             label:formatFundRangeDate(s)+"~"+formatFundRangeDate(e)
         });
     }
@@ -18189,9 +18203,10 @@ function renderFundStatus(){
     const rows=members.map(m=>{
         let unpaid=0;
         const cells=weeks.map(w=>{
+            if(isFundPeriodFuture(month,w))return `<td><span class="fund-status-pill future">예정</span></td>`;
             const st=getFundWeekStatus(m,month,w);
             if(st==="미납"||st==="반려"||st==="부족")unpaid++;
-            if(st==="공용"||st==="잔고"||st==="분할"||st==="면제")totalPaid++;
+            if(st==="공용"||st==="잔고"||st==="분할"||st==="납부완료"||st==="면제")totalPaid++;
             if(st==="대기")totalPending++;
             return `<td>${fundStatusPill(st)}</td>`;
         }).join("");
@@ -18205,11 +18220,10 @@ function renderFundStatus(){
         <div class="fund-overview-main">
             <div class="fund-overview-kicker">선택 월</div>
             <div class="fund-overview-title">${safe(fundMonthLabel(month))}</div>
-            <div class="fund-overview-desc">${safe(firstRange)}부터 ${safe(lastRange)}까지 ${weeks.length}개 주차 기준으로 납부 상태를 표시합니다.</div>
+            <div class="fund-overview-desc">${safe(firstRange)}부터 ${safe(lastRange)}까지 ${weeks.length}개 주간 회차를 표시합니다.</div>
         </div>
-
     </div>
-    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 주차는 일요일~토요일 기준으로 매월 4주만 운영합니다. 전월 말일 또는 다음월 초일이 포함될 수 있습니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
+    <div class="fund-table-wrap"><table class="fund-table fund-status-table"><thead><tr><th class="left">멤버명</th>${weeks.map(w=>`<th>${renderFundWeekHeader(month,w)}</th>`).join("")}<th>미납</th></tr></thead><tbody>${rows}</tbody></table></div><div class="fund-status-guide"><span>※ 공금은 일요일~토요일의 연속 7일 단위이며, 토요일 마감일이 속한 달의 주차로 배정됩니다. 달에 따라 4주차 또는 5주차까지 자동 생성됩니다.</span><span>공용/잔고/분할은 운영진 승인 후 반영됩니다.</span><span>회사잔고 납부는 납부 인정만 처리하고 공용계좌 잔액에는 반영하지 않습니다.</span></div>`;
 }
 function renderFundSubmitterField(user){
     const currentName=String(user&&user.nickname||"").trim();
@@ -27671,7 +27685,7 @@ window.axeRankingAdminV90Debug=axeRankingAdminV90Debug;
 window.axeFundWeekV47Debug=function(month){
     const target=normalizeFundMonth(month)||getFundCurrentMonth();
     const ranges=getFundWeekRanges(target).map(r=>({week:r.week,label:r.label,start:r.start,end:r.end}));
-    const result={version:"fund-week-v47-sunday-4weeks",month:target,ranges};
+    const result={version:"fund-week-v50-continuous-sun-sat-due-month",month:target,ranges};
     console.log(result);
     return result;
 };
@@ -29270,14 +29284,14 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         return getFundActiveMembers().map(function(m){return `<option value="${escapeAttr(m.nickname)}">${safe(m.nickname)}</option>`;}).join("");
     }
     function weekOptions(selected){
-        return [1,2,3,4].map(function(w){return `<option value="${w}" ${Number(selected)===w?"selected":""}>${w}주차</option>`;}).join("");
+        return [1,2,3,4,5].map(function(w){return `<option value="${w}" ${Number(selected)===w?"selected":""}>${w}주차</option>`;}).join("");
     }
     window.renderFundExemptions=function(){
         const month=getFundCurrentMonth();
         const rows=activeExemptions().slice().sort(function(a,b){
             return periodOrder(a.start_month,a.start_week)-periodOrder(b.start_month,b.start_week);
         });
-        return `<div class="fund-v144-grid"><div class="fund-v144-card"><div class="fund-v144-title">기간 면제 등록</div><div class="fund-v144-form"><div class="wide"><div class="fund-label">멤버</div><select class="fund-select" id="fundExemptNickname">${memberOptions()}</select></div><div><div class="fund-label">시작 월</div><input class="fund-input" type="month" id="fundExemptStartMonth" value="${escapeAttr(month)}"></div><div><div class="fund-label">시작 주차</div><select class="fund-select" id="fundExemptStartWeek">${weekOptions(1)}</select></div><div><div class="fund-label">종료 월</div><input class="fund-input" type="month" id="fundExemptEndMonth" value="${escapeAttr(month)}"></div><div><div class="fund-label">종료 주차</div><select class="fund-select" id="fundExemptEndWeek">${weekOptions(4)}</select></div><div class="wide"><div class="fund-label">사유</div><input class="fund-input" id="fundExemptReason" placeholder="휴식기, 휴가, 복귀 예정 등"></div><div class="wide"><button class="fund-btn primary" onclick="saveFundExemption()">면제 저장</button></div></div><div class="fund-v144-note">면제 기간은 미납에서 제외되고 현황판에 ➖로 표시됩니다. 해당 기간에 이미 검수대기·보류·승인 신청이 있으면 먼저 신청을 정리해야 합니다.</div></div><div class="fund-v144-card"><div class="fund-v144-title">활성 면제 ${rows.length}건</div><div class="fund-v144-list">${rows.map(function(r){return `<div class="fund-v144-row"><div class="fund-v144-row-head"><div><div class="fund-v144-row-title">${safe(r.nickname)} <span class="fund-exempt-badge">면제</span></div><div class="fund-v144-row-meta">${safe(fundMonthLabel(r.start_month))} ${safe(r.start_week)}주차 → ${safe(fundMonthLabel(r.end_month||r.start_month))} ${safe(r.end_week||r.start_week)}주차<br>${safe(r.reason||"사유 없음")}</div></div><button class="fund-btn danger" onclick="deleteFundExemption('${escapeText(r.id)}','${escapeText(r.nickname)}')">해제</button></div></div>`;}).join("")||'<div class="fund-empty">활성 면제 기록이 없습니다.</div>'}</div></div></div>`;
+        return `<div class="fund-v144-grid"><div class="fund-v144-card"><div class="fund-v144-title">기간 면제 등록</div><div class="fund-v144-form"><div class="wide"><div class="fund-label">멤버</div><select class="fund-select" id="fundExemptNickname">${memberOptions()}</select></div><div><div class="fund-label">시작 월</div><input class="fund-input" type="month" id="fundExemptStartMonth" value="${escapeAttr(month)}" onchange="syncFundAdminWeekOptions('fundExemptStartMonth','fundExemptStartWeek',false)"></div><div><div class="fund-label">시작 주차</div><select class="fund-select" id="fundExemptStartWeek">${weekOptions(1)}</select></div><div><div class="fund-label">종료 월</div><input class="fund-input" type="month" id="fundExemptEndMonth" value="${escapeAttr(month)}" onchange="syncFundAdminWeekOptions('fundExemptEndMonth','fundExemptEndWeek',true)"></div><div><div class="fund-label">종료 주차</div><select class="fund-select" id="fundExemptEndWeek">${weekOptions(getFundWeekCount(month))}</select></div><div class="wide"><div class="fund-label">사유</div><input class="fund-input" id="fundExemptReason" placeholder="휴식기, 휴가, 복귀 예정 등"></div><div class="wide"><button class="fund-btn primary" onclick="saveFundExemption()">면제 저장</button></div></div><div class="fund-v144-note">면제 기간은 미납에서 제외되고 현황판에 ➖로 표시됩니다. 해당 기간에 이미 검수대기·보류·승인 신청이 있으면 먼저 신청을 정리해야 합니다.</div></div><div class="fund-v144-card"><div class="fund-v144-title">활성 면제 ${rows.length}건</div><div class="fund-v144-list">${rows.map(function(r){return `<div class="fund-v144-row"><div class="fund-v144-row-head"><div><div class="fund-v144-row-title">${safe(r.nickname)} <span class="fund-exempt-badge">면제</span></div><div class="fund-v144-row-meta">${safe(fundMonthLabel(r.start_month))} ${safe(r.start_week)}주차 → ${safe(fundMonthLabel(r.end_month||r.start_month))} ${safe(r.end_week||r.start_week)}주차<br>${safe(r.reason||"사유 없음")}</div></div><button class="fund-btn danger" onclick="deleteFundExemption('${escapeText(r.id)}','${escapeText(r.nickname)}')">해제</button></div></div>`;}).join("")||'<div class="fund-empty">활성 면제 기록이 없습니다.</div>'}</div></div></div>`;
     };
     window.saveFundExemption=function(){
         const payload={
@@ -29304,7 +29318,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
     window.renderFundFeeRules=function(){
         const rows=getFundFeeRuleRowsForAdmin();
         const currentMonth=getFundCurrentMonth();
-        return `<div class="fund-v144-grid"><div class="fund-v144-card"><div class="fund-v144-title">공금 요율 이력 등록</div><div class="fund-v144-form"><div><div class="fund-label">적용 시작 월</div><input class="fund-input" type="month" id="fundFeeStartMonth" value="${escapeAttr(currentMonth)}"></div><div><div class="fund-label">적용 시작 주차</div><select class="fund-select" id="fundFeeStartWeek">${weekOptions(1)}</select></div><div><div class="fund-label">주간 공금</div><input class="fund-input" id="fundFeeAmount" type="number" min="1" step="1000" value="${Number(getFundWeeklyFee(currentMonth,1)||20000)}"></div><div><div class="fund-label">변경 사유</div><input class="fund-input" id="fundFeeNote" placeholder="예: 7월 2주차부터 2만원"></div><div class="wide"><button class="fund-btn primary" onclick="saveFundFeeRule()">요율 저장</button></div></div><div class="fund-v144-note">등록한 금액은 선택한 시작 주차부터 다음 요율이 시작되기 전까지 적용됩니다. 과거 신청·내역 금액을 자동 변경하지는 않습니다.</div></div><div class="fund-v144-card"><div class="fund-v144-title">등록된 요율 이력 ${rows.length}건</div><div class="fund-v144-list">${rows.map(function(r){const removable=r.source==="공금요율"&&r.id;return `<div class="fund-v144-row ${periodOrder(r.month,r.week)<=periodOrder(currentMonth,getFundDefaultWeekForMonth(currentMonth))?'fund-fee-rule-current':''}"><div class="fund-v144-row-head"><div><div class="fund-v144-row-title">${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차부터 · ${fundMoney(r.weekly_fee)}</div><div class="fund-v144-row-meta">${safe(r.note||"사유 없음")} · ${safe(r.source||"공금요율")}</div></div>${removable?`<button class="fund-btn danger" onclick="deleteFundFeeRule('${escapeText(r.id)}','${escapeText(fundMonthLabel(r.month)+' '+r.week+'주차')}')">삭제</button>`:'<span class="fund-issue-badge">구형 설정</span>'}</div></div>`;}).join("")||'<div class="fund-empty">등록된 요율 이력이 없습니다.</div>'}</div></div></div>`;
+        return `<div class="fund-v144-grid"><div class="fund-v144-card"><div class="fund-v144-title">공금 요율 이력 등록</div><div class="fund-v144-form"><div><div class="fund-label">적용 시작 월</div><input class="fund-input" type="month" id="fundFeeStartMonth" value="${escapeAttr(currentMonth)}" onchange="syncFundAdminWeekOptions('fundFeeStartMonth','fundFeeStartWeek',false)"></div><div><div class="fund-label">적용 시작 주차</div><select class="fund-select" id="fundFeeStartWeek">${weekOptions(1)}</select></div><div><div class="fund-label">주간 공금</div><input class="fund-input" id="fundFeeAmount" type="number" min="1" step="1000" value="${Number(getFundWeeklyFee(currentMonth,1)||20000)}"></div><div><div class="fund-label">변경 사유</div><input class="fund-input" id="fundFeeNote" placeholder="예: 7월 2주차부터 2만원"></div><div class="wide"><button class="fund-btn primary" onclick="saveFundFeeRule()">요율 저장</button></div></div><div class="fund-v144-note">등록한 금액은 선택한 시작 주차부터 다음 요율이 시작되기 전까지 적용됩니다. 과거 신청·내역 금액을 자동 변경하지는 않습니다.</div></div><div class="fund-v144-card"><div class="fund-v144-title">등록된 요율 이력 ${rows.length}건</div><div class="fund-v144-list">${rows.map(function(r){const removable=r.source==="공금요율"&&r.id;return `<div class="fund-v144-row ${periodOrder(r.month,r.week)<=periodOrder(currentMonth,getFundDefaultWeekForMonth(currentMonth))?'fund-fee-rule-current':''}"><div class="fund-v144-row-head"><div><div class="fund-v144-row-title">${safe(fundMonthLabel(r.month))} ${safe(r.week)}주차부터 · ${fundMoney(r.weekly_fee)}</div><div class="fund-v144-row-meta">${safe(r.note||"사유 없음")} · ${safe(r.source||"공금요율")}</div></div>${removable?`<button class="fund-btn danger" onclick="deleteFundFeeRule('${escapeText(r.id)}','${escapeText(fundMonthLabel(r.month)+' '+r.week+'주차')}')">삭제</button>`:'<span class="fund-issue-badge">구형 설정</span>'}</div></div>`;}).join("")||'<div class="fund-empty">등록된 요율 이력이 없습니다.</div>'}</div></div></div>`;
     };
     window.saveFundFeeRule=function(){
         const payload={type:"fund_fee_rule_save",start_month:document.getElementById("fundFeeStartMonth")?.value||"",start_week:document.getElementById("fundFeeStartWeek")?.value||"",weekly_fee:document.getElementById("fundFeeAmount")?.value||"",note:document.getElementById("fundFeeNote")?.value||""};
@@ -29756,5 +29770,30 @@ window.__AXE_FUND_LEDGER_V1444__={
   version:"14.4.4",
   order:"created_desc",
   note:"등록 ID → 등록일시 → 거래일 순으로 최신 항목을 상단에 표시"
+};
+</script>
+
+<style id="axe-fund-v146-calendar-style">
+.fund-status-pill.future{color:#808998!important;background:rgba(128,137,152,.10)!important;border-color:rgba(128,137,152,.22)!important}
+</style>
+
+<script id="axe-fund-v146-admin-week-sync">
+window.syncFundAdminWeekOptions=function(monthId,weekId,preferLast){
+    const month=document.getElementById(monthId)?.value||getFundCurrentMonth();
+    const select=document.getElementById(weekId);
+    if(!select)return;
+    const ranges=getFundWeekRanges(month);
+    const previous=String(select.value||"");
+    const selected=preferLast?String(ranges.length):(ranges.some(r=>r.week===previous)?previous:"1");
+    select.innerHTML=ranges.map(r=>`<option value="${r.week}" ${r.week===selected?"selected":""}>${r.week}주차 (${safe(r.label)})</option>`).join("");
+};
+</script>
+<script id="axe-fund-v146-calendar-debug">
+window.axeFundCalendarV146Debug=function(dateValue){
+    const d=dateValue?new Date(dateValue):new Date();
+    const p=getFundOperationalPeriod(d);
+    const ranges=getFundWeekRanges(p.month).map(r=>({week:r.week,start:fundDateYmd(r.start),end:fundDateYmd(r.end),label:r.label}));
+    const result={version:"fund-v14.6.0",input:fundDateYmd(d),operationalPeriod:{month:p.month,week:p.week,start:fundDateYmd(p.start),end:fundDateYmd(p.end)},ranges};
+    console.log(result);return result;
 };
 </script>
