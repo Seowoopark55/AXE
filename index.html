@@ -5363,7 +5363,10 @@ function applyPartialData(source,scope){
     if(data.fundLedger!==undefined||data.fund_ledger!==undefined)fundLedger=data.fundLedger||data.fund_ledger||[];
     if(data.fundBalanceChecks!==undefined||data.fund_balance_checks!==undefined)fundBalanceChecks=data.fundBalanceChecks||data.fund_balance_checks||[];
     if(data.fundSettings!==undefined||data.fund_settings!==undefined)fundSettings=data.fundSettings||data.fund_settings||[];
-    if(data.fundSummary!==undefined||data.fund_summary!==undefined)fundSummary=data.fundSummary||data.fund_summary||{};
+    if(data.fundSummary!==undefined||data.fund_summary!==undefined){
+        fundSummary=data.fundSummary||data.fund_summary||{};
+        try{window.fundSummary=fundSummary;}catch(e){}
+    }
     if(data.companyAssets!==undefined||data.company_assets!==undefined||data.assets!==undefined)companyAssets=data.companyAssets||data.company_assets||data.assets||[];
     if(data.companyAssetReturns!==undefined||data.company_asset_returns!==undefined||data.assetReturns!==undefined||data.retiredAssetReturns!==undefined)companyAssetReturns=data.companyAssetReturns||data.company_asset_returns||data.assetReturns||data.retiredAssetReturns||[];
     if(data.companyAssetLoadError!==undefined)window.companyAssetLoadError=data.companyAssetLoadError||"";
@@ -5434,7 +5437,7 @@ function requestPartialRefresh(scope,options){
     return requestPromise;
 }
 
-/* AXE FUND FAST LIVE REFRESH V2 · STABLE
+/* AXE FUND FAST LIVE REFRESH V3 · STABLE BALANCE DIRECT-DOM
    공금내역 mutation 성공 직후 전체 fund_refresh 대신 최소 Supabase snapshot을 즉시 조회합니다.
    공금 페이지가 마운트되어 있으면 상단 요약카드(잔액 포함)까지 함께 재렌더링합니다. */
 let axeFundRuntimeRefreshPromise=null;
@@ -5461,6 +5464,19 @@ function requestFundRuntimeRefreshFast(options){
             throw new Error((data&&data.message)||"공금 최신 상태 조회 실패");
         }
         applyPartialData(data,"fund");
+
+        // 상단 잔액 카드는 fundContent 바깥에 있어 renderFundTab()만으로 갱신되지 않습니다.
+        // fast refresh 응답의 Supabase 잔액을 해당 카드에 직접 반영합니다.
+        try{
+            const balanceNode=document.getElementById("fundSummarySiteBalance");
+            const latestBalance=Number(
+                data&&data.fundSummary&&data.fundSummary.site_balance!==undefined
+                    ? data.fundSummary.site_balance
+                    : (fundSummary&&fundSummary.site_balance||0)
+            );
+            if(balanceNode)balanceNode.textContent=fundMoney(latestBalance);
+        }catch(e){}
+
         try{console.log("[AXE FUND FAST REFRESH]",data.refreshed_at||"",data.fundSummary&&data.fundSummary.site_balance,(data.fundLedger||[]).length);}catch(e){}
         try{
             // 공금 페이지가 실제로 화면에 마운트되어 있으면 상단 요약카드까지 함께 다시 그립니다.
@@ -18242,7 +18258,7 @@ function showFund(tab,push){
             ${renderFundManualRefreshArea()}
         </div>
         <div class="fund-summary-grid fund-summary-grid-premium">
-            <div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
+            <div class="fund-summary-card"><div id="fundSummarySiteBalance" class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">검수대기</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div>
             <div class="fund-summary-card"><div class="fund-summary-value">${fundMoney(getFundCompanyRecognizedForMonth(getFundCurrentMonth()))}</div><div class="fund-summary-label">선택월 잔고 인정액</div></div>
@@ -29372,7 +29388,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         if(!admin&&["review","ledger","balance","fees","exemptions","integrity","members"].includes(currentFundTab))currentFundTab="status";
         const content=document.getElementById("content");
         if(!content)return;
-        content.innerHTML=`<div class="section-head fund-page-head"><div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">증빙 제출, 검수, 기간 면제, 공금내역과 잔액 정합성을 통합 관리합니다.</div></div>${renderFundManualRefreshArea()}</div><div class="fund-summary-grid fund-summary-grid-premium"><div class="fund-summary-card"><div class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div><div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">전체 검수대기·보류</div></div><div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div><div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.active_exemption_count||activeExemptions().length)}</div><div class="fund-summary-label">활성 면제</div></div></div><div class="fund-tabs">${tabs.map(function(t){return `<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`;}).join("")}</div><div id="fundContent"></div>`;
+        content.innerHTML=`<div class="section-head fund-page-head"><div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">증빙 제출, 검수, 기간 면제, 공금내역과 잔액 정합성을 통합 관리합니다.</div></div>${renderFundManualRefreshArea()}</div><div class="fund-summary-grid fund-summary-grid-premium"><div class="fund-summary-card"><div id="fundSummarySiteBalance" class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div><div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">전체 검수대기·보류</div></div><div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div><div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.active_exemption_count||activeExemptions().length)}</div><div class="fund-summary-label">활성 면제</div></div></div><div class="fund-tabs">${tabs.map(function(t){return `<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`;}).join("")}</div><div id="fundContent"></div>`;
         renderFundTab();
     };
 
