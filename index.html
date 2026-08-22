@@ -5358,9 +5358,15 @@ function applyPartialData(source,scope){
     if(data.foodOrders!==undefined||data.food_orders!==undefined)foodOrders=data.foodOrders||data.food_orders||[];
     if(data.fundMembers!==undefined||data.fund_members!==undefined)fundMembers=data.fundMembers||data.fund_members||[];
     if(data.fundExemptions!==undefined||data.fund_exemptions!==undefined)fundExemptions=data.fundExemptions||data.fund_exemptions||[];
-    if(data.fundRequests!==undefined||data.fund_requests!==undefined)fundRequests=data.fundRequests||data.fund_requests||[];
+    if(data.fundRequests!==undefined||data.fund_requests!==undefined){
+        fundRequests=data.fundRequests||data.fund_requests||[];
+        try{window.fundRequests=fundRequests;}catch(e){}
+    }
     if(data.fundIntegrity!==undefined||data.fund_integrity!==undefined)fundIntegrity=data.fundIntegrity||data.fund_integrity||null;
-    if(data.fundLedger!==undefined||data.fund_ledger!==undefined)fundLedger=data.fundLedger||data.fund_ledger||[];
+    if(data.fundLedger!==undefined||data.fund_ledger!==undefined){
+        fundLedger=data.fundLedger||data.fund_ledger||[];
+        try{window.fundLedger=fundLedger;}catch(e){}
+    }
     if(data.fundBalanceChecks!==undefined||data.fund_balance_checks!==undefined)fundBalanceChecks=data.fundBalanceChecks||data.fund_balance_checks||[];
     if(data.fundSettings!==undefined||data.fund_settings!==undefined)fundSettings=data.fundSettings||data.fund_settings||[];
     if(data.fundSummary!==undefined||data.fund_summary!==undefined){
@@ -5441,18 +5447,25 @@ function requestPartialRefresh(scope,options){
    공금내역 mutation 성공 직후 전체 fund_refresh 대신 최소 Supabase snapshot을 즉시 조회합니다.
    공금 페이지가 마운트되어 있으면 상단 요약카드(잔액 포함)까지 함께 재렌더링합니다. */
 let axeFundRuntimeRefreshPromise=null;
+let axeFundRuntimeRefreshController=null;
+let axeFundRuntimeRefreshSeq=0;
+
 function requestFundRuntimeRefreshFast(options){
-    const opt=options||{};
-    if(axeFundRuntimeRefreshPromise&&!opt.force)return axeFundRuntimeRefreshPromise;
+    const seq=++axeFundRuntimeRefreshSeq;
+
+    if(axeFundRuntimeRefreshController){
+        try{axeFundRuntimeRefreshController.abort();}catch(e){}
+    }
 
     const controller=(typeof AbortController!=="undefined")?new AbortController():null;
+    axeFundRuntimeRefreshController=controller;
     const timeoutId=controller?setTimeout(function(){try{controller.abort();}catch(e){}},12000):null;
 
     const p=fetch(API_URL,{
         method:"POST",
         cache:"no-store",
         headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({type:"fund_runtime_refresh"}),
+        body:JSON.stringify({type:"fund_runtime_refresh",request_seq:seq}),
         signal:controller?controller.signal:undefined
     })
     .then(function(res){
@@ -5463,35 +5476,44 @@ function requestFundRuntimeRefreshFast(options){
         if(!data||data.result!=="success"){
             throw new Error((data&&data.message)||"공금 최신 상태 조회 실패");
         }
+
+        // 이전 요청 응답이 늦게 도착해 최신 상태를 덮지 못하게 합니다.
+        if(seq!==axeFundRuntimeRefreshSeq)return data;
+
         applyPartialData(data,"fund");
 
-        // 상단 잔액 카드는 fundContent 바깥에 있어 renderFundTab()만으로 갱신되지 않습니다.
-        // fast refresh 응답의 Supabase 잔액을 해당 카드에 직접 반영합니다.
+        // 상단 요약과 탭 본문을 같은 state에서 각각 렌더링합니다.
+        // 전체 showFund() 재호출은 하지 않아 폼/모달 상태를 보존합니다.
+        try{renderFundSummaryHeader();}catch(e){}
         try{
-            const balanceNode=document.getElementById("fundSummarySiteBalance");
-            const latestBalance=Number(
-                data&&data.fundSummary&&data.fundSummary.site_balance!==undefined
-                    ? data.fundSummary.site_balance
-                    : (fundSummary&&fundSummary.site_balance||0)
-            );
-            if(balanceNode)balanceNode.textContent=fundMoney(latestBalance);
-        }catch(e){}
-
-        try{console.log("[AXE FUND FAST REFRESH]",data.refreshed_at||"",data.fundSummary&&data.fundSummary.site_balance,(data.fundLedger||[]).length);}catch(e){}
-        try{
-            // 공금 페이지가 실제로 화면에 마운트되어 있으면 상단 요약카드까지 함께 다시 그립니다.
-            // currentMainSection 값만 의존하면 공금내역 탭은 갱신돼도 상단 잔액 카드가 남는 경우가 있었습니다.
-            const fundPageMounted=!!document.getElementById("fundContent")||
-                !!document.querySelector(".fund-summary-grid");
-            if(fundPageMounted&&typeof showFund==="function"){
-                showFund(currentFundTab||"status",false);
+            if(document.getElementById("fundContent")&&typeof renderFundTab==="function"){
+                renderFundTab();
             }
         }catch(e){}
+
+        try{
+            console.log(
+                "[AXE FUND STATE REFRESH]",
+                "seq="+seq,
+                "balance="+String(data.fundSummary&&data.fundSummary.site_balance),
+                "ledger="+String((data.fundLedger||[]).length)
+            );
+        }catch(e){}
+
         return data;
+    })
+    .catch(function(err){
+        if(err&&err.name==="AbortError"&&seq!==axeFundRuntimeRefreshSeq){
+            return null;
+        }
+        throw err;
     })
     .finally(function(){
         if(timeoutId)clearTimeout(timeoutId);
-        axeFundRuntimeRefreshPromise=null;
+        if(seq===axeFundRuntimeRefreshSeq){
+            axeFundRuntimeRefreshPromise=null;
+            axeFundRuntimeRefreshController=null;
+        }
     });
 
     axeFundRuntimeRefreshPromise=p;
@@ -18228,6 +18250,37 @@ function setFundManualRefreshButtonState(loading){setPageRefreshButtonState("fun
 function refreshFundCurrentScreen(){refreshCurrentPageOnly("fund");}
 
 
+
+/* AXE FUND UI STATE V4 · authoritative summary renderer
+   상단 요약카드는 fundSummary 상태 하나만 읽고 이 함수에서만 렌더링합니다. */
+function renderFundSummaryMarkup(){
+    const summary=fundSummary||{};
+    return `<div class="fund-summary-grid fund-summary-grid-premium">
+        <div class="fund-summary-card">
+            <div class="fund-summary-value gold" data-fund-summary-value="site_balance">${fundMoney(summary.site_balance||0)}</div>
+            <div class="fund-summary-label">공용계좌 계산 잔액</div>
+        </div>
+        <div class="fund-summary-card">
+            <div class="fund-summary-value ${Number(summary.pending_count||0)?'warn':''}" data-fund-summary-value="pending_count">${Number(summary.pending_count||0)}</div>
+            <div class="fund-summary-label">전체 검수대기·보류</div>
+        </div>
+        <div class="fund-summary-card">
+            <div class="fund-summary-value" data-fund-summary-value="approved_count">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div>
+            <div class="fund-summary-label">선택월 승인 건</div>
+        </div>
+        <div class="fund-summary-card">
+            <div class="fund-summary-value" data-fund-summary-value="active_exemption_count">${Number(summary.active_exemption_count||activeExemptions().length)}</div>
+            <div class="fund-summary-label">활성 면제</div>
+        </div>
+    </div>`;
+}
+function renderFundSummaryHeader(){
+    const root=document.getElementById("fundSummaryRoot");
+    if(!root)return false;
+    root.innerHTML=renderFundSummaryMarkup();
+    return true;
+}
+
 function getFundApprovedCountForMonth(month){
     const target=normalizeFundMonth(month);
     return (fundRequests||[]).filter(x=>normalizeFundMonth(x.month)===target&&String(x.status||"")==="승인").length;
@@ -18257,12 +18310,7 @@ function showFund(tab,push){
             <div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">팀원 증빙 제출, 운영진 검수, 월별 공금표, 공용계좌 잔액을 통합 관리합니다.</div></div>
             ${renderFundManualRefreshArea()}
         </div>
-        <div class="fund-summary-grid fund-summary-grid-premium">
-            <div class="fund-summary-card"><div id="fundSummarySiteBalance" class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">검수대기</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div>
-            <div class="fund-summary-card"><div class="fund-summary-value">${fundMoney(getFundCompanyRecognizedForMonth(getFundCurrentMonth()))}</div><div class="fund-summary-label">선택월 잔고 인정액</div></div>
-        </div>
+        <div id="fundSummaryRoot">${renderFundSummaryMarkup()}</div>
         <div class="fund-tabs">${tabs.map(t=>`<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`).join("")}</div>
         <div id="fundContent"></div>`;
     renderFundTab();
@@ -29388,7 +29436,7 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         if(!admin&&["review","ledger","balance","fees","exemptions","integrity","members"].includes(currentFundTab))currentFundTab="status";
         const content=document.getElementById("content");
         if(!content)return;
-        content.innerHTML=`<div class="section-head fund-page-head"><div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">증빙 제출, 검수, 기간 면제, 공금내역과 잔액 정합성을 통합 관리합니다.</div></div>${renderFundManualRefreshArea()}</div><div class="fund-summary-grid fund-summary-grid-premium"><div class="fund-summary-card"><div id="fundSummarySiteBalance" class="fund-summary-value gold">${fundMoney(fundSummary&&fundSummary.site_balance||0)}</div><div class="fund-summary-label">공용계좌 계산 잔액</div></div><div class="fund-summary-card"><div class="fund-summary-value ${Number(fundSummary&&fundSummary.pending_count||0)?'warn':''}">${Number(fundSummary&&fundSummary.pending_count||0)}</div><div class="fund-summary-label">전체 검수대기·보류</div></div><div class="fund-summary-card"><div class="fund-summary-value">${getFundApprovedCountForMonth(getFundCurrentMonth())}</div><div class="fund-summary-label">선택월 승인 건</div></div><div class="fund-summary-card"><div class="fund-summary-value">${Number(fundSummary&&fundSummary.active_exemption_count||activeExemptions().length)}</div><div class="fund-summary-label">활성 면제</div></div></div><div class="fund-tabs">${tabs.map(function(t){return `<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`;}).join("")}</div><div id="fundContent"></div>`;
+        content.innerHTML=`<div class="section-head fund-page-head"><div class="fund-page-head-main"><div class="section-title">공금관리</div><div class="section-desc">증빙 제출, 검수, 기간 면제, 공금내역과 잔액 정합성을 통합 관리합니다.</div></div>${renderFundManualRefreshArea()}</div><div id="fundSummaryRoot">${renderFundSummaryMarkup()}</div><div class="fund-tabs">${tabs.map(function(t){return `<button class="${currentFundTab===t[0]?'active':''}" onclick="showFund('${t[0]}',false)">${t[1]}</button>`;}).join("")}</div><div id="fundContent"></div>`;
         renderFundTab();
     };
 
