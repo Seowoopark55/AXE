@@ -5433,6 +5433,50 @@ function requestPartialRefresh(scope,options){
     axePartialRefreshPromiseMap[requestKey]=requestPromise;
     return requestPromise;
 }
+
+/* AXE FUND FAST LIVE REFRESH V1
+   공금내역 mutation 성공 직후 전체 fund_refresh 대신 최소 Supabase snapshot을 즉시 조회합니다. */
+let axeFundRuntimeRefreshPromise=null;
+function requestFundRuntimeRefreshFast(options){
+    const opt=options||{};
+    if(axeFundRuntimeRefreshPromise&&!opt.force)return axeFundRuntimeRefreshPromise;
+
+    const controller=(typeof AbortController!=="undefined")?new AbortController():null;
+    const timeoutId=controller?setTimeout(function(){try{controller.abort();}catch(e){}},12000):null;
+
+    const p=fetch(API_URL,{
+        method:"POST",
+        cache:"no-store",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({type:"fund_runtime_refresh"}),
+        signal:controller?controller.signal:undefined
+    })
+    .then(function(res){
+        if(!res.ok)throw new Error("HTTP "+res.status);
+        return res.json();
+    })
+    .then(function(data){
+        if(!data||data.result!=="success"){
+            throw new Error((data&&data.message)||"공금 최신 상태 조회 실패");
+        }
+        applyPartialData(data,"fund");
+        try{
+            if(currentMainSection==="fund"&&typeof showFund==="function"){
+                showFund(currentFundTab||"status",false);
+            }
+        }catch(e){}
+        return data;
+    })
+    .finally(function(){
+        if(timeoutId)clearTimeout(timeoutId);
+        axeFundRuntimeRefreshPromise=null;
+    });
+
+    axeFundRuntimeRefreshPromise=p;
+    return p;
+}
+window.requestFundRuntimeRefreshFast=requestFundRuntimeRefreshFast;
+
 function rerenderCurrentPageScope(scope){
     const key=String(scope||currentMainSection||"");
     if(key==="craft"){showCraft();return;}
@@ -29277,7 +29321,13 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
                 operation_key:operationKey,
                 client_request_id:operationKey
             },img||{}));
-        }).then(function(data){alert(data.message||"등록되었습니다.");});
+        }).then(function(data){
+            alert(data.message||"등록되었습니다.");
+            if(data&&data.result==="success"&&typeof requestFundRuntimeRefreshFast==="function"){
+                requestFundRuntimeRefreshFast({force:true}).catch(function(){});
+            }
+            return data;
+        });
     };
 
     window.showFund=showFund=function(tab,push){
@@ -29514,9 +29564,9 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         const msg=(data&&data.message)||"공금내역이 등록되었습니다.";
         setSubmitState("done",msg);
 
-        const refresh=typeof requestPartialRefresh==="function"
-          ? requestPartialRefresh("fund")
-          : Promise.resolve();
+        const refresh=typeof requestFundRuntimeRefreshFast==="function"
+          ? requestFundRuntimeRefreshFast({force:true})
+          : (typeof requestPartialRefresh==="function"?requestPartialRefresh("fund",{force:true}):Promise.resolve());
         return Promise.resolve(refresh).catch(function(){}).then(function(){
           try{if(currentFundTab==="ledger"&&typeof renderFundTab==="function")renderFundTab();}catch(e){}
           return data;
@@ -29591,9 +29641,9 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
         if(data&&data.fundSummary)window.fundSummary=data.fundSummary;
 
-        const refresh=typeof requestPartialRefresh==="function"
-          ? requestPartialRefresh("fund")
-          : Promise.resolve();
+        const refresh=typeof requestFundRuntimeRefreshFast==="function"
+          ? requestFundRuntimeRefreshFast({force:true})
+          : (typeof requestPartialRefresh==="function"?requestPartialRefresh("fund",{force:true}):Promise.resolve());
         return Promise.resolve(refresh).catch(function(){}).then(function(){
           try{if(typeof renderFundTab==="function")renderFundTab();}catch(e){}
           const msg=(data&&data.message)||"공금내역이 삭제 처리되었습니다.";
