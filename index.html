@@ -5446,6 +5446,34 @@ function requestPartialRefresh(scope,options){
 /* AXE FUND FAST LIVE REFRESH V3 · STABLE BALANCE DIRECT-DOM
    공금내역 mutation 성공 직후 전체 fund_refresh 대신 최소 Supabase snapshot을 즉시 조회합니다.
    공금 페이지가 마운트되어 있으면 상단 요약카드(잔액 포함)까지 함께 재렌더링합니다. */
+
+/* AXE FUND UI V5 · one mutation-response state path */
+function hasFundRuntimeSnapshot(data){
+    return !!(data&&data.runtime_snapshot&&data.fundSummary&&Array.isArray(data.fundLedger));
+}
+function applyFundRuntimeSnapshot(data,options){
+    if(!data)return false;
+    const opt=options||{};
+    const savedScrollY=window.scrollY||0;
+
+    applyPartialData(data,"fund");
+    try{renderFundSummaryHeader();}catch(e){}
+    if(opt.renderTab!==false){
+        try{
+            if(document.getElementById("fundContent")&&typeof renderFundTab==="function"){
+                renderFundTab();
+            }
+        }catch(e){}
+    }
+    if(opt.preserveScroll){
+        requestAnimationFrame(function(){
+            try{window.scrollTo({top:savedScrollY,left:0,behavior:"auto"});}catch(e){}
+        });
+    }
+    return true;
+}
+window.applyFundRuntimeSnapshot=applyFundRuntimeSnapshot;
+
 let axeFundRuntimeRefreshPromise=null;
 let axeFundRuntimeRefreshController=null;
 let axeFundRuntimeRefreshSeq=0;
@@ -5480,16 +5508,7 @@ function requestFundRuntimeRefreshFast(options){
         // 이전 요청 응답이 늦게 도착해 최신 상태를 덮지 못하게 합니다.
         if(seq!==axeFundRuntimeRefreshSeq)return data;
 
-        applyPartialData(data,"fund");
-
-        // 상단 요약과 탭 본문을 같은 state에서 각각 렌더링합니다.
-        // 전체 showFund() 재호출은 하지 않아 폼/모달 상태를 보존합니다.
-        try{renderFundSummaryHeader();}catch(e){}
-        try{
-            if(document.getElementById("fundContent")&&typeof renderFundTab==="function"){
-                renderFundTab();
-            }
-        }catch(e){}
+        applyFundRuntimeSnapshot(data,{renderTab:true,preserveScroll:false});
 
         try{
             console.log(
@@ -21245,12 +21264,25 @@ window.axeFundLedgerSemanticV47Debug=window.axeFundLedgerV50Debug;
     modal.classList.add('active');
   };
   window.closeFundLedgerEditV52=function(){const modal=document.getElementById('fundLedgerEditModalV52'); if(modal)modal.classList.remove('active');};
-  function applyFundLedgerResponse(data){
-    if(data&&Array.isArray(data.fundLedger))window.fundLedger=data.fundLedger;
-    if(data&&data.summary)window.fundSummary=data.summary;
+  function applyFundLedgerResponse(data,options){
+    const opt=options||{};
     try{if(typeof DATA_CACHE_KEY!=='undefined')sessionStorage.removeItem(DATA_CACHE_KEY);}catch(e){}
-    if(typeof renderFundTab==='function')renderFundTab();
-    else if(typeof renderFundLedgerFilteredOnly==='function')renderFundLedgerFilteredOnly();
+
+    if(typeof hasFundRuntimeSnapshot==='function'&&hasFundRuntimeSnapshot(data)){
+      return applyFundRuntimeSnapshot(data,{renderTab:true,preserveScroll:!!opt.preserveScroll});
+    }
+
+    try{
+      if(data&&(data.fundLedger!==undefined||data.fundRequests!==undefined||data.fundSummary!==undefined||data.summary!==undefined)){
+        const normalized=Object.assign({},data);
+        if(!normalized.fundSummary&&normalized.summary)normalized.fundSummary=normalized.summary;
+        applyPartialData(normalized,'fund');
+        try{renderFundSummaryHeader();}catch(e){}
+        if(typeof renderFundTab==='function')renderFundTab();
+        return true;
+      }
+    }catch(e){}
+    return false;
   }
   window.saveFundLedgerEditV52=function(){
     const id=trim(getVal('fundLedgerEditIdV52'));
@@ -21275,9 +21307,15 @@ window.axeFundLedgerSemanticV47Debug=window.axeFundLedgerV50Debug;
       evidence_url:getVal('fundLedgerEditEvidenceUrlV52'),
       updated_by:(function(){try{const u=typeof getCurrentUser==='function'?getCurrentUser():null;return String(u&&u.nickname||'').trim();}catch(e){return '';}})()
     };
-    (typeof fundAdminApi==='function'?fundAdminApi(payload):adminApi(payload)).then(function(data){
-      if(data&&data.result==='success'){closeFundLedgerEditV52();applyFundLedgerResponse(data); if(typeof showToast==='function')showToast('공금내역이 수정되었습니다.'); else alert(data.message||'수정되었습니다.');}
-      else alert((data&&data.message)||'수정에 실패했습니다.');
+    const editApi=typeof fundAdminFastApi==='function'?fundAdminFastApi:adminApi;
+    editApi(payload).then(function(data){
+      if(data&&data.result==='success'){
+        closeFundLedgerEditV52();
+        if(!applyFundLedgerResponse(data,{preserveScroll:true})&&typeof requestFundRuntimeRefreshFast==='function'){
+          requestFundRuntimeRefreshFast({force:true}).catch(function(){});
+        }
+        if(typeof showToast==='function')showToast('공금내역이 수정되었습니다.'); else alert(data.message||'수정되었습니다.');
+      }else alert((data&&data.message)||'수정에 실패했습니다.');
     }).catch(function(){alert('수정 중 오류가 발생했습니다.');}).finally(function(){const b=document.getElementById('fundLedgerEditSaveBtnV52'); if(b){b.disabled=false;b.textContent='수정 저장';}});
   };
   window.deleteFundLedgerFromEditV52=function(){
@@ -21286,9 +21324,20 @@ window.axeFundLedgerSemanticV47Debug=window.axeFundLedgerV50Debug;
     const reason=prompt('삭제 사유를 입력해주세요.');
     if(!reason||!String(reason).trim())return;
     if(!confirm('이 공금내역을 삭제 처리할까요?'))return;
-    (typeof fundAdminApi==='function'?fundAdminApi({type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()}):adminApi({type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()})).then(function(data){
-      if(data&&data.result==='success'){closeFundLedgerEditV52();applyFundLedgerResponse(data); if(typeof showToast==='function')showToast('공금내역이 삭제 처리되었습니다.'); else alert(data.message||'삭제되었습니다.');}
-      else alert((data&&data.message)||'삭제에 실패했습니다.');
+    const deletePayload={type:'fund_ledger_delete',ledger_id:id,delete_memo:String(reason).trim()};
+    const deleteApi=typeof fundAdminFastApi==='function'?fundAdminFastApi:adminApi;
+    deleteApi(deletePayload).then(function(data){
+      if(data&&data.result==='success'){
+        closeFundLedgerEditV52();
+
+        // 정상 Supabase 행은 삭제 응답 snapshot 하나로 상단 잔액+내역을 동시에 갱신합니다.
+        // 별도 fund refresh를 병렬로 시작하지 않아 삭제 직후 잔액 race를 제거합니다.
+        if(!applyFundLedgerResponse(data,{preserveScroll:true})&&typeof requestFundRuntimeRefreshFast==='function'){
+          requestFundRuntimeRefreshFast({force:true}).catch(function(){});
+        }
+
+        if(typeof showToast==='function')showToast('공금내역이 삭제 처리되었습니다.'); else alert(data.message||'삭제되었습니다.');
+      }else alert((data&&data.message)||'삭제에 실패했습니다.');
     }).catch(function(){alert('삭제 중 오류가 발생했습니다.');});
   };
   window.addEventListener('keydown',function(e){if(e.key==='Escape')closeFundLedgerEditV52();});
@@ -29656,13 +29705,14 @@ window.axeMemberAssetV56Debug=function(){return {version:'member-resign-auto-una
         const msg=(data&&data.message)||"공금내역이 등록되었습니다.";
         setSubmitState("done",msg);
 
+        if(typeof hasFundRuntimeSnapshot==="function"&&hasFundRuntimeSnapshot(data)){
+          applyFundRuntimeSnapshot(data,{renderTab:true,preserveScroll:false});
+          return data;
+        }
         const refresh=typeof requestFundRuntimeRefreshFast==="function"
           ? requestFundRuntimeRefreshFast({force:true})
           : (typeof requestPartialRefresh==="function"?requestPartialRefresh("fund",{force:true}):Promise.resolve());
-        return Promise.resolve(refresh).catch(function(){}).then(function(){
-          try{if(currentFundTab==="ledger"&&typeof renderFundTab==="function")renderFundTab();}catch(e){}
-          return data;
-        });
+        return Promise.resolve(refresh).catch(function(){}).then(function(){return data;});
       })
       .catch(function(err){
         const msg=(err&&err.message)||"공금내역 등록 중 오류가 발생했습니다.";
