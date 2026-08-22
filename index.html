@@ -5434,8 +5434,9 @@ function requestPartialRefresh(scope,options){
     return requestPromise;
 }
 
-/* AXE FUND FAST LIVE REFRESH V1
-   공금내역 mutation 성공 직후 전체 fund_refresh 대신 최소 Supabase snapshot을 즉시 조회합니다. */
+/* AXE FUND FAST LIVE REFRESH V2 · STABLE
+   공금내역 mutation 성공 직후 전체 fund_refresh 대신 최소 Supabase snapshot을 즉시 조회합니다.
+   공금 페이지가 마운트되어 있으면 상단 요약카드(잔액 포함)까지 함께 재렌더링합니다. */
 let axeFundRuntimeRefreshPromise=null;
 function requestFundRuntimeRefreshFast(options){
     const opt=options||{};
@@ -5460,8 +5461,13 @@ function requestFundRuntimeRefreshFast(options){
             throw new Error((data&&data.message)||"공금 최신 상태 조회 실패");
         }
         applyPartialData(data,"fund");
+        try{console.log("[AXE FUND FAST REFRESH]",data.refreshed_at||"",data.fundSummary&&data.fundSummary.site_balance,(data.fundLedger||[]).length);}catch(e){}
         try{
-            if(currentMainSection==="fund"&&typeof showFund==="function"){
+            // 공금 페이지가 실제로 화면에 마운트되어 있으면 상단 요약카드까지 함께 다시 그립니다.
+            // currentMainSection 값만 의존하면 공금내역 탭은 갱신돼도 상단 잔액 카드가 남는 경우가 있었습니다.
+            const fundPageMounted=!!document.getElementById("fundContent")||
+                !!document.querySelector(".fund-summary-grid");
+            if(fundPageMounted&&typeof showFund==="function"){
                 showFund(currentFundTab||"status",false);
             }
         }catch(e){}
@@ -18140,13 +18146,32 @@ function fundEvidenceLink(url,label){
     if(!url)return `<span style="color:#777">없음</span>`;
     return `<a class="fund-evidence-link" href="${escapeAttr(url)}" target="_blank" rel="noopener">${label||"보기"}</a>`;
 }
-function fundRefreshAfter(data){
-    if(data&&data.result==="success"){
-        return requestPartialRefresh("fund",{force:true})
-            .then(()=>{showFund(currentFundTab,false);return data;})
-            .catch(()=>{showFund(currentFundTab,false);return data;});
-    }
-    return data;
+function fundRefreshAfter(data,actionType){
+    if(!(data&&data.result==="success"))return data;
+
+    const type=String(actionType||"");
+    const fastLedgerActions={
+        fund_ledger_create:true,
+        fund_ledger_update:true,
+        fund_ledger_delete:true,
+        fund_payment_delete:true,
+        fund_delete_payment:true,
+        fund_payment_remove:true
+    };
+
+    const refreshPromise=fastLedgerActions[type]&&typeof requestFundRuntimeRefreshFast==="function"
+        ? requestFundRuntimeRefreshFast({force:true})
+        : requestPartialRefresh("fund",{force:true});
+
+    return Promise.resolve(refreshPromise)
+        .catch(function(err){
+            console.warn("AXE FUND refresh fallback",err);
+            return null;
+        })
+        .then(function(){
+            try{showFund(currentFundTab||"status",false);}catch(e){}
+            return data;
+        });
 }
 function fundApi(payload){
     const user=getCurrentUser();
@@ -18160,10 +18185,13 @@ function fundApi(payload){
     }
     body.login_nickname=user.nickname;
     body.nickname=requestNickname;
-    return fetch(API_URL,{method:"POST",body:JSON.stringify(body)}).then(res=>res.json()).then(fundRefreshAfter);
+    return fetch(API_URL,{method:"POST",body:JSON.stringify(body)})
+        .then(res=>res.json())
+        .then(function(data){return fundRefreshAfter(data,body.type);});
 }
 function fundAdminApi(payload){
-    return adminApi(payload).then(fundRefreshAfter);
+    const body=Object.assign({},payload||{});
+    return adminApi(body).then(function(data){return fundRefreshAfter(data,body.type);});
 }
 function fileToBase64(file){
     return new Promise((resolve,reject)=>{
