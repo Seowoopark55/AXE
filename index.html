@@ -30028,3 +30028,195 @@ AXE FUND LEDGER CONTROLLER V6
   console.log("[AXE FUND] Ledger Controller V6 ready");
 })();
 </script>
+
+
+<script id="axe-fund-shell-v2-safe">
+/*
+=========================================================
+AXE FUND SHELL V2 · SAFE ISOLATION
+목표:
+- 기존 공금 탭/등록/삭제/API 로직은 건드리지 않음
+- 상단 공용계좌 잔액만 새 Shell이 독립적으로 소유
+- 잔액은 현재 fundLedger state에서만 계산
+- 공금 탭 DOM이 다시 그려질 때 자동으로 self-heal
+=========================================================
+*/
+(function(){
+  "use strict";
+  if(window.__AXE_FUND_SHELL_V2__)return;
+
+  const VERSION="2.0.0";
+  let rafId=0;
+
+  function text(v){return String(v==null?"":v).trim();}
+  function number(v){
+    const n=Number(String(v==null?"0":v).replace(/[$,\s]/g,""));
+    return Number.isFinite(n)?n:0;
+  }
+  function normalizeAccount(v){
+    const s=text(v).replace(/\s+/g,"").toLowerCase();
+    if(!s||s==="공용"||s==="공용계좌"||s==="public")return "공용계좌";
+    if(s==="회사"||s==="회사잔고"||s==="company")return "회사잔고";
+    return text(v);
+  }
+  function normalizeDirection(v){
+    const s=text(v).toLowerCase();
+    if(s==="지출"||s==="출금"||s==="expense"||s==="out")return "지출";
+    if(s==="조정"||s==="adjustment"||s==="adjust")return "조정";
+    return "수입";
+  }
+  function inactive(row){
+    const s=text(row&&(row.status||row.deleted||row.delete_status)).toLowerCase();
+    return s==="삭제"||s==="삭제처리"||s==="deleted"||s==="cancelled"||s==="reversed"||s==="true";
+  }
+  function ledgerState(){
+    try{
+      if(typeof fundLedger!=="undefined"&&Array.isArray(fundLedger))return fundLedger;
+    }catch(e){}
+    return Array.isArray(window.fundLedger)?window.fundLedger:[];
+  }
+  function calculate(rows){
+    let balance=0;
+    (rows||[]).forEach(function(row){
+      if(!row||inactive(row))return;
+      if(normalizeAccount(row.account)!=="공용계좌")return;
+      const amount=number(row.amount);
+      const direction=normalizeDirection(row.direction);
+      if(direction==="지출")balance-=Math.abs(amount);
+      else if(direction==="조정")balance+=amount;
+      else balance+=Math.abs(amount);
+    });
+    return Math.round(balance);
+  }
+  function money(v){
+    try{
+      if(typeof fundMoney==="function")return fundMoney(v);
+    }catch(e){}
+    return Math.round(number(v)).toLocaleString("ko-KR")+"$";
+  }
+
+  function findLegacyBalanceCard(){
+    const root=document.getElementById("fundSummaryRoot");
+    if(!root)return null;
+    return root.querySelector(
+      '.fund-summary-card:first-child .fund-summary-value,'+
+      '[data-fund-summary-value="site_balance"]'
+    );
+  }
+
+  function mountAndSync(){
+    const root=document.getElementById("fundSummaryRoot");
+    if(!root)return false;
+
+    let node=document.getElementById("axeFundLiveBalanceV2");
+    if(!node){
+      const legacy=findLegacyBalanceCard();
+      if(!legacy)return false;
+
+      legacy.id="axeFundLiveBalanceV2";
+      legacy.setAttribute("data-axe-owner","fund-shell-v2");
+      legacy.setAttribute("data-fund-summary-value","site_balance");
+      node=legacy;
+    }
+
+    const rows=ledgerState();
+    const balance=calculate(rows);
+
+    node.textContent=money(balance);
+    node.dataset.balance=String(balance);
+    node.dataset.ledgerCount=String(rows.length);
+
+    // 기존 summary state도 호환성을 위해 같은 값으로 맞추되,
+    // 화면은 이 값에 의존하지 않고 위 ledger 계산값을 직접 사용합니다.
+    try{
+      if(typeof fundSummary!=="undefined"){
+        fundSummary=Object.assign({},fundSummary||{},{site_balance:balance});
+      }
+    }catch(e){}
+    try{
+      window.fundSummary=Object.assign({},window.fundSummary||{},{site_balance:balance});
+    }catch(e){}
+
+    return true;
+  }
+
+  function scheduleSync(){
+    if(rafId)return;
+    rafId=requestAnimationFrame(function(){
+      rafId=0;
+      mountAndSync();
+    });
+  }
+
+  // 공금 페이지/탭이 어떤 레거시 경로로 다시 그려져도
+  // 마지막 렌더 결과에 Shell이 잔액을 다시 소유합니다.
+  const originalShowFund=window.showFund;
+  if(typeof originalShowFund==="function"){
+    window.showFund=function(){
+      const result=originalShowFund.apply(this,arguments);
+      scheduleSync();
+      setTimeout(scheduleSync,0);
+      return result;
+    };
+    try{showFund=window.showFund;}catch(e){}
+  }
+
+  const originalRenderFundTab=window.renderFundTab;
+  if(typeof originalRenderFundTab==="function"){
+    window.renderFundTab=function(){
+      const result=originalRenderFundTab.apply(this,arguments);
+      scheduleSync();
+      return result;
+    };
+    try{renderFundTab=window.renderFundTab;}catch(e){}
+  }
+
+  // 내역은 정상 갱신되는데 상단 Shell만 레거시 렌더에 의해 교체되는 상황을
+  // DOM 수준에서 감지하여 다시 붙입니다. API 호출/등록/삭제는 전혀 건드리지 않습니다.
+  const content=document.getElementById("content");
+  const observer=new MutationObserver(function(mutations){
+    let relevant=false;
+    for(let i=0;i<mutations.length;i++){
+      const target=mutations[i].target;
+      if(
+        document.getElementById("fundSummaryRoot") ||
+        (target&&target.closest&&target.closest("#fundSummaryRoot,#fundContent"))
+      ){
+        relevant=true;
+        break;
+      }
+    }
+    if(relevant)scheduleSync();
+  });
+  if(content){
+    observer.observe(content,{childList:true,subtree:true});
+  }
+
+  window.addEventListener("focus",scheduleSync);
+  document.addEventListener("visibilitychange",function(){
+    if(!document.hidden)scheduleSync();
+  });
+
+  window.__AXE_FUND_SHELL_V2__={
+    version:VERSION,
+    sync:mountAndSync,
+    calculate:function(){return calculate(ledgerState());},
+    debug:function(){
+      const rows=ledgerState();
+      const node=document.getElementById("axeFundLiveBalanceV2");
+      return {
+        version:VERSION,
+        ledger_count:rows.length,
+        calculated_balance:calculate(rows),
+        rendered_balance:node?node.dataset.balance:null,
+        node_exists:!!node,
+        fund_root_exists:!!document.getElementById("fundSummaryRoot")
+      };
+    }
+  };
+
+  scheduleSync();
+  console.log("[AXE FUND] Shell V2 ready");
+})();
+</script>
+
